@@ -126,8 +126,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "算法笔记", "Python"
   ],
-  "articleBody": "算法笔记（三）——图论（Python实现） 图论 树的存储 邻接矩阵 # 创建一个二维列表表示邻接矩阵 n = 10 # 顶点数量 g = [[0] * n for _ in range(n)] # 添加一条边a-\u003eb def add_edge(a, b): g[a][b] = 1 # 初始化 g = [[0] * n for _ in range(n)] 邻接表 # 创建一个列表表示邻接表 n = 10 # 顶点数量 h = [-1] * n e = [0] * n ne = [0] * n idx = 0 # 添加一条边a-\u003eb def add_edge(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 h = [-1] * n 树和图的存储 # 邻接表表示的图 N = 100010 # 根据具体需求设置合适的最大节点数量 # 对于每个点k，开一个单链表，存储k所有可以走到的点。h[k]存储这个单链表的头结点 h = [-1] * N # 存储边的目标节点 e = [0] * N # 存储下一条边的索引 ne = [0] * N # 边的索引 idx = 0 # 添加一条边a-\u003eb def add(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 for i in range(N): h[i] = -1 树和图的遍历 DFS def dfs(u): st[u] = True # st[u] 表示点u已经被遍历过 for i in range(h[u], -1, -1): j = e[i] if not st[j]: dfs(j) BFS from queue import Queue q = Queue() st[1] = True # 表示1号点已经被遍历过 q.put(1) while not q.empty(): t = q.get() for i in range(h[t], -1, -1): j = e[i] if not st[j]: st[j] = True # 表示点j已经被遍历过 q.put(j) 拓扑排序 def topsort(): hh = 0 tt = -1 # d[i] 存储点i的入度 for i in range(1, n + 1): if d[i] == 0: q.append(i) tt += 1 while hh \u003c= tt: t = q[hh] hh += 1 for i in range(h[t], -1, -1): j = e[i] d[j] -= 1 if d[j] == 0: q.append(j) tt += 1 # 如果所有点都入队了，说明存在拓扑序列；否则不存在拓扑序列。 return tt == n - 1 LCA def lca(x,y): if dep[x] \u003c dep[y]: x,y = y,x d = dep[x]-dep[y] while d: # 循环直到深度差为 0 v = d \u0026 -d # 获取 d 的最低位的 1 所在的位置 i = v.bit_length() - 1 # 计算最低位的位置索引 x = fa[i][x] # 将节点 x 上移到和节点 y 同一深度 d -= v # 更新深度差 if x==y: return x for k in range(K-1, -1, -1): if fa[k][x] != fa[k][y]: x = fa[k][x] y = fa[k][y] return fa[0][x] 最短路 单元最短路\n​\t所有边权为正：\n​\t朴素版Dijkstra $O(n^2)$,堆优化版的Dijkstra $O(mlogn)$, ​\t存在负权边\n​\tBellman-Ford $O(nm)$, SPFA 队列优化的Bellman-Ford, 一般情况：$O(m)$ 最坏情况：$O(nm)$ 多元汇最短路：\n​\tFloyed $O(n^3)$ 朴素Dijkstra Dijkstra不能处理负权边：\nN = int(5e2)+10 INF = 0x3f3f3f3f g = [[INF]*N for _ in range(N)] #g = defaultdict(lambda:defaultdict(lambda:INF)) 同样的效果 dis = [INF]*N st = [False]*N def dijkstra(): dis[1]=0 for i in range(n-1): t=-1 for j in range(1,n+1): if not st[j] and (t==-1 or dis[j]\u003cdis[t]): t=j for j in range(1,n+1): dis[j]=min(dis[j], dis[t] + g[t][j]) st[t]=True if dis[n]==INF: return -1 return dis[n] n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int ,input().split()) g[x][y] = min(g[x][y], z) print(dijkstra()) 堆优化版Dijkstra from heapq import * import sys input = lambda:sys.stdin.readline().strip() N = 150010 INF = 0x3f3f3f3f e, ne, head, w, dis= [0]*N, [0]*N, [-1]*N, [0]*N, [INF]*N st = [False]*N idx=0 def add(a, b, x): global idx e[idx]=b w[idx]=x ne[idx]=head[a] head[a]=idx idx+=1 def dijkstra(): dis[1]=0 h=[] heappush(h, (0,1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True i=head[ver] while i!=-1: j=e[i] if not st[j] and dis[j]\u003edist+w[i]: dis[j]=dist+w[i] heappush(h, (dis[j], j)) i=ne[i] if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) add(x,y,z) dijkstra() 另一种写法 from heapq import * from collections import defaultdict import sys input=lambda:sys.stdin.readline().strip() N, INF = 150010, 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def dijkstra(): dis[1]=0 h=[] heappush(h, (0, 1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True for y, z in g[ver]: if dis[y]\u003edis[ver]+z: dis[y]=dis[ver]+z heappush(h, (dis[y], y)) if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x,y,z = map(int, input().split()) g[x].append((y, z)) dijkstra() Bellman-Ford # n表示点数，m表示边数 dist = [float('inf')] * (n + 1) # dist[x]存储1到x的最短路距离 # 边，a表示出点，b表示入点，w表示边的权重 edges = [] # 求1到n的最短路距离，如果无法从1走到n，则返回-1。 def bellman_ford(): dist[1] = 0 # 如果第n次迭代仍然会松弛三角不等式，就说明存在一条长度是n+1的最短路径，由抽屉原理，路径中至少存在两个相同的点，说明图中存在负权回路。 for i in range(n): for j in range(m): a, b, w = edges[j]['a'], edges[j]['b'], edges[j]['w'] if dist[b] \u003e dist[a] + w: dist[b] = dist[a] + w if dist[n] \u003e float('inf') / 2: return -1 return dist[n] SPFA from collections import defaultdict, deque import sys input = lambda:sys.stdin.readline().strip() N, INF = int(1e5+10), 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def spfa(): q=deque() q.append(1) st[1]=True dis[1]=0 while q: x=q.popleft() st[x]=False for y, z in g[x]: if dis[y]\u003edis[x]+z: dis[y]=dis[x]+z if not st[y]: st[y]=True q.append(y) if dis[n]==INF: print('impossible') else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) g[x].append((y, z)) spfa() 判断负环 from collections import deque N = int(1e5+10) INF = 0x3f3f3f3f n = 0 # 总点数 h = [-1] * N # 邻接表存储所有边 e, ne, w = [0] * N, [0] * N, [0] * N idx = 0 dist, cnt = [INF] * N, [0] * N # dist[x]存储1号点到x的最短距离，cnt[x]存储1到x的最短路中经过的点数 st = [False] * N # 存储每个点是否在队列中 # 如果存在负环，则返回True，否则返回False。 def spfa(): # 不需要初始化dist数组 # 原理：如果某条最短路径上有n个点（除了自己），那么加上自己之后一共有n+1个点，由抽屉原理一定有两个点相同，所以存在环 q = deque() for i in range(1, n + 1): q.append(i) st[i] = True while q: t = q.popleft() st[t] = False i = h[t] while i != -1: j = e[i] if dist[j] \u003e dist[t] + w[i]: dist[j] = dist[t] + w[i] cnt[j] = cnt[t] + 1 if cnt[j] \u003e= n: return True # 如果从1号点到x的最短路中包含至少n个点（不包括自己），则说明存在环 if not st[j]: q.append(j) st[j] = True i = ne[i] return False # Example usage: # n = 5 # h = [-1, 2, 1, 4, 3, -1] # e = [0, 2, 1, 4, 3, 0] # ne = [1, -1, 3, -1, -1, 2] # w = [0, 1, 2, 3, 4, 5] # if spfa(): # print(\"Exist negative cycle\") # else: # print(\"No negative cycle\") floyd INF = float('inf') # 初始化距离矩阵d，d[a][b]表示a到b的最短距离 def initialize(n): d = [[0 if i == j else INF for j in range(n)] for i in range(n)] return d # Floyd算法求解最短路径 def floyd(d, n): for k in range(n): for i in range(n): for j in range(n): d[i][j] = min(d[i][j], d[i][k] + d[k][j]) return d # Example usage: # n = 5 # d = initialize(n) # d = floyd(d, n) # print(d) Prim INF = float('inf') # Prim算法求解最小生成树的权重之和 def prim(n, g): dist = [INF] * (n + 1) st = [False] * (n + 1) res = 0 for i in range(n): t = -1 for j in range(1, n + 1): if not st[j] and (t == -1 or dist[t] \u003e dist[j]): t = j if i and dist[t] == INF: return INF if i: res += dist[t] st[t] = True for j in range(1, n + 1): dist[j] = min(dist[j], g[t][j]) return res # Example usage: # n = 5 # g = [[0] * (n + 1) for _ in range(n + 1)] # dist = prim(n, g) # print(dist) Kruskal INF = float('inf') # 并查集的查找操作 def find(x, p): if p[x] != x: p[x] = find(p[x], p) return p[x] # Kruskal算法求解最小生成树的权重之和 def kruskal(n, m, edges): edges.sort(key=lambda x: x[2]) # 按照边权重对边进行排序 p = [i for i in range(n + 1)] # 初始化并查集的父节点数组 res = 0 cnt = 0 for edge in edges: a, b, w = edge a = find(a, p) b = find(b, p) if a != b: # 如果两个连通块不连通，则将这两个连通块合并 p[a] = b res += w cnt += 1 if cnt \u003c n - 1: return INF return res # Example usage: # n, m = 5, 7 # edges = [(1, 2, 2), (1, 3, 5), (1, 4, 6), (2, 3, 1), (2, 4, 3), (3, 4, 4), (4, 5, 7)] # min_spanning_tree_weight = kruskal(n, m, edges) # print(min_spanning_tree_weight) 染色法 # 定义全局变量 N = 10005 # 根据需要修改 M = 20005 # 根据需要修改 h = [-1] * N # 邻接表头 e, ne = [0] * M, [0] * M # 邻接表存储图 idx = 0 # 邻接表索引 color = [-1] * N # 表示每个点的颜色，-1表示未染色，0表示白色，1表示黑色 # 深度优先搜索进行着色 def dfs(u, c): color[u] = c i = h[u] while i != -1: j = e[i] if color[j] == -1: if not dfs(j, 1 - c): return False elif color[j] == c: return False i = ne[i] return True # 检查图是否是二分图 def check(n): flag = True for i in range(1, n + 1): if color[i] == -1: if not dfs(i, 0): flag = False break return flag # Example usage: # n = 5 # h = [-1, 2, -1, 4, -1, 4] # 邻接表头 # e = [0, 3, 0, 1, 0, 4] # 邻接表存储图 # ne = [1, -1, -1, 2, 5, -1] # 邻接表存储图 # if check(n): # print(\"Graph is a bipartite graph.\") # else: # print(\"Graph is not a bipartite graph.\") 匈牙利算法 N = 1005 # 根据需要修改 M = 100005 # 根据需要修改 h = [-1] * N # 邻接表头 e, ne = [0] * M, [0] * M # 邻接表存储所有边，只存储从第二个集合指向第一个集合的边 idx = 0 # 邻接表索引 match = [0] * N # 存储第二个集合中的每个点当前匹配的第一个集合中的点是哪个 st = [False] * N # 表示第二个集合中的每个点是否已经被遍历过 # 匈牙利算法中的深度优先搜索寻找增广路 def find(x): for i in range(h[x]): j = e[i] if not st[j]: st[j] = True if match[j] == 0 or find(match[j]): match[j] = x return True return False # 求最大匹配数 def hungarian(n1, n2): res = 0 for i in range(1, n1 + 1): st = [False] * N # 重置st数组 if find(i): res += 1 return res # Example usage: # n1, n2 = 5, 5 # h = [-1, 2, 3, 4, 0, 0] # 邻接表头 # e = [1, 2, 3, 4, 0, 0] # 邻接表存储所有边，只存储从第二个集合指向第一个集合的边 # ne = [1, 2, 3, 4, -1, -1] # 邻接表存储所有边，只存储从第二个集合指向第一个集合的边 # max_matching = hungarian(n1, n2) # print(max_matching) ",
-  "wordCount" : "2715",
+  "articleBody": "算法笔记（三）——图论（Python实现） 图论 树的存储 邻接矩阵 # 创建一个二维列表表示邻接矩阵 n = 10 # 顶点数量 g = [[0] * n for _ in range(n)] # 添加一条边a-\u003eb def add_edge(a, b): g[a][b] = 1 # 初始化 g = [[0] * n for _ in range(n)] 邻接表 # 创建一个列表表示邻接表 n = 10 # 顶点数量 h = [-1] * n e = [0] * n ne = [0] * n idx = 0 # 添加一条边a-\u003eb def add_edge(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 h = [-1] * n 树和图的存储 # 邻接表表示的图 N = 100010 # 根据具体需求设置合适的最大节点数量 # 对于每个点k，开一个单链表，存储k所有可以走到的点。h[k]存储这个单链表的头结点 h = [-1] * N # 存储边的目标节点 e = [0] * N # 存储下一条边的索引 ne = [0] * N # 边的索引 idx = 0 # 添加一条边a-\u003eb def add(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 for i in range(N): h[i] = -1 树和图的遍历 DFS def dfs(u): st[u] = True i = h[u] while i!=-1: j = e[i] if not st[j]: dfs(j) i = ne[i] BFS from collections import deque q = deque() st[1] = True q.append(1) while q: t = q.popleft() i = h[t] while i!=-1: j=e[i] if not st[j]: st[j] = True q.append(j) i=ne[i] 拓扑排序 def topsort(): hh, tt = 0, -1 for i in range(1, n+1): if d[i]==0: q.append(i) tt+=1 while hh\u003c=tt: t = q[hh] hh+=1 i = h[t] while i!=-1: j = e[i] d[j]-=1 if d[j]==0: q.append(j) tt+=1 i = ne[i] return tt==n-1 LCA def lca(x,y): if dep[x] \u003c dep[y]: x,y = y,x d = dep[x]-dep[y] while d: # 循环直到深度差为 0 v = d \u0026 -d # 获取 d 的最低位的 1 所在的位置 i = v.bit_length() - 1 # 计算最低位的位置索引 x = fa[i][x] # 将节点 x 上移到和节点 y 同一深度 d -= v # 更新深度差 if x==y: return x for k in range(K-1, -1, -1): if fa[k][x] != fa[k][y]: x = fa[k][x] y = fa[k][y] return fa[0][x] # 初始化深度以及父节点信息 dep[x]=dep[val]+1 dep[y]=dep[val]+1 fa[0][x] = val fa[0][y] = val for k in range(K-1): fa[k+1][x] = fa[k][fa[k][x]] # 自己的第2^(1+1)级父亲即为 自己的第2^(1)级父亲 的第2^(1)级父亲 fa[k+1][y] = fa[k][fa[k][y]] 最短路 单元最短路\n​\t所有边权为正：\n​\t朴素版Dijkstra $O(n^2)$,堆优化版的Dijkstra $O(mlogn)$, ​\t存在负权边\n​\tBellman-Ford $O(nm)$, SPFA 队列优化的Bellman-Ford, 一般情况：$O(m)$ 最坏情况：$O(nm)$ 多元汇最短路：\n​\tFloyed $O(n^3)$ 朴素Dijkstra Dijkstra不能处理负权边：\nN = int(5e2)+10 INF = 0x3f3f3f3f g = [[INF]*N for _ in range(N)] #g = defaultdict(lambda:defaultdict(lambda:INF)) 同样的效果 dis = [INF]*N st = [False]*N def dijkstra(): dis[1]=0 for i in range(n-1): t=-1 for j in range(1,n+1): if not st[j] and (t==-1 or dis[j]\u003cdis[t]): t=j for j in range(1,n+1): dis[j]=min(dis[j], dis[t] + g[t][j]) st[t]=True if dis[n]==INF: return -1 return dis[n] n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int ,input().split()) g[x][y] = min(g[x][y], z) print(dijkstra()) 堆优化版Dijkstra from heapq import * import sys input = lambda:sys.stdin.readline().strip() N = 150010 INF = 0x3f3f3f3f e, ne, head, w, dis= [0]*N, [0]*N, [-1]*N, [0]*N, [INF]*N st = [False]*N idx=0 def add(a, b, x): global idx e[idx]=b w[idx]=x ne[idx]=head[a] head[a]=idx idx+=1 def dijkstra(): dis[1]=0 h=[] heappush(h, (0,1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True i=head[ver] while i!=-1: j=e[i] if not st[j] and dis[j]\u003edist+w[i]: dis[j]=dist+w[i] heappush(h, (dis[j], j)) i=ne[i] if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) add(x,y,z) dijkstra() 另一种写法 from heapq import * from collections import defaultdict import sys input=lambda:sys.stdin.readline().strip() N, INF = 150010, 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def dijkstra(): dis[1]=0 h=[] heappush(h, (0, 1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True for y, z in g[ver]: if dis[y]\u003edis[ver]+z: dis[y]=dis[ver]+z heappush(h, (dis[y], y)) if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x,y,z = map(int, input().split()) g[x].append((y, z)) dijkstra() Bellman-Ford # n表示点数，m表示边数 dist = [float('inf')] * (n + 1) # dist[x]存储1到x的最短路距离 # 边，a表示出点，b表示入点，w表示边的权重 edges = [] # 求1到n的最短路距离，如果无法从1走到n，则返回-1。 def bellman_ford(): dist[1] = 0 # 如果第n次迭代仍然会松弛三角不等式，就说明存在一条长度是n+1的最短路径，由抽屉原理，路径中至少存在两个相同的点，说明图中存在负权回路。 for i in range(n): for j in range(m): a, b, w = edges[j]['a'], edges[j]['b'], edges[j]['w'] if dist[b] \u003e dist[a] + w: dist[b] = dist[a] + w if dist[n] \u003e float('inf') / 2: return -1 return dist[n] SPFA from collections import defaultdict, deque import sys input = lambda:sys.stdin.readline().strip() N, INF = int(1e5+10), 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def spfa(): q=deque() q.append(1) st[1]=True dis[1]=0 while q: x=q.popleft() st[x]=False for y, z in g[x]: if dis[y]\u003edis[x]+z: dis[y]=dis[x]+z if not st[y]: st[y]=True q.append(y) if dis[n]==INF: print('impossible') else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) g[x].append((y, z)) spfa() 判断负环 from collections import deque N = int(1e5+10) INF = 0x3f3f3f3f n = 0 # 总点数 h = [-1] * N # 邻接表存储所有边 e, ne, w = [0] * N, [0] * N, [0] * N idx = 0 dist, cnt = [INF] * N, [0] * N # dist[x]存储1号点到x的最短距离，cnt[x]存储1到x的最短路中经过的点数 st = [False] * N # 存储每个点是否在队列中 # 如果存在负环，则返回True，否则返回False。 def spfa(): # 不需要初始化dist数组 # 原理：如果某条最短路径上有n个点（除了自己），那么加上自己之后一共有n+1个点，由抽屉原理一定有两个点相同，所以存在环 q = deque() for i in range(1, n + 1): q.append(i) st[i] = True while q: t = q.popleft() st[t] = False i = h[t] while i != -1: j = e[i] if dist[j] \u003e dist[t] + w[i]: dist[j] = dist[t] + w[i] cnt[j] = cnt[t] + 1 if cnt[j] \u003e= n: return True # 如果从1号点到x的最短路中包含至少n个点（不包括自己），则说明存在环 if not st[j]: q.append(j) st[j] = True i = ne[i] return False # Example usage: # n = 5 # h = [-1, 2, 1, 4, 3, -1] # e = [0, 2, 1, 4, 3, 0] # ne = [1, -1, 3, -1, -1, 2] # w = [0, 1, 2, 3, 4, 5] # if spfa(): # print(\"Exist negative cycle\") # else: # print(\"No negative cycle\") floyd INF = float('inf') # 初始化距离矩阵d，d[a][b]表示a到b的最短距离 def initialize(n): d = [[0 if i == j else INF for j in range(n)] for i in range(n)] return d # Floyd算法求解最短路径 def floyd(d, n): for k in range(n): for i in range(n): for j in range(n): d[i][j] = min(d[i][j], d[i][k] + d[k][j]) return d # Example usage: # n = 5 # d = initialize(n) # d = floyd(d, n) # print(d) Prim INF = float('inf') # Prim算法求解最小生成树的权重之和 def prim(n, g): dist = [INF] * (n + 1) st = [False] * (n + 1) res = 0 for i in range(n): t = -1 for j in range(1, n + 1): if not st[j] and (t == -1 or dist[t] \u003e dist[j]): t = j if i and dist[t] == INF: return INF if i: res += dist[t] st[t] = True for j in range(1, n + 1): dist[j] = min(dist[j], g[t][j]) return res # Example usage: # n = 5 # g = [[0] * (n + 1) for _ in range(n + 1)] # dist = prim(n, g) # print(dist) Kruskal INF = float('inf') # 并查集的查找操作 def find(x, p): if p[x] != x: p[x] = find(p[x], p) return p[x] # Kruskal算法求解最小生成树的权重之和 def kruskal(n, m, edges): edges.sort(key=lambda x: x[2]) # 按照边权重对边进行排序 p = [i for i in range(n + 1)] # 初始化并查集的父节点数组 res = 0 cnt = 0 for edge in edges: a, b, w = edge a = find(a, p) b = find(b, p) if a != b: # 如果两个连通块不连通，则将这两个连通块合并 p[a] = b res += w cnt += 1 if cnt \u003c n - 1: return INF return res # Example usage: # n, m = 5, 7 # edges = [(1, 2, 2), (1, 3, 5), (1, 4, 6), (2, 3, 1), (2, 4, 3), (3, 4, 4), (4, 5, 7)] # min_spanning_tree_weight = kruskal(n, m, edges) # print(min_spanning_tree_weight) 染色法 使用了深度优先搜索算法（DFS）来判断一个图是否是二分图\n二分图：顶点分为两个集合，边仅存在于两个不同的集合中，而集合内部都没有边。\nPython优先使用BFS，因为DFS会出现各种问题，爆战，段错误（还没搞清楚原因）等\n这段代码使用了染色法来判断一个无向图是否为二分图。下面我来解释一下：\n题目大意： 给定一个无向图，判断是否可以将其顶点集合划分为两个不相交的子集，使得每条边的两个端点分别属于这两个子集。如果可以，则输出\"Yes\"，否则输出\"No\"。\n实现思路：\n使用邻接表 g 来表示无向图，其中 g[u] 存储与顶点 u 相连的所有顶点。 定义一个数组 color 来标记每个顶点的染色情况，初始值设为 -1 表示未染色。 定义一个 BFS 函数 bfs(u, c)，其中 u 表示起始顶点，c 表示初始颜色。该函数使用 BFS 遍历图，并将顶点染色，保证相邻顶点颜色不同。 在主体部分，遍历所有顶点，对于每个未染色的顶点，调用 bfs 函数进行染色。如果染色过程中发现相邻顶点颜色相同，则返回 “No”，表示无法划分为二分图；否则返回 “Yes”。 import sys from collections import deque, defaultdict input = lambda:sys.stdin.readline().strip() N = int(1e5)+10 g = defaultdict(list) color = [-1]*N def bfs(u, c): color[u] = c q = deque() q.append((u, c)) while q: cur, col = q.popleft() for nx in g[cur]: if color[nx]==-1: color[nx] = 1-col q.append((nx, 1-col)) elif color[nx]==col: return False return True n, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) # if u==v: #***自环不能去掉*** # continue if u not in g[v]: g[v].append(u) if v not in g[u]: g[u].append(v) for i in range(1, n+1): if color[i]==-1: if not bfs(i, 0): print(\"No\") exit() print(\"Yes\") 匈牙利算法 题目大意： 给定一个二分图，其中左侧顶点集合为 (N_1)，右侧顶点集合为 (N_2)，图中存在一些边。需要找到尽可能多的匹配，使得左侧的每个顶点最多与一个右侧的顶点相连，而右侧的每个顶点最多与一个左侧的顶点相连。\n实现思路：\n使用一个二维数组 g 存储图的邻接表表示。其中 g[u] 表示与左侧顶点 u 相连的所有右侧顶点的集合。 定义一个函数 find(x)，用于从左侧顶点 x 开始尝试寻找增广路径，如果找到了增广路径就返回 True，否则返回 False。 在主体部分，遍历左侧的每个顶点，对每个顶点调用 find 函数进行匹配，若成功匹配，则匹配数加一。 import sys from collections import defaultdict N = int(1e3)+10 mat, st = [0]*N, [False]*N g = defaultdict(list) def find(x): for v in g[x]: if not st[v]: st[v] = True if mat[v]==0 or find(mat[v]): mat[v] = x return True return False n1, n2, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) g[u].append(v) # hungarian 主体部分 ans = 0 for i in range(1, n1+1): st = [False]*N if find(i): ans+=1 print(ans) ",
+  "wordCount" : "3027",
   "inLanguage": "en",
   "datePublished": "2024-04-09T15:37:01+08:00",
   "dateModified": "2024-04-09T15:37:01+08:00",
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       算法笔记（三）——图论（Python实现）
     </div>
-    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;6 min&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;7 min&nbsp;·&nbsp;ShowGuan
 
 
 
@@ -394,46 +394,46 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></code></pre></div><h3 id="树和图的遍历">树和图的遍历<a hidden class="anchor" aria-hidden="true" href="#树和图的遍历">#</a></h3>
 <h4 id="dfs">DFS<a hidden class="anchor" aria-hidden="true" href="#dfs">#</a></h4>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u):
-</span></span><span style="display:flex;"><span>    st[u] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>  <span style="color:#75715e"># st[u] 表示点u已经被遍历过</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(h[u], <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    st[u] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> h[u]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
 </span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> e[i]
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j]:
 </span></span><span style="display:flex;"><span>            dfs(j)
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> ne[i]
 </span></span></code></pre></div><h4 id="bfs">BFS<a hidden class="anchor" aria-hidden="true" href="#bfs">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> queue <span style="color:#f92672">import</span> Queue
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>q <span style="color:#f92672">=</span> Queue()
-</span></span><span style="display:flex;"><span>st[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>  <span style="color:#75715e"># 表示1号点已经被遍历过</span>
-</span></span><span style="display:flex;"><span>q<span style="color:#f92672">.</span>put(<span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> <span style="color:#f92672">not</span> q<span style="color:#f92672">.</span>empty():
-</span></span><span style="display:flex;"><span>    t <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>get()
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(h[t], <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> e[i]
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>st[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>q<span style="color:#f92672">.</span>append(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>    t <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> h[t]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        j<span style="color:#f92672">=</span>e[i]
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j]:
-</span></span><span style="display:flex;"><span>            st[j] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>  <span style="color:#75715e"># 表示点j已经被遍历过</span>
-</span></span><span style="display:flex;"><span>            q<span style="color:#f92672">.</span>put(j)
+</span></span><span style="display:flex;"><span>            st[j] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            q<span style="color:#f92672">.</span>append(j)
+</span></span><span style="display:flex;"><span>        i<span style="color:#f92672">=</span>ne[i]
 </span></span></code></pre></div><h3 id="拓扑排序">拓扑排序<a hidden class="anchor" aria-hidden="true" href="#拓扑排序">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">topsort</span>():
-</span></span><span style="display:flex;"><span>    hh <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    tt <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># d[i] 存储点i的入度</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> d[i] <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>    hh, tt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> d[i]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
 </span></span><span style="display:flex;"><span>            q<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>            tt <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> hh <span style="color:#f92672">&lt;=</span> tt:
+</span></span><span style="display:flex;"><span>            tt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> hh<span style="color:#f92672">&lt;=</span>tt:
 </span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> q[hh]
-</span></span><span style="display:flex;"><span>        hh <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(h[t], <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        hh<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> h[t]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
 </span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> e[i]
-</span></span><span style="display:flex;"><span>            d[j] <span style="color:#f92672">-=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> d[j] <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>            d[j]<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> d[j]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
 </span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append(j)
-</span></span><span style="display:flex;"><span>                tt <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 如果所有点都入队了，说明存在拓扑序列；否则不存在拓扑序列。</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> tt <span style="color:#f92672">==</span> n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                tt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> ne[i]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> tt<span style="color:#f92672">==</span>n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
 </span></span></code></pre></div><h3 id="lca">LCA<a hidden class="anchor" aria-hidden="true" href="#lca">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">lca</span>(x,y):
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dep[x] <span style="color:#f92672">&lt;</span> dep[y]:
@@ -451,6 +451,16 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>            x <span style="color:#f92672">=</span> fa[k][x]
 </span></span><span style="display:flex;"><span>            y <span style="color:#f92672">=</span> fa[k][y]
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> fa[<span style="color:#ae81ff">0</span>][x]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化深度以及父节点信息</span>
+</span></span><span style="display:flex;"><span>dep[x]<span style="color:#f92672">=</span>dep[val]<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>dep[y]<span style="color:#f92672">=</span>dep[val]<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>fa[<span style="color:#ae81ff">0</span>][x] <span style="color:#f92672">=</span> val
+</span></span><span style="display:flex;"><span>fa[<span style="color:#ae81ff">0</span>][y] <span style="color:#f92672">=</span> val
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(K<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    fa[k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][x] <span style="color:#f92672">=</span> fa[k][fa[k][x]] <span style="color:#75715e"># 自己的第2^(1+1)级父亲即为 自己的第2^(1)级父亲 的第2^(1)级父亲</span>
+</span></span><span style="display:flex;"><span>    fa[k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][y] <span style="color:#f92672">=</span> fa[k][fa[k][y]]
 </span></span></code></pre></div><h3 id="最短路">最短路<a hidden class="anchor" aria-hidden="true" href="#最短路">#</a></h3>
 <ul>
 <li>
@@ -769,83 +779,93 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># min_spanning_tree_weight = kruskal(n, m, edges)</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># print(min_spanning_tree_weight)</span>
 </span></span></code></pre></div><h3 id="染色法">染色法<a hidden class="anchor" aria-hidden="true" href="#染色法">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 定义全局变量</span>
-</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">10005</span>  <span style="color:#75715e"># 根据需要修改</span>
-</span></span><span style="display:flex;"><span>M <span style="color:#f92672">=</span> <span style="color:#ae81ff">20005</span>  <span style="color:#75715e"># 根据需要修改</span>
-</span></span><span style="display:flex;"><span>h <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 邻接表头</span>
-</span></span><span style="display:flex;"><span>e, ne <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> M, [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> M  <span style="color:#75715e"># 邻接表存储图</span>
-</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>  <span style="color:#75715e"># 邻接表索引</span>
-</span></span><span style="display:flex;"><span>color <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 表示每个点的颜色，-1表示未染色，0表示白色，1表示黑色</span>
+<p>使用了深度优先搜索算法（DFS）来判断一个图是否是二分图</p>
+<p><strong>二分图</strong>：顶点分为两个集合，边仅存在于两个不同的集合中，而集合内部都没有边。</p>
+<p>Python优先使用BFS，因为DFS会出现各种问题，爆战，段错误（还没搞清楚原因）等</p>
+<p>这段代码使用了染色法来判断一个无向图是否为二分图。下面我来解释一下：</p>
+<p><strong>题目大意：</strong>
+给定一个无向图，判断是否可以将其顶点集合划分为两个不相交的子集，使得每条边的两个端点分别属于这两个子集。如果可以，则输出&quot;Yes&quot;，否则输出&quot;No&quot;。</p>
+<p><strong>实现思路：</strong></p>
+<ol>
+<li>使用邻接表 <code>g</code> 来表示无向图，其中 <code>g[u]</code> 存储与顶点 <code>u</code> 相连的所有顶点。</li>
+<li>定义一个数组 <code>color</code> 来标记每个顶点的染色情况，初始值设为 <code>-1</code> 表示未染色。</li>
+<li>定义一个 BFS 函数 <code>bfs(u, c)</code>，其中 <code>u</code> 表示起始顶点，<code>c</code> 表示初始颜色。该函数使用 BFS 遍历图，并将顶点染色，保证相邻顶点颜色不同。</li>
+<li>在主体部分，遍历所有顶点，对于每个未染色的顶点，调用 <code>bfs</code> 函数进行染色。如果染色过程中发现相邻顶点颜色相同，则返回 &ldquo;No&rdquo;，表示无法划分为二分图；否则返回 &ldquo;Yes&rdquo;。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque, defaultdict
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> defaultdict(list)
+</span></span><span style="display:flex;"><span>color <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>N
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 深度优先搜索进行着色</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u, c):
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bfs</span>(u, c):
 </span></span><span style="display:flex;"><span>    color[u] <span style="color:#f92672">=</span> c
-</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> h[u]
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> e[i]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> color[j] <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> dfs(j, <span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> c):
+</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>    q<span style="color:#f92672">.</span>append((u, c))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>        cur, col <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> nx <span style="color:#f92672">in</span> g[cur]:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> color[nx]<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>                color[nx] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">-</span>col
+</span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append((nx, <span style="color:#ae81ff">1</span><span style="color:#f92672">-</span>col))
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">elif</span> color[nx]<span style="color:#f92672">==</span>col:
 </span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">elif</span> color[j] <span style="color:#f92672">==</span> c:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> ne[i]
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 检查图是否是二分图</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">check</span>(n):
-</span></span><span style="display:flex;"><span>    flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> color[i] <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> dfs(i, <span style="color:#ae81ff">0</span>):
-</span></span><span style="display:flex;"><span>                flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> flag
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># n = 5</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># h = [-1, 2, -1, 4, -1, 4]  # 邻接表头</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># e = [0, 3, 0, 1, 0, 4]  # 邻接表存储图</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># ne = [1, -1, -1, 2, 5, -1]  # 邻接表存储图</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># if check(n):</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#     print(&#34;Graph is a bipartite graph.&#34;)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># else:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#     print(&#34;Graph is not a bipartite graph.&#34;)</span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    u, v <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># if u==v: #***自环不能去掉***</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#     continue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> g[v]:
+</span></span><span style="display:flex;"><span>        g[v]<span style="color:#f92672">.</span>append(u)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> v <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> g[u]:
+</span></span><span style="display:flex;"><span>        g[u]<span style="color:#f92672">.</span>append(v)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> color[i]<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> bfs(i, <span style="color:#ae81ff">0</span>):
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">&#34;No&#34;</span>)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Yes&#34;</span>)
 </span></span></code></pre></div><h3 id="匈牙利算法">匈牙利算法<a hidden class="anchor" aria-hidden="true" href="#匈牙利算法">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">1005</span>  <span style="color:#75715e"># 根据需要修改</span>
-</span></span><span style="display:flex;"><span>M <span style="color:#f92672">=</span> <span style="color:#ae81ff">100005</span>  <span style="color:#75715e"># 根据需要修改</span>
-</span></span><span style="display:flex;"><span>h <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 邻接表头</span>
-</span></span><span style="display:flex;"><span>e, ne <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> M, [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> M  <span style="color:#75715e"># 邻接表存储所有边，只存储从第二个集合指向第一个集合的边</span>
-</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>  <span style="color:#75715e"># 邻接表索引</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">match</span> <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 存储第二个集合中的每个点当前匹配的第一个集合中的点是哪个</span>
-</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 表示第二个集合中的每个点是否已经被遍历过</span>
+<p><strong>题目大意：</strong>
+给定一个二分图，其中左侧顶点集合为 (N_1)，右侧顶点集合为 (N_2)，图中存在一些边。需要找到尽可能多的匹配，使得左侧的每个顶点最多与一个右侧的顶点相连，而右侧的每个顶点最多与一个左侧的顶点相连。</p>
+<p><strong>实现思路：</strong></p>
+<ol>
+<li>使用一个二维数组 <code>g</code> 存储图的邻接表表示。其中 <code>g[u]</code> 表示与左侧顶点 <code>u</code> 相连的所有右侧顶点的集合。</li>
+<li>定义一个函数 <code>find(x)</code>，用于从左侧顶点 <code>x</code> 开始尝试寻找增广路径，如果找到了增广路径就返回 <code>True</code>，否则返回 <code>False</code>。</li>
+<li>在主体部分，遍历左侧的每个顶点，对每个顶点调用 <code>find</code> 函数进行匹配，若成功匹配，则匹配数加一。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e3</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>mat, st <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N, [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> defaultdict(list)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 匈牙利算法中的深度优先搜索寻找增广路</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find</span>(x):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(h[x]):
-</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> e[i]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j]:
-</span></span><span style="display:flex;"><span>            st[j] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#66d9ef">match</span>[j] <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> find(<span style="color:#66d9ef">match</span>[j]):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">match</span>[j] <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> v <span style="color:#f92672">in</span> g[x]:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[v]:
+</span></span><span style="display:flex;"><span>            st[v] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> mat[v]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> find(mat[v]):
+</span></span><span style="display:flex;"><span>                mat[v] <span style="color:#f92672">=</span> x
 </span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>n1, n2, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    u, v <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    g[u]<span style="color:#f92672">.</span>append(v)
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 求最大匹配数</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hungarian</span>(n1, n2):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 重置st数组</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> find(i):
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># n1, n2 = 5, 5</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># h = [-1, 2, 3, 4, 0, 0]  # 邻接表头</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># e = [1, 2, 3, 4, 0, 0]  # 邻接表存储所有边，只存储从第二个集合指向第一个集合的边</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># ne = [1, 2, 3, 4, -1, -1]  # 邻接表存储所有边，只存储从第二个集合指向第一个集合的边</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># max_matching = hungarian(n1, n2)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(max_matching)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># hungarian 主体部分</span>
+</span></span><span style="display:flex;"><span>ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n1<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> find(i):
+</span></span><span style="display:flex;"><span>        ans<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>print(ans)
 </span></span></code></pre></div>
 
   </div>
