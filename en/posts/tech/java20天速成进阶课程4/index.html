@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function() {
     "Java"
   ],
   "articleBody": "Java20天速成——进阶课程(4) 特殊文件 properties, xml\n为什么要用这些特殊文件？\n存储多个用户的：用户名， 密码， 家乡， 性别\n日志技术\n把程序运行的信息，记录到文件中，方便程序员定位bug， 并了解程序的执行情况等。\nProperties 是一个Map集合（键值对集合）， 但是一般不会当集合使用 核心作用：Properties是用来代表属性文件的，通过Properties可以读写属性文件里面的内容 public static void main(String[] args) throws IOException { // 创建一个Properties对象 Properties properties = new Properties(); // 输出初始的Properties对象，此时为空 System.out.println(properties); // 从文件加载Properties数据 properties.load(new FileReader(\"file-io-app\\\\properties-xml-log-app\\\\src\\\\users.properties\")); // 输出加载后的Properties对象，包含从文件中读取的键值对 System.out.println(properties); // 根据指定键取得对应的值 System.out.println(properties.get(\"ken\")); // 获取Properties对象中所有的键，并遍历输出每个键值对 Set\u003cString\u003e keys = properties.stringPropertyNames(); for (String key : keys) { String val = properties.getProperty(key); System.out.println(key + \"----\u003e\" + val); } } XML 本质是一种数据的格式，可以用来存储复杂的数据结构，和数据关系 XML特点\nXML中的\u003c标签名\u003e称为一个标签或一个元素，一般是成对出现的 xml解析(dom4j) public static void main(String[] args) throws DocumentException { // 创建SAXReader对象 SAXReader saxReader = new SAXReader(); // 使用SAXReader解析XML文件并生成Document对象 Document document = saxReader.read(\"file-io-app\\\\properties-xml-log-app\\\\src\\\\helloworld.xml\"); // 获取XML文档的根元素并输出其名称 Element root = document.getRootElement(); System.out.println(root.getName()); // 获取根元素下名为\"user\"的所有子元素并输出它们的名称 List\u003cElement\u003e elements = root.elements(\"user\"); for (Element element : elements) { System.out.println(element.getName()); } // 获取名为\"people\"的元素的文本内容并输出 Element people = root.element(\"people\"); System.out.println(people.getText()); // 获取名为\"user\"的元素下名为\"user\"的子元素的文本内容并输出 Element user = root.element(\"user\"); System.out.println(user.elementText(\"user\")); // 获取名为\"user\"的元素的名为\"id\"的属性值并输出 System.out.println(user.attributeValue(\"id\")); // 获取名为\"user\"的元素的名为\"id\"的属性，并输出属性名和属性值 Attribute id = user.attribute(\"id\"); System.out.println(id.getName()); System.out.println(id.getValue()); // 获取名为\"user\"的元素的所有属性，并输出它们的名和值 List\u003cAttribute\u003e attributes = user.attributes(); for (Attribute attribute : attributes) { System.out.println(attribute.getName() + attribute.getValue()); } // 输出名为\"user\"的元素下名为\"name\"、\"地址\"和\"password\"的子元素的文本内容 System.out.println(user.elementText(\"name\")); System.out.println(user.elementText(\"地址\")); System.out.println(user.elementText(\"password\")); // 获取名为\"user\"的元素下名为\"data\"的子元素的文本内容，并输出包括前后空格的文本和去除前后空格的文本 Element data = user.element(\"data\"); System.out.println(data.getText()); System.out.println(data.getTextTrim()); //去除前后空格 } 写入XML文件 使用程序把数据写出到xml中\n不建议使用dom4j， 推荐直接把程序里的数据拼接成xml格式\npublic static void main(String[] args) throws IOException { // 创建一个StringBuilder对象，用于构建XML内容 StringBuilder sb = new StringBuilder(); // 构建XML头部信息和根元素 sb.append(\"\u003c?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\" ?\u003e\"); sb.append(\"\\r\\n\"); // 添加书名、作者和价格信息作为子元素 sb.append(\"\").append(\"从入门到删库\").append(\"\\r\\n\"); sb.append(\"\").append(\"ai\").append(\"\\r\\n\"); sb.append(\"\").append(999.999).append(\"\\r\\n\"); // 关闭根元素 sb.append(\"\\r\\n\"); try ( // 使用try-with-resources语法创建BufferedWriter对象，将内容写入到文件中 BufferedWriter bw = new BufferedWriter(new FileWriter(\"file-io-app\\\\properties-xml-log-app\\\\src\\\\test.xml\")); ){ bw.write(sb.toString()); // 将StringBuilder对象中的内容写入到文件中 } catch (Exception e) { e.printStackTrace(); // 打印异常信息 } } 约束XML文件的书写 就是限制XML文件只能按照某种格式进行书写 约束文档：\n专门用来显示xml书写格式的文档，比如：限制标签，属性该怎么写 约束文档的分类\nDTD文档 Schema文档 XML文档结束-DTD的使用 需求：利用DTD约束文档，约束一个XML文件的编写。\nDTD(约束文档)\n\u003c!ELEMENT 书架 (书+)\u003e \u003c!ELEMENT 书 (书名,作者,售价)\u003e \u003c!ELEMENT 书名 (#PCDATA)\u003e \u003c!ELEMENT 作者 (#PCDATA)\u003e \u003c!ELEMENT 售价 (#PCDATA)\u003e XML文档\n\u003c?xml version=\"1.0\" encoding=\"UTF-8\" ?\u003e \u003c!DOCTYPE 书架 SYSTEM \"data.dtd\"\u003e \u003c书架\u003e \u003c书\u003e \u003c书名\u003e从删库到跑路\u003c/书名\u003e \u003c作者\u003eKenn\u003c/作者\u003e \u003c售价\u003e0.3\u003c/售价\u003e \u003c/书\u003e \u003c/书架\u003e XML文档结束-schema的使用 可以约束XML文件的编写、和数据类型 \u003c?xml version=\"1.0\" encoding=\"UTF-8\" ?\u003e ",
-  "wordCount" : "3710",
+  "wordCount" : "9318",
   "inLanguage": "en",
   "datePublished": "2024-04-20T22:30:13+08:00",
   "dateModified": "2024-04-20T22:20:13+08:00",
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Java学习笔记
     </div>
-    <div class="post-meta"><span title='2024-04-20 22:30:13 +0800 CST'>2024-04-20</span>&nbsp;·&nbsp;8 min&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-20 22:30:13 +0800 CST'>2024-04-20</span>&nbsp;·&nbsp;19 min&nbsp;·&nbsp;ShowGuan
 
 
 
@@ -294,13 +294,61 @@ document.addEventListener("DOMContentLoaded", function() {
                     <a href="#%e5%a4%9a%e7%ba%bf%e7%a8%8b" aria-label="多线程">多线程</a><ul>
                         
                 <li>
-                    <a href="#%e5%88%9b%e5%bb%ba%e6%96%b9%e5%bc%8f%e4%b8%80%e7%bb%a7%e6%89%bfthread%e7%b1%bb" aria-label="创建方式一：继承Thread类">创建方式一：继承Thread类</a></li>
+                    <a href="#%e6%96%b9%e5%bc%8f%e4%b8%80%e7%bb%a7%e6%89%bfthread%e7%b1%bb" aria-label="方式一：继承Thread类">方式一：继承Thread类</a></li>
                 <li>
-                    <a href="#%e5%a4%9a%e7%ba%bf%e7%a8%8b%e7%9a%84%e5%88%9b%e5%bb%ba%e6%96%b9%e5%bc%8f%e4%ba%8c%e5%ae%9e%e7%8e%b0runnable%e6%8e%a5%e5%8f%a3" aria-label="多线程的创建方式二：实现Runnable接口">多线程的创建方式二：实现Runnable接口</a></li>
+                    <a href="#%e6%96%b9%e5%bc%8f%e4%ba%8c%e5%ae%9e%e7%8e%b0runnable%e6%8e%a5%e5%8f%a3" aria-label="方式二：实现Runnable接口">方式二：实现Runnable接口</a></li>
                 <li>
-                    <a href="#%e5%a4%9a%e7%ba%bf%e7%a8%8b%e7%9a%84%e7%ac%ac%e4%b8%89%e7%a7%8d%e5%88%9b%e5%bb%ba%e6%96%b9%e5%bc%8f%e5%88%a9%e7%94%a8callable%e6%8e%a5%e5%8f%a3futuretask%e7%b1%bb%e6%9d%a5%e5%ae%9e%e7%8e%b0" aria-label="多线程的第三种创建方式：利用Callable接口，FutureTask类来实现">多线程的第三种创建方式：利用Callable接口，FutureTask类来实现</a></li>
+                    <a href="#%e6%96%b9%e5%bc%8f%e4%b8%89%e5%88%a9%e7%94%a8callable%e6%8e%a5%e5%8f%a3futuretask%e7%b1%bb%e6%9d%a5%e5%ae%9e%e7%8e%b0" aria-label="方式三：利用Callable接口，FutureTask类来实现">方式三：利用Callable接口，FutureTask类来实现</a></li>
                 <li>
-                    <a href="#%e7%ba%bf%e7%a8%8b%e5%b8%b8%e7%94%a8%e6%96%b9%e6%b3%95" aria-label="线程常用方法">线程常用方法</a>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e5%b8%b8%e7%94%a8%e6%96%b9%e6%b3%95" aria-label="线程常用方法">线程常用方法</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e5%ae%89%e5%85%a8" aria-label="线程安全">线程安全</a><ul>
+                        
+                <li>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e5%90%8c%e6%ad%a5%e7%9a%84%e5%b8%b8%e8%a7%81%e6%96%b9%e6%a1%88" aria-label="线程同步的常见方案">线程同步的常见方案</a><ul>
+                        
+                <li>
+                    <a href="#1-%e5%90%8c%e6%ad%a5%e4%bb%a3%e7%a0%81%e5%9d%97" aria-label="(1) 同步代码块">(1) 同步代码块</a></li>
+                <li>
+                    <a href="#2-%e5%90%8c%e6%ad%a5%e6%96%b9%e6%b3%95" aria-label="(2) 同步方法">(2) 同步方法</a></li>
+                <li>
+                    <a href="#3-lock%e9%94%81" aria-label="(3) Lock锁">(3) Lock锁</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e9%97%b4%e9%80%9a%e4%bf%a1" aria-label="线程间通信">线程间通信</a></li>
+                <li>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e6%b1%a0" aria-label="线程池">线程池</a><ul>
+                        
+                <li>
+                    <a href="#%e6%96%b0%e4%bb%bb%e5%8a%a1%e6%8b%92%e7%bb%9d%e7%ad%96%e7%95%a5" aria-label="新任务拒绝策略">新任务拒绝策略</a></li>
+                <li>
+                    <a href="#executorservice%e7%9a%84%e5%b8%b8%e7%94%a8%e6%96%b9%e6%b3%95" aria-label="ExecutorService的常用方法">ExecutorService的常用方法</a><ul>
+                        
+                <li>
+                    <a href="#%e6%89%a7%e8%a1%8crunnable%e4%bb%bb%e5%8a%a1" aria-label="执行Runnable任务">执行Runnable任务</a></li>
+                <li>
+                    <a href="#%e6%89%a7%e8%a1%8ccallable%e4%bb%bb%e5%8a%a1" aria-label="执行Callable任务">执行Callable任务</a></li></ul>
+                </li>
+                <li>
+                    <a href="#executors" aria-label="Executors">Executors</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%b9%b6%e5%8f%91%e5%b9%b6%e8%a1%8c" aria-label="并发、并行">并发、并行</a><ul>
+                        
+                <li>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e7%9a%84%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f" aria-label="线程的生命周期">线程的生命周期</a><ul>
+                        
+                <li>
+                    <a href="#%e7%ba%bf%e7%a8%8b%e7%9a%846%e7%a7%8d%e7%8a%b6%e6%80%81%e6%80%bb%e7%bb%93" aria-label="线程的6种状态总结">线程的6种状态总结</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%82%b2%e8%a7%82%e9%94%81%e4%b9%90%e8%a7%82%e9%94%81%e5%8e%9f%e7%90%86" aria-label="悲观锁、乐观锁原理">悲观锁、乐观锁原理</a><ul>
+                        
+                <li>
+                    <a href="#%e6%a1%88%e4%be%8b" aria-label="案例">案例</a>
                 </li>
             </ul>
             </li>
@@ -589,7 +637,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <ul>
 <li>多线程是指从软硬件上实现的多条执行流程的技术（多条线程由CPU负责调度执行）</li>
 </ul>
-<h3 id="创建方式一继承thread类">创建方式一：继承Thread类<a hidden class="anchor" aria-hidden="true" href="#创建方式一继承thread类">#</a></h3>
+<h3 id="方式一继承thread类">方式一：继承Thread类<a hidden class="anchor" aria-hidden="true" href="#方式一继承thread类">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyThread</span> <span style="color:#66d9ef">extends</span> Thread{
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
@@ -613,12 +661,12 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>优点：编码简单</li>
 <li>缺点：线程类已经继承Thread, 无法继承其他类，不利于功能的扩展</li>
 </ul>
-<p>注意事项：</p>
+<p><strong>注意事项</strong>：</p>
 <ol>
 <li>调用的是<code>start</code>而不是<code>run</code></li>
 <li>不要把主线程任务放在启动子线程之前</li>
 </ol>
-<h3 id="多线程的创建方式二实现runnable接口">多线程的创建方式二：实现Runnable接口<a hidden class="anchor" aria-hidden="true" href="#多线程的创建方式二实现runnable接口">#</a></h3>
+<h3 id="方式二实现runnable接口">方式二：实现Runnable接口<a hidden class="anchor" aria-hidden="true" href="#方式二实现runnable接口">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Demo2</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
 </span></span><span style="display:flex;"><span>        MyRunnable target <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyRunnable();
@@ -676,7 +724,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;主线程:&#34;</span> <span style="color:#f92672">+</span> i);
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h3 id="多线程的第三种创建方式利用callable接口futuretask类来实现">多线程的第三种创建方式：利用<code>Callable</code>接口，<code>FutureTask</code>类来实现<a hidden class="anchor" aria-hidden="true" href="#多线程的第三种创建方式利用callable接口futuretask类来实现">#</a></h3>
+</span></span></code></pre></div><h3 id="方式三利用callable接口futuretask类来实现">方式三：利用<code>Callable</code>接口，<code>FutureTask</code>类来实现<a hidden class="anchor" aria-hidden="true" href="#方式三利用callable接口futuretask类来实现">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> ExecutionException, InterruptedException {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建第一个Callable任务</span>
 </span></span><span style="display:flex;"><span>        Callable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> call <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyCallable(100);
@@ -704,7 +752,709 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>线程任务类只是实现接口，可以继续继承类和实现接口，扩展性强；可以在线程执行完毕后去获取线程执行的结果。</li>
 </ul>
 <h3 id="线程常用方法">线程常用方法<a hidden class="anchor" aria-hidden="true" href="#线程常用方法">#</a></h3>
-
+<ul>
+<li>为线程设置名称</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建并启动线程 t1</span>
+</span></span><span style="display:flex;"><span>        Thread t1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyThread(<span style="color:#e6db74">&#34;线程一号&#34;</span>);
+</span></span><span style="display:flex;"><span>        t1.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(t1.<span style="color:#a6e22e">getName</span>()); <span style="color:#75715e">// 打印线程 t1 的名称</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建并启动线程 t2</span>
+</span></span><span style="display:flex;"><span>        Thread t2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyThread(<span style="color:#e6db74">&#34;线程二号&#34;</span>);
+</span></span><span style="display:flex;"><span>        t2.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(t2.<span style="color:#a6e22e">getName</span>()); <span style="color:#75715e">// 打印线程 t2 的名称</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前线程，并将其名称设置为 &#34;max线程&#34;</span>
+</span></span><span style="display:flex;"><span>        Thread m <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>();
+</span></span><span style="display:flex;"><span>        m.<span style="color:#a6e22e">setName</span>(<span style="color:#e6db74">&#34;max线程&#34;</span>);
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(m.<span style="color:#a6e22e">getName</span>()); <span style="color:#75715e">// 打印当前线程的名称</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在当前线程中执行一个简单的 for 循环，打印输出当前线程的名称和循环变量 i</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0; i <span style="color:#f92672">&lt;</span> 100; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(m.<span style="color:#a6e22e">getName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;线程输出&#34;</span> <span style="color:#f92672">+</span> i);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 自定义线程类 MyThread</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyThread</span> <span style="color:#66d9ef">extends</span> Thread {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">MyThread</span>(String name) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>(name); <span style="color:#75715e">// 调用父类 Thread 的构造函数设置线程名称</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 线程执行的任务</span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;开始执行。&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 可以在这里添加线程的具体任务逻辑</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li>使用线程的 join() 方法来实现线程的顺序执行，在循环中使用 sleep() 方法来控制线程的执行</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> InterruptedException {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 循环遍历整数 0 到 5</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0; i <span style="color:#f92672">&lt;=</span> 5; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(i); <span style="color:#75715e">// 打印当前整数值</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 如果当前整数值等于 3，则让当前线程休眠 5 秒钟</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">==</span> 3) {
+</span></span><span style="display:flex;"><span>            Thread.<span style="color:#a6e22e">sleep</span>(5000);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建并启动线程 t1，并在主线程中等待 t1 线程执行完成</span>
+</span></span><span style="display:flex;"><span>    Thread t1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyThread(<span style="color:#e6db74">&#34;1号线程&#34;</span>);
+</span></span><span style="display:flex;"><span>    t1.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>    t1.<span style="color:#a6e22e">join</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建并启动线程 t2，并在主线程中等待 t2 线程执行完成</span>
+</span></span><span style="display:flex;"><span>    Thread t2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyThread(<span style="color:#e6db74">&#34;2号线程&#34;</span>);
+</span></span><span style="display:flex;"><span>    t2.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>    t2.<span style="color:#a6e22e">join</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建并启动线程 t3，并在主线程中等待 t3 线程执行完成</span>
+</span></span><span style="display:flex;"><span>    Thread t3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyThread(<span style="color:#e6db74">&#34;3号线程&#34;</span>);
+</span></span><span style="display:flex;"><span>    t3.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>    t3.<span style="color:#a6e22e">join</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>yield, interrupt, 守护线程，线程优先级等&hellip;</p>
+<h2 id="线程安全">线程安全<a hidden class="anchor" aria-hidden="true" href="#线程安全">#</a></h2>
+<p>什么是线程安全问题？</p>
+<ul>
+<li>多个线程，同时操作同一个共享资源的时候，可能会出现业务安全问题</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.ThreadSafeDemo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Account</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String cardId;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">double</span> money;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Account</span>() {
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">Account</span>(String cardId, <span style="color:#66d9ef">double</span> money) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">cardId</span> <span style="color:#f92672">=</span> cardId;
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span> <span style="color:#f92672">=</span> money;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">getCardId</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> cardId;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setCardId</span>(String cardId) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">cardId</span> <span style="color:#f92672">=</span> cardId;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">double</span> <span style="color:#a6e22e">getMoney</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> money;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setMoney</span>(<span style="color:#66d9ef">double</span> money) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span> <span style="color:#f92672">=</span> money;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 synchronized 关键字确保线程安全</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">drawMoney</span>(<span style="color:#66d9ef">double</span> money) {
+</span></span><span style="display:flex;"><span>        String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span><span style="color:#f92672">&gt;=</span>money){
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱&#34;</span> <span style="color:#f92672">+</span> money <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;成功！&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span> <span style="color:#f92672">-=</span> money;
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;取钱之后，余额剩余: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span>);
+</span></span><span style="display:flex;"><span>        }<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱， 余额不足！&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.ThreadSafeDemo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DrawThread</span> <span style="color:#66d9ef">extends</span> Thread{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Account acc;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">DrawThread</span>(Account acc, String name) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>(name);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">acc</span> <span style="color:#f92672">=</span> acc;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
+</span></span><span style="display:flex;"><span>        acc.<span style="color:#a6e22e">drawMoney</span>(10000.<span style="color:#a6e22e">0</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Demo1</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
+</span></span><span style="display:flex;"><span>        Account acc <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Account(<span style="color:#e6db74">&#34;ICBC-10101&#34;</span>, 10000);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> DrawThread(acc, <span style="color:#e6db74">&#34;小红&#34;</span>).<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> DrawThread(acc, <span style="color:#e6db74">&#34;小明&#34;</span>).<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">/**输出结果
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">         * 小红来取钱10000.0成功！
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">         * 小明来取钱， 余额不足！
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">         * 小红取钱之后，余额剩余: 0.0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">         */</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="线程同步的常见方案">线程同步的常见方案<a hidden class="anchor" aria-hidden="true" href="#线程同步的常见方案">#</a></h3>
+<ul>
+<li><strong>加锁</strong>：每次只允许一个线程加锁，加锁后才能进入访问，访问完毕后自动解锁，然后其他线程才能再加锁进来</li>
+</ul>
+<h4 id="1-同步代码块">(1) 同步代码块<a hidden class="anchor" aria-hidden="true" href="#1-同步代码块">#</a></h4>
+<ul>
+<li>
+<p><strong>作用</strong>：把访问共享资源的核心代码给上锁，依次保证线程安全。</p>
+</li>
+<li>
+<p><strong>原理</strong>：每次只允许一个线程加锁后进入，执行完毕后自动结果，其他线程才可以进来执行。</p>
+</li>
+</ul>
+<p><strong>注意事项</strong>：</p>
+<ul>
+<li>对于当前同时执行的线程来说，同步锁必须同一把（同一个对象）， 否则会出bug</li>
+</ul>
+<p><strong>锁对象的使用规范</strong>：</p>
+<ul>
+<li>建议使用共享资源作为锁对象，对于实例方法建议使用<code>this</code>作为锁对象</li>
+<li>对于静态方法建议使用字节码（<code>类名.class</code>）对象作为锁对象</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">drawMoney</span>(<span style="color:#66d9ef">double</span> money) {
+</span></span><span style="display:flex;"><span>        String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">synchronized</span> (<span style="color:#66d9ef">this</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span><span style="color:#f92672">&gt;=</span>money){
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱&#34;</span> <span style="color:#f92672">+</span> money <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;成功！&#34;</span>);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span> <span style="color:#f92672">-=</span> money;
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;取钱之后，余额剩余: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span>);
+</span></span><span style="display:flex;"><span>            }<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱， 余额不足！&#34;</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">test</span>(){
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">synchronized</span>(Account.<span style="color:#a6e22e">class</span>){
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h4 id="2-同步方法">(2) 同步方法<a hidden class="anchor" aria-hidden="true" href="#2-同步方法">#</a></h4>
+<p>使用<code>synchronized</code>修饰方法</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">drawMoney</span>(<span style="color:#66d9ef">double</span> money) {
+</span></span><span style="display:flex;"><span>        String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span><span style="color:#f92672">&gt;=</span>money){
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱&#34;</span> <span style="color:#f92672">+</span> money <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;成功！&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span> <span style="color:#f92672">-=</span> money;
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;取钱之后，余额剩余: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span>);
+</span></span><span style="display:flex;"><span>        }<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱， 余额不足！&#34;</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><p><strong>同步方法底层原理</strong></p>
+<ul>
+<li>同步方法其实底层也是有隐式对象的， 只是锁的范围是整个方法代码</li>
+<li>同样，如果是实例方法：同步方法默认用this作为锁对象；如果是静态方法：同步方法默认用类名.class作为锁对象</li>
+</ul>
+<h4 id="3-lock锁">(3) Lock锁<a hidden class="anchor" aria-hidden="true" href="#3-lock锁">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Lock lk <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReentrantLock();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">drawMoney</span>(<span style="color:#66d9ef">double</span> money) {
+</span></span><span style="display:flex;"><span>        String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            lk.<span style="color:#a6e22e">lock</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span><span style="color:#f92672">&gt;=</span>money){
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱&#34;</span> <span style="color:#f92672">+</span> money <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;成功！&#34;</span>);
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span> <span style="color:#f92672">-=</span> money;
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;取钱之后，余额剩余: &#34;</span> <span style="color:#f92672">+</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">money</span>);
+</span></span><span style="display:flex;"><span>            }<span style="color:#66d9ef">else</span>{
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;来取钱， 余额不足！&#34;</span>);
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>            lk.<span style="color:#a6e22e">unlock</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="线程间通信">线程间通信<a hidden class="anchor" aria-hidden="true" href="#线程间通信">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 这个程序演示了使用 wait() 和 notify() 方法来实现多线程间的消息传递和同步。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 主要知识点：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 1. wait() 方法：使当前线程等待并释放所占锁，直到另一个线程调用 notify() 方法或 notifyAll() 方法来唤醒它。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 2. notify() 方法：唤醒正在等待的单个线程。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 3. notifyAll() 方法：唤醒正在等待的所有线程。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 4. 生产者-消费者模型：多个生产者线程向共享资源中生产物品，多个消费者线程从共享资源中消费物品。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 5. 使用 synchronized 关键字来确保线程安全，避免多个线程同时访问共享资源引起的数据不一致性问题。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.ThreadMessageDemo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.ArrayList;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.List;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Desk</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 生产食物的方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">put</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 如果桌子上没有食物，则生产一个食物</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (list.<span style="color:#a6e22e">size</span>() <span style="color:#f92672">==</span> 0) {
+</span></span><span style="display:flex;"><span>                list.<span style="color:#a6e22e">add</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;做的肉包子&#34;</span>);
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;做了一个肉包子&#34;</span>);
+</span></span><span style="display:flex;"><span>                Thread.<span style="color:#a6e22e">sleep</span>(2000); <span style="color:#75715e">// 模拟制作时间</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notifyAll</span>(); <span style="color:#75715e">// 唤醒所有等待线程</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">wait</span>(); <span style="color:#75715e">// 等待被唤醒</span>
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notifyAll</span>(); <span style="color:#75715e">// 唤醒所有等待线程</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">wait</span>(); <span style="color:#75715e">// 等待被唤醒</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 消费食物的方法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">synchronized</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">get</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 如果桌子上有食物，则消费一个食物</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (list.<span style="color:#a6e22e">size</span>() <span style="color:#f92672">==</span> 1) {
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;吃了&#34;</span> <span style="color:#f92672">+</span> list.<span style="color:#a6e22e">get</span>(0));
+</span></span><span style="display:flex;"><span>                list.<span style="color:#a6e22e">clear</span>(); <span style="color:#75715e">// 清空桌子上的食物</span>
+</span></span><span style="display:flex;"><span>                Thread.<span style="color:#a6e22e">sleep</span>(1000); <span style="color:#75715e">// 模拟吃的时间</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notifyAll</span>(); <span style="color:#75715e">// 唤醒所有等待线程</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">wait</span>(); <span style="color:#75715e">// 等待被唤醒</span>
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">notifyAll</span>(); <span style="color:#75715e">// 唤醒所有等待线程</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">wait</span>(); <span style="color:#75715e">// 等待被唤醒</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (Exception e) {
+</span></span><span style="display:flex;"><span>            e.<span style="color:#a6e22e">printStackTrace</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="线程池">线程池<a hidden class="anchor" aria-hidden="true" href="#线程池">#</a></h2>
+<ul>
+<li>线程池就是一个可以复用线程的技术</li>
+</ul>
+<p><code>ThreadPoolExecutor</code>构造器</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">ThreadPoolExecutor</span>(<span style="color:#66d9ef">int</span> corePoolSize,
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">int</span> maximumPoolSize,
+</span></span><span style="display:flex;"><span> <span style="color:#66d9ef">long</span> keepAliveTime,
+</span></span><span style="display:flex;"><span> TimeUnit unit,
+</span></span><span style="display:flex;"><span> BlockingQueue<span style="color:#f92672">&lt;</span>Runnable<span style="color:#f92672">&gt;</span> workQueue)
+</span></span></code></pre></div><ul>
+<li>参数一：<code>corePoolSize</code>：指定线程池的核心线程的数量</li>
+<li>参数二：<code>maximumPoolSize</code>：指定线程池的最大线程数量</li>
+<li>参数三：<code>keepAliveTime</code>：指定临时线程的存活时间</li>
+<li>参数四：<code>unit</code>:指定临时线程存活的时间单位（秒，分，时，天）</li>
+<li>参数五：<code>workQueue</code>：指定线程池的任务队列</li>
+<li>参数六：<code>threadFactory</code>：指定线程池的线程工厂</li>
+<li>参数七：<code>handler</code>：指定线程池的任务拒绝策略（线程都在忙，任务队列也满了的时候，新任务来了该怎么处理）</li>
+</ul>
+<p><strong>注意事项</strong></p>
+<ol>
+<li><strong>临时线程什么时候创建？</strong>
+<ul>
+<li>新任务提交时发现核心线程都在忙，任务队列也满了，并且还可以创建临时线程，此时才会创建临时线程</li>
+</ul>
+</li>
+<li><strong>什么时候会开始拒绝新任务？</strong>
+<ul>
+<li>核心线程和临时线程都在忙，任务队列也满了，新的任务过来的时候才会开始拒绝新任务</li>
+</ul>
+</li>
+</ol>
+<h3 id="新任务拒绝策略">新任务拒绝策略<a hidden class="anchor" aria-hidden="true" href="#新任务拒绝策略">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><code>策略</code></th>
+<th style="text-align:center"><code>解释</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center"><code>ThreadPoolExecutor.AbortPolicy</code></td>
+<td style="text-align:center">当任务添加到线程池中被拒绝时，抛出<code>RejectedExecutionException</code>异常。（默认策略）</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ThreadPoolExecutor.DiscardPolicy</code></td>
+<td style="text-align:center">丢弃任务，但是不抛出异常，不推荐</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ThreadPoolExecutor.DiscardOldestPolicy</code></td>
+<td style="text-align:center">抛弃队列中<strong>等待最久</strong>的任务，然后把当前任务加入队列中</td>
+</tr>
+<tr>
+<td style="text-align:center"><code>ThreadPoolExecutor.CallerRunsPolicy</code></td>
+<td style="text-align:center">由主线程负责调用任务的run()方法从而绕过线程池直接执行</td>
+</tr>
+</tbody>
+</table>
+<h3 id="executorservice的常用方法"><code>ExecutorService</code>的常用方法<a hidden class="anchor" aria-hidden="true" href="#executorservice的常用方法">#</a></h3>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"><strong>方法、描述</strong></th>
+<th style="text-align:left"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left"><code>execute(Runnable command)</code></td>
+<td style="text-align:left">执行Runnable任务</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>submit(Callable&lt;T&gt; task)</code></td>
+<td style="text-align:left">执行Callable任务，返回未来任务对象，用于获取线程返回的结果</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>shutdown()</code></td>
+<td style="text-align:left">等全部任务执行完毕后，再关闭线程池！</td>
+</tr>
+<tr>
+<td style="text-align:left"><code>List&lt;Runnable&gt; shutdownNow()</code></td>
+<td style="text-align:left">立刻关闭线程池，停止正在执行的任务，并返回队列中未执行的任务</td>
+</tr>
+</tbody>
+</table>
+<h4 id="执行runnable任务">执行Runnable任务<a hidden class="anchor" aria-hidden="true" href="#执行runnable任务">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.concurrent.*;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建线程池</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 ThreadPoolExecutor 构造方法自定义线程池</span>
+</span></span><span style="display:flex;"><span>        ExecutorService pool <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor(
+</span></span><span style="display:flex;"><span>                3, <span style="color:#75715e">// 核心线程数</span>
+</span></span><span style="display:flex;"><span>                5, <span style="color:#75715e">// 最大线程数</span>
+</span></span><span style="display:flex;"><span>                8, <span style="color:#75715e">// 线程空闲时间</span>
+</span></span><span style="display:flex;"><span>                TimeUnit.<span style="color:#a6e22e">SECONDS</span>, <span style="color:#75715e">// 时间单位</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ArrayBlockingQueue<span style="color:#f92672">&lt;&gt;</span>(4), <span style="color:#75715e">// 工作队列</span>
+</span></span><span style="display:flex;"><span>                Executors.<span style="color:#a6e22e">defaultThreadFactory</span>(), <span style="color:#75715e">// 线程工厂</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ThreadPoolExecutor.<span style="color:#a6e22e">CallerRunsPolicy</span>() <span style="color:#75715e">// 拒绝策略</span>
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建任务</span>
+</span></span><span style="display:flex;"><span>        Runnable target <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyRunnable();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 提交任务给线程池执行</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 使用核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 使用核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 使用核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 复用前面的核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 复用前面的核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 复用前面的核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 复用前面的核心线程执行任务</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 使用临时线程执行任务</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 使用临时线程执行任务</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 执行任务被拒绝（拒绝策略决定）</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">execute</span>(target); <span style="color:#75715e">// 执行任务被拒绝（拒绝策略决定）</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 关闭线程池</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        pool.shutdown();</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        pool.shutdownNow();</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 自定义任务</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyRunnable</span> <span style="color:#66d9ef">implements</span> Runnable {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 任务逻辑</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="执行callable任务">执行Callable任务<a hidden class="anchor" aria-hidden="true" href="#执行callable任务">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.concurrent.*;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Main</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> ExecutionException, InterruptedException {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建线程池</span>
+</span></span><span style="display:flex;"><span>        ExecutorService pool <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ThreadPoolExecutor(
+</span></span><span style="display:flex;"><span>                3, <span style="color:#75715e">// 核心线程数</span>
+</span></span><span style="display:flex;"><span>                5, <span style="color:#75715e">// 最大线程数</span>
+</span></span><span style="display:flex;"><span>                8, <span style="color:#75715e">// 线程空闲时间</span>
+</span></span><span style="display:flex;"><span>                TimeUnit.<span style="color:#a6e22e">SECONDS</span>, <span style="color:#75715e">// 时间单位</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ArrayBlockingQueue<span style="color:#f92672">&lt;&gt;</span>(4), <span style="color:#75715e">// 工作队列</span>
+</span></span><span style="display:flex;"><span>                Executors.<span style="color:#a6e22e">defaultThreadFactory</span>(), <span style="color:#75715e">// 线程工厂</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">new</span> ThreadPoolExecutor.<span style="color:#a6e22e">CallerRunsPolicy</span>() <span style="color:#75715e">// 拒绝策略</span>
+</span></span><span style="display:flex;"><span>        );
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 提交可调用任务给线程池执行</span>
+</span></span><span style="display:flex;"><span>        Future<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> f1 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">submit</span>(<span style="color:#66d9ef">new</span> MyCallable(100)); <span style="color:#75715e">// 提交任务并获取 Future 对象</span>
+</span></span><span style="display:flex;"><span>        Future<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> f2 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">submit</span>(<span style="color:#66d9ef">new</span> MyCallable(200)); <span style="color:#75715e">// 提交任务并获取 Future 对象</span>
+</span></span><span style="display:flex;"><span>        Future<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> f3 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">submit</span>(<span style="color:#66d9ef">new</span> MyCallable(300)); <span style="color:#75715e">// 提交任务并获取 Future 对象</span>
+</span></span><span style="display:flex;"><span>        Future<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> f4 <span style="color:#f92672">=</span> pool.<span style="color:#a6e22e">submit</span>(<span style="color:#66d9ef">new</span> MyCallable(400)); <span style="color:#75715e">// 提交任务并获取 Future 对象</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取任务执行结果并输出</span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(f1.<span style="color:#a6e22e">get</span>()); <span style="color:#75715e">// 阻塞等待任务执行完成，并获取结果</span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(f2.<span style="color:#a6e22e">get</span>()); <span style="color:#75715e">// 阻塞等待任务执行完成，并获取结果</span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(f3.<span style="color:#a6e22e">get</span>()); <span style="color:#75715e">// 阻塞等待任务执行完成，并获取结果</span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(f4.<span style="color:#a6e22e">get</span>()); <span style="color:#75715e">// 阻塞等待任务执行完成，并获取结果</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 关闭线程池</span>
+</span></span><span style="display:flex;"><span>        pool.<span style="color:#a6e22e">shutdown</span>();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 自定义可调用任务</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyCallable</span> <span style="color:#66d9ef">implements</span> Callable<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> value;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">MyCallable</span>(<span style="color:#66d9ef">int</span> value) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">value</span> <span style="color:#f92672">=</span> value;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> String <span style="color:#a6e22e">call</span>() <span style="color:#66d9ef">throws</span> Exception {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 任务逻辑</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;Result: &#34;</span> <span style="color:#f92672">+</span> value;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="executors"><code>Executors</code><a hidden class="anchor" aria-hidden="true" href="#executors">#</a></h3>
+<ul>
+<li>是一个线程池的工具类，提供里很多静态方法用于返回不同特点的线程池对象</li>
+</ul>
+<p><code>Executors</code>使用可能存在的陷进</p>
+<ul>
+<li>大型并发系统环境中使用<code>Executors</code>如果不注意可能会出现系统风险</li>
+</ul>
+<blockquote>
+<ol start="4">
+<li>【强制】线程池不允许使用 Executors 去创建，而是通过 ThreadPoolExecutor 的方式，这
+样的处理方式让写的同学更加明确线程池的运行规则，规避资源耗尽的风险。
+说明：Executors 返回的线程池对象的弊端如下：
+1） FixedThreadPool 和 SingleThreadPool：
+允许的请求队列长度为 Integer.MAX_VALUE，可能会堆积大量的请求，从而导致 OOM(OutOfMemoryError)。
+2） CachedThreadPool：
+允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM。</li>
+</ol>
+</blockquote>
+<h2 id="并发并行">并发、并行<a hidden class="anchor" aria-hidden="true" href="#并发并行">#</a></h2>
+<p><strong>进程</strong></p>
+<ul>
+<li>正在运行的程序（软件）就是一个独立的进程</li>
+<li>线程是属于进程的，一个进程中可以同时运行多个线程</li>
+<li>进程中的多个线程其实是并发和并行执行的</li>
+</ul>
+<p><strong>并发的含义</strong></p>
+<ul>
+<li>进程中的线程是由CPU负责调度执行的，但CPU能同时处理线程的数量有限，为了保证全部线程都能往前执行， CPU会轮询为系统的每个线程服务，由于CPU切换的速度很快，给我们的感觉这些线程在同时执行，这就是并发</li>
+</ul>
+<p><strong>并行的理解</strong></p>
+<ul>
+<li>在同一个时刻上，同时有多个线程在被CPU调度执行</li>
+</ul>
+<h3 id="线程的生命周期">线程的生命周期<a hidden class="anchor" aria-hidden="true" href="#线程的生命周期">#</a></h3>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240421160224752.png" alt="image-20240421160224752"  />
+</p>
+<h4 id="线程的6种状态总结">线程的6种状态总结<a hidden class="anchor" aria-hidden="true" href="#线程的6种状态总结">#</a></h4>
+<table>
+<thead>
+<tr>
+<th style="text-align:left"><strong>状态名称</strong></th>
+<th style="text-align:left"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">NEW(新建)</td>
+<td style="text-align:left">线程刚被创建，但是并未启动</td>
+</tr>
+<tr>
+<td style="text-align:left">Runnable(可运行)</td>
+<td style="text-align:left">线程已经调用了start()， 等待CPU调度</td>
+</tr>
+<tr>
+<td style="text-align:left">Blocked(被阻塞)</td>
+<td style="text-align:left">线程在执行的时候未竞争到锁对象，则该线程进入Blocked状态</td>
+</tr>
+<tr>
+<td style="text-align:left">Waiting(等待)</td>
+<td style="text-align:left">一个线程进入Waiting状态，另一个线程需要Notify或者notifyAll才能够唤醒。</td>
+</tr>
+<tr>
+<td style="text-align:left">Timed Waiting (计时等待)</td>
+<td style="text-align:left">同Waiting状态类似，有几个方法（sleep， wait）有超时参数，调用他们将进入Timed Waiting状态</td>
+</tr>
+<tr>
+<td style="text-align:left">Terminated (被终止)</td>
+<td style="text-align:left">因为run方法正常退出而死亡，或者因为没有捕获的异常终止了run方法而死亡.</td>
+</tr>
+</tbody>
+</table>
+<h2 id="悲观锁乐观锁原理">悲观锁、乐观锁原理<a hidden class="anchor" aria-hidden="true" href="#悲观锁乐观锁原理">#</a></h2>
+<ul>
+<li>悲观锁：一上来就加锁，没有安全感，每次只能一个线程进入访问完毕后，再解锁，线程安全，性能较差</li>
+<li>乐观锁：一开始不上锁，认为是没有问题的，大家一起跑，等要出现线程安全问题的时候才开始控制。线程安全，性能较好
+<ul>
+<li>CAS算法</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.ExtendDemo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.concurrent.atomic.AtomicInteger;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 这个程序演示了乐观锁的使用。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 乐观锁是一种并发控制机制，它假设对数据的读取操作不会造成数据冲突，因此不需要对数据进行加锁操作。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 相反，它在更新数据时检查是否有其他线程已经修改了数据，如果没有则进行更新，如果有则进行相应的处理，比如重试或者放弃更新。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 在这个程序中，我们比较了两种实现方式：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 1. 使用 synchronized 关键字实现的悲观锁（MyRunnable 类）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 2. 使用 AtomicInteger 实现的乐观锁（MyRunnable2 类）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * MyRunnable 类中使用了 synchronized 关键字来保证多线程环境下对 count 变量的安全访问，它是一种悲观锁的实现方式，
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 每个线程在访问 count 变量时都需要获得对象锁，因此只有一个线程能够执行临界区代码，其他线程需要等待释放锁才能执行。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * MyRunnable2 类中使用了 AtomicInteger 来实现乐观锁。AtomicInteger 提供了一种原子性的更新操作，保证了在多线程环境下的安全访问。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 在这种实现方式中，线程不需要获取锁，而是直接通过原子性的操作来更新 count 变量，因此可以实现更高的并发性能。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 在实际应用中，选择合适的锁机制取决于具体的场景和性能需求。如果对数据的更新操作比较频繁，且竞争不是很激烈，可以选择乐观锁来提升性能；
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 如果竞争比较激烈，或者对数据的一致性要求较高，则可以选择悲观锁来保证数据的正确性。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Demo1</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        Runnable target = new MyRunnable();</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        for (int i = 1; i &lt;= 100; i++) {</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//            new Thread(target).start();</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        }</span>
+</span></span><span style="display:flex;"><span>        Runnable target <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> MyRunnable2();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 1; i <span style="color:#f92672">&lt;=</span> 100; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">new</span> Thread(target).<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.ExtendDemo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 实现了 Runnable 接口的类，使用 synchronized 关键字实现的悲观锁。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyRunnable</span> <span style="color:#66d9ef">implements</span> Runnable{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> count;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">synchronized</span> (<span style="color:#66d9ef">this</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 1; i <span style="color:#f92672">&lt;=</span> 100; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//                System.out.println(this);</span>
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;  Count:  &#34;</span> <span style="color:#f92672">+</span> (<span style="color:#f92672">++</span>count));
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.ExtendDemo;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.concurrent.atomic.AtomicInteger;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 实现了 Runnable 接口的类，使用 AtomicInteger 实现的乐观锁。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyRunnable2</span> <span style="color:#66d9ef">implements</span> Runnable{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> AtomicInteger count <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> AtomicInteger();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 1; i <span style="color:#f92672">&lt;=</span> 100; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//                System.out.println(this);</span>
+</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>() <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;  Count:  &#34;</span> <span style="color:#f92672">+</span> (count.<span style="color:#a6e22e">incrementAndGet</span>()));
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="案例">案例<a hidden class="anchor" aria-hidden="true" href="#案例">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.Test;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.ArrayList;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.List;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.Random;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Demo1</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> InterruptedException {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建礼物列表</span>
+</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> gift <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 定义礼物名称数组</span>
+</span></span><span style="display:flex;"><span>        String<span style="color:#f92672">[]</span> names <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;口红&#34;</span>, <span style="color:#e6db74">&#34;爱马仕&#34;</span>, <span style="color:#e6db74">&#34;iphone&#34;</span>, <span style="color:#e6db74">&#34;手表&#34;</span>, <span style="color:#e6db74">&#34;mac&#34;</span>};
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 随机数生成器</span>
+</span></span><span style="display:flex;"><span>        Random r <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Random();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 循环添加礼物到列表中</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 1; i <span style="color:#f92672">&lt;=</span> 1000; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>            gift.<span style="color:#a6e22e">add</span>(names<span style="color:#f92672">[</span>r.<span style="color:#a6e22e">nextInt</span>(names.<span style="color:#a6e22e">length</span>)<span style="color:#f92672">]</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; &#34;</span> <span style="color:#f92672">+</span> (i<span style="color:#f92672">+</span>1)); <span style="color:#75715e">// 在礼物列表中添加随机选取的礼物</span>
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(gift); <span style="color:#75715e">// 打印礼物列表</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;-------------&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建两个发送线程，分别代表小红和小明</span>
+</span></span><span style="display:flex;"><span>        SendThread xh <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SendThread(gift, <span style="color:#e6db74">&#34;小红&#34;</span>);
+</span></span><span style="display:flex;"><span>        xh.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>        SendThread xm <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> SendThread(gift, <span style="color:#e6db74">&#34;小明&#34;</span>);
+</span></span><span style="display:flex;"><span>        xm.<span style="color:#a6e22e">start</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待两个发送线程结束</span>
+</span></span><span style="display:flex;"><span>        xm.<span style="color:#a6e22e">join</span>();
+</span></span><span style="display:flex;"><span>        xh.<span style="color:#a6e22e">join</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 打印两个发送线程发送的礼物数量</span>
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;小明发出了：&#34;</span> <span style="color:#f92672">+</span> xm.<span style="color:#a6e22e">getCount</span>());
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;小红发出了：&#34;</span> <span style="color:#f92672">+</span> xh.<span style="color:#a6e22e">getCount</span>());
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.Test;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.List;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.Random;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SendThread</span> <span style="color:#66d9ef">extends</span> Thread {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> gift; <span style="color:#75715e">// 礼物列表</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">int</span> count; <span style="color:#75715e">// 发送的礼物数量</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 构造方法</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#a6e22e">SendThread</span>(List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> gift, String name) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>(name); <span style="color:#75715e">// 调用父类构造方法，设置线程名</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">gift</span> <span style="color:#f92672">=</span> gift; <span style="color:#75715e">// 初始化礼物列表</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
+</span></span><span style="display:flex;"><span>        Random r <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Random(); <span style="color:#75715e">// 随机数生成器</span>
+</span></span><span style="display:flex;"><span>        String name <span style="color:#f92672">=</span> Thread.<span style="color:#a6e22e">currentThread</span>().<span style="color:#a6e22e">getName</span>(); <span style="color:#75715e">// 获取当前线程名</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">synchronized</span> (gift){ <span style="color:#75715e">// 同步块，确保礼物列表的线程安全</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span>(gift.<span style="color:#a6e22e">size</span>()<span style="color:#f92672">&lt;</span>10){ <span style="color:#75715e">// 当礼物列表数量小于10时，结束循环</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>                String rs <span style="color:#f92672">=</span> gift.<span style="color:#a6e22e">remove</span>(r.<span style="color:#a6e22e">nextInt</span>(gift.<span style="color:#a6e22e">size</span>())); <span style="color:#75715e">// 从礼物列表中随机选择一个礼物，并移除</span>
+</span></span><span style="display:flex;"><span>                System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(name <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34; 发出了礼品： &#34;</span> <span style="color:#f92672">+</span> rs); <span style="color:#75715e">// 打印发送的礼物信息</span>
+</span></span><span style="display:flex;"><span>                count<span style="color:#f92672">++</span>; <span style="color:#75715e">// 记录发送的礼物数量</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取发送的礼物数量</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getCount</span>() {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> count;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 设置发送的礼物数量</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setCount</span>(<span style="color:#66d9ef">int</span> count) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">count</span> <span style="color:#f92672">=</span> count;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
 
   </div>
 
@@ -722,6 +1472,11 @@ document.addEventListener("DOMContentLoaded", function() {
 	
 	
 <nav class="paginav">
+  <a class="prev" href="https://showguan.github.io/en/posts/tech/%E5%8A%9B%E6%89%A3%E5%91%A8%E8%B5%9B39420240421/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>LeetCode周赛240421</span>
+  </a>
   <a class="next" href="https://showguan.github.io/en/posts/tech/java20%E5%A4%A9%E9%80%9F%E6%88%90%E8%BF%9B%E9%98%B6%E8%AF%BE%E7%A8%8B3/">
     <span class="title">Next »</span>
     <br>
