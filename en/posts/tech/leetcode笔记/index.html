@@ -83,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://showguan.github.io/en/posts/tech/leetcode%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-04-17T15:37:01+08:00" />
-<meta property="article:modified_time" content="2024-04-17T15:37:01+08:00" />
+<meta property="article:modified_time" content="2024-04-22T15:37:01+08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=" LeetCode笔记"/>
@@ -126,11 +126,11 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "LeetCode笔记"
   ],
-  "articleBody": "LeetCode笔记 目标：2500分\n剑指Offer + 数据流中的中位数 用两个堆模拟， 左边大顶堆，右边小顶堆，则两个堆顶是最中间的数字。\n添加数字时：\n如果输入的是第奇数个（比如第一个，则N初始化为0，插入后N为1，代表一共有一个数字），则先插入大顶堆，然后把堆顶插入小顶堆。保证小顶堆的任意一个值都比大顶堆大。 同样，如果输入的是第偶数个（第二个），则先插入小顶堆，然后将小顶堆最小值插入大顶堆。同样是保证小顶堆的任意一个值都比大顶堆大。 至于先插入哪一个堆是没有关系的，只要保证交替插入不同的堆即可，并且要确保边界问题（比如在奇数个元素的的中位数， 只有一个数据时应返回先插入的堆顶值， 否则堆为空会报错）。\nimport heapq as hp class Solution: heapl = [] # 大根堆 heapr = [] # 小根堆 N = 0 def insert(self, num): \"\"\" :type num: int :rtype: void \"\"\" if self.N % 2 ==0: hp.heappush(self.heapl, -num) hp.heappush(self.heapr, -hp.heappop(self.heapl)) else: hp.heappush(self.heapr, num) hp.heappush(self.heapl, -hp.heappop(self.heapr)) self.N += 1 def getMedian(self): \"\"\" :rtype: float \"\"\" if self.N %2==0: return (-self.heapl[0]+self.heapr[0])/2.0 else: return self.heapr[0]*1.0 字符流中第一个只出现一次的字符 import collections class Solution: d = collections.defaultdict(int) q = collections.deque() def firstAppearingOnce(self): \"\"\" :rtype: str \"\"\" return '#' if not self.q else self.q[0] def insert(self, char): \"\"\" :type char: str :rtype: void \"\"\" self.d[char]+=1 self.q.append(char) while self.q and self.d[self.q[0]]\u003e1: self.q.popleft() 最长不含重复字符的子字符串 class Solution: def longestSubstringWithoutDuplication(self, s): \"\"\" :type s: str :rtype: int \"\"\" char_index = {} # 存储字符的最近出现位置 ans = 0 start = 0 for i, char in enumerate(s): if char in char_index and char_index[char] \u003e= start: start = char_index[char] + 1 char_index[char] = i ans = max(ans, i - start + 1) return ans 骰子的点数 线性DP ：\n注意点： 算法先从最简单的方法想起，DP先用二维想，实现完之后再优化。\n因为每次计算状态时会修改$ j-1, j-2, j-3, j-4, j-5, j-6$, 而$j+1$会计算 $j+1-1=j, j+1-2=j-1, … j-1$会计算$j-1-1=j-2,j-1-2=j-3,…$没有单调性，所以不能优化第一维空间\nclass Solution(object): def numberOfDice(self, n): \"\"\" :type n: int :rtype: List[int] \"\"\" N = 6*n+10 f = [[0]*N for _ in range(N)] f[0][0]=1 for i in range(1,n+1): for j in range(1,n*6+1): for k in range(1,min(j, 6)+1): f[i][j] += f[i-1][j-k] return f[n][1*n:6*n+1] 数组中数值和下标相等的元素 class Solution(object): def getNumberSameAsIndex(self, nums): \"\"\" :type nums: List[int] :rtype: int \"\"\" l, r = 0, len(nums)-1 while l\u003cr: mid = l+r+1\u003e\u003e1 if nums[mid]\u003emid: r=mid-1 elif nums[mid]\u003cmid: l=mid else: return mid break return l if nums[l]==l else -1 复杂链表的复刻 class Solution(object): def copyRandomList(self, head): hash = {} hash[None] = None cloneHead = ListNode(-1) cur = cloneHead while head: if head not in hash: hash[head] = ListNode(head.val) if head.random not in hash: hash[head.random] = ListNode(head.random.val) cur.next = hash[head] cur = cur.next cur.random = hash[head.random] head = head.next return cloneHead.next 矩阵中的路径 class Solution(object): def hasPath(self, matrix, string): if not matrix or not(matrix[0]): return False dx = [1, 0, -1, 0] dy = [0, 1, 0, -1] def dfs(x, y, idx): if matrix[x][y]!=string[idx]: return False if idx==len(string)-1: return True for h,v in zip(dx, dy): xx, yy = x+h, y+v if xx\u003c0 or xx\u003e=len(matrix) or yy\u003c0 or yy\u003e=len(matrix[0]): continue memo = matrix[x][y] matrix[x][y] = '#' if dfs(xx,yy,idx+1): return True matrix[x][y] = memo return False for i in range(len(matrix)): for j in range(len(matrix[0])): if matrix[i][j]==string[0]: if dfs(i,j,0): return True return False 正则表达式匹配 DP:\nclass Solution(object): def isMatch(self, s, p): \"\"\" :type s: str :type p: str :rtype: bool \"\"\" n, m = len(s), len(p) s, p = ' '+s, ' '+p f = [[False]*(m+1) for _ in range(n+1)] f[0][0] = True for i in range(2,m+1): if p[i]=='*': f[0][i] = f[0][i-2] for i in range(1,n+1): for j in range(1,m+1): if s[i]==p[j] or p[j]=='.': f[i][j] = f[i-1][j-1] elif p[j]=='*': if s[i]==p[j-1] or p[j-1]=='.': f[i][j] = f[i-1][j] f[i][j] |= f[i][j-2] return f[n][m] LCR 168. 丑数 题目大意：给定一个整数 $n$，找出并返回第 $n$ 个丑数。丑数是只包含质因数$ 2$、$3$ 和/或 5 的正整数，$1$ 是丑数。\n实现思路：\n初始化一个数组 $f$，用于存储前$ n$ 个丑数，初始化 $f[1] = 1$。 初始化三个指针 $i2$、$i3$、$i5$，分别表示下一个丑数是通过乘以$2、3、5$得到的。 初始化三个变量 $n2、n3、n5$，分别表示通过指针 $i2、i3、i5$ 得到的下一个丑数的候选值。 从第$ 2 $个丑数开始遍历到第 $n $个丑数： 计算下一个丑数的候选值：$n2=f[i2]*2$，$n3=f[i3]*3$，$n5=f[i5]*5$。 将下一个丑数更新为三个候选值中的最小值：$f[i]=min(n2,n3,n5)$。 如果最小值等于 $n2$，则指针 $i2$ 往后移动一位；如果最小值等于 $n3$，则指针 $i3$ 往后移动一位；如果最小值等于 $n5$，则指针 i5 往后移动一位。 遍历结束后，返回第 $n$ 个丑数$ f[n]$。 class Solution: def nthUglyNumber(self, n: int) -\u003e int: if n\u003c=6: return n f=[0 for _ in range(n+1)] f[1]=1 i2,i3,i5,n2,n3,n5=1,1,1,0,0,0 for i in range(2,n+1): n2,n3,n5=f[i2]*2,f[i3]*3,f[i5]*5 f[i]=min(n2,n3,n5) if f[i]==n2: i2+=1 if f[i]==n3: i3+=1 if f[i]==n5: i5+=1 return f[n] HOT100 301. 删除无效的括号 题目大意：\n给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字符串有效。\n返回所有可能的结果。答案可以按 任意顺序 返回。\n回溯 实现思路：\n统计无效括号数量：\n首先遍历字符串s，统计左括号和右括号的数量l和r，其中l表示未匹配的左括号数量，r表示需要删除的右括号数量。 回溯算法：\n编写回溯算法来尝试删除不同位置的括号，使得字符串有效。 回溯过程中需要注意以下情况： 已经匹配的括号数量ln和rn，以及当前位置i。 遍历字符串s的每个字符，当遇到重复的字符时跳过，以避免重复结果。 如果当前字符为左括号并且ln不为0，则递归调用删除当前左括号的情况，ln减一，否则继续。 如果当前字符为右括号并且rn不为0，则递归调用删除当前右括号的情况，rn减一，否则继续。 检查字符串有效性：\n编写辅助函数check来检查字符串是否有效，即左右括号数量是否匹配。 返回结果：\n将所有有效的字符串结果添加到结果列表ret中，并返回。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: l, r = 0, 0 ret = [] n = len(s) for c in s: if c=='(': l+=1 elif c==')': if l==0: r+=1 else: l-=1 def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': cnt-=1 if cnt\u003c0: return False return (cnt==0) def backtrace(st, start, ln, rn): if ln==0 and rn==0 and check(st): ret.append(st[:]) return for i in range(start, len(st)): if i\u003estart and st[i]==st[i-1]: continue if ln+rn\u003en-1-i+1: break if ln and st[i]=='(': backtrace(st[:i]+st[i+1:], i, ln-1, rn) elif rn and st[i]==')': backtrace(st[:i]+st[i+1:], i, ln, rn-1) backtrace(s, 0, l, r) return ret 广搜 这个实现使用了广度优先搜索（BFS）的思路来解决问题。\nBFS搜索：\n使用一个集合cur来存储当前层的所有字符串，初始时将输入的字符串s加入集合cur中。 在每一轮循环中，遍历当前集合cur中的所有字符串，如果其中有字符串是有效的，则将其加入结果列表ret中。 如果结果列表ret不为空，则跳出循环，表示已经找到了所有有效的字符串。 如果结果列表ret为空，则需要继续进行下一轮搜索，将当前集合cur中的每个字符串，通过删除一个括号的方式，生成所有可能的下一层字符串，加入到集合nxt中。 更新当前集合cur为nxt，继续下一轮搜索。 检查字符串有效性：\n定义一个辅助函数check，用于检查字符串是否有效。 遍历字符串中的每个字符，遇到左括号时增加计数器cnt，遇到右括号时如果cnt为0则返回False（表示右括号没有匹配的左括号），否则减少cnt。 最终判断cnt是否为0，如果为0表示字符串有效。 返回结果：\n返回结果列表ret，其中存储了所有有效的字符串。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 297. 二叉树的序列化与反序列化 不止第一次遇到了。\n题目大意：序列化是将一个数据结构或对象转换为连续的比特位的操作，从而可以存储在文件或内存中，并且通过网络传输到另一个计算机环境中。本题要求设计一个算法来实现二叉树的序列化和反序列化，即将二叉树转换为字符串并将字符串转换回原始的二叉树结构。\n实现思路：\n序列化：使用递归将二叉树转换为字符串，根节点值与左右子树序列化结果之间使用空格分隔，空节点用 ‘#’ 表示。 反序列化：使用递归将字符串转换为二叉树。首先定义一个辅助函数 DerWork()，用于递归构建二叉树。在该函数中，按照前序遍历的顺序，依次提取字符串中的节点值，并根据节点值构建二叉树节点。如果节点值为 ‘#’，表示空节点，返回 None。否则，创建节点并递归构建其左右子树。 在反序列化过程中，使用一个全局变量 self.s 来记录当前待处理的字符串，每次递归处理后，将字符串中已经处理过的部分剔除，继续处理剩余部分。 最终返回根节点即可。 # Definition for a binary tree node. # class TreeNode(object): # def __init__(self, x): # self.val = x # self.left = None # self.right = None class Codec: def serialize(self, root): \"\"\"Encodes a tree to a single string. :type root: TreeNode :rtype: str \"\"\" if not root: return '#' return str(root.val)+' '+self.serialize(root.left)+' '+self.serialize(root.right) def deserialize(self, data): \"\"\"Decodes your encoded data to tree. :type data: str :rtype: TreeNode \"\"\" self.s = data return self.DerWork() def DerWork(self): if len(self.s)==0: return None try: idx = self.s.index(' ') except: idx = -1 node = self.s if idx==-1 else self.s[:idx] self.s = '' if idx==-1 else self.s[idx+1:] if node=='#': return None t = TreeNode(int(node)) t.left = self.DerWork() t.right = self.DerWork() return t # Your Codec object will be instantiated and called as such: # ser = Codec() # deser = Codec() # ans = deser.deserialize(ser.serialize(root)) 84. 柱状图中最大的矩形 题目大意：给定 n 个非负整数，表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1。求在该柱状图中，能够勾勒出的矩形的最大面积。\n实现思路：\n使用单调栈解决问题。创建两个数组 l 和 r，分别记录每个柱子向左和向右第一个比其高度小的柱子的索引位置。 初始化一个空栈 stk。 遍历柱子的高度列表 heights： 若栈不为空且当前柱子的高度小于栈顶柱子的高度，则将栈顶元素弹出，并更新栈顶元素对应的 r 值为当前柱子的索引。 若栈为空或者当前柱子的高度大于栈顶柱子的高度，则将当前柱子的索引入栈。 在更新 r 值的同时，若栈不为空，则更新当前柱子的 l 值为栈顶元素的索引。 遍历完成后，对于每个柱子 i，计算以该柱子为高度的矩形面积为 (r[i] - l[i] - 1) * heights[i]，取最大值即为所求的最大矩形面积。 若柱状图为空，则返回 0。 class Solution: def largestRectangleArea(self, heights: List[int]) -\u003e int: n=len(heights) l, r = [-1]*(n+5), [n]*(n+5) stk = list() for i in range(n): while stk and heights[stk[-1]]\u003e=heights[i]: r[stk[-1]]=i stk.pop() if stk: l[i]=stk[-1] stk.append(i) return max( (r[i]-l[i]-1)*heights[i] for i in range(n) ) if n\u003e0 else 0 85. 最大矩形 题目大意：给定一个仅包含 0 和 1、大小为 rows x cols 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。\n实现思路：\n将问题转化为矩形最大面积问题。 定义变量 area 用于记录最大矩形的面积。 创建二维数组 left，用于记录每个位置 (i, j) 左侧连续 1 的个数。 遍历二维矩阵，初始化 left 数组： 若当前位置为 ‘1’，则 left[i][j] 等于 left[i][j-1] + 1，否则为 0。 遍历矩阵的每一列，对于每一列 j，使用单调栈来计算以当前列为底边的最大矩形的面积： 初始化一个空栈 stk。 定义两个数组 up 和 down，分别记录当前位置上方第一个小于等于其高度的位置和下方第一个小于等于其高度的位置。 遍历矩阵的每一行 i，进行以下操作： 当栈不为空且栈顶位置对应的 left 值大于等于当前位置的 left 值时，弹出栈顶位置，并更新 down 值。 如果栈为空，则当前位置的 up 值为 -1，否则为栈顶位置。 将当前行索引入栈。 在计算当前列的矩形面积时，height 为 down[i] - up[i] - 1，宽度为 left[i][j]，计算当前列的最大面积并更新 area。 返回最大面积 area。 class Solution: def maximalRectangle(self, matrix: List[List[str]]) -\u003e int: # 转化为矩形最大面积问题 n, m = len(matrix), len(matrix[0]) area = 0 left = [[0]*m for _ in range(n)] for i in range(n): for j in range(m): if matrix[i][j]=='1': left[i][j] += left[i][j-1]+1 if j else 1 for j in range(m): stk = [] up, down = [-1]*n, [n]*n for i in range(n): #行 while stk and left[ stk[-1] ][j]\u003e=left[i][j]: down[stk[-1]] = i stk.pop() up[i] = stk[-1] if stk else -1 stk.append(i) for i in range(n): height = down[i]-up[i]-1 area = max(area, height*left[i][j]) return area 76. 最小覆盖子串 题目大意：给定字符串 s 和字符串 t，返回 s 中涵盖 t 所有字符的最小子串。如果 s 中不存在涵盖 t 所有字符的子串，则返回空字符串 “\"。\n注意：\n对于 t 中重复字符，子字符串中该字符数量必须不少于 t 中该字符数量。\n如果 s 中存在这样的子串，保证它是唯一的答案。\n实现思路：\n使用双指针滑动窗口解决问题。 初始化 need 字典，用于记录字符串 t 中每个字符的出现次数。 初始化 needCnt 为 t 的长度 m，表示还需要的字符数量。 初始化左指针 left 为 0，并初始化结果变量 res 为一个长度为 n 的区间，初始值为 (0, n)。 遍历字符串 t，统计每个字符的出现次数并存储在 need 字典中。 遍历字符串 s，使用右指针 right 遍历每个字符： 若当前字符在 t 中出现，则 needCnt 减 1。 更新 need 字典中当前字符的出现次数。 若 needCnt 为 0，表示当前窗口包含了 t 中所有字符，进入内部循环： 移动左指针 left，直到当前窗口不再满足条件（即 need 字典中某个字符的出现次数大于 0）。 更新结果变量 res。 恢复左指针 left 和 needCnt。 返回结果字符串，若结果区间超出 s 的范围，则返回空字符串。 class Solution: def minWindow(self, s: str, t: str) -\u003e str: n, m = len(s), len(t) need = defaultdict(int) needCnt = m left = 0 res = (0, n) for ch in t: need[ch]+=1 for right, ch in enumerate(s): if need[ch]\u003e0: needCnt-=1 need[ch]-=1 if needCnt==0: while need[s[left]]!=0: need[s[left]]+=1 left+=1 if right-left \u003c res[1]-res[0]: res = (left, right) need[s[left]]+=1 needCnt+=1 left+=1 return '' if res[1]\u003en-1 else s[res[0]:res[1]+1] 312. 戳气球 题意：给定n个数字num[0~n-1],每次戳破一个气球可以获得nums[i-1]*nums[i]*nums[i+1]个硬币，最两旁默认为1，问最终获得的最大硬币数量。 思路：区间DP，逆向思维, 思考如何放气球能使硬币最大，f[i][j]代表开区间i~j可以获得的最大硬币， 先枚举小区间，再枚举大区间，枚举区间内每个数字，状态转移有：f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j])。最终输出f[0][n+1] class Solution: def maxCoins(self, nums: List[int]) -\u003e int: n = len(nums) nums = [1]+nums+[1] f = [[0]*(n+5) for _ in range(n+5)] # 开区间 (left, right) 区间内能获得的最大硬币 for l in range(2,n+2): # len:2~n+1 for i in range(n+1-l+1): # left:0~n+1-len j=i+l # right = left + len for k in range(i+1, j): # 开区间(i,j) 即[i+1, j-1] f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j]) return f[0][n+1] 301. 删除无效的括号 题目大意：给定一个由字母和括号组成的字符串s，要求删除最小数量的括号，使得字符串成为有效的括号组合，并返回所有可能的结果。\n实现思路：\n首先定义一个辅助函数check(st)，用于检查字符串st是否为有效的括号组合。遍历字符串中的每个字符，维护一个计数器cnt，遇到左括号增加计数，遇到右括号减少计数，若出现cnt为负数，或者遍历结束后cnt不为0，则说明括号不匹配，返回False，否则返回True。\n初始化一个空列表ret，用于存储结果。\n初始化一个集合cur，初始时将输入字符串s作为唯一元素加入其中。\n使用while循环，直到找到符合条件的结果为止：\n遍历集合cur中的每个字符串，检查其是否为有效括号组合，若是则将其加入结果列表ret。\n若结果列表ret不为空，则说明已找到符合条件的结果，结束循环。\n否则，初始化一个空集合nxt，用于存储下一轮迭代的候选字符串集合。\n遍历集合cur中的每个字符串，对于每个字符串，尝试删除一个字符（括号），生成新的字符串，并将其加入nxt中。\n更新cur为nxt，继续下一轮迭代。\n返回结果列表ret。\nclass Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 线段树 729. 我的日程安排表 I 题目大意：这个题目是关于设计一个日程安排类 MyCalendar，它能够存储日程，并判断是否会有重复预订。日程以半开区间 [start, end) 表示，当两个日程时间有交叠时就会产生重复预订。 实现思路：\n使用线段树：\n我们可以使用线段树来表示时间段的预订情况。每个节点代表一个时间段，节点值表示这个时间段是否被预订。 对于每个节点，我们维护两个集合，self.tree 表示已经预订的节点，self.lazy 表示已经被标记为预订但尚未被更新的节点。 查询功能：\n当需要查询某个时间段是否被预订时，我们可以在线段树上进行查询。如果查询到某个节点被标记为已预订（包括被标记为预订但尚未更新的节点），则返回预订；否则返回未预订。 更新功能：\n当要预订某个时间段时，我们在线段树上进行更新操作。首先从根节点开始，递归地向下更新，将该时间段的节点标记为已预订，并将经过的节点加入 self.tree 中。 同时，如果该节点的两个子节点都被标记为已预订，则将该节点也标记为已预订，同时加入 self.lazy 中，表示其下的所有节点都已经被预订但尚未更新。 book 方法：\n在 book 方法中，首先判断要预订的时间段是否已经被预订，如果是，则返回 False；否则，调用 update 方法进行更新，并返回 True。 class MyCalendar: def __init__(self): self.tree = set() self.lazy = set() def query(self, start: int, end: int, l: int, r: int, idx: int) -\u003e bool: if r \u003c start or end \u003c l: return False if idx in self.lazy: # 如果该区间已被预订，则直接返回 return True if start \u003c= l and r \u003c= end: return idx in self.tree mid = (l + r) // 2 return self.query(start, end, l, mid, 2 * idx) or \\ self.query(start, end, mid + 1, r, 2 * idx + 1) def update(self, start, end, l, r, idx): if start\u003er or end\u003cl: return False if start\u003c=l and r\u003c=end: self.tree.add(idx) self.lazy.add(idx) else: mid = (l+r)\u003e\u003e1 self.update(start, end, l, mid, idx*2) self.update(start, end, mid+1, r, idx*2+1) self.tree.add(idx) if 2*idx in self.lazy and 2*idx+1 in self.lazy: self.lazy.add(idx) def book(self, start: int, end: int) -\u003e bool: if self.query(start, end-1, 0, 10**9, 1): return False self.update(start, end-1, 0, 10**9, 1) return True 每日一题 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。\n思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]+n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。\nclass Solution: def minOperations(self, nums: List[int]) -\u003e int: n = len(nums) nums = sorted(set(nums)) j, ans = 0, 0 for i in range(len(nums)): right = nums[i]+ n-1 if len(nums)-1 - i + 1 \u003c= ans: break while j\u003clen(nums) and nums[j]\u003c=right: j+=1 ans = max(ans, j-i) return n-ans 1600. 王位继承顺序 题意：国王继承次序按嫡长子次序，实现ThroneInheritance(string kingName)初始化,void birth(string parentName, string childName) 出生，void death(string name)人死亡，string[] getInheritanceOrder() 返回 除去 死亡人员的当前继承顺序列表。\n思路：类似树形结构，国王先继承，之后是国王的长子，之后是长子的长子， 如果不存在则为国王的次子以此类推， 所以可以用defaultdict()存储每个的儿子情况，然后查询时，先将自己入结果列表，然后是第一个儿子…；并记录每个人的存活情况，排除掉已经死掉的人。\nclass ThroneInheritance: def __init__(self, kingName: str): self.son = defaultdict(list) self.die = set() self.king = kingName def birth(self, parentName: str, childName: str) -\u003e None: self.son[parentName].append(childName) def death(self, name: str) -\u003e None: self.die.add(name) def getInheritanceOrder(self) -\u003e List[str]: ret = [] def dfs(root): if root not in self.die: ret.append(root) for child in self.son[root]: dfs(child) dfs(self.king) return ret 1483. 树节点的第 K 个祖先 题意：给定n个点(0~n-1)每个点的父亲节点，快速查询每个节点的第k个祖宗节点。\n思路：LCA倍增原理，$ancestor[j][i] = ancestor[ ancestor[j][i-1] ][i-1]$ 节点j的第$2^i$个祖宗节点为节点第$2^{i-1}$个祖宗的第$2^{i-1}$个祖宗，即$2^{i-1}*2$个祖宗节点， 所以先预处理好每个节点的各个二进制位上的祖宗节点是谁，之后分解二进制位据可以得知任意第k个祖宗节点是谁。\nclass TreeAncestor: def __init__(self, n: int, parent: List[int]): self.level = 16 self.ancestor = [[-1]*self.level for _ in range(n)] for i in range(1, n): self.ancestor[i][0] = parent[i] for i in range(1, self.level): for j in range(1, n): if self.ancestor[j][i-1]!=-1: self.ancestor[j][i] = self.ancestor[ self.ancestor[j][i-1] ][i-1] def getKthAncestor(self, node: int, k: int) -\u003e int: while k: t = k\u0026-k k -= t t = t.bit_length()-1 node = self.ancestor[node][t] if node==-1: return -1 return node 面试题 08.12. 八皇后 题目大意：\n这道题目是经典的八皇后问题的扩展，需要设计一个算法来打印 N 皇后在 N × N 棋盘上的各种摆法，其中每个皇后都不在同一行、同一列，也不在任何对角线上。\n实现思路：\n回溯算法：\n使用回溯算法来尝试所有可能的皇后摆放方式。 从第一行开始，依次尝试每一列放置皇后，然后继续递归地尝试下一行的放置，直到所有行都放置完毕。 在递归过程中，通过检查每个位置的列、主对角线和副对角线是否已经存在皇后来确定是否可以放置皇后。 生成棋盘：\n当确定了一种合法的皇后摆放方式时，将其转换为棋盘的形式，并将其添加到结果列表中。 对于每行中皇后的位置，用 ‘Q’ 表示，其他位置用 ‘.’ 表示。 辅助函数：\nsolve: 递归函数，尝试在每行放置皇后。 generate: 将合法的皇后摆放方式转换为棋盘形式并添加到结果列表中。 剪枝优化：\n使用位运算来表示列、主对角线和副对角线的占用情况，可以快速判断某个位置是否可以放置皇后，从而提高效率。 在每次递归时，利用位运算进行剪枝，排除不可能的位置。 class Solution: def solveNQueens(self, n: int) -\u003e List[List[str]]: def generate(): board = [] for r in range(n): c = pos[r] row[c] = 'Q' board.append(\"\".join(row)) row[c] = '.' ret.append(board) def solve(row, column, diag1, diag2): if row==n: generate() else: avail = ( (1\u003c\u003cn)-1) \u0026 ( ~(column|diag1|diag2) ) while avail: colPos = avail\u0026(-avail) avail -= colPos colNum = bin(colPos-1).count(\"1\") pos[row]=colNum solve(row+1, column|colPos, (diag1|colPos)\u003c\u003c1, (diag2|colPos)\u003e\u003e1) pos = [0]*n ret = [] row = ['.']*n solve(0, 0, 0, 0) return ret 1702. 修改后的最大二进制字符串 题意：给定一个二进制字符串00-\u003e10, 10-\u003e01问任意次操作后能达到的最大二进制字符串。\n思路：构造，根据条件推过程，10-\u003e01可以看作后面的0浮到前面，所有的0聚到一起可以变成10串，所以最后至多只有一个0。根据构造来做，统计第一个0的位置和0的个数，最后构造出最后的0的位置；双指针来做：遇到0时找到后面第一个0的位置，将其浮到旁边，并换成10。\n构造：\nclass Solution: def maximumBinaryString(self, binary: str) -\u003e str: cnt = binary.count('0') if cnt\u003c=1: return binary n = len(binary) ans = ['1']*n index = binary.index('0') ans[index+cnt-1]='0' return ''.join(ans) 双指针：\nclass Solution: def maximumBinaryString(self, binary: str) -\u003e str: n = len(binary) s = list(binary) j = 0 for i in range(n): if s[i]=='0': while j\u003c=i or (j\u003cn and s[j]=='1'): j+=1 if j\u003cn: s[i], s[j], s[i+1] = '1', '1', '0' return ''.join(s) 24. 两两交换链表中的节点 题意：给定一个链表，分别两个一组交换相对位置。\n思路：链表交换next指针操作，prev-\u003eA-\u003eB-\u003eC变成prev-\u003eB-\u003eA-\u003eC，一共要变三条边。需要记录前面的点，后面的点。\nclass Solution: def swapPairs(self, head: Optional[ListNode]) -\u003e Optional[ListNode]: dummy = head prev = None while head and head.next: tmp = head.next.next #A-\u003eB 变成 B-\u003eA nxt = head.next #nxt是B, head是A nxt.next = head head.next = tmp if prev: prev.next = nxt prev = nxt.next #是头节点(即没有前面的点)的时候不需要这一步 if dummy==head: dummy = nxt prev = nxt.next head = tmp return dummy 25. K 个一组翻转链表 题意：每隔k个数字翻转链表。\n思路：链表交换指针操作。\n# Definition for singly-linked list. # class ListNode: # def __init__(self, val=0, next=None): # self.val = val # self.next = next class Solution: def reverseKGroup(self, head: Optional[ListNode], k: int) -\u003e Optional[ListNode]: def reverse(head, tail): # A-\u003eB-\u003eC 变成 C-\u003eB-\u003eA cur = tail.next dummy = head while cur != tail: nxt = dummy.next dummy.next = cur cur = dummy dummy = nxt return tail, head # 原来的tail和head位置没变，但中间点的指向关系变了 hair = ListNode(-1) # 伪头节点 hair.next = head pre = hair while head: tail = pre for i in range(k): # 走过k个点 tail = tail.next if not tail: return hair.next head, tail = reverse(head, tail) pre.next = head # pre-\u003eC pre = tail # pre变成尾节点 head = tail.next # 头节点变成当前尾节点的下个一个节点 return hair.next 1766. 互质树 题意：给定一棵树0~n-1共n个节点， 每个节点有一个值，返回每个节点的 最近的 与自己互质的(gcd(a,b)=1) 祖宗节点的编号。值的范围为[1,50] 思路：DFS， 遍历一遍树，维护一个祖宗节点的列表，判断当前节点与祖宗节点的互质关系。但朴素的将所有的祖宗节点都加入列表中，到深层的子节点时会遍历整个列表，会超时。由于值的范围最大为50，所以可以先预处理50范围以内的互质关系，对于每个节点，只需要判断祖宗节点里面有没有这些互质的数即可，但是需要的是最近的祖宗节点，所以还要添加一个深度信息，这样才能保证在相同值的祖宗节点中选择离自己最近的祖宗节点。 class Solution: def getCoprimes(self, nums: List[int], edges: List[List[int]]) -\u003e List[int]: n = len(nums) g = [[]*n for _ in range(n)] ret = [-1]*n store = [[] for _ in range(51)] mem = [(-1, -1)]*(51) for i in range(1, 51): for j in range(1, 51): if gcd(i, j)==1: store[i].append(j) for u, v in edges: g[u].append(v) g[v].append(u) def dfs(u, last, level): ret[u] = max(mem[i] for i in store[nums[u]])[1] tmp = mem[nums[u]] mem[nums[u]] = (level, u) for son in g[u]: if son==last: continue dfs(son, u, level+1) mem[nums[u]] = tmp dfs(0, -1, 0) return ret 924. 尽量减少恶意软件的传播 题目大意：给定一个由n个节点组成的网络，用n x n个邻接矩阵图graph表示。节点之间存在直接连接当且仅当graph[i][j] = 1。一些节点initial最初被恶意软件感染，如果两个节点直接连接且至少一个节点被感染，则两个节点都将被感染。移除一个节点后，返回使得整个网络中感染恶意软件的最终节点数最小的节点，若有多个节点满足条件，则返回索引最小的节点。\n实现思路：首先使用并查集将节点分组，然后计算每个分组的大小和其中感染节点的数量。遍历initial列表，找到使得其所在分组中只有一个感染节点且分组大小最大的节点，返回其索引。\nclass Solution: def minMalwareSpread(self, g: List[List[int]], initial: List[int]) -\u003e int: n, m = len(g), len(initial) f = [i for i in range(n)] size = [1 for _ in range(n)] # 连通块内的点数 num = [0 for _ in range(n)] # 连通块内的感染点数 for x in initial: num[x]=1 def find(x): if f[x] != x: f[x] = find(f[x]) return f[x] for i in range(n): for j in range(i+1, n): if g[i][j]: fi, fj = find(i), find(j) if fi!=fj: f[fi] = fj num[fj] += num[fi] size[fj] += size[fi] ma = -1 initial.sort() idx = initial[0] for x in initial: if num[find(x)]==1 and size[find(x)]\u003ema: ma = size[find(x)] idx = x return idx 928. 尽量减少恶意软件的传播 II 题目大意：给定一个由n个节点组成的网络，用n x n个邻接矩阵graph表示。节点之间存在直接连接当且仅当graph[i][j] = 1。一些节点initial最初被恶意软件感染，如果两个节点直接连接且至少一个节点被感染，则两个节点都将被感染。移除一个节点及其连接后，返回移除后能使整个网络中感染恶意软件的最终节点数最小的节点，若有多个节点满足条件，则返回索引最小的节点。\n实现思路：首先通过并查集将不在initial中的节点进行合并，然后计算每个initial节点的直接感染节点数。最后选择使得感染节点数最小且索引最小的initial节点返回。\nclass Solution: def minMalwareSpread(self, g: List[List[int]], initial: List[int]) -\u003e int: n = len(g) def find(x): if f[x] != x: f[x] = find(f[x]) return f[x] f = [i for i in range(n)] source = [[] for _ in range(n)] cnt = [0]*n init = [0]*n for i in initial: init[i] = 1 for i in range(n): if init[i]: continue for j in range(n): if init[j] or not g[i][j]: continue fi, fj = find(i), find(j) if fi!=fj: f[fi] = fj for x in initial: infected = [0]*n for j in range(n): if not g[x][j] or init[j] or infected[find(j)]: continue infected[find(j)] = 1 for j in range(n): if infected[j]: source[j].append(x) for i in range(n): if len(source[i])==1: root = source[i][0] for j in range(n): if find(i)==find(j): # 是一个连通块 cnt[root]+=1 idx = initial[0] for x in initial: if cnt[x]\u003ecnt[idx] or (cnt[x]==cnt[idx] and x\u003cidx): idx = x return idx 2007. 从双倍数组中还原原数组 题目大意：给定一个数组 changed，通过以下方式构造原始数组 original：将 changed 中的每个元素乘以2，并将结果随机打乱，然后返回原始数组 original。如果无法构造原始数组，则返回空数组。\n实现思路：首先判断数组 changed 的长度是否为偶数，如果不是偶数，则无法构造原始数组，直接返回空数组。接着使用一个字典记录数组 changed 中各个元素的出现次数。然后遍历数组 changed，对于每个元素 i，判断是否存在 i 的两倍的元素，若存在，则将 i 和其两倍的元素都从字典中减去一个，并将 i 加入结果数组中。最后判断结果数组的长度是否达到了原始数组的一半，如果达到了则返回结果数组的前一半，否则返回空数组。\nclass Solution: def findOriginalArray(self, changed: List[int]) -\u003e List[int]: n = len(changed) if n\u00261: return [] d = defaultdict(int) res = [] cnt = 0 changed.sort() for i in changed: d[i]+=1 for i in changed: if not d[i]: continue x = i*2 if i==x: # 0*2 = 0 d[x]-=1 if d[x]: d[x]-=1 # 匹配成功 cnt+=1 res.append(i) else: if d[x]: d[x]-=1 # 匹配成功 d[i]-=1 cnt+=1 res.append(i) if cnt\u003e=n//2: return res[:n//2] return [] 实现思路：首先使用 Counter 统计数组 changed 中各个元素的出现次数。然后将字典中键为 0 的元素（如果存在）弹出，因为原始数组中不可能有 0。接着判断字典中键为 0 的元素出现次数是否为偶数，如果不是偶数则无法构造原始数组，直接返回空数组。然后初始化一个由 0 组成的数组 ans，长度为 cnt_0 的一半。接下来遍历字典中的键值对，对于每个键 x，判断是否存在其一半的键值对，并将 x 加入结果数组 ans 中相应次数。最后返回结果数组 ans。\nclass Solution: def findOriginalArray(self, changed: List[int]) -\u003e List[int]: cnt = Counter(changed) cnt_0 = cnt.pop(0, 0) if cnt_0\u00261: return [] ans = [0]*(cnt_0//2) for x in cnt: if x%2==0 and cnt[x//2]: continue while x in cnt: if cnt[2*x]\u003ccnt[x]: return [] ans.extend([x]*(cnt[x])) if cnt[2*x]\u003ecnt[x]: cnt[2*x]-=cnt[x] x*=2 else: x*=4 return ans 1883. 准时抵达会议现场的最小跳过休息次数 题目大意：题目给出了一组道路的长度和行驶速度，以及剩余可用时间。要求计算在给定的时间内，最少跳过休息次数，以准时抵达会议现场。\n实现思路：动态规划。使用二维数组dp[i][j]表示到达第i条路，跳过j次休息的最小距离。初始化dp数组，然后遍历每一条路，在遍历的过程中更新dp数组。最后检查是否有方案可以在规定时间内到达会议现场，如果有，返回跳过休息的最小次数，否则返回-1。\nclass Solution: def minSkips(self, dist: List[int], speed: int, hoursBefore: int) -\u003e int: n = len(dist) if sum(dist) \u003e hoursBefore * speed: return -1 dp = [[inf] * (n + 1) for _ in range(n + 1)] dp[0][0] = 0 for i in range(1, n): for j in range(i+1): # 到第i条路，跳过次数为j的最小距离 # 不跳过第 i 条路 dp[i][j] = min(dp[i][j], (dp[i-1][j] + dist[i-1] + speed -1)//speed*speed) # 跳过第 i 条路 if j: dp[i][j] = min(dp[i][j], dp[i - 1][j -1] + dist[i-1]) for j in range(n): # 可以跳0~n-1次(最后一条边不用跳) if dp[n-1][j]+dist[-1] \u003c= hoursBefore * speed: return j return -1 39. 组合总和 题目大意 ：给定一个无重复元素的整数数组 candidates 和一个目标整数 target，找出 candidates 中可以使数字和为目标数 target 的所有不同组合，并以列表形式返回。可以无限制重复选择 candidates 中的同一个数字。\n实现思路 ：\n使用深度优先搜索（DFS）进行组合搜索。 定义一个辅助函数 dfs(i, s)，其中 i 表示当前遍历到的 candidates 数组的索引，s 表示当前已经选取的数字的和。 在 dfs 函数中，如果 s 大于等于 target 或者已经遍历到数组末尾，则进行以下判断： 如果 s 等于 target，则将当前的组合 ls 加入结果列表 ret 中。 如果 s 大于 target 或者已经遍历到数组末尾，则直接返回。 在 dfs 函数中，分别尝试两种情况： 不选择当前数字，继续向后搜索：dfs(i+1, s)。 选择当前数字，继续向后搜索：将当前数字加入组合 ls 中，更新 s，并递归调用 dfs(i, s+c[i])。 在递归调用之后，需要将当前选择的数字从组合 ls 中弹出，保证不影响后续搜索。 最终返回结果列表 ret。 class Solution: def combinationSum(self, c: List[int], t: int) -\u003e List[List[int]]: n = len(c) ret, ls = [], [] def dfs(i, s): if s\u003e=t or i==n: if s==t: ret.append(ls[:]) return dfs(i+1, s) ls.append(c[i]) dfs(i, s+c[i]) ls.pop() dfs(0, 0) return ret 216. 组合总和 III 题目大意：找出所有相加之和为n的k个数的组合，要求使用数字1到9，每个数字最多使用一次，返回所有可能的有效组合的列表。列表不能包含相同的组合两次，组合可以以任何顺序返回。\n实现思路：使用深度优先搜索（DFS）的方法，从1到9的数字中进行遍历，每次选择一个数字或不选择，直到满足条件为止。递归过程中，维护一个列表ls，记录当前已选数字的集合，如果当前集合的数字个数等于k且它们的和等于n，则将其加入结果列表ret中。\nclass Solution: def combinationSum3(self, k: int, n: int) -\u003e List[List[int]]: ret, ls = [], [] def dfs(i, s, cnt): if i==10 or s\u003e=n or cnt\u003e=k: if s==n and cnt==k: ret.append(ls[:]) return dfs(i+1, s, cnt) ls.append(i) dfs(i+1, s+i, cnt+1) ls.pop() dfs(1, 0, 0) return ret 其他题目 3031. 将单词恢复初始状态所需的最短时间 II Z函数 题目大意： 给定一个字符串 word 和一个整数 k，每秒需要执行两种操作：移除字符串 word 的前 k 个字符，并在字符串末尾添加 k 个任意字符。要求返回将 word 恢复到初始状态所需的最短时间。\n实现思路： 首先，我们可以利用 Z 函数（Z algorithm）来找到字符串的最长前缀后缀匹配长度。然后，我们可以利用 Z 函数的性质，将字符串分割成不同的前缀子串，找到满足条件的最小时间。\n具体步骤如下：\n初始化一个数组 z，用于存储字符串 s 的 Z 函数值。 使用双指针 l 和 r 来维护当前匹配的子串。 遍历字符串 s，计算 z[i] 的值，即以第 i 个字符为起始的最长前缀后缀匹配长度。 在每次遍历中，更新 l 和 r 的值，保持当前匹配的子串范围。 如果当前位置 i 能够满足条件：即 i 是 k 的倍数且 z[i] 等于剩余字符串的长度（n - i），则返回 i 除以 k。 若遍历完字符串后仍未找到满足条件的位置，则返回 (n - 1) 除以 k 再加 1，表示需要把剩余的字符串都移除并添加到末尾。 class Solution: def minimumTimeToInitialState(self, s: str, k: int) -\u003e int: n = len(s) z = [0] * n l, r = 0, 0 for i in range(1, n): if i \u003c= r and z[i - l] \u003c r - i + 1: z[i] = z[i - l] else: z[i] = max(0, r - i + 1) while i + z[i] \u003c n and s[z[i]] == s[i + z[i]]: z[i] += 1 if i + z[i] - 1 \u003e r: l = i r = i + z[i] - 1 if i%k==0 and z[i] == n-i: return i//k return (n-1)//k+1 5. 最长回文子串马拉车算法 题意：求字符串内的最大回文串长度 思路：马拉车算法，由当前已知的最大回文串长度，我们可以由已知的回文串长度，推出其覆盖的点的最大回文串长度。如下图，p[i]位置的回文串长度可以由最长的回文串(以a为中心)得出，因为回文串两边是对称的，所以p[i] = p[c + c-i], 但是对于覆盖不到的部分，需要取下限r-i。 class Solution: # 推荐教学视频 ：https://www.bilibili.com/video/BV1Sx4y1k7jG/?spm_id_from=333.337.search-card.all.click\u0026vd_source=a4a2b56f746715b34521bfb853094cf4 def longestPalindrome(self, s: str) -\u003e str: s = '#' + '#'.join(list(s)) + '#' n = len(s) p = [0]*n #每个点的 最长回文字串 能到的 右侧位置 c, r = 0, 0 # 右边能到达最远的蘑菇的位置 和 其最右边能达到的位置 for i in range(n): if i\u003c=r: p[i] = min(r-i, p[c + c-i]) # 由已知条件得到当前位置能达到的最大右侧距离( 需要取min(镜像位置的值, 当前最大蘑菇能覆盖到的最大值) ) while i+p[i]+1 \u003c n and s[i-p[i]-1] == s[i+p[i]+1]: p[i]+=1 if p[i]+i \u003e r: r = p[i] + i c = i ma = max(p) idx = p.index(ma) return s[idx-ma+1:idx+ma+1:2] Prompt 下面我给出一个题目，代码实现，和对题目的总结和实现思路， 你需要的是学习我是如何总结的，如果你看懂了则回复我你懂了\r\"\"\"\r给你一个 n 个节点的树（也就是一个无环连通无向图），节点编号从 0 到 n - 1 ，且恰好有 n - 1 条边，每个节点有一个值。树的 根节点 为 0 号点。\r给你一个整数数组 nums 和一个二维数组 edges 来表示这棵树。nums[i] 表示第 i 个点的值，edges[j] = [uj, vj] 表示节点 uj 和节点 vj 在树中有一条边。\r当 gcd(x, y) == 1 ，我们称两个数 x 和 y 是 互质的 ，其中 gcd(x, y) 是 x 和 y 的 最大公约数 。\r从节点 i 到 根 最短路径上的点都是节点 i 的祖先节点。一个节点 不是 它自己的祖先节点。\r请你返回一个大小为 n 的数组 ans ，其中 ans[i]是离节点 i 最近的祖先节点且满足 nums[i] 和 nums[ans[i]] 是 互质的 ，如果不存在这样的祖先节点，ans[i] 为 -1 。\r示例 1：\r输入：nums = [2,3,3,2], edges = [[0,1],[1,2],[1,3]]\r输出：[-1,0,0,1]\r解释：上图中，每个节点的值在括号中表示。\r- 节点 0 没有互质祖先。\r- 节点 1 只有一个祖先节点 0 。它们的值是互质的（gcd(2,3) == 1）。\r- 节点 2 有两个祖先节点，分别是节点 1 和节点 0 。节点 1 的值与它的值不是互质的（gcd(3,3) == 3）但节点 0 的值是互质的(gcd(2,3) == 1)，所以节点 0 是最近的符合要求的祖先节点。\r- 节点 3 有两个祖先节点，分别是节点 1 和节点 0 。它与节点 1 互质（gcd(3,2) == 1），所以节点 1 是离它最近的符合要求的祖先节点。\r示例 2：\r输入：nums = [5,6,10,2,3,6,15], edges = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]]\r输出：[-1,0,-1,0,0,0,-1]\r提示：\rnums.length == n\r1 \u003c= nums[i] \u003c= 50\r1 \u003c= n \u003c= 105\redges.length == n - 1\redges[j].length == 2\r0 \u003c= uj, vj \u003c n\ruj != vj\r代码实现：\rclass Solution:\rdef getCoprimes(self, nums: List[int], edges: List[List[int]]) -\u003e List[int]:\rn = len(nums)\rg = [[]*n for _ in range(n)]\rret = [-1]*n\rstore = [[] for _ in range(51)]\rmem = [(-1, -1)]*(51) for i in range(1, 51):\rfor j in range(1, 51):\rif gcd(i, j)==1:\rstore[i].append(j)\rfor u, v in edges:\rg[u].append(v)\rg[v].append(u)\rdef dfs(u, last, level):\rret[u] = max(mem[i] for i in store[nums[u]])[1]\rtmp = mem[nums[u]]\rmem[nums[u]] = (level, u)\rfor son in g[u]:\rif son==last:\rcontinue\rdfs(son, u, level+1)\rmem[nums[u]] = tmp\rdfs(0, -1, 0)\rreturn ret\r\"\"\" 好的，你现在需要做的是 ： 我给你其他题目，并给出已经AC的代码实现，你需要补充：1、题目大意 2、实现思路\r如果你已经了解了我的需求，请回复我懂了 ",
-  "wordCount" : "12479",
+  "articleBody": "LeetCode笔记 目标：2500分\nHOT100 301. 删除无效的括号 题目大意：\n给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字符串有效。\n返回所有可能的结果。答案可以按 任意顺序 返回。\n回溯 实现思路：\n统计无效括号数量：\n首先遍历字符串s，统计左括号和右括号的数量l和r，其中l表示未匹配的左括号数量，r表示需要删除的右括号数量。 回溯算法：\n编写回溯算法来尝试删除不同位置的括号，使得字符串有效。 回溯过程中需要注意以下情况： 已经匹配的括号数量ln和rn，以及当前位置i。 遍历字符串s的每个字符，当遇到重复的字符时跳过，以避免重复结果。 如果当前字符为左括号并且ln不为0，则递归调用删除当前左括号的情况，ln减一，否则继续。 如果当前字符为右括号并且rn不为0，则递归调用删除当前右括号的情况，rn减一，否则继续。 检查字符串有效性：\n编写辅助函数check来检查字符串是否有效，即左右括号数量是否匹配。 返回结果：\n将所有有效的字符串结果添加到结果列表ret中，并返回。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: l, r = 0, 0 ret = [] n = len(s) for c in s: if c=='(': l+=1 elif c==')': if l==0: r+=1 else: l-=1 def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': cnt-=1 if cnt\u003c0: return False return (cnt==0) def backtrace(st, start, ln, rn): if ln==0 and rn==0 and check(st): ret.append(st[:]) return for i in range(start, len(st)): if i\u003estart and st[i]==st[i-1]: continue if ln+rn\u003en-1-i+1: break if ln and st[i]=='(': backtrace(st[:i]+st[i+1:], i, ln-1, rn) elif rn and st[i]==')': backtrace(st[:i]+st[i+1:], i, ln, rn-1) backtrace(s, 0, l, r) return ret 广搜 这个实现使用了广度优先搜索（BFS）的思路来解决问题。\nBFS搜索：\n使用一个集合cur来存储当前层的所有字符串，初始时将输入的字符串s加入集合cur中。 在每一轮循环中，遍历当前集合cur中的所有字符串，如果其中有字符串是有效的，则将其加入结果列表ret中。 如果结果列表ret不为空，则跳出循环，表示已经找到了所有有效的字符串。 如果结果列表ret为空，则需要继续进行下一轮搜索，将当前集合cur中的每个字符串，通过删除一个括号的方式，生成所有可能的下一层字符串，加入到集合nxt中。 更新当前集合cur为nxt，继续下一轮搜索。 检查字符串有效性：\n定义一个辅助函数check，用于检查字符串是否有效。 遍历字符串中的每个字符，遇到左括号时增加计数器cnt，遇到右括号时如果cnt为0则返回False（表示右括号没有匹配的左括号），否则减少cnt。 最终判断cnt是否为0，如果为0表示字符串有效。 返回结果：\n返回结果列表ret，其中存储了所有有效的字符串。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 297. 二叉树的序列化与反序列化 不止第一次遇到了。\n题目大意：序列化是将一个数据结构或对象转换为连续的比特位的操作，从而可以存储在文件或内存中，并且通过网络传输到另一个计算机环境中。本题要求设计一个算法来实现二叉树的序列化和反序列化，即将二叉树转换为字符串并将字符串转换回原始的二叉树结构。\n实现思路：\n序列化：使用递归将二叉树转换为字符串，根节点值与左右子树序列化结果之间使用空格分隔，空节点用 ‘#’ 表示。 反序列化：使用递归将字符串转换为二叉树。首先定义一个辅助函数 DerWork()，用于递归构建二叉树。在该函数中，按照前序遍历的顺序，依次提取字符串中的节点值，并根据节点值构建二叉树节点。如果节点值为 ‘#’，表示空节点，返回 None。否则，创建节点并递归构建其左右子树。 在反序列化过程中，使用一个全局变量 self.s 来记录当前待处理的字符串，每次递归处理后，将字符串中已经处理过的部分剔除，继续处理剩余部分。 最终返回根节点即可。 # Definition for a binary tree node. # class TreeNode(object): # def __init__(self, x): # self.val = x # self.left = None # self.right = None class Codec: def serialize(self, root): \"\"\"Encodes a tree to a single string. :type root: TreeNode :rtype: str \"\"\" if not root: return '#' return str(root.val)+' '+self.serialize(root.left)+' '+self.serialize(root.right) def deserialize(self, data): \"\"\"Decodes your encoded data to tree. :type data: str :rtype: TreeNode \"\"\" self.s = data return self.DerWork() def DerWork(self): if len(self.s)==0: return None try: idx = self.s.index(' ') except: idx = -1 node = self.s if idx==-1 else self.s[:idx] self.s = '' if idx==-1 else self.s[idx+1:] if node=='#': return None t = TreeNode(int(node)) t.left = self.DerWork() t.right = self.DerWork() return t # Your Codec object will be instantiated and called as such: # ser = Codec() # deser = Codec() # ans = deser.deserialize(ser.serialize(root)) 84. 柱状图中最大的矩形 题目大意：给定 n 个非负整数，表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1。求在该柱状图中，能够勾勒出的矩形的最大面积。\n实现思路：\n使用单调栈解决问题。创建两个数组 l 和 r，分别记录每个柱子向左和向右第一个比其高度小的柱子的索引位置。 初始化一个空栈 stk。 遍历柱子的高度列表 heights： 若栈不为空且当前柱子的高度小于栈顶柱子的高度，则将栈顶元素弹出，并更新栈顶元素对应的 r 值为当前柱子的索引。 若栈为空或者当前柱子的高度大于栈顶柱子的高度，则将当前柱子的索引入栈。 在更新 r 值的同时，若栈不为空，则更新当前柱子的 l 值为栈顶元素的索引。 遍历完成后，对于每个柱子 i，计算以该柱子为高度的矩形面积为 (r[i] - l[i] - 1) * heights[i]，取最大值即为所求的最大矩形面积。 若柱状图为空，则返回 0。 class Solution: def largestRectangleArea(self, heights: List[int]) -\u003e int: n=len(heights) l, r = [-1]*(n+5), [n]*(n+5) stk = list() for i in range(n): while stk and heights[stk[-1]]\u003e=heights[i]: r[stk[-1]]=i stk.pop() if stk: l[i]=stk[-1] stk.append(i) return max( (r[i]-l[i]-1)*heights[i] for i in range(n) ) if n\u003e0 else 0 85. 最大矩形 题目大意：给定一个仅包含 0 和 1、大小为 rows x cols 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。\n实现思路：\n将问题转化为矩形最大面积问题。 定义变量 area 用于记录最大矩形的面积。 创建二维数组 left，用于记录每个位置 (i, j) 左侧连续 1 的个数。 遍历二维矩阵，初始化 left 数组： 若当前位置为 ‘1’，则 left[i][j] 等于 left[i][j-1] + 1，否则为 0。 遍历矩阵的每一列，对于每一列 j，使用单调栈来计算以当前列为底边的最大矩形的面积： 初始化一个空栈 stk。 定义两个数组 up 和 down，分别记录当前位置上方第一个小于等于其高度的位置和下方第一个小于等于其高度的位置。 遍历矩阵的每一行 i，进行以下操作： 当栈不为空且栈顶位置对应的 left 值大于等于当前位置的 left 值时，弹出栈顶位置，并更新 down 值。 如果栈为空，则当前位置的 up 值为 -1，否则为栈顶位置。 将当前行索引入栈。 在计算当前列的矩形面积时，height 为 down[i] - up[i] - 1，宽度为 left[i][j]，计算当前列的最大面积并更新 area。 返回最大面积 area。 class Solution: def maximalRectangle(self, matrix: List[List[str]]) -\u003e int: # 转化为矩形最大面积问题 n, m = len(matrix), len(matrix[0]) area = 0 left = [[0]*m for _ in range(n)] for i in range(n): for j in range(m): if matrix[i][j]=='1': left[i][j] += left[i][j-1]+1 if j else 1 for j in range(m): stk = [] up, down = [-1]*n, [n]*n for i in range(n): #行 while stk and left[ stk[-1] ][j]\u003e=left[i][j]: down[stk[-1]] = i stk.pop() up[i] = stk[-1] if stk else -1 stk.append(i) for i in range(n): height = down[i]-up[i]-1 area = max(area, height*left[i][j]) return area 76. 最小覆盖子串 题目大意：给定字符串 s 和字符串 t，返回 s 中涵盖 t 所有字符的最小子串。如果 s 中不存在涵盖 t 所有字符的子串，则返回空字符串 “\"。\n注意：\n对于 t 中重复字符，子字符串中该字符数量必须不少于 t 中该字符数量。\n如果 s 中存在这样的子串，保证它是唯一的答案。\n实现思路：\n使用双指针滑动窗口解决问题。 初始化 need 字典，用于记录字符串 t 中每个字符的出现次数。 初始化 needCnt 为 t 的长度 m，表示还需要的字符数量。 初始化左指针 left 为 0，并初始化结果变量 res 为一个长度为 n 的区间，初始值为 (0, n)。 遍历字符串 t，统计每个字符的出现次数并存储在 need 字典中。 遍历字符串 s，使用右指针 right 遍历每个字符： 若当前字符在 t 中出现，则 needCnt 减 1。 更新 need 字典中当前字符的出现次数。 若 needCnt 为 0，表示当前窗口包含了 t 中所有字符，进入内部循环： 移动左指针 left，直到当前窗口不再满足条件（即 need 字典中某个字符的出现次数大于 0）。 更新结果变量 res。 恢复左指针 left 和 needCnt。 返回结果字符串，若结果区间超出 s 的范围，则返回空字符串。 class Solution: def minWindow(self, s: str, t: str) -\u003e str: n, m = len(s), len(t) need = defaultdict(int) needCnt = m left = 0 res = (0, n) for ch in t: need[ch]+=1 for right, ch in enumerate(s): if need[ch]\u003e0: needCnt-=1 need[ch]-=1 if needCnt==0: while need[s[left]]!=0: need[s[left]]+=1 left+=1 if right-left \u003c res[1]-res[0]: res = (left, right) need[s[left]]+=1 needCnt+=1 left+=1 return '' if res[1]\u003en-1 else s[res[0]:res[1]+1] 312. 戳气球 题意：给定n个数字num[0~n-1],每次戳破一个气球可以获得nums[i-1]*nums[i]*nums[i+1]个硬币，最两旁默认为1，问最终获得的最大硬币数量。 思路：区间DP，逆向思维, 思考如何放气球能使硬币最大，f[i][j]代表开区间i~j可以获得的最大硬币， 先枚举小区间，再枚举大区间，枚举区间内每个数字，状态转移有：f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j])。最终输出f[0][n+1] class Solution: def maxCoins(self, nums: List[int]) -\u003e int: n = len(nums) nums = [1]+nums+[1] f = [[0]*(n+5) for _ in range(n+5)] # 开区间 (left, right) 区间内能获得的最大硬币 for l in range(2,n+2): # len:2~n+1 for i in range(n+1-l+1): # left:0~n+1-len j=i+l # right = left + len for k in range(i+1, j): # 开区间(i,j) 即[i+1, j-1] f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j]) return f[0][n+1] 301. 删除无效的括号 题目大意：给定一个由字母和括号组成的字符串s，要求删除最小数量的括号，使得字符串成为有效的括号组合，并返回所有可能的结果。\n实现思路：\n首先定义一个辅助函数check(st)，用于检查字符串st是否为有效的括号组合。遍历字符串中的每个字符，维护一个计数器cnt，遇到左括号增加计数，遇到右括号减少计数，若出现cnt为负数，或者遍历结束后cnt不为0，则说明括号不匹配，返回False，否则返回True。\n初始化一个空列表ret，用于存储结果。\n初始化一个集合cur，初始时将输入字符串s作为唯一元素加入其中。\n使用while循环，直到找到符合条件的结果为止：\n遍历集合cur中的每个字符串，检查其是否为有效括号组合，若是则将其加入结果列表ret。\n若结果列表ret不为空，则说明已找到符合条件的结果，结束循环。\n否则，初始化一个空集合nxt，用于存储下一轮迭代的候选字符串集合。\n遍历集合cur中的每个字符串，对于每个字符串，尝试删除一个字符（括号），生成新的字符串，并将其加入nxt中。\n更新cur为nxt，继续下一轮迭代。\n返回结果列表ret。\nclass Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。\n实现思路：使用双指针法。初始化左指针l指向数组的起始位置，右指针r指向数组的末尾位置。设置变量ret用于记录当前最大容量，初始化为0。在每一轮循环中，计算当前容器的容量，即min(height[l], height[r])乘以r和l之间的距离，更新ret。然后根据指针所指向的高度的大小，移动指针，如果height[l]",
+  "wordCount" : "6883",
   "inLanguage": "en",
   "datePublished": "2024-04-17T15:37:01+08:00",
-  "dateModified": "2024-04-17T15:37:01+08:00",
+  "dateModified": "2024-04-22T15:37:01+08:00",
   "author":{
     "@type": "Person",
     "name": "ShowGuan"
@@ -242,16 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       LeetCode笔记(hot &amp; 每日一题)
     </div>
-    <div class="post-meta"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;25 min&nbsp;·&nbsp;ShowGuan
-
-
-
-
-
-
-
-
-
+    <div class="post-meta"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;14 min&nbsp;·&nbsp;6883 words&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan
 
 </div>
 	
@@ -268,28 +259,6 @@ document.addEventListener("DOMContentLoaded", function() {
                 <li>
                     <a href="#leetcode%e7%ac%94%e8%ae%b0" aria-label="LeetCode笔记">LeetCode笔记</a><ul>
                         
-                <li>
-                    <a href="#%e5%89%91%e6%8c%87offer-" aria-label="剑指Offer &#43;">剑指Offer +</a><ul>
-                        
-                <li>
-                    <a href="#%e6%95%b0%e6%8d%ae%e6%b5%81%e4%b8%ad%e7%9a%84%e4%b8%ad%e4%bd%8d%e6%95%b0" aria-label="数据流中的中位数">数据流中的中位数</a></li>
-                <li>
-                    <a href="#%e5%ad%97%e7%ac%a6%e6%b5%81%e4%b8%ad%e7%ac%ac%e4%b8%80%e4%b8%aa%e5%8f%aa%e5%87%ba%e7%8e%b0%e4%b8%80%e6%ac%a1%e7%9a%84%e5%ad%97%e7%ac%a6" aria-label="字符流中第一个只出现一次的字符">字符流中第一个只出现一次的字符</a></li>
-                <li>
-                    <a href="#%e6%9c%80%e9%95%bf%e4%b8%8d%e5%90%ab%e9%87%8d%e5%a4%8d%e5%ad%97%e7%ac%a6%e7%9a%84%e5%ad%90%e5%ad%97%e7%ac%a6%e4%b8%b2" aria-label="最长不含重复字符的子字符串">最长不含重复字符的子字符串</a></li>
-                <li>
-                    <a href="#%e9%aa%b0%e5%ad%90%e7%9a%84%e7%82%b9%e6%95%b0" aria-label="骰子的点数">骰子的点数</a></li>
-                <li>
-                    <a href="#%e6%95%b0%e7%bb%84%e4%b8%ad%e6%95%b0%e5%80%bc%e5%92%8c%e4%b8%8b%e6%a0%87%e7%9b%b8%e7%ad%89%e7%9a%84%e5%85%83%e7%b4%a0" aria-label="数组中数值和下标相等的元素">数组中数值和下标相等的元素</a></li>
-                <li>
-                    <a href="#%e5%a4%8d%e6%9d%82%e9%93%be%e8%a1%a8%e7%9a%84%e5%a4%8d%e5%88%bb" aria-label="复杂链表的复刻">复杂链表的复刻</a></li>
-                <li>
-                    <a href="#%e7%9f%a9%e9%98%b5%e4%b8%ad%e7%9a%84%e8%b7%af%e5%be%84" aria-label="矩阵中的路径">矩阵中的路径</a></li>
-                <li>
-                    <a href="#%e6%ad%a3%e5%88%99%e8%a1%a8%e8%be%be%e5%bc%8f%e5%8c%b9%e9%85%8d" aria-label="正则表达式匹配">正则表达式匹配</a></li>
-                <li>
-                    <a href="#lcr-168-%e4%b8%91%e6%95%b0httpsleetcodecnproblemschou-shu-lcof" aria-label="LCR 168. 丑数">LCR 168. 丑数</a></li></ul>
-                </li>
                 <li>
                     <a href="#hot100" aria-label="HOT100">HOT100</a><ul>
                         
@@ -312,45 +281,17 @@ document.addEventListener("DOMContentLoaded", function() {
                 <li>
                     <a href="#312-%e6%88%b3%e6%b0%94%e7%90%83httpsleetcodecnproblemsburst-balloons" aria-label="312. 戳气球">312. 戳气球</a></li>
                 <li>
-                    <a href="#301-%e5%88%a0%e9%99%a4%e6%97%a0%e6%95%88%e7%9a%84%e6%8b%ac%e5%8f%b7httpsleetcodecnproblemsremove-invalid-parentheses-1" aria-label="301. 删除无效的括号">301. 删除无效的括号</a></li></ul>
+                    <a href="#301-%e5%88%a0%e9%99%a4%e6%97%a0%e6%95%88%e7%9a%84%e6%8b%ac%e5%8f%b7httpsleetcodecnproblemsremove-invalid-parentheses-1" aria-label="301. 删除无效的括号">301. 删除无效的括号</a></li>
+                <li>
+                    <a href="#11-%e7%9b%9b%e6%9c%80%e5%a4%9a%e6%b0%b4%e7%9a%84%e5%ae%b9%e5%99%a8httpsleetcodecnproblemscontainer-with-most-water" aria-label="11. 盛最多水的容器">11. 盛最多水的容器</a></li>
+                <li>
+                    <a href="#647-%e5%9b%9e%e6%96%87%e5%ad%90%e4%b8%b2httpsleetcodecnproblemspalindromic-substrings" aria-label="647. 回文子串">647. 回文子串</a></li></ul>
                 </li>
                 <li>
                     <a href="#%e7%ba%bf%e6%ae%b5%e6%a0%91" aria-label="线段树">线段树</a><ul>
                         
                 <li>
                     <a href="#729-%e6%88%91%e7%9a%84%e6%97%a5%e7%a8%8b%e5%ae%89%e6%8e%92%e8%a1%a8-ihttpsleetcodecnproblemsmy-calendar-i" aria-label="729. 我的日程安排表 I">729. 我的日程安排表 I</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e6%af%8f%e6%97%a5%e4%b8%80%e9%a2%98" aria-label="每日一题">每日一题</a><ul>
-                        
-                <li>
-                    <a href="#2009-%e4%bd%bf%e6%95%b0%e7%bb%84%e8%bf%9e%e7%bb%ad%e7%9a%84%e6%9c%80%e5%b0%91%e6%93%8d%e4%bd%9c%e6%95%b0httpsleetcodecnproblemsminimum-number-of-operations-to-make-array-continuous" aria-label="2009. 使数组连续的最少操作数">2009. 使数组连续的最少操作数</a></li>
-                <li>
-                    <a href="#1600-%e7%8e%8b%e4%bd%8d%e7%bb%a7%e6%89%bf%e9%a1%ba%e5%ba%8fhttpsleetcodecnproblemsthrone-inheritance" aria-label="1600. 王位继承顺序">1600. 王位继承顺序</a></li>
-                <li>
-                    <a href="#1483-%e6%a0%91%e8%8a%82%e7%82%b9%e7%9a%84%e7%ac%ac-k-%e4%b8%aa%e7%a5%96%e5%85%88httpsleetcodecnproblemskth-ancestor-of-a-tree-node" aria-label="1483. 树节点的第 K 个祖先">1483. 树节点的第 K 个祖先</a></li>
-                <li>
-                    <a href="#%e9%9d%a2%e8%af%95%e9%a2%98-0812-%e5%85%ab%e7%9a%87%e5%90%8ehttpsleetcodecnproblemseight-queens-lcci" aria-label="面试题 08.12. 八皇后">面试题 08.12. 八皇后</a></li>
-                <li>
-                    <a href="#1702-%e4%bf%ae%e6%94%b9%e5%90%8e%e7%9a%84%e6%9c%80%e5%a4%a7%e4%ba%8c%e8%bf%9b%e5%88%b6%e5%ad%97%e7%ac%a6%e4%b8%b2httpsleetcodecnproblemsmaximum-binary-string-after-change" aria-label="1702. 修改后的最大二进制字符串">1702. 修改后的最大二进制字符串</a></li>
-                <li>
-                    <a href="#24-%e4%b8%a4%e4%b8%a4%e4%ba%a4%e6%8d%a2%e9%93%be%e8%a1%a8%e4%b8%ad%e7%9a%84%e8%8a%82%e7%82%b9httpsleetcodecnproblemsswap-nodes-in-pairs" aria-label="24. 两两交换链表中的节点">24. 两两交换链表中的节点</a></li>
-                <li>
-                    <a href="#25-k-%e4%b8%aa%e4%b8%80%e7%bb%84%e7%bf%bb%e8%bd%ac%e9%93%be%e8%a1%a8httpsleetcodecnproblemsreverse-nodes-in-k-group" aria-label="25. K 个一组翻转链表">25. K 个一组翻转链表</a></li>
-                <li>
-                    <a href="#1766-%e4%ba%92%e8%b4%a8%e6%a0%91httpsleetcodecnproblemstree-of-coprimes" aria-label="1766. 互质树">1766. 互质树</a></li>
-                <li>
-                    <a href="#924-%e5%b0%bd%e9%87%8f%e5%87%8f%e5%b0%91%e6%81%b6%e6%84%8f%e8%bd%af%e4%bb%b6%e7%9a%84%e4%bc%a0%e6%92%adhttpsleetcodecnproblemsminimize-malware-spread" aria-label="924. 尽量减少恶意软件的传播">924. 尽量减少恶意软件的传播</a></li>
-                <li>
-                    <a href="#928-%e5%b0%bd%e9%87%8f%e5%87%8f%e5%b0%91%e6%81%b6%e6%84%8f%e8%bd%af%e4%bb%b6%e7%9a%84%e4%bc%a0%e6%92%ad-iihttpsleetcodecnproblemsminimize-malware-spread-ii" aria-label="928. 尽量减少恶意软件的传播 II">928. 尽量减少恶意软件的传播 II</a></li>
-                <li>
-                    <a href="#2007-%e4%bb%8e%e5%8f%8c%e5%80%8d%e6%95%b0%e7%bb%84%e4%b8%ad%e8%bf%98%e5%8e%9f%e5%8e%9f%e6%95%b0%e7%bb%84httpsleetcodecnproblemsfind-original-array-from-doubled-array" aria-label="2007. 从双倍数组中还原原数组">2007. 从双倍数组中还原原数组</a></li>
-                <li>
-                    <a href="#1883-%e5%87%86%e6%97%b6%e6%8a%b5%e8%be%be%e4%bc%9a%e8%ae%ae%e7%8e%b0%e5%9c%ba%e7%9a%84%e6%9c%80%e5%b0%8f%e8%b7%b3%e8%bf%87%e4%bc%91%e6%81%af%e6%ac%a1%e6%95%b0httpsleetcodecnproblemsminimum-skips-to-arrive-at-meeting-on-time" aria-label="1883. 准时抵达会议现场的最小跳过休息次数">1883. 准时抵达会议现场的最小跳过休息次数</a></li>
-                <li>
-                    <a href="#39-%e7%bb%84%e5%90%88%e6%80%bb%e5%92%8chttpsleetcodecnproblemscombination-sum" aria-label="39. 组合总和">39. 组合总和</a></li>
-                <li>
-                    <a href="#216-%e7%bb%84%e5%90%88%e6%80%bb%e5%92%8c-iiihttpsleetcodecnproblemscombination-sum-iii" aria-label="216. 组合总和 III">216. 组合总和 III</a></li></ul>
                 </li></ul>
                 </li>
                 <li>
@@ -373,220 +314,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   <div class="post-content"><h1 id="leetcode笔记">LeetCode笔记<a hidden class="anchor" aria-hidden="true" href="#leetcode笔记">#</a></h1>
 <p>目标：2500分</p>
-<h2 id="剑指offer-">剑指Offer +<a hidden class="anchor" aria-hidden="true" href="#剑指offer-">#</a></h2>
-<h3 id="数据流中的中位数">数据流中的中位数<a hidden class="anchor" aria-hidden="true" href="#数据流中的中位数">#</a></h3>
-<p>用两个堆模拟， 左边大顶堆，右边小顶堆，则两个堆顶是最中间的数字。</p>
-<p>添加数字时：</p>
-<ul>
-<li>如果输入的是第奇数个（比如第一个，则<code>N</code>初始化为<code>0</code>，插入后<code>N</code>为<code>1</code>，代表一共有一个数字），则先插入大顶堆，然后把堆顶插入小顶堆。<strong>保证小顶堆的任意一个值都比大顶堆大</strong>。</li>
-<li>同样，如果输入的是第偶数个（第二个），则先插入小顶堆，然后将小顶堆最小值插入大顶堆。同样是<strong>保证小顶堆的任意一个值都比大顶堆大</strong>。</li>
-</ul>
-<p>至于先插入哪一个堆是没有关系的，只要保证交替插入不同的堆即可，并且要确保边界问题（比如在奇数个元素的的中位数， 只有一个数据时应返回先插入的堆顶值， 否则堆为空会报错）。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> heapq <span style="color:#66d9ef">as</span> hp
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    heapl <span style="color:#f92672">=</span> [] <span style="color:#75715e"># 大根堆</span>
-</span></span><span style="display:flex;"><span>    heapr <span style="color:#f92672">=</span> [] <span style="color:#75715e"># 小根堆</span>
-</span></span><span style="display:flex;"><span>    N <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insert</span>(self, num):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type num: int
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: void
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>N <span style="color:#f92672">%</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>            hp<span style="color:#f92672">.</span>heappush(self<span style="color:#f92672">.</span>heapl, <span style="color:#f92672">-</span>num)
-</span></span><span style="display:flex;"><span>            hp<span style="color:#f92672">.</span>heappush(self<span style="color:#f92672">.</span>heapr, <span style="color:#f92672">-</span>hp<span style="color:#f92672">.</span>heappop(self<span style="color:#f92672">.</span>heapl))
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>            hp<span style="color:#f92672">.</span>heappush(self<span style="color:#f92672">.</span>heapr, num)
-</span></span><span style="display:flex;"><span>            hp<span style="color:#f92672">.</span>heappush(self<span style="color:#f92672">.</span>heapl, <span style="color:#f92672">-</span>hp<span style="color:#f92672">.</span>heappop(self<span style="color:#f92672">.</span>heapr))
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>N <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getMedian</span>(self):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: float
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>N <span style="color:#f92672">%</span><span style="color:#ae81ff">2</span><span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> (<span style="color:#f92672">-</span>self<span style="color:#f92672">.</span>heapl[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">+</span>self<span style="color:#f92672">.</span>heapr[<span style="color:#ae81ff">0</span>])<span style="color:#f92672">/</span><span style="color:#ae81ff">2.0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>heapr[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span><span style="color:#ae81ff">1.0</span>
-</span></span><span style="display:flex;"><span>        
-</span></span></code></pre></div><h3 id="字符流中第一个只出现一次的字符">字符流中第一个只出现一次的字符<a hidden class="anchor" aria-hidden="true" href="#字符流中第一个只出现一次的字符">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> collections
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:  
-</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> collections<span style="color:#f92672">.</span>defaultdict(int)
-</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> collections<span style="color:#f92672">.</span>deque()
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">firstAppearingOnce</span>(self):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: str
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;#&#39;</span> <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> self<span style="color:#f92672">.</span>q <span style="color:#66d9ef">else</span> self<span style="color:#f92672">.</span>q[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">insert</span>(self, char):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type char: str
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: void
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>d[char]<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>q<span style="color:#f92672">.</span>append(char)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> self<span style="color:#f92672">.</span>q <span style="color:#f92672">and</span> self<span style="color:#f92672">.</span>d[self<span style="color:#f92672">.</span>q[<span style="color:#ae81ff">0</span>]]<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>q<span style="color:#f92672">.</span>popleft()
-</span></span></code></pre></div><h3 id="最长不含重复字符的子字符串">最长不含重复字符的子字符串<a hidden class="anchor" aria-hidden="true" href="#最长不含重复字符的子字符串">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">longestSubstringWithoutDuplication</span>(self, s):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type s: str
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: int
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        char_index <span style="color:#f92672">=</span> {}  <span style="color:#75715e"># 存储字符的最近出现位置</span>
-</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        start <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i, char <span style="color:#f92672">in</span> enumerate(s):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> char <span style="color:#f92672">in</span> char_index <span style="color:#f92672">and</span> char_index[char] <span style="color:#f92672">&gt;=</span> start:
-</span></span><span style="display:flex;"><span>                start <span style="color:#f92672">=</span> char_index[char] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            char_index[char] <span style="color:#f92672">=</span> i
-</span></span><span style="display:flex;"><span>            ans <span style="color:#f92672">=</span> max(ans, i <span style="color:#f92672">-</span> start <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ans
-</span></span></code></pre></div><h3 id="骰子的点数">骰子的点数<a hidden class="anchor" aria-hidden="true" href="#骰子的点数">#</a></h3>
-<p>线性DP ：</p>
-<p>注意点： 算法先从最简单的方法想起，DP先用二维想，实现完之后再优化。</p>
-<p>因为每次计算状态时会修改$ j-1, j-2, j-3, j-4, j-5, j-6$, 而$j+1$会计算 $j+1-1=j, j+1-2=j-1, &hellip; j-1$会计算$j-1-1=j-2,j-1-2=j-3,&hellip;$没有单调性，所以不能优化第一维空间</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>(object):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">numberOfDice</span>(self, n):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type n: int
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: List[int]
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        N <span style="color:#f92672">=</span> <span style="color:#ae81ff">6</span><span style="color:#f92672">*</span>n<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(N)]
-</span></span><span style="display:flex;"><span>        f[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>]<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,n<span style="color:#f92672">*</span><span style="color:#ae81ff">6</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,min(j, <span style="color:#ae81ff">6</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>                    f[i][j] <span style="color:#f92672">+=</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j<span style="color:#f92672">-</span>k]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> f[n][<span style="color:#ae81ff">1</span><span style="color:#f92672">*</span>n:<span style="color:#ae81ff">6</span><span style="color:#f92672">*</span>n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>]
-</span></span></code></pre></div><h3 id="数组中数值和下标相等的元素">数组中数值和下标相等的元素<a hidden class="anchor" aria-hidden="true" href="#数组中数值和下标相等的元素">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>(object):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getNumberSameAsIndex</span>(self, nums):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type nums: List[int]
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: int
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        l, r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, len(nums)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> l<span style="color:#f92672">&lt;</span>r:
-</span></span><span style="display:flex;"><span>            mid <span style="color:#f92672">=</span> l<span style="color:#f92672">+</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span><span style="color:#f92672">&gt;&gt;</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> nums[mid]<span style="color:#f92672">&gt;</span>mid:
-</span></span><span style="display:flex;"><span>                r<span style="color:#f92672">=</span>mid<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">elif</span> nums[mid]<span style="color:#f92672">&lt;</span>mid:
-</span></span><span style="display:flex;"><span>                l<span style="color:#f92672">=</span>mid
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> mid
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> l <span style="color:#66d9ef">if</span> nums[l]<span style="color:#f92672">==</span>l <span style="color:#66d9ef">else</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span></code></pre></div><h3 id="复杂链表的复刻">复杂链表的复刻<a hidden class="anchor" aria-hidden="true" href="#复杂链表的复刻">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>(object):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">copyRandomList</span>(self, head):
-</span></span><span style="display:flex;"><span>        hash <span style="color:#f92672">=</span> {}
-</span></span><span style="display:flex;"><span>        hash[<span style="color:#66d9ef">None</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
-</span></span><span style="display:flex;"><span>        cloneHead <span style="color:#f92672">=</span> ListNode(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>        cur <span style="color:#f92672">=</span> cloneHead
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> head:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> head <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> hash:
-</span></span><span style="display:flex;"><span>                hash[head] <span style="color:#f92672">=</span> ListNode(head<span style="color:#f92672">.</span>val)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> head<span style="color:#f92672">.</span>random <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> hash:
-</span></span><span style="display:flex;"><span>                hash[head<span style="color:#f92672">.</span>random] <span style="color:#f92672">=</span> ListNode(head<span style="color:#f92672">.</span>random<span style="color:#f92672">.</span>val)
-</span></span><span style="display:flex;"><span>            cur<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> hash[head]
-</span></span><span style="display:flex;"><span>            cur <span style="color:#f92672">=</span> cur<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>            cur<span style="color:#f92672">.</span>random <span style="color:#f92672">=</span> hash[head<span style="color:#f92672">.</span>random]
-</span></span><span style="display:flex;"><span>            head <span style="color:#f92672">=</span> head<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> cloneHead<span style="color:#f92672">.</span>next
-</span></span></code></pre></div><h3 id="矩阵中的路径">矩阵中的路径<a hidden class="anchor" aria-hidden="true" href="#矩阵中的路径">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>(object):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">hasPath</span>(self, matrix, string):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> matrix <span style="color:#f92672">or</span> <span style="color:#f92672">not</span>(matrix[<span style="color:#ae81ff">0</span>]):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>        dx <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>        dy <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(x, y, idx):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> matrix[x][y]<span style="color:#f92672">!=</span>string[idx]:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> idx<span style="color:#f92672">==</span>len(string)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> h,v <span style="color:#f92672">in</span> zip(dx, dy):
-</span></span><span style="display:flex;"><span>                xx, yy <span style="color:#f92672">=</span> x<span style="color:#f92672">+</span>h, y<span style="color:#f92672">+</span>v
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> xx<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> xx<span style="color:#f92672">&gt;=</span>len(matrix) <span style="color:#f92672">or</span> yy<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> yy<span style="color:#f92672">&gt;=</span>len(matrix[<span style="color:#ae81ff">0</span>]):
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>                memo <span style="color:#f92672">=</span> matrix[x][y]
-</span></span><span style="display:flex;"><span>                matrix[x][y] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;#&#39;</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> dfs(xx,yy,idx<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>                matrix[x][y] <span style="color:#f92672">=</span> memo
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(matrix)):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(len(matrix[<span style="color:#ae81ff">0</span>])):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> matrix[i][j]<span style="color:#f92672">==</span>string[<span style="color:#ae81ff">0</span>]:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> dfs(i,j,<span style="color:#ae81ff">0</span>):
-</span></span><span style="display:flex;"><span>                        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>            
-</span></span></code></pre></div><h3 id="正则表达式匹配">正则表达式匹配<a hidden class="anchor" aria-hidden="true" href="#正则表达式匹配">#</a></h3>
-<p>DP:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>(object):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">isMatch</span>(self, s, p):
-</span></span><span style="display:flex;"><span>        <span style="color:#e6db74">&#34;&#34;&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type s: str
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :type p: str
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        :rtype: bool
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">        &#34;&#34;&#34;</span>
-</span></span><span style="display:flex;"><span>        n, m <span style="color:#f92672">=</span> len(s), len(p)
-</span></span><span style="display:flex;"><span>        s, p <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">+</span>s, <span style="color:#e6db74">&#39; &#39;</span><span style="color:#f92672">+</span>p
-</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> [[<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>(m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
-</span></span><span style="display:flex;"><span>        f[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>,m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> p[i]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;*&#39;</span>:
-</span></span><span style="display:flex;"><span>                f[<span style="color:#ae81ff">0</span>][i] <span style="color:#f92672">=</span> f[<span style="color:#ae81ff">0</span>][i<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> s[i]<span style="color:#f92672">==</span>p[j] <span style="color:#f92672">or</span> p[j]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;.&#39;</span>:
-</span></span><span style="display:flex;"><span>                    f[i][j] <span style="color:#f92672">=</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">elif</span> p[j]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;*&#39;</span>:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> s[i]<span style="color:#f92672">==</span>p[j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">or</span> p[j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;.&#39;</span>:
-</span></span><span style="display:flex;"><span>                        f[i][j] <span style="color:#f92672">=</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j]
-</span></span><span style="display:flex;"><span>                    f[i][j] <span style="color:#f92672">|=</span> f[i][j<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> f[n][m]
-</span></span></code></pre></div><h3 id="lcr-168-丑数httpsleetcodecnproblemschou-shu-lcof"><a href="https://leetcode.cn/problems/chou-shu-lcof/">LCR 168. 丑数</a><a hidden class="anchor" aria-hidden="true" href="#lcr-168-丑数httpsleetcodecnproblemschou-shu-lcof">#</a></h3>
-<p><strong>题目大意</strong>：给定一个整数 $n$，找出并返回第 $n$ 个丑数。丑数是只包含质因数$ 2$、$3$ 和/或 5 的正整数，$1$ 是丑数。</p>
-<p><strong>实现思路</strong>：</p>
-<ol>
-<li>初始化一个数组 $f$，用于存储前$ n$ 个丑数，初始化 $f[1] = 1$。</li>
-<li>初始化三个指针 $i2$、$i3$、$i5$，分别表示下一个丑数是通过乘以$2、3、5$得到的。</li>
-<li>初始化三个变量 $n2、n3、n5$，分别表示通过指针 $i2、i3、i5$ 得到的下一个丑数的候选值。</li>
-<li>从第$ 2 $个丑数开始遍历到第 $n $个丑数：
-<ul>
-<li>计算下一个丑数的候选值：$n2=f[i2]*2$，$n3=f[i3]*3$，$n5=f[i5]*5$。</li>
-<li>将下一个丑数更新为三个候选值中的最小值：$f[i]=min(n2,n3,n5)$。</li>
-<li>如果最小值等于 $n2$，则指针 $i2$ 往后移动一位；如果最小值等于 $n3$，则指针 $i3$ 往后移动一位；如果最小值等于 $n5$，则指针 i5 往后移动一位。</li>
-</ul>
-</li>
-<li>遍历结束后，返回第 $n$ 个丑数$ f[n]$。</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">nthUglyNumber</span>(self, n: int) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> n<span style="color:#f92672">&lt;=</span><span style="color:#ae81ff">6</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> n
-</span></span><span style="display:flex;"><span>        f<span style="color:#f92672">=</span>[<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
-</span></span><span style="display:flex;"><span>        f[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        i2,i3,i5,n2,n3,n5<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">1</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>,n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            n2,n3,n5<span style="color:#f92672">=</span>f[i2]<span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>,f[i3]<span style="color:#f92672">*</span><span style="color:#ae81ff">3</span>,f[i5]<span style="color:#f92672">*</span><span style="color:#ae81ff">5</span>
-</span></span><span style="display:flex;"><span>            f[i]<span style="color:#f92672">=</span>min(n2,n3,n5)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> f[i]<span style="color:#f92672">==</span>n2:
-</span></span><span style="display:flex;"><span>                i2<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> f[i]<span style="color:#f92672">==</span>n3:
-</span></span><span style="display:flex;"><span>                i3<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> f[i]<span style="color:#f92672">==</span>n5:
-</span></span><span style="display:flex;"><span>                i5<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> f[n]
-</span></span></code></pre></div><h2 id="hot100">HOT100<a hidden class="anchor" aria-hidden="true" href="#hot100">#</a></h2>
+<h2 id="hot100">HOT100<a hidden class="anchor" aria-hidden="true" href="#hot100">#</a></h2>
 <h3 id="301-删除无效的括号httpsleetcodecnproblemsremove-invalid-parentheses"><a href="https://leetcode.cn/problems/remove-invalid-parentheses/">301. 删除无效的括号</a><a hidden class="anchor" aria-hidden="true" href="#301-删除无效的括号httpsleetcodecnproblemsremove-invalid-parentheses">#</a></h3>
 <p><strong>题目大意：</strong></p>
 <p>给你一个由若干括号和字母组成的字符串 <code>s</code> ，删除最小数量的无效括号，使得输入的字符串有效。</p>
@@ -1039,7 +767,34 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>                        nxt<span style="color:#f92672">.</span>add(st[:i]<span style="color:#f92672">+</span>st[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>:])
 </span></span><span style="display:flex;"><span>            cur <span style="color:#f92672">=</span> nxt
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
-</span></span></code></pre></div><h2 id="线段树">线段树<a hidden class="anchor" aria-hidden="true" href="#线段树">#</a></h2>
+</span></span></code></pre></div><h3 id="11-盛最多水的容器httpsleetcodecnproblemscontainer-with-most-water"><a href="https://leetcode.cn/problems/container-with-most-water/">11. 盛最多水的容器</a><a hidden class="anchor" aria-hidden="true" href="#11-盛最多水的容器httpsleetcodecnproblemscontainer-with-most-water">#</a></h3>
+<ul>
+<li>
+<p>题目大意：给定一个长度为n的整数数组<code>height</code>，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。</p>
+</li>
+<li>
+<p>实现思路：使用双指针法。初始化左指针l指向数组的起始位置，右指针r指向数组的末尾位置。设置变量<code>ret</code>用于记录当前最大容量，初始化为<code>0</code>。在每一轮循环中，计算当前容器的容量，即<code>min(height[l], height[r])</code>乘以r和l之间的距离，更新<code>ret</code>。然后根据指针所指向的高度的大小，移动指针，如果<code>height[l]&lt;height[r]</code>，则移动左指针l向右一步，否则移动右指针r向左一步。直到左右指针相遇，循环结束，返回ret即可。</p>
+<ul>
+<li>正确性证明： 对于左右端点 $ l, r$， 两点之间的距离为$len = r-l+1-1$(因为两个点之间算一段，所以长度要减一)，$ ret = (r-l)*min(height[l], height[r])$,假设 $height[l]&lt;height[r]$, 对于左端点，其作为柱子能容纳的最多的水的数量已经为最大值，任意的 $l&lt;x&lt;r$ 作为右端点一定比$r$做端点更差，所以可以排除左端点$l$，计算下一点即$l+1$。从左右端点开始，对于每次排除的点，已经找到这个端点可能的最大值， 所以可以保证结果的正确性。</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maxArea</span>(self, height: List[int]) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>        l, r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, len(height)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        ret <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> l<span style="color:#f92672">&lt;</span>r:
+</span></span><span style="display:flex;"><span>            ret <span style="color:#f92672">=</span> max( ret, (r<span style="color:#f92672">-</span>l)<span style="color:#f92672">*</span>min(height[l], height[r]) )
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> height[l]<span style="color:#f92672">&lt;</span>height[r]:
+</span></span><span style="display:flex;"><span>                l<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">elif</span> height[l]<span style="color:#f92672">&gt;</span>height[r]:
+</span></span><span style="display:flex;"><span>                r<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                l<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                r<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
+</span></span></code></pre></div><h3 id="647-回文子串httpsleetcodecnproblemspalindromic-substrings"><a href="https://leetcode.cn/problems/palindromic-substrings/">647. 回文子串</a><a hidden class="anchor" aria-hidden="true" href="#647-回文子串httpsleetcodecnproblemspalindromic-substrings">#</a></h3>
+<h2 id="线段树">线段树<a hidden class="anchor" aria-hidden="true" href="#线段树">#</a></h2>
 <h3 id="729-我的日程安排表-ihttpsleetcodecnproblemsmy-calendar-i"><a href="https://leetcode.cn/problems/my-calendar-i/">729. 我的日程安排表 I</a><a hidden class="anchor" aria-hidden="true" href="#729-我的日程安排表-ihttpsleetcodecnproblemsmy-calendar-i">#</a></h3>
 <ul>
 <li><strong>题目大意</strong>：这个题目是关于设计一个日程安排类 <code>MyCalendar</code>，它能够存储日程，并判断是否会有重复预订。日程以半开区间 <code>[start, end)</code> 表示，当两个日程时间有交叠时就会产生重复预订。</li>
@@ -1108,533 +863,6 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>update(start, end<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">10</span><span style="color:#f92672">**</span><span style="color:#ae81ff">9</span>, <span style="color:#ae81ff">1</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
-</span></span></code></pre></div><h2 id="每日一题">每日一题<a hidden class="anchor" aria-hidden="true" href="#每日一题">#</a></h2>
-<h3 id="2009-使数组连续的最少操作数httpsleetcodecnproblemsminimum-number-of-operations-to-make-array-continuous"><a href="https://leetcode.cn/problems/minimum-number-of-operations-to-make-array-continuous/">2009. 使数组连续的最少操作数</a><a hidden class="anchor" aria-hidden="true" href="#2009-使数组连续的最少操作数httpsleetcodecnproblemsminimum-number-of-operations-to-make-array-continuous">#</a></h3>
-<ul>
-<li>
-<p><strong>题意</strong>：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。</p>
-</li>
-<li>
-<p><strong>思路</strong>：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为<code>nums[i]+n-1</code>, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">minOperations</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
-</span></span><span style="display:flex;"><span>        nums <span style="color:#f92672">=</span> sorted(set(nums))
-</span></span><span style="display:flex;"><span>        j, ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(len(nums)):
-</span></span><span style="display:flex;"><span>            right <span style="color:#f92672">=</span> nums[i]<span style="color:#f92672">+</span> n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> len(nums)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">-</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;=</span> ans:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> j<span style="color:#f92672">&lt;</span>len(nums) <span style="color:#f92672">and</span> nums[j]<span style="color:#f92672">&lt;=</span>right:
-</span></span><span style="display:flex;"><span>                j<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            ans <span style="color:#f92672">=</span> max(ans, j<span style="color:#f92672">-</span>i)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> n<span style="color:#f92672">-</span>ans
-</span></span></code></pre></div><h3 id="1600-王位继承顺序httpsleetcodecnproblemsthrone-inheritance"><a href="https://leetcode.cn/problems/throne-inheritance/">1600. 王位继承顺序</a><a hidden class="anchor" aria-hidden="true" href="#1600-王位继承顺序httpsleetcodecnproblemsthrone-inheritance">#</a></h3>
-<ul>
-<li>
-<p><strong>题意</strong>：国王继承次序按嫡长子次序，实现<code>ThroneInheritance(string kingName)</code>初始化,<code>void birth(string parentName, string childName)</code> 出生，<code>void death(string name)</code>人死亡，<code>string[] getInheritanceOrder()</code> 返回 <strong>除去</strong> 死亡人员的当前继承顺序列表。</p>
-</li>
-<li>
-<p><strong>思路</strong>：类似树形结构，国王先继承，之后是国王的长子，之后是长子的长子， 如果不存在则为国王的次子以此类推， 所以可以用<code>defaultdict()</code>存储每个的儿子情况，然后查询时，先将自己入结果列表，然后是第一个儿子&hellip;；并记录每个人的存活情况，排除掉已经死掉的人。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ThroneInheritance</span>:
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, kingName: str):
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>son <span style="color:#f92672">=</span> defaultdict(list)
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>die <span style="color:#f92672">=</span> set()
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>king <span style="color:#f92672">=</span> kingName
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">birth</span>(self, parentName: str, childName: str) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>son[parentName]<span style="color:#f92672">.</span>append(childName)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">death</span>(self, name: str) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>die<span style="color:#f92672">.</span>add(name)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getInheritanceOrder</span>(self) <span style="color:#f92672">-&gt;</span> List[str]:
-</span></span><span style="display:flex;"><span>        ret <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(root):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> root <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> self<span style="color:#f92672">.</span>die:
-</span></span><span style="display:flex;"><span>                ret<span style="color:#f92672">.</span>append(root)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> child <span style="color:#f92672">in</span> self<span style="color:#f92672">.</span>son[root]:
-</span></span><span style="display:flex;"><span>                dfs(child)
-</span></span><span style="display:flex;"><span>        dfs(self<span style="color:#f92672">.</span>king)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
-</span></span></code></pre></div><h3 id="1483-树节点的第-k-个祖先httpsleetcodecnproblemskth-ancestor-of-a-tree-node"><a href="https://leetcode.cn/problems/kth-ancestor-of-a-tree-node/">1483. 树节点的第 K 个祖先</a><a hidden class="anchor" aria-hidden="true" href="#1483-树节点的第-k-个祖先httpsleetcodecnproblemskth-ancestor-of-a-tree-node">#</a></h3>
-<ul>
-<li>
-<p><strong>题意</strong>：给定n个点(<code>0~n-1</code>)每个点的父亲节点，快速查询每个节点的第k个祖宗节点。</p>
-</li>
-<li>
-<p><strong>思路</strong>：LCA倍增原理，$ancestor[j][i] = ancestor[ ancestor[j][i-1] ][i-1]$ 节点j的第$2^i$个祖宗节点为节点第$2^{i-1}$个祖宗的第$2^{i-1}$个祖宗，即$2^{i-1}*2$个祖宗节点， 所以先预处理好每个节点的各个二进制位上的祖宗节点是谁，之后分解二进制位据可以得知任意第k个祖宗节点是谁。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TreeAncestor</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, n: int, parent: List[int]):
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>level <span style="color:#f92672">=</span> <span style="color:#ae81ff">16</span>
-</span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>ancestor <span style="color:#f92672">=</span> [[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>self<span style="color:#f92672">.</span>level <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n):
-</span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>ancestor[i][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> parent[i]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, self<span style="color:#f92672">.</span>level):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>ancestor[j][i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>                    self<span style="color:#f92672">.</span>ancestor[j][i] <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>ancestor[ self<span style="color:#f92672">.</span>ancestor[j][i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] ][i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getKthAncestor</span>(self, node: int, k: int) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> k:
-</span></span><span style="display:flex;"><span>            t <span style="color:#f92672">=</span> k<span style="color:#f92672">&amp;-</span>k
-</span></span><span style="display:flex;"><span>            k <span style="color:#f92672">-=</span> t
-</span></span><span style="display:flex;"><span>            t <span style="color:#f92672">=</span> t<span style="color:#f92672">.</span>bit_length()<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            node <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>ancestor[node][t]
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> node<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> node
-</span></span></code></pre></div><h3 id="面试题-0812-八皇后httpsleetcodecnproblemseight-queens-lcci"><a href="https://leetcode.cn/problems/eight-queens-lcci/">面试题 08.12. 八皇后</a><a hidden class="anchor" aria-hidden="true" href="#面试题-0812-八皇后httpsleetcodecnproblemseight-queens-lcci">#</a></h3>
-<p><strong>题目大意</strong>：</p>
-<p>这道题目是经典的八皇后问题的扩展，需要设计一个算法来打印 N 皇后在 N × N 棋盘上的各种摆法，其中每个皇后都不在同一行、同一列，也不在任何对角线上。</p>
-<p><strong>实现思路：</strong></p>
-<ol>
-<li>
-<p><strong>回溯算法</strong>：</p>
-<ul>
-<li>使用回溯算法来尝试所有可能的皇后摆放方式。</li>
-<li>从第一行开始，依次尝试每一列放置皇后，然后继续递归地尝试下一行的放置，直到所有行都放置完毕。</li>
-<li>在递归过程中，通过检查每个位置的列、主对角线和副对角线是否已经存在皇后来确定是否可以放置皇后。</li>
-</ul>
-</li>
-<li>
-<p><strong>生成棋盘</strong>：</p>
-<ul>
-<li>当确定了一种合法的皇后摆放方式时，将其转换为棋盘的形式，并将其添加到结果列表中。</li>
-<li>对于每行中皇后的位置，用 &lsquo;Q&rsquo; 表示，其他位置用 &lsquo;.&rsquo; 表示。</li>
-</ul>
-</li>
-<li>
-<p><strong>辅助函数</strong>：</p>
-<ul>
-<li><code>solve</code>: 递归函数，尝试在每行放置皇后。</li>
-<li><code>generate</code>: 将合法的皇后摆放方式转换为棋盘形式并添加到结果列表中。</li>
-</ul>
-</li>
-<li>
-<p><strong>剪枝优化</strong>：</p>
-<ul>
-<li>使用位运算来表示列、主对角线和副对角线的占用情况，可以快速判断某个位置是否可以放置皇后，从而提高效率。</li>
-<li>在每次递归时，利用位运算进行剪枝，排除不可能的位置。</li>
-</ul>
-</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">solveNQueens</span>(self, n: int) <span style="color:#f92672">-&gt;</span> List[List[str]]:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">generate</span>():
-</span></span><span style="display:flex;"><span>            board <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> r <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>                c <span style="color:#f92672">=</span> pos[r]
-</span></span><span style="display:flex;"><span>                row[c] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;Q&#39;</span>
-</span></span><span style="display:flex;"><span>                board<span style="color:#f92672">.</span>append(<span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">.</span>join(row))
-</span></span><span style="display:flex;"><span>                row[c] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;.&#39;</span>
-</span></span><span style="display:flex;"><span>            ret<span style="color:#f92672">.</span>append(board)
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">solve</span>(row, column, diag1, diag2):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> row<span style="color:#f92672">==</span>n:
-</span></span><span style="display:flex;"><span>                generate()
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>                avail <span style="color:#f92672">=</span> ( (<span style="color:#ae81ff">1</span><span style="color:#f92672">&lt;&lt;</span>n)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#f92672">&amp;</span> ( <span style="color:#f92672">~</span>(column<span style="color:#f92672">|</span>diag1<span style="color:#f92672">|</span>diag2) )
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">while</span> avail:
-</span></span><span style="display:flex;"><span>                    colPos <span style="color:#f92672">=</span> avail<span style="color:#f92672">&amp;</span>(<span style="color:#f92672">-</span>avail)
-</span></span><span style="display:flex;"><span>                    avail <span style="color:#f92672">-=</span> colPos
-</span></span><span style="display:flex;"><span>                    colNum <span style="color:#f92672">=</span> bin(colPos<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">.</span>count(<span style="color:#e6db74">&#34;1&#34;</span>)
-</span></span><span style="display:flex;"><span>                    pos[row]<span style="color:#f92672">=</span>colNum
-</span></span><span style="display:flex;"><span>                    solve(row<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, column<span style="color:#f92672">|</span>colPos, (diag1<span style="color:#f92672">|</span>colPos)<span style="color:#f92672">&lt;&lt;</span><span style="color:#ae81ff">1</span>, (diag2<span style="color:#f92672">|</span>colPos)<span style="color:#f92672">&gt;&gt;</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>        pos <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>n 
-</span></span><span style="display:flex;"><span>        ret <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>        row <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;.&#39;</span>]<span style="color:#f92672">*</span>n
-</span></span><span style="display:flex;"><span>        solve(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
-</span></span></code></pre></div><h3 id="1702-修改后的最大二进制字符串httpsleetcodecnproblemsmaximum-binary-string-after-change"><a href="https://leetcode.cn/problems/maximum-binary-string-after-change/">1702. 修改后的最大二进制字符串</a><a hidden class="anchor" aria-hidden="true" href="#1702-修改后的最大二进制字符串httpsleetcodecnproblemsmaximum-binary-string-after-change">#</a></h3>
-<ul>
-<li>
-<p><strong>题意</strong>：给定一个二进制字符串<code>00-&gt;10, 10-&gt;01</code>问任意次操作后能达到的最大二进制字符串。</p>
-</li>
-<li>
-<p><strong>思路</strong>：构造，根据条件推过程，<code>10-&gt;01</code>可以看作后面的0浮到前面，所有的0聚到一起可以变成<code>10</code>串，所以最后至多只有一个<code>0</code>。根据<strong>构造</strong>来做，统计第一个0的位置和0的个数，最后构造出最后的0的位置；<strong>双指针</strong>来做：遇到0时找到后面第一个0的位置，将其浮到旁边，并换成10。</p>
-</li>
-</ul>
-<p><strong>构造</strong>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maximumBinaryString</span>(self, binary: str) <span style="color:#f92672">-&gt;</span> str:
-</span></span><span style="display:flex;"><span>        cnt <span style="color:#f92672">=</span> binary<span style="color:#f92672">.</span>count(<span style="color:#e6db74">&#39;0&#39;</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cnt<span style="color:#f92672">&lt;=</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> binary
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(binary)
-</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;1&#39;</span>]<span style="color:#f92672">*</span>n
-</span></span><span style="display:flex;"><span>        index <span style="color:#f92672">=</span> binary<span style="color:#f92672">.</span>index(<span style="color:#e6db74">&#39;0&#39;</span>)
-</span></span><span style="display:flex;"><span>        ans[index<span style="color:#f92672">+</span>cnt<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;0&#39;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(ans)
-</span></span></code></pre></div><p><strong>双指针</strong>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">maximumBinaryString</span>(self, binary: str) <span style="color:#f92672">-&gt;</span> str:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(binary)
-</span></span><span style="display:flex;"><span>        s <span style="color:#f92672">=</span> list(binary)
-</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> s[i]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;0&#39;</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">while</span> j<span style="color:#f92672">&lt;=</span>i <span style="color:#f92672">or</span> (j<span style="color:#f92672">&lt;</span>n <span style="color:#f92672">and</span> s[j]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;1&#39;</span>):
-</span></span><span style="display:flex;"><span>                    j<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> j<span style="color:#f92672">&lt;</span>n:
-</span></span><span style="display:flex;"><span>                    s[i], s[j], s[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1&#39;</span>, <span style="color:#e6db74">&#39;1&#39;</span>, <span style="color:#e6db74">&#39;0&#39;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(s)
-</span></span></code></pre></div><h3 id="24-两两交换链表中的节点httpsleetcodecnproblemsswap-nodes-in-pairs"><a href="https://leetcode.cn/problems/swap-nodes-in-pairs/">24. 两两交换链表中的节点</a><a hidden class="anchor" aria-hidden="true" href="#24-两两交换链表中的节点httpsleetcodecnproblemsswap-nodes-in-pairs">#</a></h3>
-<ul>
-<li>
-<p><strong>题意</strong>：给定一个链表，分别两个一组交换相对位置。</p>
-</li>
-<li>
-<p><strong>思路</strong>：链表交换next指针操作，<code>prev-&gt;A-&gt;B-&gt;C</code>变成<code>prev-&gt;B-&gt;A-&gt;C</code>，一共要变三条边。需要记录前面的点，后面的点。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">swapPairs</span>(self, head: Optional[ListNode]) <span style="color:#f92672">-&gt;</span> Optional[ListNode]:
-</span></span><span style="display:flex;"><span>        dummy <span style="color:#f92672">=</span> head
-</span></span><span style="display:flex;"><span>        prev <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> head <span style="color:#f92672">and</span> head<span style="color:#f92672">.</span>next:
-</span></span><span style="display:flex;"><span>            tmp <span style="color:#f92672">=</span> head<span style="color:#f92672">.</span>next<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">#A-&gt;B 变成 B-&gt;A</span>
-</span></span><span style="display:flex;"><span>            nxt <span style="color:#f92672">=</span> head<span style="color:#f92672">.</span>next <span style="color:#75715e">#nxt是B, head是A</span>
-</span></span><span style="display:flex;"><span>            
-</span></span><span style="display:flex;"><span>            nxt<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> head 
-</span></span><span style="display:flex;"><span>            head<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> tmp
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> prev:
-</span></span><span style="display:flex;"><span>                prev<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> nxt
-</span></span><span style="display:flex;"><span>                prev <span style="color:#f92672">=</span> nxt<span style="color:#f92672">.</span>next <span style="color:#75715e">#是头节点(即没有前面的点)的时候不需要这一步</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dummy<span style="color:#f92672">==</span>head:
-</span></span><span style="display:flex;"><span>                dummy <span style="color:#f92672">=</span> nxt
-</span></span><span style="display:flex;"><span>                prev <span style="color:#f92672">=</span> nxt<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>            
-</span></span><span style="display:flex;"><span>            head <span style="color:#f92672">=</span> tmp
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> dummy
-</span></span></code></pre></div><h3 id="25-k-个一组翻转链表httpsleetcodecnproblemsreverse-nodes-in-k-group"><a href="https://leetcode.cn/problems/reverse-nodes-in-k-group/">25. K 个一组翻转链表</a><a hidden class="anchor" aria-hidden="true" href="#25-k-个一组翻转链表httpsleetcodecnproblemsreverse-nodes-in-k-group">#</a></h3>
-<ul>
-<li>
-<p><strong>题意</strong>：每隔k个数字翻转链表。</p>
-</li>
-<li>
-<p><strong>思路</strong>：链表交换指针操作。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># Definition for singly-linked list.</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># class ListNode:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#     def __init__(self, val=0, next=None):</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#         self.val = val</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">#         self.next = next</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">reverseKGroup</span>(self, head: Optional[ListNode], k: int) <span style="color:#f92672">-&gt;</span> Optional[ListNode]:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">reverse</span>(head, tail): <span style="color:#75715e"># A-&gt;B-&gt;C 变成 C-&gt;B-&gt;A</span>
-</span></span><span style="display:flex;"><span>            cur <span style="color:#f92672">=</span> tail<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>            dummy <span style="color:#f92672">=</span> head
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> cur <span style="color:#f92672">!=</span> tail:
-</span></span><span style="display:flex;"><span>                nxt <span style="color:#f92672">=</span> dummy<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                dummy<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> cur
-</span></span><span style="display:flex;"><span>                cur <span style="color:#f92672">=</span> dummy
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                dummy <span style="color:#f92672">=</span> nxt
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> tail, head <span style="color:#75715e"># 原来的tail和head位置没变，但中间点的指向关系变了</span>
-</span></span><span style="display:flex;"><span>        hair <span style="color:#f92672">=</span> ListNode(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) <span style="color:#75715e"># 伪头节点</span>
-</span></span><span style="display:flex;"><span>        hair<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> head
-</span></span><span style="display:flex;"><span>        pre <span style="color:#f92672">=</span> hair
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> head:
-</span></span><span style="display:flex;"><span>            tail <span style="color:#f92672">=</span> pre
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(k): <span style="color:#75715e"># 走过k个点</span>
-</span></span><span style="display:flex;"><span>                tail <span style="color:#f92672">=</span> tail<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> tail:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> hair<span style="color:#f92672">.</span>next
-</span></span><span style="display:flex;"><span>            head, tail <span style="color:#f92672">=</span> reverse(head, tail)
-</span></span><span style="display:flex;"><span>            pre<span style="color:#f92672">.</span>next <span style="color:#f92672">=</span> head <span style="color:#75715e"># pre-&gt;C</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            pre <span style="color:#f92672">=</span> tail <span style="color:#75715e"># pre变成尾节点</span>
-</span></span><span style="display:flex;"><span>            head <span style="color:#f92672">=</span> tail<span style="color:#f92672">.</span>next <span style="color:#75715e"># 头节点变成当前尾节点的下个一个节点</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> hair<span style="color:#f92672">.</span>next
-</span></span></code></pre></div><h3 id="1766-互质树httpsleetcodecnproblemstree-of-coprimes"><a href="https://leetcode.cn/problems/tree-of-coprimes/">1766. 互质树</a><a hidden class="anchor" aria-hidden="true" href="#1766-互质树httpsleetcodecnproblemstree-of-coprimes">#</a></h3>
-<ul>
-<li><strong>题意</strong>：给定一棵树<code>0~n-1</code>共n个节点， 每个节点有一个值，返回每个节点的 最近的 与自己互质的<code>(gcd(a,b)=1)</code> 祖宗节点的编号。值的范围为<code>[1,50]</code></li>
-<li><strong>思路</strong>：<code>DFS</code>， 遍历一遍树，维护一个祖宗节点的列表，判断当前节点与祖宗节点的互质关系。但朴素的将所有的祖宗节点都加入列表中，到深层的子节点时会遍历整个列表，会超时。由于值的范围最大为<code>50</code>，所以可以先预处理<code>50</code>范围以内的互质关系，对于每个节点，只需要判断祖宗节点里面有没有这些互质的数即可，但是需要的是最近的祖宗节点，所以还要添加一个深度信息，这样才能保证在相同值的祖宗节点中选择离自己最近的祖宗节点。</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getCoprimes</span>(self, nums: List[int], edges: List[List[int]]) <span style="color:#f92672">-&gt;</span> List[int]:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
-</span></span><span style="display:flex;"><span>        g <span style="color:#f92672">=</span> [[]<span style="color:#f92672">*</span>n <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
-</span></span><span style="display:flex;"><span>        ret <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>n
-</span></span><span style="display:flex;"><span>        store <span style="color:#f92672">=</span> [[] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">51</span>)]
-</span></span><span style="display:flex;"><span>        mem <span style="color:#f92672">=</span> [(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]<span style="color:#f92672">*</span>(<span style="color:#ae81ff">51</span>) 
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">51</span>):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">51</span>):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> gcd(i, j)<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>                    store[i]<span style="color:#f92672">.</span>append(j)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> u, v <span style="color:#f92672">in</span> edges:
-</span></span><span style="display:flex;"><span>            g[u]<span style="color:#f92672">.</span>append(v)
-</span></span><span style="display:flex;"><span>            g[v]<span style="color:#f92672">.</span>append(u)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u, last, level):
-</span></span><span style="display:flex;"><span>            ret[u] <span style="color:#f92672">=</span> max(mem[i] <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> store[nums[u]])[<span style="color:#ae81ff">1</span>]
-</span></span><span style="display:flex;"><span>            tmp <span style="color:#f92672">=</span> mem[nums[u]]
-</span></span><span style="display:flex;"><span>            mem[nums[u]] <span style="color:#f92672">=</span> (level, u)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> son <span style="color:#f92672">in</span> g[u]:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> son<span style="color:#f92672">==</span>last:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>                dfs(son, u, level<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>            mem[nums[u]] <span style="color:#f92672">=</span> tmp
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        dfs(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
-</span></span></code></pre></div><h3 id="924-尽量减少恶意软件的传播httpsleetcodecnproblemsminimize-malware-spread"><a href="https://leetcode.cn/problems/minimize-malware-spread/">924. 尽量减少恶意软件的传播</a><a hidden class="anchor" aria-hidden="true" href="#924-尽量减少恶意软件的传播httpsleetcodecnproblemsminimize-malware-spread">#</a></h3>
-<p><strong>题目大意</strong>：给定一个由n个节点组成的网络，用n x n个邻接矩阵图graph表示。节点之间存在直接连接当且仅当graph[i][j] = 1。一些节点initial最初被恶意软件感染，如果两个节点直接连接且至少一个节点被感染，则两个节点都将被感染。移除一个节点后，返回使得整个网络中感染恶意软件的最终节点数最小的节点，若有多个节点满足条件，则返回索引最小的节点。</p>
-<p><strong>实现思路</strong>：首先使用并查集将节点分组，然后计算每个分组的大小和其中感染节点的数量。遍历initial列表，找到使得其所在分组中只有一个感染节点且分组大小最大的节点，返回其索引。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">minMalwareSpread</span>(self, g: List[List[int]], initial: List[int]) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        n, m <span style="color:#f92672">=</span> len(g), len(initial)
-</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> [i <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n)]
-</span></span><span style="display:flex;"><span>        size <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)] <span style="color:#75715e"># 连通块内的点数</span>
-</span></span><span style="display:flex;"><span>        num <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)] <span style="color:#75715e"># 连通块内的感染点数</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> initial:
-</span></span><span style="display:flex;"><span>            num[x]<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find</span>(x):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> f[x] <span style="color:#f92672">!=</span> x:
-</span></span><span style="display:flex;"><span>                f[x] <span style="color:#f92672">=</span> find(f[x])
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> f[x]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, n):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> g[i][j]:
-</span></span><span style="display:flex;"><span>                    fi, fj <span style="color:#f92672">=</span> find(i), find(j)
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> fi<span style="color:#f92672">!=</span>fj:
-</span></span><span style="display:flex;"><span>                        f[fi] <span style="color:#f92672">=</span> fj
-</span></span><span style="display:flex;"><span>                        num[fj] <span style="color:#f92672">+=</span> num[fi]
-</span></span><span style="display:flex;"><span>                        size[fj] <span style="color:#f92672">+=</span> size[fi]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        ma <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        initial<span style="color:#f92672">.</span>sort()
-</span></span><span style="display:flex;"><span>        idx <span style="color:#f92672">=</span> initial[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> initial:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> num[find(x)]<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">and</span> size[find(x)]<span style="color:#f92672">&gt;</span>ma:
-</span></span><span style="display:flex;"><span>                ma <span style="color:#f92672">=</span> size[find(x)]
-</span></span><span style="display:flex;"><span>                idx <span style="color:#f92672">=</span> x
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> idx
-</span></span></code></pre></div><h3 id="928-尽量减少恶意软件的传播-iihttpsleetcodecnproblemsminimize-malware-spread-ii"><a href="https://leetcode.cn/problems/minimize-malware-spread-ii/">928. 尽量减少恶意软件的传播 II</a><a hidden class="anchor" aria-hidden="true" href="#928-尽量减少恶意软件的传播-iihttpsleetcodecnproblemsminimize-malware-spread-ii">#</a></h3>
-<ul>
-<li>
-<p><strong>题目大意</strong>：给定一个由n个节点组成的网络，用n x n个邻接矩阵graph表示。节点之间存在直接连接当且仅当graph[i][j] = 1。一些节点initial最初被恶意软件感染，如果两个节点直接连接且至少一个节点被感染，则两个节点都将被感染。移除一个节点及其连接后，返回移除后能使整个网络中感染恶意软件的最终节点数最小的节点，若有多个节点满足条件，则返回索引最小的节点。</p>
-</li>
-<li>
-<p><strong>实现思路</strong>：首先通过并查集将不在initial中的节点进行合并，然后计算每个initial节点的直接感染节点数。最后选择使得感染节点数最小且索引最小的initial节点返回。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">minMalwareSpread</span>(self, g: List[List[int]], initial: List[int]) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(g)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find</span>(x):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> f[x] <span style="color:#f92672">!=</span> x:
-</span></span><span style="display:flex;"><span>                f[x] <span style="color:#f92672">=</span> find(f[x])
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> f[x]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> [i <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n)]
-</span></span><span style="display:flex;"><span>        source <span style="color:#f92672">=</span> [[] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
-</span></span><span style="display:flex;"><span>        cnt <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>n
-</span></span><span style="display:flex;"><span>        init <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>n
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> initial:
-</span></span><span style="display:flex;"><span>            init[i] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> init[i]:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> init[j] <span style="color:#f92672">or</span> <span style="color:#f92672">not</span> g[i][j]:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>                fi, fj <span style="color:#f92672">=</span> find(i), find(j)
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> fi<span style="color:#f92672">!=</span>fj:
-</span></span><span style="display:flex;"><span>                    f[fi] <span style="color:#f92672">=</span> fj
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> initial:
-</span></span><span style="display:flex;"><span>            infected <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>n 
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> g[x][j] <span style="color:#f92672">or</span> init[j] <span style="color:#f92672">or</span> infected[find(j)]:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>                infected[find(j)] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> infected[j]:
-</span></span><span style="display:flex;"><span>                    source[j]<span style="color:#f92672">.</span>append(x)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> len(source[i])<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>                root <span style="color:#f92672">=</span> source[i][<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> find(i)<span style="color:#f92672">==</span>find(j): <span style="color:#75715e"># 是一个连通块</span>
-</span></span><span style="display:flex;"><span>                        cnt[root]<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        idx <span style="color:#f92672">=</span> initial[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> initial:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> cnt[x]<span style="color:#f92672">&gt;</span>cnt[idx] <span style="color:#f92672">or</span> (cnt[x]<span style="color:#f92672">==</span>cnt[idx] <span style="color:#f92672">and</span> x<span style="color:#f92672">&lt;</span>idx):
-</span></span><span style="display:flex;"><span>                idx <span style="color:#f92672">=</span> x
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> idx
-</span></span></code></pre></div><h3 id="2007-从双倍数组中还原原数组httpsleetcodecnproblemsfind-original-array-from-doubled-array"><a href="https://leetcode.cn/problems/find-original-array-from-doubled-array/">2007. 从双倍数组中还原原数组</a><a hidden class="anchor" aria-hidden="true" href="#2007-从双倍数组中还原原数组httpsleetcodecnproblemsfind-original-array-from-doubled-array">#</a></h3>
-<p><strong>题目大意</strong>：给定一个数组 <code>changed</code>，通过以下方式构造原始数组 <code>original</code>：将 <code>changed</code> 中的每个元素乘以2，并将结果随机打乱，然后返回原始数组 <code>original</code>。如果无法构造原始数组，则返回空数组。</p>
-<p><strong>实现思路</strong>：首先判断数组 <code>changed</code> 的长度是否为偶数，如果不是偶数，则无法构造原始数组，直接返回空数组。接着使用一个字典记录数组 <code>changed</code> 中各个元素的出现次数。然后遍历数组 <code>changed</code>，对于每个元素 i，判断是否存在 i 的两倍的元素，若存在，则将 i 和其两倍的元素都从字典中减去一个，并将 i 加入结果数组中。最后判断结果数组的长度是否达到了原始数组的一半，如果达到了则返回结果数组的前一半，否则返回空数组。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findOriginalArray</span>(self, changed: List[int]) <span style="color:#f92672">-&gt;</span> List[int]:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(changed)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> n<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> []
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        d <span style="color:#f92672">=</span> defaultdict(int)
-</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>        cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        changed<span style="color:#f92672">.</span>sort()
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> changed:
-</span></span><span style="display:flex;"><span>            d[i]<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> changed:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> d[i]:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>            x <span style="color:#f92672">=</span> i<span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span>x: <span style="color:#75715e"># 0*2 = 0</span>
-</span></span><span style="display:flex;"><span>                d[x]<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> d[x]:
-</span></span><span style="display:flex;"><span>                    d[x]<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span> <span style="color:#75715e"># 匹配成功</span>
-</span></span><span style="display:flex;"><span>                    cnt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>                    res<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> d[x]:
-</span></span><span style="display:flex;"><span>                    d[x]<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span> <span style="color:#75715e"># 匹配成功</span>
-</span></span><span style="display:flex;"><span>                    d[i]<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>                    cnt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>                    res<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cnt<span style="color:#f92672">&gt;=</span>n<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> res[:n<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> []
-</span></span></code></pre></div><p><strong>实现思路</strong>：首先使用 <code>Counter</code> 统计数组 <code>changed</code> 中各个元素的出现次数。然后将字典中键为 <code>0</code> 的元素（如果存在）弹出，因为原始数组中不可能有 <code>0</code>。接着判断字典中键为 <code>0</code> 的元素出现次数是否为偶数，如果不是偶数则无法构造原始数组，直接返回空数组。然后初始化一个由 <code>0</code> 组成的数组 <code>ans</code>，长度为 <code>cnt_0</code> 的一半。接下来遍历字典中的键值对，对于每个键 <code>x</code>，判断是否存在其一半的键值对，并将 <code>x</code> 加入结果数组 <code>ans</code> 中相应次数。最后返回结果数组 <code>ans</code>。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findOriginalArray</span>(self, changed: List[int]) <span style="color:#f92672">-&gt;</span> List[int]:
-</span></span><span style="display:flex;"><span>        cnt <span style="color:#f92672">=</span> Counter(changed)
-</span></span><span style="display:flex;"><span>        cnt_0 <span style="color:#f92672">=</span> cnt<span style="color:#f92672">.</span>pop(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cnt_0<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> []
-</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>(cnt_0<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> x <span style="color:#f92672">in</span> cnt:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> x<span style="color:#f92672">%</span><span style="color:#ae81ff">2</span><span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> cnt[x<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>]:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> x <span style="color:#f92672">in</span> cnt:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> cnt[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>x]<span style="color:#f92672">&lt;</span>cnt[x]:
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> []
-</span></span><span style="display:flex;"><span>                ans<span style="color:#f92672">.</span>extend([x]<span style="color:#f92672">*</span>(cnt[x]))
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> cnt[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>x]<span style="color:#f92672">&gt;</span>cnt[x]:
-</span></span><span style="display:flex;"><span>                    cnt[<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>x]<span style="color:#f92672">-=</span>cnt[x]
-</span></span><span style="display:flex;"><span>                    x<span style="color:#f92672">*=</span><span style="color:#ae81ff">2</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>                    x<span style="color:#f92672">*=</span><span style="color:#ae81ff">4</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ans
-</span></span></code></pre></div><h3 id="1883-准时抵达会议现场的最小跳过休息次数httpsleetcodecnproblemsminimum-skips-to-arrive-at-meeting-on-time"><a href="https://leetcode.cn/problems/minimum-skips-to-arrive-at-meeting-on-time/">1883. 准时抵达会议现场的最小跳过休息次数</a><a hidden class="anchor" aria-hidden="true" href="#1883-准时抵达会议现场的最小跳过休息次数httpsleetcodecnproblemsminimum-skips-to-arrive-at-meeting-on-time">#</a></h3>
-<ul>
-<li>
-<p><strong>题目大意</strong>：题目给出了一组道路的长度和行驶速度，以及剩余可用时间。要求计算在给定的时间内，最少跳过休息次数，以准时抵达会议现场。</p>
-</li>
-<li>
-<p><strong>实现思路</strong>：动态规划。使用二维数组dp[i][j]表示到达第i条路，跳过j次休息的最小距离。初始化dp数组，然后遍历每一条路，在遍历的过程中更新dp数组。最后检查是否有方案可以在规定时间内到达会议现场，如果有，返回跳过休息的最小次数，否则返回-1。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">minSkips</span>(self, dist: List[int], speed: int, hoursBefore: int) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(dist)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> sum(dist) <span style="color:#f92672">&gt;</span> hoursBefore <span style="color:#f92672">*</span> speed:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        dp <span style="color:#f92672">=</span> [[inf] <span style="color:#f92672">*</span> (n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)]
-</span></span><span style="display:flex;"><span>        dp[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>): <span style="color:#75715e"># 到第i条路，跳过次数为j的最小距离</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># 不跳过第 i 条路</span>
-</span></span><span style="display:flex;"><span>                dp[i][j] <span style="color:#f92672">=</span> min(dp[i][j], (dp[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j] <span style="color:#f92672">+</span> dist[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">+</span> speed <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">//</span>speed<span style="color:#f92672">*</span>speed)
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e"># 跳过第 i 条路</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> j:
-</span></span><span style="display:flex;"><span>                    dp[i][j] <span style="color:#f92672">=</span> min(dp[i][j], dp[i <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>][j <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">+</span> dist[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>])
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n): <span style="color:#75715e"># 可以跳0~n-1次(最后一条边不用跳)</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dp[n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j]<span style="color:#f92672">+</span>dist[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">&lt;=</span> hoursBefore <span style="color:#f92672">*</span> speed:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> j
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span></code></pre></div><h3 id="39-组合总和httpsleetcodecnproblemscombination-sum"><a href="https://leetcode.cn/problems/combination-sum/">39. 组合总和</a><a hidden class="anchor" aria-hidden="true" href="#39-组合总和httpsleetcodecnproblemscombination-sum">#</a></h3>
-<ul>
-<li>
-<p><strong>题目大意</strong> ：给定一个无重复元素的整数数组 <code>candidates</code> 和一个目标整数 <code>target</code>，找出 <code>candidates</code> 中可以使数字和为目标数 <code>target</code> 的所有不同组合，并以列表形式返回。可以无限制重复选择 <code>candidates</code> 中的同一个数字。</p>
-</li>
-<li>
-<p><strong>实现思路</strong> ：</p>
-</li>
-</ul>
-<ol>
-<li>使用深度优先搜索<code>（DFS）</code>进行组合搜索。</li>
-<li>定义一个辅助函数 <code>dfs(i, s)</code>，其中 i 表示当前遍历到的 <code>candidates</code> 数组的索引，<code>s</code> 表示当前已经选取的数字的和。</li>
-<li>在 <code>dfs</code> 函数中，如果 s 大于等于 <code>target</code> 或者已经遍历到数组末尾，则进行以下判断：
-<ul>
-<li>如果 s 等于 <code>target</code>，则将当前的组合 <code>ls</code> 加入结果列表 <code>ret</code> 中。</li>
-<li>如果 s 大于 <code>target</code> 或者已经遍历到数组末尾，则直接返回。</li>
-</ul>
-</li>
-<li>在 <code>dfs</code> 函数中，分别尝试两种情况：
-<ul>
-<li>不选择当前数字，继续向后搜索：<code>dfs(i+1, s)</code>。</li>
-<li>选择当前数字，继续向后搜索：将当前数字加入组合 ls 中，更新 s，并递归调用 <code>dfs(i, s+c[i])</code>。</li>
-</ul>
-</li>
-<li>在递归调用之后，需要将当前选择的数字从组合 <code>ls</code> 中弹出，保证不影响后续搜索。</li>
-<li>最终返回结果列表 <code>ret</code>。</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">combinationSum</span>(self, c: List[int], t: int) <span style="color:#f92672">-&gt;</span> List[List[int]]:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(c)
-</span></span><span style="display:flex;"><span>        ret, ls <span style="color:#f92672">=</span> [], []
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(i, s):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> s<span style="color:#f92672">&gt;=</span>t <span style="color:#f92672">or</span> i<span style="color:#f92672">==</span>n:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> s<span style="color:#f92672">==</span>t:
-</span></span><span style="display:flex;"><span>                    ret<span style="color:#f92672">.</span>append(ls[:])
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>            dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, s)
-</span></span><span style="display:flex;"><span>            ls<span style="color:#f92672">.</span>append(c[i])
-</span></span><span style="display:flex;"><span>            dfs(i, s<span style="color:#f92672">+</span>c[i])
-</span></span><span style="display:flex;"><span>            ls<span style="color:#f92672">.</span>pop()
-</span></span><span style="display:flex;"><span>        dfs(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
-</span></span></code></pre></div><h3 id="216-组合总和-iiihttpsleetcodecnproblemscombination-sum-iii"><a href="https://leetcode.cn/problems/combination-sum-iii/">216. 组合总和 III</a><a hidden class="anchor" aria-hidden="true" href="#216-组合总和-iiihttpsleetcodecnproblemscombination-sum-iii">#</a></h3>
-<ul>
-<li>
-<p><strong>题目大意</strong>：找出所有相加之和为n的k个数的组合，要求使用数字1到9，每个数字最多使用一次，返回所有可能的有效组合的列表。列表不能包含相同的组合两次，组合可以以任何顺序返回。</p>
-</li>
-<li>
-<p><strong>实现思路</strong>：使用深度优先搜索（DFS）的方法，从1到9的数字中进行遍历，每次选择一个数字或不选择，直到满足条件为止。递归过程中，维护一个列表ls，记录当前已选数字的集合，如果当前集合的数字个数等于k且它们的和等于n，则将其加入结果列表ret中。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">combinationSum3</span>(self, k: int, n: int) <span style="color:#f92672">-&gt;</span> List[List[int]]:
-</span></span><span style="display:flex;"><span>        ret, ls <span style="color:#f92672">=</span> [], []
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(i, s, cnt):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span><span style="color:#ae81ff">10</span> <span style="color:#f92672">or</span> s<span style="color:#f92672">&gt;=</span>n <span style="color:#f92672">or</span> cnt<span style="color:#f92672">&gt;=</span>k:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> s<span style="color:#f92672">==</span>n <span style="color:#f92672">and</span> cnt<span style="color:#f92672">==</span>k:
-</span></span><span style="display:flex;"><span>                    ret<span style="color:#f92672">.</span>append(ls[:])
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>            dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, s, cnt)
-</span></span><span style="display:flex;"><span>            ls<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>            dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, s<span style="color:#f92672">+</span>i, cnt<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>            ls<span style="color:#f92672">.</span>pop()
-</span></span><span style="display:flex;"><span>        dfs(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
 </span></span></code></pre></div><h1 id="其他题目">其他题目<a hidden class="anchor" aria-hidden="true" href="#其他题目">#</a></h1>
 <h3 id="3031-将单词恢复初始状态所需的最短时间-iihttpsleetcodecnproblemsminimum-time-to-revert-word-to-initial-state-ii-z函数"><a href="https://leetcode.cn/problems/minimum-time-to-revert-word-to-initial-state-ii/">3031. 将单词恢复初始状态所需的最短时间 II</a> Z函数<a hidden class="anchor" aria-hidden="true" href="#3031-将单词恢复初始状态所需的最短时间-iihttpsleetcodecnproblemsminimum-time-to-revert-word-to-initial-state-ii-z函数">#</a></h3>
 <p><strong>题目大意</strong>：
@@ -1801,10 +1029,10 @@ class Solution:
     <br>
     <span>Java20天速成——进阶课程(3)</span>
   </a>
-  <a class="next" href="https://showguan.github.io/en/posts/tech/%E5%89%91%E6%8C%87offer/">
+  <a class="next" href="https://showguan.github.io/en/posts/tech/linux/">
     <span class="title">Next »</span>
     <br>
-    <span> LeetCode笔记</span>
+    <span> Linux</span>
   </a>
 </nav>
 
