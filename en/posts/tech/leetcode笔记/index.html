@@ -127,7 +127,7 @@ document.addEventListener("DOMContentLoaded", function() {
     "LeetCode笔记"
   ],
   "articleBody": "LeetCode笔记 目标：2500分\nHOT100 301. 删除无效的括号 题目大意：\n给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字符串有效。\n返回所有可能的结果。答案可以按 任意顺序 返回。\n回溯 实现思路：\n统计无效括号数量：\n首先遍历字符串s，统计左括号和右括号的数量l和r，其中l表示未匹配的左括号数量，r表示需要删除的右括号数量。 回溯算法：\n编写回溯算法来尝试删除不同位置的括号，使得字符串有效。 回溯过程中需要注意以下情况： 已经匹配的括号数量ln和rn，以及当前位置i。 遍历字符串s的每个字符，当遇到重复的字符时跳过，以避免重复结果。 如果当前字符为左括号并且ln不为0，则递归调用删除当前左括号的情况，ln减一，否则继续。 如果当前字符为右括号并且rn不为0，则递归调用删除当前右括号的情况，rn减一，否则继续。 检查字符串有效性：\n编写辅助函数check来检查字符串是否有效，即左右括号数量是否匹配。 返回结果：\n将所有有效的字符串结果添加到结果列表ret中，并返回。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: l, r = 0, 0 ret = [] n = len(s) for c in s: if c=='(': l+=1 elif c==')': if l==0: r+=1 else: l-=1 def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': cnt-=1 if cnt\u003c0: return False return (cnt==0) def backtrace(st, start, ln, rn): if ln==0 and rn==0 and check(st): ret.append(st[:]) return for i in range(start, len(st)): if i\u003estart and st[i]==st[i-1]: continue if ln+rn\u003en-1-i+1: break if ln and st[i]=='(': backtrace(st[:i]+st[i+1:], i, ln-1, rn) elif rn and st[i]==')': backtrace(st[:i]+st[i+1:], i, ln, rn-1) backtrace(s, 0, l, r) return ret 广搜 这个实现使用了广度优先搜索（BFS）的思路来解决问题。\nBFS搜索：\n使用一个集合cur来存储当前层的所有字符串，初始时将输入的字符串s加入集合cur中。 在每一轮循环中，遍历当前集合cur中的所有字符串，如果其中有字符串是有效的，则将其加入结果列表ret中。 如果结果列表ret不为空，则跳出循环，表示已经找到了所有有效的字符串。 如果结果列表ret为空，则需要继续进行下一轮搜索，将当前集合cur中的每个字符串，通过删除一个括号的方式，生成所有可能的下一层字符串，加入到集合nxt中。 更新当前集合cur为nxt，继续下一轮搜索。 检查字符串有效性：\n定义一个辅助函数check，用于检查字符串是否有效。 遍历字符串中的每个字符，遇到左括号时增加计数器cnt，遇到右括号时如果cnt为0则返回False（表示右括号没有匹配的左括号），否则减少cnt。 最终判断cnt是否为0，如果为0表示字符串有效。 返回结果：\n返回结果列表ret，其中存储了所有有效的字符串。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 297. 二叉树的序列化与反序列化 不止第一次遇到了。\n题目大意：序列化是将一个数据结构或对象转换为连续的比特位的操作，从而可以存储在文件或内存中，并且通过网络传输到另一个计算机环境中。本题要求设计一个算法来实现二叉树的序列化和反序列化，即将二叉树转换为字符串并将字符串转换回原始的二叉树结构。\n实现思路：\n序列化：使用递归将二叉树转换为字符串，根节点值与左右子树序列化结果之间使用空格分隔，空节点用 ‘#’ 表示。 反序列化：使用递归将字符串转换为二叉树。首先定义一个辅助函数 DerWork()，用于递归构建二叉树。在该函数中，按照前序遍历的顺序，依次提取字符串中的节点值，并根据节点值构建二叉树节点。如果节点值为 ‘#’，表示空节点，返回 None。否则，创建节点并递归构建其左右子树。 在反序列化过程中，使用一个全局变量 self.s 来记录当前待处理的字符串，每次递归处理后，将字符串中已经处理过的部分剔除，继续处理剩余部分。 最终返回根节点即可。 # Definition for a binary tree node. # class TreeNode(object): # def __init__(self, x): # self.val = x # self.left = None # self.right = None class Codec: def serialize(self, root): \"\"\"Encodes a tree to a single string. :type root: TreeNode :rtype: str \"\"\" if not root: return '#' return str(root.val)+' '+self.serialize(root.left)+' '+self.serialize(root.right) def deserialize(self, data): \"\"\"Decodes your encoded data to tree. :type data: str :rtype: TreeNode \"\"\" self.s = data return self.DerWork() def DerWork(self): if len(self.s)==0: return None try: idx = self.s.index(' ') except: idx = -1 node = self.s if idx==-1 else self.s[:idx] self.s = '' if idx==-1 else self.s[idx+1:] if node=='#': return None t = TreeNode(int(node)) t.left = self.DerWork() t.right = self.DerWork() return t # Your Codec object will be instantiated and called as such: # ser = Codec() # deser = Codec() # ans = deser.deserialize(ser.serialize(root)) 84. 柱状图中最大的矩形 题目大意：给定 n 个非负整数，表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1。求在该柱状图中，能够勾勒出的矩形的最大面积。\n实现思路：\n使用单调栈解决问题。创建两个数组 l 和 r，分别记录每个柱子向左和向右第一个比其高度小的柱子的索引位置。 初始化一个空栈 stk。 遍历柱子的高度列表 heights： 若栈不为空且当前柱子的高度小于栈顶柱子的高度，则将栈顶元素弹出，并更新栈顶元素对应的 r 值为当前柱子的索引。 若栈为空或者当前柱子的高度大于栈顶柱子的高度，则将当前柱子的索引入栈。 在更新 r 值的同时，若栈不为空，则更新当前柱子的 l 值为栈顶元素的索引。 遍历完成后，对于每个柱子 i，计算以该柱子为高度的矩形面积为 (r[i] - l[i] - 1) * heights[i]，取最大值即为所求的最大矩形面积。 若柱状图为空，则返回 0。 class Solution: def largestRectangleArea(self, heights: List[int]) -\u003e int: n=len(heights) l, r = [-1]*(n+5), [n]*(n+5) stk = list() for i in range(n): while stk and heights[stk[-1]]\u003e=heights[i]: r[stk[-1]]=i stk.pop() if stk: l[i]=stk[-1] stk.append(i) return max( (r[i]-l[i]-1)*heights[i] for i in range(n) ) if n\u003e0 else 0 85. 最大矩形 题目大意：给定一个仅包含 0 和 1、大小为 rows x cols 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。\n实现思路：\n将问题转化为矩形最大面积问题。 定义变量 area 用于记录最大矩形的面积。 创建二维数组 left，用于记录每个位置 (i, j) 左侧连续 1 的个数。 遍历二维矩阵，初始化 left 数组： 若当前位置为 ‘1’，则 left[i][j] 等于 left[i][j-1] + 1，否则为 0。 遍历矩阵的每一列，对于每一列 j，使用单调栈来计算以当前列为底边的最大矩形的面积： 初始化一个空栈 stk。 定义两个数组 up 和 down，分别记录当前位置上方第一个小于等于其高度的位置和下方第一个小于等于其高度的位置。 遍历矩阵的每一行 i，进行以下操作： 当栈不为空且栈顶位置对应的 left 值大于等于当前位置的 left 值时，弹出栈顶位置，并更新 down 值。 如果栈为空，则当前位置的 up 值为 -1，否则为栈顶位置。 将当前行索引入栈。 在计算当前列的矩形面积时，height 为 down[i] - up[i] - 1，宽度为 left[i][j]，计算当前列的最大面积并更新 area。 返回最大面积 area。 class Solution: def maximalRectangle(self, matrix: List[List[str]]) -\u003e int: # 转化为矩形最大面积问题 n, m = len(matrix), len(matrix[0]) area = 0 left = [[0]*m for _ in range(n)] for i in range(n): for j in range(m): if matrix[i][j]=='1': left[i][j] += left[i][j-1]+1 if j else 1 for j in range(m): stk = [] up, down = [-1]*n, [n]*n for i in range(n): #行 while stk and left[ stk[-1] ][j]\u003e=left[i][j]: down[stk[-1]] = i stk.pop() up[i] = stk[-1] if stk else -1 stk.append(i) for i in range(n): height = down[i]-up[i]-1 area = max(area, height*left[i][j]) return area 76. 最小覆盖子串 题目大意：给定字符串 s 和字符串 t，返回 s 中涵盖 t 所有字符的最小子串。如果 s 中不存在涵盖 t 所有字符的子串，则返回空字符串 “\"。\n注意：\n对于 t 中重复字符，子字符串中该字符数量必须不少于 t 中该字符数量。\n如果 s 中存在这样的子串，保证它是唯一的答案。\n实现思路：\n使用双指针滑动窗口解决问题。 初始化 need 字典，用于记录字符串 t 中每个字符的出现次数。 初始化 needCnt 为 t 的长度 m，表示还需要的字符数量。 初始化左指针 left 为 0，并初始化结果变量 res 为一个长度为 n 的区间，初始值为 (0, n)。 遍历字符串 t，统计每个字符的出现次数并存储在 need 字典中。 遍历字符串 s，使用右指针 right 遍历每个字符： 若当前字符在 t 中出现，则 needCnt 减 1。 更新 need 字典中当前字符的出现次数。 若 needCnt 为 0，表示当前窗口包含了 t 中所有字符，进入内部循环： 移动左指针 left，直到当前窗口不再满足条件（即 need 字典中某个字符的出现次数大于 0）。 更新结果变量 res。 恢复左指针 left 和 needCnt。 返回结果字符串，若结果区间超出 s 的范围，则返回空字符串。 class Solution: def minWindow(self, s: str, t: str) -\u003e str: n, m = len(s), len(t) need = defaultdict(int) needCnt = m left = 0 res = (0, n) for ch in t: need[ch]+=1 for right, ch in enumerate(s): if need[ch]\u003e0: needCnt-=1 need[ch]-=1 if needCnt==0: while need[s[left]]!=0: need[s[left]]+=1 left+=1 if right-left \u003c res[1]-res[0]: res = (left, right) need[s[left]]+=1 needCnt+=1 left+=1 return '' if res[1]\u003en-1 else s[res[0]:res[1]+1] 312. 戳气球 题意：给定n个数字num[0~n-1],每次戳破一个气球可以获得nums[i-1]*nums[i]*nums[i+1]个硬币，最两旁默认为1，问最终获得的最大硬币数量。 思路：区间DP，逆向思维, 思考如何放气球能使硬币最大，f[i][j]代表开区间i~j可以获得的最大硬币， 先枚举小区间，再枚举大区间，枚举区间内每个数字，状态转移有：f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j])。最终输出f[0][n+1] class Solution: def maxCoins(self, nums: List[int]) -\u003e int: n = len(nums) nums = [1]+nums+[1] f = [[0]*(n+5) for _ in range(n+5)] # 开区间 (left, right) 区间内能获得的最大硬币 for l in range(2,n+2): # len:2~n+1 for i in range(n+1-l+1): # left:0~n+1-len j=i+l # right = left + len for k in range(i+1, j): # 开区间(i,j) 即[i+1, j-1] f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j]) return f[0][n+1] 301. 删除无效的括号 题目大意：给定一个由字母和括号组成的字符串s，要求删除最小数量的括号，使得字符串成为有效的括号组合，并返回所有可能的结果。\n实现思路：\n首先定义一个辅助函数check(st)，用于检查字符串st是否为有效的括号组合。遍历字符串中的每个字符，维护一个计数器cnt，遇到左括号增加计数，遇到右括号减少计数，若出现cnt为负数，或者遍历结束后cnt不为0，则说明括号不匹配，返回False，否则返回True。\n初始化一个空列表ret，用于存储结果。\n初始化一个集合cur，初始时将输入字符串s作为唯一元素加入其中。\n使用while循环，直到找到符合条件的结果为止：\n遍历集合cur中的每个字符串，检查其是否为有效括号组合，若是则将其加入结果列表ret。\n若结果列表ret不为空，则说明已找到符合条件的结果，结束循环。\n否则，初始化一个空集合nxt，用于存储下一轮迭代的候选字符串集合。\n遍历集合cur中的每个字符串，对于每个字符串，尝试删除一个字符（括号），生成新的字符串，并将其加入nxt中。\n更新cur为nxt，继续下一轮迭代。\n返回结果列表ret。\nclass Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。\n实现思路：使用双指针法。初始化左指针l指向数组的起始位置，右指针r指向数组的末尾位置。设置变量ret用于记录当前最大容量，初始化为0。在每一轮循环中，计算当前容器的容量，即min(height[l], height[r])乘以r和l之间的距离，更新ret。然后根据指针所指向的高度的大小，移动指针，如果height[l]",
-  "wordCount" : "6883",
+  "wordCount" : "10264",
   "inLanguage": "en",
   "datePublished": "2024-04-17T15:37:01+08:00",
   "dateModified": "2024-04-22T15:37:01+08:00",
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       LeetCode笔记(hot &amp; 每日一题)
     </div>
-    <div class="post-meta"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;14 min&nbsp;·&nbsp;6883 words&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;21 min&nbsp;·&nbsp;10264 words&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan
 
 </div>
 	
@@ -285,7 +285,27 @@ document.addEventListener("DOMContentLoaded", function() {
                 <li>
                     <a href="#11-%e7%9b%9b%e6%9c%80%e5%a4%9a%e6%b0%b4%e7%9a%84%e5%ae%b9%e5%99%a8httpsleetcodecnproblemscontainer-with-most-water" aria-label="11. 盛最多水的容器">11. 盛最多水的容器</a></li>
                 <li>
-                    <a href="#647-%e5%9b%9e%e6%96%87%e5%ad%90%e4%b8%b2httpsleetcodecnproblemspalindromic-substrings" aria-label="647. 回文子串">647. 回文子串</a></li></ul>
+                    <a href="#647-%e5%9b%9e%e6%96%87%e5%ad%90%e4%b8%b2httpsleetcodecnproblemspalindromic-substrings" aria-label="647. 回文子串">647. 回文子串</a></li>
+                <li>
+                    <a href="#93-%e5%a4%8d%e5%8e%9f-ip-%e5%9c%b0%e5%9d%80httpsleetcodecnproblemsrestore-ip-addresses" aria-label="93. 复原 IP 地址">93. 复原 IP 地址</a></li>
+                <li>
+                    <a href="#538-%e6%8a%8a%e4%ba%8c%e5%8f%89%e6%90%9c%e7%b4%a2%e6%a0%91%e8%bd%ac%e6%8d%a2%e4%b8%ba%e7%b4%af%e5%8a%a0%e6%a0%91httpsleetcodecnproblemsconvert-bst-to-greater-tree" aria-label="538. 把二叉搜索树转换为累加树">538. 把二叉搜索树转换为累加树</a></li>
+                <li>
+                    <a href="#15-%e4%b8%89%e6%95%b0%e4%b9%8b%e5%92%8chttpsleetcodecnproblems3sum" aria-label="15. 三数之和">15. 三数之和</a></li>
+                <li>
+                    <a href="#494-%e7%9b%ae%e6%a0%87%e5%92%8chttpsleetcodecnproblemstarget-sum" aria-label="494. 目标和">494. 目标和</a><ul>
+                        
+                <li>
+                    <a href="#%e8%ae%b0%e5%bf%86%e5%8c%96%e6%90%9c%e7%b4%a2" aria-label="记忆化搜索">记忆化搜索</a></li>
+                <li>
+                    <a href="#%e5%8a%a8%e6%80%81%e8%a7%84%e5%88%92" aria-label="动态规划">动态规划</a></li></ul>
+                </li>
+                <li>
+                    <a href="#581-%e6%9c%80%e7%9f%ad%e6%97%a0%e5%ba%8f%e8%bf%9e%e7%bb%ad%e5%ad%90%e6%95%b0%e7%bb%84httpsleetcodecnproblemsshortest-unsorted-continuous-subarray" aria-label="581. 最短无序连续子数组">581. 最短无序连续子数组</a></li>
+                <li>
+                    <a href="#416-%e5%88%86%e5%89%b2%e7%ad%89%e5%92%8c%e5%ad%90%e9%9b%86httpsleetcodecnproblemspartition-equal-subset-sum" aria-label="416. 分割等和子集">416. 分割等和子集</a></li>
+                <li>
+                    <a href="#394-%e5%ad%97%e7%ac%a6%e4%b8%b2%e8%a7%a3%e7%a0%81httpsleetcodecnproblemsdecode-string" aria-label="394. 字符串解码">394. 字符串解码</a></li></ul>
                 </li>
                 <li>
                     <a href="#%e7%ba%bf%e6%ae%b5%e6%a0%91" aria-label="线段树">线段树</a><ul>
@@ -794,7 +814,244 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>                r<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ret
 </span></span></code></pre></div><h3 id="647-回文子串httpsleetcodecnproblemspalindromic-substrings"><a href="https://leetcode.cn/problems/palindromic-substrings/">647. 回文子串</a><a hidden class="anchor" aria-hidden="true" href="#647-回文子串httpsleetcodecnproblemspalindromic-substrings">#</a></h3>
-<h2 id="线段树">线段树<a hidden class="anchor" aria-hidden="true" href="#线段树">#</a></h2>
+<p>题目大意：给定一个字符串s，统计并返回该字符串中回文子串的数目。回文字符串是指正着读和倒过来读一样的字符串。子字符串是字符串中的由连续字符组成的一个序列。即使是由相同字符组成的不同开始位置或结束位置的子串，也会被视作不同的子串。</p>
+<p>实现思路：遍历字符串s的所有可能的中心位置，对于每个中心位置，向两边扩展，判断是否是回文串。在扩展的过程中，每当发现一个回文子串，就将计数器加1。最终返回计数器的值即可。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">countSubstrings</span>(self, s: str) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(s)
+</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            l, r <span style="color:#f92672">=</span> i<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>, i<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">+</span> (i<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> l<span style="color:#f92672">&gt;=</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> r<span style="color:#f92672">&lt;</span>n <span style="color:#f92672">and</span> s[l]<span style="color:#f92672">==</span>s[r]:
+</span></span><span style="display:flex;"><span>                l<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>; r<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                ans<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ans
+</span></span></code></pre></div><h3 id="93-复原-ip-地址httpsleetcodecnproblemsrestore-ip-addresses"><a href="https://leetcode.cn/problems/restore-ip-addresses/">93. 复原 IP 地址</a><a hidden class="anchor" aria-hidden="true" href="#93-复原-ip-地址httpsleetcodecnproblemsrestore-ip-addresses">#</a></h3>
+<p>题目大意：给定一个只包含数字的字符串s，表示一个IP地址，要求返回所有可能的有效IP地址，即每个IP地址由四个整数组成（每个整数位于0到255之间，且不能含有前导0），整数之间用&rsquo;.&lsquo;分隔。不能重新排序或删除s中的任何数字，可以按任何顺序返回答案。</p>
+<p>实现思路：使用深度优先搜索（DFS）算法，递归地搜索所有可能的IP地址组合。在搜索过程中，首先确定每个整数的范围，然后遍历可能的数字组合，逐步构建IP地址。递归的终止条件是已经找到了四个整数并且已经遍历完了整个字符串s。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">restoreIpAddresses</span>(self, s: str) <span style="color:#f92672">-&gt;</span> List[str]:
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(s)
+</span></span><span style="display:flex;"><span>        res, addr <span style="color:#f92672">=</span> [], [<span style="color:#e6db74">&#39;0&#39;</span>]<span style="color:#f92672">*</span><span style="color:#ae81ff">4</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(i, start):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">or</span> start<span style="color:#f92672">==</span>n:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span><span style="color:#ae81ff">4</span> <span style="color:#f92672">and</span> start<span style="color:#f92672">==</span>n:
+</span></span><span style="display:flex;"><span>                    res<span style="color:#f92672">.</span>append(<span style="color:#e6db74">&#39;.&#39;</span><span style="color:#f92672">.</span>join(addr))
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> s[start]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;0&#39;</span>:
+</span></span><span style="display:flex;"><span>                addr[i] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;0&#39;</span>
+</span></span><span style="display:flex;"><span>                dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, start<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>            num <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> end <span style="color:#f92672">in</span> range(start, n):
+</span></span><span style="display:flex;"><span>                num <span style="color:#f92672">=</span> num<span style="color:#f92672">*</span><span style="color:#ae81ff">10</span> <span style="color:#f92672">+</span> int(s[end])
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> num <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">256</span>):
+</span></span><span style="display:flex;"><span>                    addr[i] <span style="color:#f92672">=</span> str(num)
+</span></span><span style="display:flex;"><span>                    dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, end<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        dfs(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)           
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> res
+</span></span></code></pre></div><h3 id="538-把二叉搜索树转换为累加树httpsleetcodecnproblemsconvert-bst-to-greater-tree"><a href="https://leetcode.cn/problems/convert-bst-to-greater-tree/">538. 把二叉搜索树转换为累加树</a><a hidden class="anchor" aria-hidden="true" href="#538-把二叉搜索树转换为累加树httpsleetcodecnproblemsconvert-bst-to-greater-tree">#</a></h3>
+<p><strong>题目大意</strong>：给定一个二叉搜索树的根节点，需要将其转换为累加树，即每个节点的新值等于原树中大于或等于该节点值的节点值之和。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">convertBST</span>(self, root: Optional[TreeNode]) <span style="color:#f92672">-&gt;</span> Optional[TreeNode]:
+</span></span><span style="display:flex;"><span>        s <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(r):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">nonlocal</span> s
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> r:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            dfs(r<span style="color:#f92672">.</span>right)
+</span></span><span style="display:flex;"><span>            s <span style="color:#f92672">+=</span> r<span style="color:#f92672">.</span>val
+</span></span><span style="display:flex;"><span>            r<span style="color:#f92672">.</span>val <span style="color:#f92672">=</span> s 
+</span></span><span style="display:flex;"><span>            dfs(r<span style="color:#f92672">.</span>left)
+</span></span><span style="display:flex;"><span>        dfs(root)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> root
+</span></span></code></pre></div><p><strong>实现思路</strong>：**(Morris 遍历)**从根节点开始，采用反向中序遍历（右-根-左）的方式进行遍历。利用一个变量 s 记录累加和，初始值为 0。对于每个节点，首先判断其是否存在右子节点，如果不存在，则将其值加上累加和并更新累加和，然后将当前节点指向其左子节点；如果存在右子节点，则找到其中序遍历的后继节点，即右子树中最左边的节点。如果后继节点的左子节点为空，说明还未处理过该节点，则将后继节点的左子节点指向当前节点，并将当前节点指向其右子节点；如果后继节点的左子节点为当前节点，则说明已经处理过该节点，则将后继节点的左子节点置为空，将当前节点的值加上累加和并更新累加和，并将当前节点指向其左子节点。最后返回根节点。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">convertBST</span>(self, root: Optional[TreeNode]) <span style="color:#f92672">-&gt;</span> Optional[TreeNode]:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">getSucc</span>(node):
+</span></span><span style="display:flex;"><span>            succ <span style="color:#f92672">=</span> node<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> succ<span style="color:#f92672">.</span>left <span style="color:#f92672">and</span> succ<span style="color:#f92672">.</span>left<span style="color:#f92672">!=</span>node:
+</span></span><span style="display:flex;"><span>                succ <span style="color:#f92672">=</span> succ<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> succ
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        newRoot <span style="color:#f92672">=</span> root
+</span></span><span style="display:flex;"><span>        s <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> root:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> root<span style="color:#f92672">.</span>right:
+</span></span><span style="display:flex;"><span>                s <span style="color:#f92672">+=</span> root<span style="color:#f92672">.</span>val
+</span></span><span style="display:flex;"><span>                root<span style="color:#f92672">.</span>val <span style="color:#f92672">=</span> s 
+</span></span><span style="display:flex;"><span>                root <span style="color:#f92672">=</span> root<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                succ <span style="color:#f92672">=</span> getSucc(root)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> succ<span style="color:#f92672">.</span>left:
+</span></span><span style="display:flex;"><span>                    succ<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> root
+</span></span><span style="display:flex;"><span>                    root <span style="color:#f92672">=</span> root<span style="color:#f92672">.</span>right
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                    succ<span style="color:#f92672">.</span>left <span style="color:#f92672">=</span> <span style="color:#66d9ef">None</span>
+</span></span><span style="display:flex;"><span>                    s <span style="color:#f92672">+=</span> root<span style="color:#f92672">.</span>val
+</span></span><span style="display:flex;"><span>                    root<span style="color:#f92672">.</span>val <span style="color:#f92672">=</span> s 
+</span></span><span style="display:flex;"><span>                    root <span style="color:#f92672">=</span> root<span style="color:#f92672">.</span>left
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> newRoot
+</span></span></code></pre></div><h3 id="15-三数之和httpsleetcodecnproblems3sum"><a href="https://leetcode.cn/problems/3sum/">15. 三数之和</a><a hidden class="anchor" aria-hidden="true" href="#15-三数之和httpsleetcodecnproblems3sum">#</a></h3>
+<p><strong>题目大意</strong>：给定一个整数数组 <code>nums</code>，判断是否存在三元组 <code>[nums[i], nums[j], nums[k]]</code> 满足 <code>i != j</code>、<code>i != k</code> 且 <code>j != k</code>，同时还满足 <code>nums[i] + nums[j] + nums[k] == 0</code>。返回所有满足条件的不重复的三元组。</p>
+<p><strong>实现思路</strong>：首先对数组 <code>nums</code> 进行排序。然后遍历数组，对于每个元素 <code>nums[i]</code>，设定两个指针 <code>l</code> 和 <code>r</code> 分别指向 <code>i+1</code> 和数组末尾。在 <code>l</code> 和 <code>r</code> 之间寻找和为 <code>0</code> 的两个数。具体地，如果当前元素与前一个元素相同，跳过；如果当前元素与 <code>l+1</code> 处的元素相同，跳过；在 <code>l</code> 和 r 之间利用双指针的方式找到满足条件的两个数，如果找到了满足条件的三元组，则添加到结果中。最后返回结果列表 <code>res</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">threeSum</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> List[List[int]]:
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
+</span></span><span style="display:flex;"><span>        nums<span style="color:#f92672">.</span>sort()
+</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>            l <span style="color:#f92672">=</span> i 
+</span></span><span style="display:flex;"><span>            r <span style="color:#f92672">=</span> n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i <span style="color:#f92672">and</span> nums[i]<span style="color:#f92672">==</span>nums[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> m <span style="color:#f92672">in</span> range(l<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, n):
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> m<span style="color:#f92672">&gt;</span>l<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">and</span> nums[m]<span style="color:#f92672">==</span>nums[m<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]:
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">while</span> r<span style="color:#f92672">&gt;</span>m <span style="color:#f92672">and</span> nums[r]<span style="color:#f92672">+</span>nums[m]<span style="color:#f92672">+</span>nums[l]<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                    r<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> m<span style="color:#f92672">==</span>r: <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> nums[r]<span style="color:#f92672">+</span>nums[m]<span style="color:#f92672">+</span>nums[l]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                    res<span style="color:#f92672">.</span>append([nums[l], nums[m], nums[r]])
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> res
+</span></span></code></pre></div><p><strong>实现思路</strong>：首先，利用 <code>Counter</code> 函数统计每个数出现的次数，并检查是否有 0 出现至少三次，如果是则将 <code>[0, 0, 0]</code> 添加到结果中。然后，对不重复的数进行排序。遍历排序后的数，对于每个数 num，如果 num 不等于 0 且 num 出现次数大于 1 且 <code>-num*2</code> 也在 Counter 中，则将 <code>[num, num, -num*2]</code> 添加到结果中。然后，在负数部分，利用双指针的方式寻找满足条件的两个数。最后返回结果列表 <code>res</code>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">threeSum</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> List[List[int]]:
+</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>        c <span style="color:#f92672">=</span> Counter(nums)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">in</span> c <span style="color:#f92672">and</span> c[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span>            res<span style="color:#f92672">.</span>append([<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">0</span>])
+</span></span><span style="display:flex;"><span>        no_repeat_nums <span style="color:#f92672">=</span> sorted(c<span style="color:#f92672">.</span>keys())
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i,num <span style="color:#f92672">in</span> enumerate(no_repeat_nums):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> num <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> c[num] <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">and</span> <span style="color:#f92672">-</span>num<span style="color:#f92672">*</span><span style="color:#ae81ff">2</span> <span style="color:#f92672">in</span> c:
+</span></span><span style="display:flex;"><span>                res<span style="color:#f92672">.</span>append([num,num,<span style="color:#f92672">-</span>num<span style="color:#f92672">*</span><span style="color:#ae81ff">2</span>])
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> num <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> num3 <span style="color:#f92672">in</span> no_repeat_nums[ bisect_left(no_repeat_nums,((<span style="color:#f92672">-</span>num<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">/</span><span style="color:#ae81ff">2</span>)) : bisect_right(no_repeat_nums,<span style="color:#f92672">-</span>num<span style="color:#f92672">*</span><span style="color:#ae81ff">2</span><span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>) ]:
+</span></span><span style="display:flex;"><span>                    num2 <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>num<span style="color:#f92672">-</span>num3
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> num2 <span style="color:#f92672">in</span> c:
+</span></span><span style="display:flex;"><span>                        res<span style="color:#f92672">.</span>append([num,num2,num3])
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> res
+</span></span></code></pre></div><h3 id="494-目标和httpsleetcodecnproblemstarget-sum"><a href="https://leetcode.cn/problems/target-sum/">494. 目标和</a><a hidden class="anchor" aria-hidden="true" href="#494-目标和httpsleetcodecnproblemstarget-sum">#</a></h3>
+<p><strong>题目大意</strong>：给定一个非负整数数组 <code>nums</code> 和一个目标整数 <code>target</code>，通过给数组中的每个整数前添加 &lsquo;+&rsquo; 或 &lsquo;-&rsquo;，然后串联起来构造表达式，返回可以构造的表达式数目，使其运算结果等于目标数。</p>
+<h4 id="记忆化搜索">记忆化搜索<a hidden class="anchor" aria-hidden="true" href="#记忆化搜索">#</a></h4>
+<p><strong>实现思路</strong>：这个问题可以转化为一个背包问题。我们可以将问题转化为在数组中选取一些数，使得它们的和等于 <code>target</code>。定义一个递归函数 <code>dfs(i, s)</code>，表示在数组 <code>nums</code> 中考虑第 i 个数，使得目前的和为 <code>s</code> 的表达式数目。递归的终止条件是遍历完所有数，如果 <code>s</code> 等于 <code>0</code>，表示找到了一种构造方式，返回 <code>1</code>，否则返回 <code>0</code>。递归过程中，如果 <code>s</code> 小于当前数 <code>nums[i]</code>，说明无法选取当前数，直接跳过；否则，递归考虑选取当前数和不选取当前数两种情况。利用缓存装饰器 <code>@cache</code> 可以将重复计算的结果进行缓存，提高计算效率。最后返回 <code>dfs(0, target)</code> 即可得到结果。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findTargetSumWays</span>(self, nums: List[int], target: int) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>        target <span style="color:#f92672">+=</span> sum(nums)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> target<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> target<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        target<span style="color:#f92672">//=</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@cache</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(i, s):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span>len(nums):
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> s<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> s<span style="color:#f92672">&lt;</span>nums[i]:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, s)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, s) <span style="color:#f92672">+</span> dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, s<span style="color:#f92672">-</span>nums[i])
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> dfs(<span style="color:#ae81ff">0</span>, target)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        
+</span></span></code></pre></div><h4 id="动态规划">动态规划<a hidden class="anchor" aria-hidden="true" href="#动态规划">#</a></h4>
+<p><strong>实现思路</strong>：这里采用动态规划来解决。首先将目标数 <code>target</code> 加上数组 <code>nums</code> 的总和，如果总和为负数或者是奇数，则无法通过调整符号得到目标数，直接返回 <code>0</code>。否则，将目标数除以 <code>2</code>，然后定义一个二维数组 <code>f</code>，其中 <code>f[i][j]</code> 表示在考虑前 <code>i</code> 个数时，构造和为 <code>j</code> 的表达式的数目。初始化 <code>f[0][0] = 1</code>。然后，遍历数组 <code>nums</code>，并且更新 <code>f[i][j]</code>。当 j 小于当前数 <code>nums[i-1]</code> 时，表示无法选取当前数，则 <code>f[i][j]</code> 等于上一个状态的值；当 <code>j</code> 大于等于当前数 <code>nums[i-1]</code> 时，可以选择加上或减去当前数，则 <code>f[i][j]</code> 等于上一个状态加上不选取当前数的值以及上一个状态加上选取当前数的值。最后返回 <code>f[n][target]</code>，其中 n 是数组 <code>nums</code> 的长度。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findTargetSumWays</span>(self, nums: List[int], target: int) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>        target<span style="color:#f92672">+=</span>sum(nums)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> target<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> target<span style="color:#f92672">%</span><span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>        target<span style="color:#f92672">//=</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
+</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>(target<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>        f[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(target<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> j<span style="color:#f92672">&lt;</span>nums[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]:
+</span></span><span style="display:flex;"><span>                    f[i][j] <span style="color:#f92672">=</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j]
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                    f[i][j] <span style="color:#f92672">=</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j] <span style="color:#f92672">+</span> f[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j<span style="color:#f92672">-</span>nums[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> f[n][target]
+</span></span></code></pre></div><h3 id="581-最短无序连续子数组httpsleetcodecnproblemsshortest-unsorted-continuous-subarray"><a href="https://leetcode.cn/problems/shortest-unsorted-continuous-subarray/">581. 最短无序连续子数组</a><a hidden class="anchor" aria-hidden="true" href="#581-最短无序连续子数组httpsleetcodecnproblemsshortest-unsorted-continuous-subarray">#</a></h3>
+<p><strong>题目大意</strong>：给定一个整数数组 nums，找出一个连续子数组，使得对该子数组进行升序排序后，整个数组都变为升序排序。要求找出符合题意的最短子数组，并输出其长度。</p>
+<p><strong>实现思路</strong>：使用两个指针left和right，初始化为-1，遍历数组nums。首先，从左到右找到第一个无序的元素，即当前元素小于前面已遍历过的最大元素，此时更新right指针为当前位置i；然后，从右到左找到第一个无序的元素，即当前元素大于后面已遍历过的最小元素，此时更新left指针为当前位置n-i-1。最终返回right-left+1即为最短无序连续子数组的长度。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findUnsortedSubarray</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> int:
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
+</span></span><span style="display:flex;"><span>        ma, right <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>inf, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        mi, left <span style="color:#f92672">=</span> inf, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> ma<span style="color:#f92672">&gt;</span>nums[i]:
+</span></span><span style="display:flex;"><span>                right <span style="color:#f92672">=</span> i
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                ma <span style="color:#f92672">=</span> nums[i]
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> mi<span style="color:#f92672">&lt;</span>nums[n<span style="color:#f92672">-</span>i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]:
+</span></span><span style="display:flex;"><span>                left <span style="color:#f92672">=</span> n<span style="color:#f92672">-</span>i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                mi <span style="color:#f92672">=</span> nums[n<span style="color:#f92672">-</span>i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">if</span> right<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">else</span> right<span style="color:#f92672">-</span>left<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><h3 id="416-分割等和子集httpsleetcodecnproblemspartition-equal-subset-sum"><a href="https://leetcode.cn/problems/partition-equal-subset-sum/">416. 分割等和子集</a><a hidden class="anchor" aria-hidden="true" href="#416-分割等和子集httpsleetcodecnproblemspartition-equal-subset-sum">#</a></h3>
+<p><strong>题目大意</strong>：给定一个非空数组 nums，数组中只包含正整数。要求判断是否能将该数组分割成两个子集，使得这两个子集的元素和相等。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先计算数组 nums 的总和 s。</li>
+<li>如果总和 s 为奇数，那么无法分割成两个和相等的子集，直接返回 False。</li>
+<li>如果数组中的最大值大于总和的一半，则无法分割成两个和相等的子集，直接返回 False。</li>
+<li>初始化一个大小为总和一半加一的布尔数组 f，f[i] 表示是否存在子集的和为 i。</li>
+<li>将 f[0] 初始化为 True，表示子集的和为 0。</li>
+<li>遍历数组 nums，对于每个正整数 num，从总和一半开始向前遍历，更新数组 f，如果 f[j-num] 为 True，则说明存在一个子集的和为 j-num，加上当前的 num 后，和为 j，因此 f[j] 也为 True。</li>
+<li>最终返回 f[s//2]，表示是否存在一个子集的和为总和一半，即是否能分割成两个和相等的子集。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">canPartition</span>(self, nums: List[int]) <span style="color:#f92672">-&gt;</span> bool:
+</span></span><span style="display:flex;"><span>        s <span style="color:#f92672">=</span> sum(nums)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> s<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>: <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>        ma <span style="color:#f92672">=</span> max(nums)
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> s<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> ma<span style="color:#f92672">&gt;</span>t: <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
+</span></span><span style="display:flex;"><span>        f <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>(t<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        f[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i, num <span style="color:#f92672">in</span> enumerate(nums):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(t, num<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>                f[j] <span style="color:#f92672">|=</span> f[j<span style="color:#f92672">-</span>num]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> f[t]
+</span></span></code></pre></div><h3 id="394-字符串解码httpsleetcodecnproblemsdecode-string"><a href="https://leetcode.cn/problems/decode-string/">394. 字符串解码</a><a hidden class="anchor" aria-hidden="true" href="#394-字符串解码httpsleetcodecnproblemsdecode-string">#</a></h3>
+<p><strong>题目大意</strong>：给定一个经过编码的字符串，其中编码规则为<code>k[encoded_string]</code>，表示<code>encoded_string</code>中的内容重复k次。要求解码该字符串。</p>
+<p><strong>实现思路</strong>：使用递归来解码字符串。遍历输入字符串，根据不同情况进行处理：</p>
+<ol>
+<li>若遇到数字，则累加数字直至遇到非数字字符。</li>
+<li>若遇到字母，则直接加入当前解码的字符串中。</li>
+<li>若遇到左括号&rsquo;[&rsquo;，则递归调用解码函数，处理括号内的内容，直至遇到右括号&rsquo;]&rsquo;。将括号内的解码结果乘以前面累积的数字，并加入当前解码的字符串中。</li>
+<li>若遇到右括号&rsquo;]&rsquo;，则返回当前解码的字符串和当前索引。</li>
+<li>返回最终解码结果。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">decodeString</span>(self, s: str) <span style="color:#f92672">-&gt;</span> str:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">decode</span>(i, n):
+</span></span><span style="display:flex;"><span>            cur <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>; num <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> i<span style="color:#f92672">&lt;</span>len(s):
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> s[i]<span style="color:#f92672">.</span>isdigit():
+</span></span><span style="display:flex;"><span>                    num <span style="color:#f92672">=</span> num<span style="color:#f92672">*</span><span style="color:#ae81ff">10</span> <span style="color:#f92672">+</span> int(s[i])
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">elif</span> s[i]<span style="color:#f92672">.</span>isalpha():
+</span></span><span style="display:flex;"><span>                    cur <span style="color:#f92672">+=</span> s[i]
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">elif</span> s[i] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;[&#39;</span>:
+</span></span><span style="display:flex;"><span>                    ns, ni <span style="color:#f92672">=</span> decode(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, num) <span style="color:#75715e"># next str, next index</span>
+</span></span><span style="display:flex;"><span>                    cur <span style="color:#f92672">+=</span> ns; i <span style="color:#f92672">=</span> ni
+</span></span><span style="display:flex;"><span>                    num <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">elif</span> s[i]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;]&#39;</span>:
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> cur<span style="color:#f92672">*</span>n, i
+</span></span><span style="display:flex;"><span>                i <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> cur<span style="color:#f92672">*</span>n, i 
+</span></span><span style="display:flex;"><span>        res, _ <span style="color:#f92672">=</span> decode(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> res
+</span></span></code></pre></div><h2 id="线段树">线段树<a hidden class="anchor" aria-hidden="true" href="#线段树">#</a></h2>
 <h3 id="729-我的日程安排表-ihttpsleetcodecnproblemsmy-calendar-i"><a href="https://leetcode.cn/problems/my-calendar-i/">729. 我的日程安排表 I</a><a hidden class="anchor" aria-hidden="true" href="#729-我的日程安排表-ihttpsleetcodecnproblemsmy-calendar-i">#</a></h3>
 <ul>
 <li><strong>题目大意</strong>：这个题目是关于设计一个日程安排类 <code>MyCalendar</code>，它能够存储日程，并判断是否会有重复预订。日程以半开区间 <code>[start, end)</code> 表示，当两个日程时间有交叠时就会产生重复预订。</li>
