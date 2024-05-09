@@ -1,0 +1,1092 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+<title>算法笔记（三）——图论（Python实现） | Kennem</title>
+<meta name="keywords" content="算法笔记, Python">
+<meta name="description" content="算法笔记（三）——图论（Python实现）">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.92e6d237fe179cc604a93575ea9ce4dbea8c09a9b1c7aa3449a9a0514c2b3ab5.css" integrity="sha256-kubSN/4XnMYEqTV16pzk2&#43;qMCamxx6o0SamgUUwrOrU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://showguan.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://showguan.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://showguan.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://showguan.github.io/sun.png">
+<link rel="mask-icon" href="https://showguan.github.io/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                <meta property="og:title" content="算法笔记（三）——图论（Python实现）" />
+<meta property="og:description" content="算法笔记（三）——图论（Python实现）" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-04-09T15:37:01+08:00" />
+<meta property="article:modified_time" content="2024-04-09T15:37:01+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="算法笔记（三）——图论（Python实现）"/>
+<meta name="twitter:description" content="算法笔记（三）——图论（Python实现）"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://showguan.github.io/en/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://showguan.github.io/en/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "算法笔记（三）——图论（Python实现）",
+      "item": "https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "算法笔记（三）——图论（Python实现）",
+  "name": "算法笔记（三）——图论（Python实现）",
+  "description": "算法笔记（三）——图论（Python实现）",
+  "keywords": [
+    "算法笔记", "Python"
+  ],
+  "articleBody": "算法笔记（三）——图论（Python实现） 图论 树的存储 邻接矩阵 # 创建一个二维列表表示邻接矩阵 n = 10 # 顶点数量 g = [[0] * n for _ in range(n)] # 添加一条边a-\u003eb def add_edge(a, b): g[a][b] = 1 # 初始化 g = [[0] * n for _ in range(n)] 邻接表 # 创建一个列表表示邻接表 n = 10 # 顶点数量 h = [-1] * n e = [0] * n ne = [0] * n idx = 0 # 添加一条边a-\u003eb def add_edge(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 h = [-1] * n 树和图的存储 # 邻接表表示的图 N = 100010 # 根据具体需求设置合适的最大节点数量 # 对于每个点k，开一个单链表，存储k所有可以走到的点。h[k]存储这个单链表的头结点 h = [-1] * N # 存储边的目标节点 e = [0] * N # 存储下一条边的索引 ne = [0] * N # 边的索引 idx = 0 # 添加一条边a-\u003eb def add(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 for i in range(N): h[i] = -1 树和图的遍历 DFS def dfs(u): st[u] = True i = h[u] while i!=-1: j = e[i] if not st[j]: dfs(j) i = ne[i] BFS from collections import deque q = deque() st[1] = True q.append(1) while q: t = q.popleft() i = h[t] while i!=-1: j=e[i] if not st[j]: st[j] = True q.append(j) i=ne[i] 拓扑排序 def topsort(): hh, tt = 0, -1 for i in range(1, n+1): if d[i]==0: q.append(i) tt+=1 while hh\u003c=tt: t = q[hh] hh+=1 i = h[t] while i!=-1: j = e[i] d[j]-=1 if d[j]==0: q.append(j) tt+=1 i = ne[i] return tt==n-1 LCA def lca(x,y): if dep[x] \u003c dep[y]: x,y = y,x d = dep[x]-dep[y] while d: # 循环直到深度差为 0 v = d \u0026 -d # 获取 d 的最低位的 1 所在的位置 i = v.bit_length() - 1 # 计算最低位的位置索引 x = fa[i][x] # 将节点 x 上移到和节点 y 同一深度 d -= v # 更新深度差 if x==y: return x for k in range(K-1, -1, -1): if fa[k][x] != fa[k][y]: x = fa[k][x] y = fa[k][y] return fa[0][x] # 初始化深度以及父节点信息 dep[x]=dep[val]+1 dep[y]=dep[val]+1 fa[0][x] = val fa[0][y] = val for k in range(K-1): fa[k+1][x] = fa[k][fa[k][x]] # 自己的第2^(1+1)级父亲即为 自己的第2^(1)级父亲 的第2^(1)级父亲 fa[k+1][y] = fa[k][fa[k][y]] 最短路 单元最短路\n​\t所有边权为正：\n​\t朴素版Dijkstra $O(n^2)$,堆优化版的Dijkstra $O(mlogn)$, ​\t存在负权边\n​\tBellman-Ford $O(nm)$, SPFA 队列优化的Bellman-Ford, 一般情况：$O(m)$ 最坏情况：$O(nm)$ 多元汇最短路：\n​\tFloyed $O(n^3)$ 朴素Dijkstra Dijkstra不能处理负权边：\nN = int(5e2)+10 INF = 0x3f3f3f3f g = [[INF]*N for _ in range(N)] #g = defaultdict(lambda:defaultdict(lambda:INF)) 同样的效果 dis = [INF]*N st = [False]*N def dijkstra(): dis[1]=0 for i in range(n-1): t=-1 for j in range(1,n+1): if not st[j] and (t==-1 or dis[j]\u003cdis[t]): t=j for j in range(1,n+1): dis[j]=min(dis[j], dis[t] + g[t][j]) st[t]=True if dis[n]==INF: return -1 return dis[n] n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int ,input().split()) g[x][y] = min(g[x][y], z) print(dijkstra()) 堆优化版Dijkstra from heapq import * import sys input = lambda:sys.stdin.readline().strip() N = 150010 INF = 0x3f3f3f3f e, ne, head, w, dis= [0]*N, [0]*N, [-1]*N, [0]*N, [INF]*N st = [False]*N idx=0 def add(a, b, x): global idx e[idx]=b w[idx]=x ne[idx]=head[a] head[a]=idx idx+=1 def dijkstra(): dis[1]=0 h=[] heappush(h, (0,1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True i=head[ver] while i!=-1: j=e[i] if not st[j] and dis[j]\u003edist+w[i]: dis[j]=dist+w[i] heappush(h, (dis[j], j)) i=ne[i] if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) add(x,y,z) dijkstra() 另一种写法 from heapq import * from collections import defaultdict import sys input=lambda:sys.stdin.readline().strip() N, INF = 150010, 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def dijkstra(): dis[1]=0 h=[] heappush(h, (0, 1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True for y, z in g[ver]: if dis[y]\u003edis[ver]+z: dis[y]=dis[ver]+z heappush(h, (dis[y], y)) if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x,y,z = map(int, input().split()) g[x].append((y, z)) dijkstra() Bellman-Ford # n表示点数，m表示边数 dist = [float('inf')] * (n + 1) # dist[x]存储1到x的最短路距离 # 边，a表示出点，b表示入点，w表示边的权重 edges = [] # 求1到n的最短路距离，如果无法从1走到n，则返回-1。 def bellman_ford(): dist[1] = 0 # 如果第n次迭代仍然会松弛三角不等式，就说明存在一条长度是n+1的最短路径，由抽屉原理，路径中至少存在两个相同的点，说明图中存在负权回路。 for i in range(n): for j in range(m): a, b, w = edges[j]['a'], edges[j]['b'], edges[j]['w'] if dist[b] \u003e dist[a] + w: dist[b] = dist[a] + w if dist[n] \u003e float('inf') / 2: return -1 return dist[n] SPFA from collections import defaultdict, deque import sys input = lambda:sys.stdin.readline().strip() N, INF = int(1e5+10), 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def spfa(): q=deque() q.append(1) st[1]=True dis[1]=0 while q: x=q.popleft() st[x]=False for y, z in g[x]: if dis[y]\u003edis[x]+z: dis[y]=dis[x]+z if not st[y]: st[y]=True q.append(y) if dis[n]==INF: print('impossible') else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) g[x].append((y, z)) spfa() 判断负环 from collections import deque N = int(1e5+10) INF = 0x3f3f3f3f n = 0 # 总点数 h = [-1] * N # 邻接表存储所有边 e, ne, w = [0] * N, [0] * N, [0] * N idx = 0 dist, cnt = [INF] * N, [0] * N # dist[x]存储1号点到x的最短距离，cnt[x]存储1到x的最短路中经过的点数 st = [False] * N # 存储每个点是否在队列中 # 如果存在负环，则返回True，否则返回False。 def spfa(): # 不需要初始化dist数组 # 原理：如果某条最短路径上有n个点（除了自己），那么加上自己之后一共有n+1个点，由抽屉原理一定有两个点相同，所以存在环 q = deque() for i in range(1, n + 1): q.append(i) st[i] = True while q: t = q.popleft() st[t] = False i = h[t] while i != -1: j = e[i] if dist[j] \u003e dist[t] + w[i]: dist[j] = dist[t] + w[i] cnt[j] = cnt[t] + 1 if cnt[j] \u003e= n: return True # 如果从1号点到x的最短路中包含至少n个点（不包括自己），则说明存在环 if not st[j]: q.append(j) st[j] = True i = ne[i] return False # Example usage: # n = 5 # h = [-1, 2, 1, 4, 3, -1] # e = [0, 2, 1, 4, 3, 0] # ne = [1, -1, 3, -1, -1, 2] # w = [0, 1, 2, 3, 4, 5] # if spfa(): # print(\"Exist negative cycle\") # else: # print(\"No negative cycle\") floyd INF = float('inf') # 初始化距离矩阵d，d[a][b]表示a到b的最短距离 def initialize(n): d = [[0 if i == j else INF for j in range(n)] for i in range(n)] return d # Floyd算法求解最短路径 def floyd(d, n): for k in range(n): for i in range(n): for j in range(n): d[i][j] = min(d[i][j], d[i][k] + d[k][j]) return d # Example usage: # n = 5 # d = initialize(n) # d = floyd(d, n) # print(d) Prim INF = float('inf') # Prim算法求解最小生成树的权重之和 def prim(n, g): dist = [INF] * (n + 1) st = [False] * (n + 1) res = 0 for i in range(n): t = -1 for j in range(1, n + 1): if not st[j] and (t == -1 or dist[t] \u003e dist[j]): t = j if i and dist[t] == INF: return INF if i: res += dist[t] st[t] = True for j in range(1, n + 1): dist[j] = min(dist[j], g[t][j]) return res # Example usage: # n = 5 # g = [[0] * (n + 1) for _ in range(n + 1)] # dist = prim(n, g) # print(dist) Kruskal INF = float('inf') # 并查集的查找操作 def find(x, p): if p[x] != x: p[x] = find(p[x], p) return p[x] # Kruskal算法求解最小生成树的权重之和 def kruskal(n, m, edges): edges.sort(key=lambda x: x[2]) # 按照边权重对边进行排序 p = [i for i in range(n + 1)] # 初始化并查集的父节点数组 res = 0 cnt = 0 for edge in edges: a, b, w = edge a = find(a, p) b = find(b, p) if a != b: # 如果两个连通块不连通，则将这两个连通块合并 p[a] = b res += w cnt += 1 if cnt \u003c n - 1: return INF return res # Example usage: # n, m = 5, 7 # edges = [(1, 2, 2), (1, 3, 5), (1, 4, 6), (2, 3, 1), (2, 4, 3), (3, 4, 4), (4, 5, 7)] # min_spanning_tree_weight = kruskal(n, m, edges) # print(min_spanning_tree_weight) 染色法 使用了深度优先搜索算法（DFS）来判断一个图是否是二分图\n二分图：顶点分为两个集合，边仅存在于两个不同的集合中，而集合内部都没有边。\nPython优先使用BFS，因为DFS会出现各种问题，爆战，段错误（还没搞清楚原因）等\n这段代码使用了染色法来判断一个无向图是否为二分图。下面我来解释一下：\n题目大意： 给定一个无向图，判断是否可以将其顶点集合划分为两个不相交的子集，使得每条边的两个端点分别属于这两个子集。如果可以，则输出\"Yes\"，否则输出\"No\"。\n实现思路：\n使用邻接表 g 来表示无向图，其中 g[u] 存储与顶点 u 相连的所有顶点。 定义一个数组 color 来标记每个顶点的染色情况，初始值设为 -1 表示未染色。 定义一个 BFS 函数 bfs(u, c)，其中 u 表示起始顶点，c 表示初始颜色。该函数使用 BFS 遍历图，并将顶点染色，保证相邻顶点颜色不同。 在主体部分，遍历所有顶点，对于每个未染色的顶点，调用 bfs 函数进行染色。如果染色过程中发现相邻顶点颜色相同，则返回 “No”，表示无法划分为二分图；否则返回 “Yes”。 import sys from collections import deque, defaultdict input = lambda:sys.stdin.readline().strip() N = int(1e5)+10 g = defaultdict(list) color = [-1]*N def bfs(u, c): color[u] = c q = deque() q.append((u, c)) while q: cur, col = q.popleft() for nx in g[cur]: if color[nx]==-1: color[nx] = 1-col q.append((nx, 1-col)) elif color[nx]==col: return False return True n, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) # if u==v: #***自环不能去掉*** # continue if u not in g[v]: g[v].append(u) if v not in g[u]: g[u].append(v) for i in range(1, n+1): if color[i]==-1: if not bfs(i, 0): print(\"No\") exit() print(\"Yes\") 匈牙利算法 题目大意： 给定一个二分图，其中左侧顶点集合为 (N_1)，右侧顶点集合为 (N_2)，图中存在一些边。需要找到尽可能多的匹配，使得左侧的每个顶点最多与一个右侧的顶点相连，而右侧的每个顶点最多与一个左侧的顶点相连。\n实现思路：\n使用一个二维数组 g 存储图的邻接表表示。其中 g[u] 表示与左侧顶点 u 相连的所有右侧顶点的集合。 定义一个函数 find(x)，用于从左侧顶点 x 开始尝试寻找增广路径，如果找到了增广路径就返回 True，否则返回 False。 在主体部分，遍历左侧的每个顶点，对每个顶点调用 find 函数进行匹配，若成功匹配，则匹配数加一。 import sys from collections import defaultdict N = int(1e3)+10 mat, st = [0]*N, [False]*N g = defaultdict(list) def find(x): for v in g[x]: if not st[v]: st[v] = True if mat[v]==0 or find(mat[v]): mat[v] = x return True return False n1, n2, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) g[u].append(v) # hungarian 主体部分 ans = 0 for i in range(1, n1+1): st = [False]*N if find(i): ans+=1 print(ans) ",
+  "wordCount" : "3027",
+  "inLanguage": "en",
+  "datePublished": "2024-04-09T15:37:01+08:00",
+  "dateModified": "2024-04-09T15:37:01+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://showguan.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://showguan.github.io/en/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://showguan.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://showguan.github.io/en/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://showguan.github.io/en/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://showguan.github.io/en/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://showguan.github.io/en/archives/" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://showguan.github.io/en/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://showguan.github.io/en/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://showguan.github.io/en/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://showguan.github.io/en/">Home</a>&nbsp;»&nbsp;<a href="https://showguan.github.io/en/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://showguan.github.io/en/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      算法笔记（三）——图论（Python实现）
+    </h1>
+    <div class="post-description">
+      算法笔记（三）——图论（Python实现）
+    </div>
+    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;7 min&nbsp;·&nbsp;3027 words&nbsp;·&nbsp;updated:&nbsp;2024-04-09&nbsp;·&nbsp;ShowGuan
+
+</div>
+	
+	 <div class="post-password">
+        
+    </div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%e4%b8%89%e5%9b%be%e8%ae%bapython%e5%ae%9e%e7%8e%b0" aria-label="算法笔记（三）——图论（Python实现）">算法笔记（三）——图论（Python实现）</a><ul>
+                        
+                <li>
+                    <a href="#%e5%9b%be%e8%ae%ba" aria-label="图论">图论</a><ul>
+                        
+                <li>
+                    <a href="#%e6%a0%91%e7%9a%84%e5%ad%98%e5%82%a8" aria-label="树的存储">树的存储</a><ul>
+                        
+                <li>
+                    <a href="#%e9%82%bb%e6%8e%a5%e7%9f%a9%e9%98%b5" aria-label="邻接矩阵">邻接矩阵</a></li>
+                <li>
+                    <a href="#%e9%82%bb%e6%8e%a5%e8%a1%a8" aria-label="邻接表">邻接表</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%a0%91%e5%92%8c%e5%9b%be%e7%9a%84%e5%ad%98%e5%82%a8" aria-label="树和图的存储">树和图的存储</a></li>
+                <li>
+                    <a href="#%e6%a0%91%e5%92%8c%e5%9b%be%e7%9a%84%e9%81%8d%e5%8e%86" aria-label="树和图的遍历">树和图的遍历</a><ul>
+                        
+                <li>
+                    <a href="#dfs" aria-label="DFS">DFS</a></li>
+                <li>
+                    <a href="#bfs" aria-label="BFS">BFS</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%8b%93%e6%89%91%e6%8e%92%e5%ba%8f" aria-label="拓扑排序">拓扑排序</a></li>
+                <li>
+                    <a href="#lca" aria-label="LCA">LCA</a></li>
+                <li>
+                    <a href="#%e6%9c%80%e7%9f%ad%e8%b7%af" aria-label="最短路">最短路</a><ul>
+                        
+                <li>
+                    <a href="#%e6%9c%b4%e7%b4%a0dijkstra" aria-label="朴素Dijkstra">朴素Dijkstra</a></li>
+                <li>
+                    <a href="#%e5%a0%86%e4%bc%98%e5%8c%96%e7%89%88dijkstra" aria-label="堆优化版Dijkstra">堆优化版Dijkstra</a><ul>
+                        
+                <li>
+                    <a href="#%e5%8f%a6%e4%b8%80%e7%a7%8d%e5%86%99%e6%b3%95" aria-label="另一种写法">另一种写法</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#bellman-ford" aria-label="Bellman-Ford">Bellman-Ford</a></li>
+                <li>
+                    <a href="#spfa" aria-label="SPFA">SPFA</a><ul>
+                        
+                <li>
+                    <a href="#%e5%88%a4%e6%96%ad%e8%b4%9f%e7%8e%af" aria-label="判断负环">判断负环</a></li></ul>
+                </li>
+                <li>
+                    <a href="#floyd" aria-label="floyd">floyd</a></li>
+                <li>
+                    <a href="#prim" aria-label="Prim">Prim</a></li>
+                <li>
+                    <a href="#kruskal" aria-label="Kruskal">Kruskal</a></li>
+                <li>
+                    <a href="#%e6%9f%93%e8%89%b2%e6%b3%95" aria-label="染色法">染色法</a></li>
+                <li>
+                    <a href="#%e5%8c%88%e7%89%99%e5%88%a9%e7%ae%97%e6%b3%95" aria-label="匈牙利算法">匈牙利算法</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="算法笔记三图论python实现">算法笔记（三）——图论（Python实现）<a hidden class="anchor" aria-hidden="true" href="#算法笔记三图论python实现">#</a></h1>
+<h2 id="图论">图论<a hidden class="anchor" aria-hidden="true" href="#图论">#</a></h2>
+<h3 id="树的存储">树的存储<a hidden class="anchor" aria-hidden="true" href="#树的存储">#</a></h3>
+<h4 id="邻接矩阵">邻接矩阵<a hidden class="anchor" aria-hidden="true" href="#邻接矩阵">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 创建一个二维列表表示邻接矩阵</span>
+</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>  <span style="color:#75715e"># 顶点数量</span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> n <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 添加一条边a-&gt;b</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">add_edge</span>(a, b):
+</span></span><span style="display:flex;"><span>    g[a][b] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化</span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> n <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n)]
+</span></span></code></pre></div><h4 id="邻接表">邻接表<a hidden class="anchor" aria-hidden="true" href="#邻接表">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 创建一个列表表示邻接表</span>
+</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>  <span style="color:#75715e"># 顶点数量</span>
+</span></span><span style="display:flex;"><span>h <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> n
+</span></span><span style="display:flex;"><span>e <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> n
+</span></span><span style="display:flex;"><span>ne <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> n
+</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 添加一条边a-&gt;b</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">add_edge</span>(a, b):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> idx
+</span></span><span style="display:flex;"><span>    e[idx] <span style="color:#f92672">=</span> b
+</span></span><span style="display:flex;"><span>    ne[idx] <span style="color:#f92672">=</span> h[a]
+</span></span><span style="display:flex;"><span>    h[a] <span style="color:#f92672">=</span> idx
+</span></span><span style="display:flex;"><span>    idx <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化</span>
+</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>h <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> n
+</span></span></code></pre></div><h3 id="树和图的存储">树和图的存储<a hidden class="anchor" aria-hidden="true" href="#树和图的存储">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 邻接表表示的图</span>
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">100010</span>  <span style="color:#75715e"># 根据具体需求设置合适的最大节点数量</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 对于每个点k，开一个单链表，存储k所有可以走到的点。h[k]存储这个单链表的头结点</span>
+</span></span><span style="display:flex;"><span>h <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> N
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 存储边的目标节点</span>
+</span></span><span style="display:flex;"><span>e <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 存储下一条边的索引</span>
+</span></span><span style="display:flex;"><span>ne <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 边的索引</span>
+</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 添加一条边a-&gt;b</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">add</span>(a, b):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> idx
+</span></span><span style="display:flex;"><span>    e[idx] <span style="color:#f92672">=</span> b
+</span></span><span style="display:flex;"><span>    ne[idx] <span style="color:#f92672">=</span> h[a]
+</span></span><span style="display:flex;"><span>    h[a] <span style="color:#f92672">=</span> idx
+</span></span><span style="display:flex;"><span>    idx <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化</span>
+</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>    h[i] <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><h3 id="树和图的遍历">树和图的遍历<a hidden class="anchor" aria-hidden="true" href="#树和图的遍历">#</a></h3>
+<h4 id="dfs">DFS<a hidden class="anchor" aria-hidden="true" href="#dfs">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u):
+</span></span><span style="display:flex;"><span>    st[u] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> h[u]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        j <span style="color:#f92672">=</span> e[i]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j]:
+</span></span><span style="display:flex;"><span>            dfs(j)
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> ne[i]
+</span></span></code></pre></div><h4 id="bfs">BFS<a hidden class="anchor" aria-hidden="true" href="#bfs">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>st[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>q<span style="color:#f92672">.</span>append(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>    t <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> h[t]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        j<span style="color:#f92672">=</span>e[i]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j]:
+</span></span><span style="display:flex;"><span>            st[j] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            q<span style="color:#f92672">.</span>append(j)
+</span></span><span style="display:flex;"><span>        i<span style="color:#f92672">=</span>ne[i]
+</span></span></code></pre></div><h3 id="拓扑排序">拓扑排序<a hidden class="anchor" aria-hidden="true" href="#拓扑排序">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">topsort</span>():
+</span></span><span style="display:flex;"><span>    hh, tt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> d[i]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>            q<span style="color:#f92672">.</span>append(i)
+</span></span><span style="display:flex;"><span>            tt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> hh<span style="color:#f92672">&lt;=</span>tt:
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> q[hh]
+</span></span><span style="display:flex;"><span>        hh<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> h[t]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> e[i]
+</span></span><span style="display:flex;"><span>            d[j]<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> d[j]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
+</span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append(j)
+</span></span><span style="display:flex;"><span>                tt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> ne[i]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> tt<span style="color:#f92672">==</span>n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span></code></pre></div><h3 id="lca">LCA<a hidden class="anchor" aria-hidden="true" href="#lca">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">lca</span>(x,y):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dep[x] <span style="color:#f92672">&lt;</span> dep[y]:
+</span></span><span style="display:flex;"><span>        x,y <span style="color:#f92672">=</span> y,x
+</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> dep[x]<span style="color:#f92672">-</span>dep[y]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> d:  <span style="color:#75715e"># 循环直到深度差为 0</span>
+</span></span><span style="display:flex;"><span>        v <span style="color:#f92672">=</span> d <span style="color:#f92672">&amp;</span> <span style="color:#f92672">-</span>d  <span style="color:#75715e"># 获取 d 的最低位的 1 所在的位置</span>
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> v<span style="color:#f92672">.</span>bit_length() <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>  <span style="color:#75715e"># 计算最低位的位置索引</span>
+</span></span><span style="display:flex;"><span>        x <span style="color:#f92672">=</span> fa[i][x]  <span style="color:#75715e"># 将节点 x 上移到和节点 y 同一深度</span>
+</span></span><span style="display:flex;"><span>        d <span style="color:#f92672">-=</span> v  <span style="color:#75715e"># 更新深度差</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">==</span>y:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> x
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(K<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> fa[k][x] <span style="color:#f92672">!=</span> fa[k][y]:
+</span></span><span style="display:flex;"><span>            x <span style="color:#f92672">=</span> fa[k][x]
+</span></span><span style="display:flex;"><span>            y <span style="color:#f92672">=</span> fa[k][y]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> fa[<span style="color:#ae81ff">0</span>][x]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化深度以及父节点信息</span>
+</span></span><span style="display:flex;"><span>dep[x]<span style="color:#f92672">=</span>dep[val]<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>dep[y]<span style="color:#f92672">=</span>dep[val]<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>fa[<span style="color:#ae81ff">0</span>][x] <span style="color:#f92672">=</span> val
+</span></span><span style="display:flex;"><span>fa[<span style="color:#ae81ff">0</span>][y] <span style="color:#f92672">=</span> val
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(K<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    fa[k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][x] <span style="color:#f92672">=</span> fa[k][fa[k][x]] <span style="color:#75715e"># 自己的第2^(1+1)级父亲即为 自己的第2^(1)级父亲 的第2^(1)级父亲</span>
+</span></span><span style="display:flex;"><span>    fa[k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>][y] <span style="color:#f92672">=</span> fa[k][fa[k][y]]
+</span></span></code></pre></div><h3 id="最短路">最短路<a hidden class="anchor" aria-hidden="true" href="#最短路">#</a></h3>
+<ul>
+<li>
+<p>单元最短路</p>
+<ul>
+<li>
+<p>​	所有边权为正：</p>
+<ul>
+<li>​		朴素版Dijkstra $O(n^2)$,堆优化版的Dijkstra $O(mlogn)$,</li>
+</ul>
+</li>
+<li>
+<p>​	存在负权边</p>
+<ul>
+<li>​		Bellman-Ford $O(nm)$, SPFA 队列优化的Bellman-Ford, 一般情况：$O(m)$ 最坏情况：$O(nm)$</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>多元汇最短路：</p>
+<ul>
+<li>​	Floyed $O(n^3)$</li>
+</ul>
+</li>
+</ul>
+<h4 id="朴素dijkstra">朴素Dijkstra<a hidden class="anchor" aria-hidden="true" href="#朴素dijkstra">#</a></h4>
+<p>Dijkstra不能处理负权边：</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/20240409161050.png" alt=""  />
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">5e2</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>INF <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x3f3f3f3f</span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> [[INF]<span style="color:#f92672">*</span>N <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(N)]
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#g = defaultdict(lambda:defaultdict(lambda:INF)) 同样的效果</span>
+</span></span><span style="display:flex;"><span>dis <span style="color:#f92672">=</span> [INF]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dijkstra</span>():
+</span></span><span style="display:flex;"><span>    dis[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        t<span style="color:#f92672">=-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j] <span style="color:#f92672">and</span> (t<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">or</span> dis[j]<span style="color:#f92672">&lt;</span>dis[t]):
+</span></span><span style="display:flex;"><span>                t<span style="color:#f92672">=</span>j
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            dis[j]<span style="color:#f92672">=</span>min(dis[j], dis[t] <span style="color:#f92672">+</span> g[t][j])
+</span></span><span style="display:flex;"><span>        st[t]<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dis[n]<span style="color:#f92672">==</span>INF:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> dis[n]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    x, y, z <span style="color:#f92672">=</span> map(int ,input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    g[x][y] <span style="color:#f92672">=</span> min(g[x][y], z)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>print(dijkstra())
+</span></span></code></pre></div><h4 id="堆优化版dijkstra">堆优化版Dijkstra<a hidden class="anchor" aria-hidden="true" href="#堆优化版dijkstra">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> heapq <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">150010</span>
+</span></span><span style="display:flex;"><span>INF <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x3f3f3f3f</span>
+</span></span><span style="display:flex;"><span>e, ne, head, w, dis<span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N, [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N, [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>N, [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N, [INF]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>idx<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">add</span>(a, b, x):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> idx
+</span></span><span style="display:flex;"><span>    e[idx]<span style="color:#f92672">=</span>b
+</span></span><span style="display:flex;"><span>    w[idx]<span style="color:#f92672">=</span>x
+</span></span><span style="display:flex;"><span>    ne[idx]<span style="color:#f92672">=</span>head[a]
+</span></span><span style="display:flex;"><span>    head[a]<span style="color:#f92672">=</span>idx
+</span></span><span style="display:flex;"><span>    idx<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dijkstra</span>():
+</span></span><span style="display:flex;"><span>    dis[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    h<span style="color:#f92672">=</span>[]
+</span></span><span style="display:flex;"><span>    heappush(h, (<span style="color:#ae81ff">0</span>,<span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> h:
+</span></span><span style="display:flex;"><span>        dist, ver <span style="color:#f92672">=</span> heappop(h)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> st[ver]: <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>        st[ver]<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        i<span style="color:#f92672">=</span>head[ver]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> i<span style="color:#f92672">!=-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            j<span style="color:#f92672">=</span>e[i]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j] <span style="color:#f92672">and</span> dis[j]<span style="color:#f92672">&gt;</span>dist<span style="color:#f92672">+</span>w[i]:
+</span></span><span style="display:flex;"><span>                dis[j]<span style="color:#f92672">=</span>dist<span style="color:#f92672">+</span>w[i]
+</span></span><span style="display:flex;"><span>                heappush(h, (dis[j], j))
+</span></span><span style="display:flex;"><span>            i<span style="color:#f92672">=</span>ne[i]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dis[n]<span style="color:#f92672">==</span>INF:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(dis[n])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    x, y, z <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    add(x,y,z)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>dijkstra()
+</span></span></code></pre></div><h5 id="另一种写法">另一种写法<a hidden class="anchor" aria-hidden="true" href="#另一种写法">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> heapq <span style="color:#f92672">import</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>input<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>N, INF <span style="color:#f92672">=</span> <span style="color:#ae81ff">150010</span>, <span style="color:#ae81ff">0x3f3f3f3f</span>
+</span></span><span style="display:flex;"><span>dis, st <span style="color:#f92672">=</span> [INF]<span style="color:#f92672">*</span>N, [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>g<span style="color:#f92672">=</span>defaultdict(list)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dijkstra</span>():
+</span></span><span style="display:flex;"><span>    dis[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    h<span style="color:#f92672">=</span>[]
+</span></span><span style="display:flex;"><span>    heappush(h, (<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> h:
+</span></span><span style="display:flex;"><span>        dist, ver <span style="color:#f92672">=</span> heappop(h)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> st[ver]:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>        st[ver]<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> y, z <span style="color:#f92672">in</span> g[ver]:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dis[y]<span style="color:#f92672">&gt;</span>dis[ver]<span style="color:#f92672">+</span>z:
+</span></span><span style="display:flex;"><span>                dis[y]<span style="color:#f92672">=</span>dis[ver]<span style="color:#f92672">+</span>z
+</span></span><span style="display:flex;"><span>                heappush(h, (dis[y], y))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dis[n]<span style="color:#f92672">==</span>INF:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(dis[n])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    x,y,z <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    g[x]<span style="color:#f92672">.</span>append((y, z))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>dijkstra()
+</span></span></code></pre></div><h3 id="bellman-ford">Bellman-Ford<a hidden class="anchor" aria-hidden="true" href="#bellman-ford">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># n表示点数，m表示边数</span>
+</span></span><span style="display:flex;"><span>dist <span style="color:#f92672">=</span> [float(<span style="color:#e6db74">&#39;inf&#39;</span>)] <span style="color:#f92672">*</span> (n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)  <span style="color:#75715e"># dist[x]存储1到x的最短路距离</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 边，a表示出点，b表示入点，w表示边的权重</span>
+</span></span><span style="display:flex;"><span>edges <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 求1到n的最短路距离，如果无法从1走到n，则返回-1。</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bellman_ford</span>():
+</span></span><span style="display:flex;"><span>    dist[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 如果第n次迭代仍然会松弛三角不等式，就说明存在一条长度是n+1的最短路径，由抽屉原理，路径中至少存在两个相同的点，说明图中存在负权回路。</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>            a, b, w <span style="color:#f92672">=</span> edges[j][<span style="color:#e6db74">&#39;a&#39;</span>], edges[j][<span style="color:#e6db74">&#39;b&#39;</span>], edges[j][<span style="color:#e6db74">&#39;w&#39;</span>]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dist[b] <span style="color:#f92672">&gt;</span> dist[a] <span style="color:#f92672">+</span> w:
+</span></span><span style="display:flex;"><span>                dist[b] <span style="color:#f92672">=</span> dist[a] <span style="color:#f92672">+</span> w
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dist[n] <span style="color:#f92672">&gt;</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>) <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> dist[n]
+</span></span></code></pre></div><h3 id="spfa">SPFA<a hidden class="anchor" aria-hidden="true" href="#spfa">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict, deque
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>N, INF <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e5</span><span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>), <span style="color:#ae81ff">0x3f3f3f3f</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dis, st <span style="color:#f92672">=</span> [INF]<span style="color:#f92672">*</span>N, [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>g<span style="color:#f92672">=</span>defaultdict(list)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">spfa</span>():
+</span></span><span style="display:flex;"><span>    q<span style="color:#f92672">=</span>deque()
+</span></span><span style="display:flex;"><span>    q<span style="color:#f92672">.</span>append(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    st[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    dis[<span style="color:#ae81ff">1</span>]<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>        x<span style="color:#f92672">=</span>q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>        st[x]<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> y, z <span style="color:#f92672">in</span> g[x]:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dis[y]<span style="color:#f92672">&gt;</span>dis[x]<span style="color:#f92672">+</span>z:
+</span></span><span style="display:flex;"><span>                dis[y]<span style="color:#f92672">=</span>dis[x]<span style="color:#f92672">+</span>z
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[y]:
+</span></span><span style="display:flex;"><span>                    st[y]<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>                    q<span style="color:#f92672">.</span>append(y)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dis[n]<span style="color:#f92672">==</span>INF:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#39;impossible&#39;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(dis[n])
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    x, y, z <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    g[x]<span style="color:#f92672">.</span>append((y, z))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>spfa()
+</span></span></code></pre></div><h4 id="判断负环">判断负环<a hidden class="anchor" aria-hidden="true" href="#判断负环">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e5</span><span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>INF <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x3f3f3f3f</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>  <span style="color:#75715e"># 总点数</span>
+</span></span><span style="display:flex;"><span>h <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 邻接表存储所有边</span>
+</span></span><span style="display:flex;"><span>e, ne, w <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N, [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N, [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N
+</span></span><span style="display:flex;"><span>idx <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>dist, cnt <span style="color:#f92672">=</span> [INF] <span style="color:#f92672">*</span> N, [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># dist[x]存储1号点到x的最短距离，cnt[x]存储1到x的最短路中经过的点数</span>
+</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># 存储每个点是否在队列中</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 如果存在负环，则返回True，否则返回False。</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">spfa</span>():
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 不需要初始化dist数组</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># 原理：如果某条最短路径上有n个点（除了自己），那么加上自己之后一共有n+1个点，由抽屉原理一定有两个点相同，所以存在环</span>
+</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        q<span style="color:#f92672">.</span>append(i)
+</span></span><span style="display:flex;"><span>        st[i] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>        st[t] <span style="color:#f92672">=</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">=</span> h[t]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> i <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            j <span style="color:#f92672">=</span> e[i]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dist[j] <span style="color:#f92672">&gt;</span> dist[t] <span style="color:#f92672">+</span> w[i]:
+</span></span><span style="display:flex;"><span>                dist[j] <span style="color:#f92672">=</span> dist[t] <span style="color:#f92672">+</span> w[i]
+</span></span><span style="display:flex;"><span>                cnt[j] <span style="color:#f92672">=</span> cnt[t] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> cnt[j] <span style="color:#f92672">&gt;=</span> n:
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>  <span style="color:#75715e"># 如果从1号点到x的最短路中包含至少n个点（不包括自己），则说明存在环</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j]:
+</span></span><span style="display:flex;"><span>                    q<span style="color:#f92672">.</span>append(j)
+</span></span><span style="display:flex;"><span>                    st[j] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            i <span style="color:#f92672">=</span> ne[i]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># n = 5</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># h = [-1, 2, 1, 4, 3, -1]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># e = [0, 2, 1, 4, 3, 0]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># ne = [1, -1, 3, -1, -1, 2]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># w = [0, 1, 2, 3, 4, 5]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># if spfa():</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#     print(&#34;Exist negative cycle&#34;)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># else:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">#     print(&#34;No negative cycle&#34;)</span>
+</span></span></code></pre></div><h3 id="floyd">floyd<a hidden class="anchor" aria-hidden="true" href="#floyd">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>INF <span style="color:#f92672">=</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 初始化距离矩阵d，d[a][b]表示a到b的最短距离</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">initialize</span>(n):
+</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span> <span style="color:#66d9ef">if</span> i <span style="color:#f92672">==</span> j <span style="color:#66d9ef">else</span> INF <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n)] <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> d
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Floyd算法求解最短路径</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">floyd</span>(d, n):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>                d[i][j] <span style="color:#f92672">=</span> min(d[i][j], d[i][k] <span style="color:#f92672">+</span> d[k][j])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> d
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># n = 5</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># d = initialize(n)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># d = floyd(d, n)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(d)</span>
+</span></span></code></pre></div><h3 id="prim">Prim<a hidden class="anchor" aria-hidden="true" href="#prim">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>INF <span style="color:#f92672">=</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Prim算法求解最小生成树的权重之和</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">prim</span>(n, g):
+</span></span><span style="display:flex;"><span>    dist <span style="color:#f92672">=</span> [INF] <span style="color:#f92672">*</span> (n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>] <span style="color:#f92672">*</span> (n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[j] <span style="color:#f92672">and</span> (t <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#f92672">or</span> dist[t] <span style="color:#f92672">&gt;</span> dist[j]):
+</span></span><span style="display:flex;"><span>                t <span style="color:#f92672">=</span> j
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> i <span style="color:#f92672">and</span> dist[t] <span style="color:#f92672">==</span> INF:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> INF
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> i:
+</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">+=</span> dist[t]
+</span></span><span style="display:flex;"><span>        st[t] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            dist[j] <span style="color:#f92672">=</span> min(dist[j], g[t][j])
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># n = 5</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># g = [[0] * (n + 1) for _ in range(n + 1)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># dist = prim(n, g)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(dist)</span>
+</span></span></code></pre></div><h3 id="kruskal">Kruskal<a hidden class="anchor" aria-hidden="true" href="#kruskal">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>INF <span style="color:#f92672">=</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 并查集的查找操作</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find</span>(x, p):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> p[x] <span style="color:#f92672">!=</span> x:
+</span></span><span style="display:flex;"><span>        p[x] <span style="color:#f92672">=</span> find(p[x], p)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> p[x]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Kruskal算法求解最小生成树的权重之和</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">kruskal</span>(n, m, edges):
+</span></span><span style="display:flex;"><span>    edges<span style="color:#f92672">.</span>sort(key<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> x: x[<span style="color:#ae81ff">2</span>])  <span style="color:#75715e"># 按照边权重对边进行排序</span>
+</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> [i <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)]   <span style="color:#75715e"># 初始化并查集的父节点数组</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> edge <span style="color:#f92672">in</span> edges:
+</span></span><span style="display:flex;"><span>        a, b, w <span style="color:#f92672">=</span> edge
+</span></span><span style="display:flex;"><span>        a <span style="color:#f92672">=</span> find(a, p)
+</span></span><span style="display:flex;"><span>        b <span style="color:#f92672">=</span> find(b, p)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> a <span style="color:#f92672">!=</span> b:  <span style="color:#75715e"># 如果两个连通块不连通，则将这两个连通块合并</span>
+</span></span><span style="display:flex;"><span>            p[a] <span style="color:#f92672">=</span> b
+</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">+=</span> w
+</span></span><span style="display:flex;"><span>            cnt <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> cnt <span style="color:#f92672">&lt;</span> n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> INF
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># n, m = 5, 7</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># edges = [(1, 2, 2), (1, 3, 5), (1, 4, 6), (2, 3, 1), (2, 4, 3), (3, 4, 4), (4, 5, 7)]</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># min_spanning_tree_weight = kruskal(n, m, edges)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(min_spanning_tree_weight)</span>
+</span></span></code></pre></div><h3 id="染色法">染色法<a hidden class="anchor" aria-hidden="true" href="#染色法">#</a></h3>
+<p>使用了深度优先搜索算法（DFS）来判断一个图是否是二分图</p>
+<p><strong>二分图</strong>：顶点分为两个集合，边仅存在于两个不同的集合中，而集合内部都没有边。</p>
+<p>Python优先使用BFS，因为DFS会出现各种问题，爆战，段错误（还没搞清楚原因）等</p>
+<p>这段代码使用了染色法来判断一个无向图是否为二分图。下面我来解释一下：</p>
+<p><strong>题目大意：</strong>
+给定一个无向图，判断是否可以将其顶点集合划分为两个不相交的子集，使得每条边的两个端点分别属于这两个子集。如果可以，则输出&quot;Yes&quot;，否则输出&quot;No&quot;。</p>
+<p><strong>实现思路：</strong></p>
+<ol>
+<li>使用邻接表 <code>g</code> 来表示无向图，其中 <code>g[u]</code> 存储与顶点 <code>u</code> 相连的所有顶点。</li>
+<li>定义一个数组 <code>color</code> 来标记每个顶点的染色情况，初始值设为 <code>-1</code> 表示未染色。</li>
+<li>定义一个 BFS 函数 <code>bfs(u, c)</code>，其中 <code>u</code> 表示起始顶点，<code>c</code> 表示初始颜色。该函数使用 BFS 遍历图，并将顶点染色，保证相邻顶点颜色不同。</li>
+<li>在主体部分，遍历所有顶点，对于每个未染色的顶点，调用 <code>bfs</code> 函数进行染色。如果染色过程中发现相邻顶点颜色相同，则返回 &ldquo;No&rdquo;，表示无法划分为二分图；否则返回 &ldquo;Yes&rdquo;。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque, defaultdict
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> defaultdict(list)
+</span></span><span style="display:flex;"><span>color <span style="color:#f92672">=</span> [<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bfs</span>(u, c):
+</span></span><span style="display:flex;"><span>    color[u] <span style="color:#f92672">=</span> c
+</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>    q<span style="color:#f92672">.</span>append((u, c))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>        cur, col <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> nx <span style="color:#f92672">in</span> g[cur]:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> color[nx]<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>                color[nx] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span><span style="color:#f92672">-</span>col
+</span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append((nx, <span style="color:#ae81ff">1</span><span style="color:#f92672">-</span>col))
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">elif</span> color[nx]<span style="color:#f92672">==</span>col:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    u, v <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e"># if u==v: #***自环不能去掉***</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">#     continue</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> g[v]:
+</span></span><span style="display:flex;"><span>        g[v]<span style="color:#f92672">.</span>append(u)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> v <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> g[u]:
+</span></span><span style="display:flex;"><span>        g[u]<span style="color:#f92672">.</span>append(v)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> color[i]<span style="color:#f92672">==-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> bfs(i, <span style="color:#ae81ff">0</span>):
+</span></span><span style="display:flex;"><span>            print(<span style="color:#e6db74">&#34;No&#34;</span>)
+</span></span><span style="display:flex;"><span>            exit()
+</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;Yes&#34;</span>)
+</span></span></code></pre></div><h3 id="匈牙利算法">匈牙利算法<a hidden class="anchor" aria-hidden="true" href="#匈牙利算法">#</a></h3>
+<p><strong>题目大意：</strong>
+给定一个二分图，其中左侧顶点集合为 (N_1)，右侧顶点集合为 (N_2)，图中存在一些边。需要找到尽可能多的匹配，使得左侧的每个顶点最多与一个右侧的顶点相连，而右侧的每个顶点最多与一个左侧的顶点相连。</p>
+<p><strong>实现思路：</strong></p>
+<ol>
+<li>使用一个二维数组 <code>g</code> 存储图的邻接表表示。其中 <code>g[u]</code> 表示与左侧顶点 <code>u</code> 相连的所有右侧顶点的集合。</li>
+<li>定义一个函数 <code>find(x)</code>，用于从左侧顶点 <code>x</code> 开始尝试寻找增广路径，如果找到了增广路径就返回 <code>True</code>，否则返回 <code>False</code>。</li>
+<li>在主体部分，遍历左侧的每个顶点，对每个顶点调用 <code>find</code> 函数进行匹配，若成功匹配，则匹配数加一。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e3</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>mat, st <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N, [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> defaultdict(list)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">find</span>(x):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> v <span style="color:#f92672">in</span> g[x]:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[v]:
+</span></span><span style="display:flex;"><span>            st[v] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> mat[v]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> find(mat[v]):
+</span></span><span style="display:flex;"><span>                mat[v] <span style="color:#f92672">=</span> x
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>n1, n2, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(m):
+</span></span><span style="display:flex;"><span>    u, v <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    g[u]<span style="color:#f92672">.</span>append(v)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># hungarian 主体部分</span>
+</span></span><span style="display:flex;"><span>ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n1<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> find(i):
+</span></span><span style="display:flex;"><span>        ans<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>print(ans)
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://showguan.github.io/en/tags/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/">算法笔记</a></li>
+      <li><a href="https://showguan.github.io/en/tags/python/">Python</a></li>
+    </ul>
+		
+	
+	<ul id="categories">
+	  
+		<li><a href="https://showguan.github.io/en/categories/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0">算法笔记</a> </li>
+	  
+	</ul>
+	
+	
+<nav class="paginav">
+  <a class="prev" href="https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%80%E5%9F%BA%E7%A1%80&#43;%E6%9D%82%E9%A1%B9python%E5%AE%9E%E7%8E%B0/">
+    <span class="title">« Prev</span>
+    <br>
+    <span>算法笔记（一）——基础&#43;杂项（Python实现）</span>
+  </a>
+  <a class="next" href="https://showguan.github.io/en/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%BA%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84python%E5%AE%9E%E7%8E%B0/">
+    <span class="title">Next »</span>
+    <br>
+    <span>算法笔记（二）——数据结构(Python实现)</span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on x"
+            href="https://x.com/intent/tweet/?text=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89&amp;url=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f&amp;hashtags=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%2cPython">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f&amp;title=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89&amp;summary=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89&amp;source=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on reddit"
+            href="https://reddit.com/submit?url=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f&title=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on whatsapp"
+            href="https://api.whatsapp.com/send?text=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89%20-%20https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on telegram"
+            href="https://telegram.me/share/url?text=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89&amp;url=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share 算法笔记（三）——图论（Python实现） on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%ef%bc%88%e4%b8%89%ef%bc%89%e2%80%94%e2%80%94%e5%9b%be%e8%ae%ba%ef%bc%88Python%e5%ae%9e%e7%8e%b0%ef%bc%89&u=https%3a%2f%2fshowguan.github.io%2fen%2fposts%2ftech%2f%25E7%25AE%2597%25E6%25B3%2595%25E7%25AC%2594%25E8%25AE%25B0%25E4%25B8%2589%25E5%259B%25BE%25E8%25AE%25BApython%25E5%25AE%259E%25E7%258E%25B0%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://showguan.github.io/en/">Kennem</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+</body>
+
+</html>
