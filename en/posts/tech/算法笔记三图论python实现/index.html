@@ -126,8 +126,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "算法笔记", "Python"
   ],
-  "articleBody": "算法笔记（三）——图论（Python实现） 图论 树的存储 邻接矩阵 # 创建一个二维列表表示邻接矩阵 n = 10 # 顶点数量 g = [[0] * n for _ in range(n)] # 添加一条边a-\u003eb def add_edge(a, b): g[a][b] = 1 # 初始化 g = [[0] * n for _ in range(n)] 邻接表 # 创建一个列表表示邻接表 n = 10 # 顶点数量 h = [-1] * n e = [0] * n ne = [0] * n idx = 0 # 添加一条边a-\u003eb def add_edge(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 h = [-1] * n 树和图的存储 # 邻接表表示的图 N = 100010 # 根据具体需求设置合适的最大节点数量 # 对于每个点k，开一个单链表，存储k所有可以走到的点。h[k]存储这个单链表的头结点 h = [-1] * N # 存储边的目标节点 e = [0] * N # 存储下一条边的索引 ne = [0] * N # 边的索引 idx = 0 # 添加一条边a-\u003eb def add(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 for i in range(N): h[i] = -1 树和图的遍历 DFS def dfs(u): st[u] = True i = h[u] while i!=-1: j = e[i] if not st[j]: dfs(j) i = ne[i] BFS from collections import deque q = deque() st[1] = True q.append(1) while q: t = q.popleft() i = h[t] while i!=-1: j=e[i] if not st[j]: st[j] = True q.append(j) i=ne[i] 拓扑排序 def topsort(): hh, tt = 0, -1 for i in range(1, n+1): if d[i]==0: q.append(i) tt+=1 while hh\u003c=tt: t = q[hh] hh+=1 i = h[t] while i!=-1: j = e[i] d[j]-=1 if d[j]==0: q.append(j) tt+=1 i = ne[i] return tt==n-1 LCA def lca(x,y): if dep[x] \u003c dep[y]: x,y = y,x d = dep[x]-dep[y] while d: # 循环直到深度差为 0 v = d \u0026 -d # 获取 d 的最低位的 1 所在的位置 i = v.bit_length() - 1 # 计算最低位的位置索引 x = fa[i][x] # 将节点 x 上移到和节点 y 同一深度 d -= v # 更新深度差 if x==y: return x for k in range(K-1, -1, -1): if fa[k][x] != fa[k][y]: x = fa[k][x] y = fa[k][y] return fa[0][x] # 初始化深度以及父节点信息 dep[x]=dep[val]+1 dep[y]=dep[val]+1 fa[0][x] = val fa[0][y] = val for k in range(K-1): fa[k+1][x] = fa[k][fa[k][x]] # 自己的第2^(1+1)级父亲即为 自己的第2^(1)级父亲 的第2^(1)级父亲 fa[k+1][y] = fa[k][fa[k][y]] 最短路 单元最短路\n​\t所有边权为正：\n​\t朴素版Dijkstra $O(n^2)$,堆优化版的Dijkstra $O(mlogn)$, ​\t存在负权边\n​\tBellman-Ford $O(nm)$, SPFA 队列优化的Bellman-Ford, 一般情况：$O(m)$ 最坏情况：$O(nm)$ 多元汇最短路：\n​\tFloyed $O(n^3)$ 朴素Dijkstra Dijkstra不能处理负权边：\nN = int(5e2)+10 INF = 0x3f3f3f3f g = [[INF]*N for _ in range(N)] #g = defaultdict(lambda:defaultdict(lambda:INF)) 同样的效果 dis = [INF]*N st = [False]*N def dijkstra(): dis[1]=0 for i in range(n-1): t=-1 for j in range(1,n+1): if not st[j] and (t==-1 or dis[j]\u003cdis[t]): t=j for j in range(1,n+1): dis[j]=min(dis[j], dis[t] + g[t][j]) st[t]=True if dis[n]==INF: return -1 return dis[n] n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int ,input().split()) g[x][y] = min(g[x][y], z) print(dijkstra()) 堆优化版Dijkstra from heapq import * import sys input = lambda:sys.stdin.readline().strip() N = 150010 INF = 0x3f3f3f3f e, ne, head, w, dis= [0]*N, [0]*N, [-1]*N, [0]*N, [INF]*N st = [False]*N idx=0 def add(a, b, x): global idx e[idx]=b w[idx]=x ne[idx]=head[a] head[a]=idx idx+=1 def dijkstra(): dis[1]=0 h=[] heappush(h, (0,1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True i=head[ver] while i!=-1: j=e[i] if not st[j] and dis[j]\u003edist+w[i]: dis[j]=dist+w[i] heappush(h, (dis[j], j)) i=ne[i] if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) add(x,y,z) dijkstra() 另一种写法 from heapq import * from collections import defaultdict import sys input=lambda:sys.stdin.readline().strip() N, INF = 150010, 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def dijkstra(): dis[1]=0 h=[] heappush(h, (0, 1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True for y, z in g[ver]: if dis[y]\u003edis[ver]+z: dis[y]=dis[ver]+z heappush(h, (dis[y], y)) if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x,y,z = map(int, input().split()) g[x].append((y, z)) dijkstra() Bellman-Ford # n表示点数，m表示边数 dist = [float('inf')] * (n + 1) # dist[x]存储1到x的最短路距离 # 边，a表示出点，b表示入点，w表示边的权重 edges = [] # 求1到n的最短路距离，如果无法从1走到n，则返回-1。 def bellman_ford(): dist[1] = 0 # 如果第n次迭代仍然会松弛三角不等式，就说明存在一条长度是n+1的最短路径，由抽屉原理，路径中至少存在两个相同的点，说明图中存在负权回路。 for i in range(n): for j in range(m): a, b, w = edges[j]['a'], edges[j]['b'], edges[j]['w'] if dist[b] \u003e dist[a] + w: dist[b] = dist[a] + w if dist[n] \u003e float('inf') / 2: return -1 return dist[n] SPFA from collections import defaultdict, deque import sys input = lambda:sys.stdin.readline().strip() N, INF = int(1e5+10), 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def spfa(): q=deque() q.append(1) st[1]=True dis[1]=0 while q: x=q.popleft() st[x]=False for y, z in g[x]: if dis[y]\u003edis[x]+z: dis[y]=dis[x]+z if not st[y]: st[y]=True q.append(y) if dis[n]==INF: print('impossible') else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) g[x].append((y, z)) spfa() 判断负环 from collections import deque N = int(1e5+10) INF = 0x3f3f3f3f n = 0 # 总点数 h = [-1] * N # 邻接表存储所有边 e, ne, w = [0] * N, [0] * N, [0] * N idx = 0 dist, cnt = [INF] * N, [0] * N # dist[x]存储1号点到x的最短距离，cnt[x]存储1到x的最短路中经过的点数 st = [False] * N # 存储每个点是否在队列中 # 如果存在负环，则返回True，否则返回False。 def spfa(): # 不需要初始化dist数组 # 原理：如果某条最短路径上有n个点（除了自己），那么加上自己之后一共有n+1个点，由抽屉原理一定有两个点相同，所以存在环 q = deque() for i in range(1, n + 1): q.append(i) st[i] = True while q: t = q.popleft() st[t] = False i = h[t] while i != -1: j = e[i] if dist[j] \u003e dist[t] + w[i]: dist[j] = dist[t] + w[i] cnt[j] = cnt[t] + 1 if cnt[j] \u003e= n: return True # 如果从1号点到x的最短路中包含至少n个点（不包括自己），则说明存在环 if not st[j]: q.append(j) st[j] = True i = ne[i] return False # Example usage: # n = 5 # h = [-1, 2, 1, 4, 3, -1] # e = [0, 2, 1, 4, 3, 0] # ne = [1, -1, 3, -1, -1, 2] # w = [0, 1, 2, 3, 4, 5] # if spfa(): # print(\"Exist negative cycle\") # else: # print(\"No negative cycle\") floyd INF = float('inf') # 初始化距离矩阵d，d[a][b]表示a到b的最短距离 def initialize(n): d = [[0 if i == j else INF for j in range(n)] for i in range(n)] return d # Floyd算法求解最短路径 def floyd(d, n): for k in range(n): for i in range(n): for j in range(n): d[i][j] = min(d[i][j], d[i][k] + d[k][j]) return d # Example usage: # n = 5 # d = initialize(n) # d = floyd(d, n) # print(d) Prim INF = float('inf') # Prim算法求解最小生成树的权重之和 def prim(n, g): dist = [INF] * (n + 1) st = [False] * (n + 1) res = 0 for i in range(n): t = -1 for j in range(1, n + 1): if not st[j] and (t == -1 or dist[t] \u003e dist[j]): t = j if i and dist[t] == INF: return INF if i: res += dist[t] st[t] = True for j in range(1, n + 1): dist[j] = min(dist[j], g[t][j]) return res # Example usage: # n = 5 # g = [[0] * (n + 1) for _ in range(n + 1)] # dist = prim(n, g) # print(dist) Kruskal INF = float('inf') # 并查集的查找操作 def find(x, p): if p[x] != x: p[x] = find(p[x], p) return p[x] # Kruskal算法求解最小生成树的权重之和 def kruskal(n, m, edges): edges.sort(key=lambda x: x[2]) # 按照边权重对边进行排序 p = [i for i in range(n + 1)] # 初始化并查集的父节点数组 res = 0 cnt = 0 for edge in edges: a, b, w = edge a = find(a, p) b = find(b, p) if a != b: # 如果两个连通块不连通，则将这两个连通块合并 p[a] = b res += w cnt += 1 if cnt \u003c n - 1: return INF return res # Example usage: # n, m = 5, 7 # edges = [(1, 2, 2), (1, 3, 5), (1, 4, 6), (2, 3, 1), (2, 4, 3), (3, 4, 4), (4, 5, 7)] # min_spanning_tree_weight = kruskal(n, m, edges) # print(min_spanning_tree_weight) 染色法 使用了深度优先搜索算法（DFS）来判断一个图是否是二分图\n二分图：顶点分为两个集合，边仅存在于两个不同的集合中，而集合内部都没有边。\nPython优先使用BFS，因为DFS会出现各种问题，爆战，段错误（还没搞清楚原因）等\n这段代码使用了染色法来判断一个无向图是否为二分图。下面我来解释一下：\n题目大意： 给定一个无向图，判断是否可以将其顶点集合划分为两个不相交的子集，使得每条边的两个端点分别属于这两个子集。如果可以，则输出\"Yes\"，否则输出\"No\"。\n实现思路：\n使用邻接表 g 来表示无向图，其中 g[u] 存储与顶点 u 相连的所有顶点。 定义一个数组 color 来标记每个顶点的染色情况，初始值设为 -1 表示未染色。 定义一个 BFS 函数 bfs(u, c)，其中 u 表示起始顶点，c 表示初始颜色。该函数使用 BFS 遍历图，并将顶点染色，保证相邻顶点颜色不同。 在主体部分，遍历所有顶点，对于每个未染色的顶点，调用 bfs 函数进行染色。如果染色过程中发现相邻顶点颜色相同，则返回 “No”，表示无法划分为二分图；否则返回 “Yes”。 import sys from collections import deque, defaultdict input = lambda:sys.stdin.readline().strip() N = int(1e5)+10 g = defaultdict(list) color = [-1]*N def bfs(u, c): color[u] = c q = deque() q.append((u, c)) while q: cur, col = q.popleft() for nx in g[cur]: if color[nx]==-1: color[nx] = 1-col q.append((nx, 1-col)) elif color[nx]==col: return False return True n, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) # if u==v: #***自环不能去掉*** # continue if u not in g[v]: g[v].append(u) if v not in g[u]: g[u].append(v) for i in range(1, n+1): if color[i]==-1: if not bfs(i, 0): print(\"No\") exit() print(\"Yes\") 匈牙利算法 题目大意： 给定一个二分图，其中左侧顶点集合为 (N_1)，右侧顶点集合为 (N_2)，图中存在一些边。需要找到尽可能多的匹配，使得左侧的每个顶点最多与一个右侧的顶点相连，而右侧的每个顶点最多与一个左侧的顶点相连。\n实现思路：\n使用一个二维数组 g 存储图的邻接表表示。其中 g[u] 表示与左侧顶点 u 相连的所有右侧顶点的集合。 定义一个函数 find(x)，用于从左侧顶点 x 开始尝试寻找增广路径，如果找到了增广路径就返回 True，否则返回 False。 在主体部分，遍历左侧的每个顶点，对每个顶点调用 find 函数进行匹配，若成功匹配，则匹配数加一。 import sys from collections import defaultdict N = int(1e3)+10 mat, st = [0]*N, [False]*N g = defaultdict(list) def find(x): for v in g[x]: if not st[v]: st[v] = True if mat[v]==0 or find(mat[v]): mat[v] = x return True return False n1, n2, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) g[u].append(v) # hungarian 主体部分 ans = 0 for i in range(1, n1+1): st = [False]*N if find(i): ans+=1 print(ans) ",
-  "wordCount" : "3027",
+  "articleBody": "算法笔记（三）——图论（Python实现） 图论 树的存储 邻接矩阵 # 创建一个二维列表表示邻接矩阵 n = 10 # 顶点数量 g = [[0] * n for _ in range(n)] # 添加一条边a-\u003eb def add_edge(a, b): g[a][b] = 1 # 初始化 g = [[0] * n for _ in range(n)] 邻接表 # 创建一个列表表示邻接表 n = 10 # 顶点数量 h = [-1] * n e = [0] * n ne = [0] * n idx = 0 # 添加一条边a-\u003eb def add_edge(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 h = [-1] * n 树和图的存储 # 邻接表表示的图 N = 100010 # 根据具体需求设置合适的最大节点数量 # 对于每个点k，开一个单链表，存储k所有可以走到的点。h[k]存储这个单链表的头结点 h = [-1] * N # 存储边的目标节点 e = [0] * N # 存储下一条边的索引 ne = [0] * N # 边的索引 idx = 0 # 添加一条边a-\u003eb def add(a, b): global idx e[idx] = b ne[idx] = h[a] h[a] = idx idx += 1 # 初始化 idx = 0 for i in range(N): h[i] = -1 树和图的遍历 DFS def dfs(u): st[u] = True i = h[u] while i!=-1: j = e[i] if not st[j]: dfs(j) i = ne[i] BFS from collections import deque q = deque() st[1] = True q.append(1) while q: t = q.popleft() i = h[t] while i!=-1: j=e[i] if not st[j]: st[j] = True q.append(j) i=ne[i] 拓扑排序 def topsort(): hh, tt = 0, -1 for i in range(1, n+1): if d[i]==0: q.append(i) tt+=1 while hh\u003c=tt: t = q[hh] hh+=1 i = h[t] while i!=-1: j = e[i] d[j]-=1 if d[j]==0: q.append(j) tt+=1 i = ne[i] return tt==n-1 LCA def lca(x,y): if dep[x] \u003c dep[y]: x,y = y,x d = dep[x]-dep[y] while d: # 循环直到深度差为 0 v = d \u0026 -d # 获取 d 的最低位的 1 所在的位置 i = v.bit_length() - 1 # 计算最低位的位置索引 x = fa[i][x] # 将节点 x 上移到和节点 y 同一深度 d -= v # 更新深度差 if x==y: return x for k in range(K-1, -1, -1): if fa[k][x] != fa[k][y]: x = fa[k][x] y = fa[k][y] return fa[0][x] # 初始化深度以及父节点信息 dep[x]=dep[val]+1 dep[y]=dep[val]+1 fa[0][x] = val fa[0][y] = val for k in range(K-1): fa[k+1][x] = fa[k][fa[k][x]] # 自己的第2^(1+1)级父亲即为 自己的第2^(1)级父亲 的第2^(1)级父亲 fa[k+1][y] = fa[k][fa[k][y]] 最短路 单元最短路\n​\t所有边权为正：\n​\t朴素版Dijkstra $O(n^2)$,堆优化版的Dijkstra $O(mlogn)$, ​\t存在负权边\n​\tBellman-Ford $O(nm)$, SPFA 队列优化的Bellman-Ford, 一般情况：$O(m)$ 最坏情况：$O(nm)$ 多元汇最短路：\n​\tFloyed $O(n^3)$ 朴素Dijkstra Dijkstra不能处理负权边：\nN = int(5e2)+10 INF = 0x3f3f3f3f g = [[INF]*N for _ in range(N)] #g = defaultdict(lambda:defaultdict(lambda:INF)) 同样的效果 dis = [INF]*N st = [False]*N def dijkstra(): dis[1]=0 for i in range(n-1): t=-1 for j in range(1,n+1): if not st[j] and (t==-1 or dis[j]\u003cdis[t]): t=j for j in range(1,n+1): dis[j]=min(dis[j], dis[t] + g[t][j]) st[t]=True if dis[n]==INF: return -1 return dis[n] n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int ,input().split()) g[x][y] = min(g[x][y], z) print(dijkstra()) 堆优化版Dijkstra from heapq import * import sys input = lambda:sys.stdin.readline().strip() N = 150010 INF = 0x3f3f3f3f e, ne, head, w, dis= [0]*N, [0]*N, [-1]*N, [0]*N, [INF]*N st = [False]*N idx=0 def add(a, b, x): global idx e[idx]=b w[idx]=x ne[idx]=head[a] head[a]=idx idx+=1 def dijkstra(): dis[1]=0 h=[] heappush(h, (0,1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True i=head[ver] while i!=-1: j=e[i] if not st[j] and dis[j]\u003edist+w[i]: dis[j]=dist+w[i] heappush(h, (dis[j], j)) i=ne[i] if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) add(x,y,z) dijkstra() 另一种写法 from heapq import * from collections import defaultdict import sys input=lambda:sys.stdin.readline().strip() N, INF = 150010, 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def dijkstra(): dis[1]=0 h=[] heappush(h, (0, 1)) while h: dist, ver = heappop(h) if st[ver]: continue st[ver]=True for y, z in g[ver]: if dis[y]\u003edis[ver]+z: dis[y]=dis[ver]+z heappush(h, (dis[y], y)) if dis[n]==INF: print(-1) else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x,y,z = map(int, input().split()) g[x].append((y, z)) dijkstra() Bellman-Ford # n表示点数，m表示边数 dist = [float('inf')] * (n + 1) # dist[x]存储1到x的最短路距离 # 边，a表示出点，b表示入点，w表示边的权重 edges = [] # 求1到n的最短路距离，如果无法从1走到n，则返回-1。 def bellman_ford(): dist[1] = 0 # 如果第n次迭代仍然会松弛三角不等式，就说明存在一条长度是n+1的最短路径，由抽屉原理，路径中至少存在两个相同的点，说明图中存在负权回路。 for i in range(n): for j in range(m): a, b, w = edges[j]['a'], edges[j]['b'], edges[j]['w'] if dist[b] \u003e dist[a] + w: dist[b] = dist[a] + w if dist[n] \u003e float('inf') / 2: return -1 return dist[n] SPFA from collections import defaultdict, deque import sys input = lambda:sys.stdin.readline().strip() N, INF = int(1e5+10), 0x3f3f3f3f dis, st = [INF]*N, [False]*N g=defaultdict(list) def spfa(): q=deque() q.append(1) st[1]=True dis[1]=0 while q: x=q.popleft() st[x]=False for y, z in g[x]: if dis[y]\u003edis[x]+z: dis[y]=dis[x]+z if not st[y]: st[y]=True q.append(y) if dis[n]==INF: print('impossible') else: print(dis[n]) n, m = map(int, input().split()) for _ in range(m): x, y, z = map(int, input().split()) g[x].append((y, z)) spfa() 判断负环 from collections import deque N = int(1e5+10) INF = 0x3f3f3f3f n = 0 # 总点数 h = [-1] * N # 邻接表存储所有边 e, ne, w = [0] * N, [0] * N, [0] * N idx = 0 dist, cnt = [INF] * N, [0] * N # dist[x]存储1号点到x的最短距离，cnt[x]存储1到x的最短路中经过的点数 st = [False] * N # 存储每个点是否在队列中 # 如果存在负环，则返回True，否则返回False。 def spfa(): # 不需要初始化dist数组 # 原理：如果某条最短路径上有n个点（除了自己），那么加上自己之后一共有n+1个点，由抽屉原理一定有两个点相同，所以存在环 q = deque() for i in range(1, n + 1): q.append(i) st[i] = True while q: t = q.popleft() st[t] = False i = h[t] while i != -1: j = e[i] if dist[j] \u003e dist[t] + w[i]: dist[j] = dist[t] + w[i] cnt[j] = cnt[t] + 1 if cnt[j] \u003e= n: return True # 如果从1号点到x的最短路中包含至少n个点（不包括自己），则说明存在环 if not st[j]: q.append(j) st[j] = True i = ne[i] return False # Example usage: # n = 5 # h = [-1, 2, 1, 4, 3, -1] # e = [0, 2, 1, 4, 3, 0] # ne = [1, -1, 3, -1, -1, 2] # w = [0, 1, 2, 3, 4, 5] # if spfa(): # print(\"Exist negative cycle\") # else: # print(\"No negative cycle\") floyd INF = float('inf') # 初始化距离矩阵d，d[a][b]表示a到b的最短距离 def initialize(n): d = [[0 if i == j else INF for j in range(n)] for i in range(n)] return d # Floyd算法求解最短路径 def floyd(d, n): for k in range(n): for i in range(n): for j in range(n): d[i][j] = min(d[i][j], d[i][k] + d[k][j]) return d # Example usage: # n = 5 # d = initialize(n) # d = floyd(d, n) # print(d) Prim INF = float('inf') # Prim算法求解最小生成树的权重之和 def prim(n, g): dist = [INF] * (n + 1) st = [False] * (n + 1) res = 0 for i in range(n): t = -1 for j in range(1, n + 1): if not st[j] and (t == -1 or dist[t] \u003e dist[j]): t = j if i and dist[t] == INF: return INF if i: res += dist[t] st[t] = True for j in range(1, n + 1): dist[j] = min(dist[j], g[t][j]) return res # Example usage: # n = 5 # g = [[0] * (n + 1) for _ in range(n + 1)] # dist = prim(n, g) # print(dist) Kruskal INF = float('inf') # 并查集的查找操作 def find(x, p): if p[x] != x: p[x] = find(p[x], p) return p[x] # Kruskal算法求解最小生成树的权重之和 def kruskal(n, m, edges): edges.sort(key=lambda x: x[2]) # 按照边权重对边进行排序 p = [i for i in range(n + 1)] # 初始化并查集的父节点数组 res = 0 cnt = 0 for edge in edges: a, b, w = edge a = find(a, p) b = find(b, p) if a != b: # 如果两个连通块不连通，则将这两个连通块合并 p[a] = b res += w cnt += 1 if cnt \u003c n - 1: return INF return res # Example usage: # n, m = 5, 7 # edges = [(1, 2, 2), (1, 3, 5), (1, 4, 6), (2, 3, 1), (2, 4, 3), (3, 4, 4), (4, 5, 7)] # min_spanning_tree_weight = kruskal(n, m, edges) # print(min_spanning_tree_weight) 染色法 使用了深度优先搜索算法（DFS）来判断一个图是否是二分图\n二分图：顶点分为两个集合，边仅存在于两个不同的集合中，而集合内部都没有边。\nPython优先使用BFS，因为DFS会出现各种问题，爆战，段错误（还没搞清楚原因）等\n这段代码使用了染色法来判断一个无向图是否为二分图。下面我来解释一下：\n题目大意： 给定一个无向图，判断是否可以将其顶点集合划分为两个不相交的子集，使得每条边的两个端点分别属于这两个子集。如果可以，则输出\"Yes\"，否则输出\"No\"。\n实现思路：\n使用邻接表 g 来表示无向图，其中 g[u] 存储与顶点 u 相连的所有顶点。 定义一个数组 color 来标记每个顶点的染色情况，初始值设为 -1 表示未染色。 定义一个 BFS 函数 bfs(u, c)，其中 u 表示起始顶点，c 表示初始颜色。该函数使用 BFS 遍历图，并将顶点染色，保证相邻顶点颜色不同。 在主体部分，遍历所有顶点，对于每个未染色的顶点，调用 bfs 函数进行染色。如果染色过程中发现相邻顶点颜色相同，则返回 “No”，表示无法划分为二分图；否则返回 “Yes”。 import sys from collections import deque, defaultdict input = lambda:sys.stdin.readline().strip() N = int(1e5)+10 g = defaultdict(list) color = [-1]*N def bfs(u, c): color[u] = c q = deque() q.append((u, c)) while q: cur, col = q.popleft() for nx in g[cur]: if color[nx]==-1: color[nx] = 1-col q.append((nx, 1-col)) elif color[nx]==col: return False return True n, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) # if u==v: #***自环不能去掉*** # continue if u not in g[v]: g[v].append(u) if v not in g[u]: g[u].append(v) for i in range(1, n+1): if color[i]==-1: if not bfs(i, 0): print(\"No\") exit() print(\"Yes\") 匈牙利算法 题目大意： 给定一个二分图，其中左侧顶点集合为 (N_1)，右侧顶点集合为 (N_2)，图中存在一些边。需要找到尽可能多的匹配，使得左侧的每个顶点最多与一个右侧的顶点相连，而右侧的每个顶点最多与一个左侧的顶点相连。\n实现思路：\n使用一个二维数组 g 存储图的邻接表表示。其中 g[u] 表示与左侧顶点 u 相连的所有右侧顶点的集合。 定义一个函数 find(x)，用于从左侧顶点 x 开始尝试寻找增广路径，如果找到了增广路径就返回 True，否则返回 False。 在主体部分，遍历左侧的每个顶点，对每个顶点调用 find 函数进行匹配，若成功匹配，则匹配数加一。 import sys from collections import defaultdict N = int(1e3)+10 mat, st = [0]*N, [False]*N g = defaultdict(list) def find(x): for v in g[x]: if not st[v]: st[v] = True if mat[v]==0 or find(mat[v]): mat[v] = x return True return False n1, n2, m = map(int, input().split()) for i in range(m): u, v = map(int, input().split()) g[u].append(v) # hungarian 主体部分 ans = 0 for i in range(1, n1+1): st = [False]*N if find(i): ans+=1 print(ans) DFS之连通性 import sys input = lambda:sys.stdin.readline().strip() sys.setrecursionlimit(150000) dir = [(-1, 0), (0, 1), (1, 0), (0, -1)] def dfs(x, y): if g[x][y]=='#' or vis[x][y]: return False if (x, y)==end: return True vis[x][y] = True for i in range(4): a, b = x + dir[i][0], y+dir[i][1] if 0\u003c=a\u003cn and 0\u003c=b\u003cn: if dfs(a, b): return True return False k = int(input()) N = 110 g = [[] for _ in range(N)] for _ in range(k): n = int(input()) vis = [[False]*(n+1) for _ in range(n+1)] for i in range(n): g[i] = list(input()) x1, y1, x2, y2 = map(int, input().split()) end = (x2, y2) if dfs(x1, y1): print(\"YES\") else: print(\"NO\") 魔板 题目大意：给定一个 8 个格子的魔板，每个格子有一种颜色，用 1 到 8 的整数表示。有三种基本操作可以改变魔板的状态：A：交换上下两行；B：将最右边的一列插入到最左边；C：魔板中央对的4个数作顺时针旋转。现在给定一个目标状态，求用最少的基本操作完成基本状态到目标状态的转换，并输出基本操作序列。\n实现思路：\n首先实现三种基本操作 A、B、C 的函数。 使用广度优先搜索（BFS）算法来找到从基本状态到目标状态的最短操作序列。 使用一个队列存储待处理状态，并使用一个字典记录每个状态的前驱状态和执行的操作。 在每一步中，尝试对当前状态进行三种基本操作，得到新的状态，如果新状态未被访问过，则将其加入队列，并记录其前驱状态和操作。 当找到目标状态时，根据前驱状态回溯得到最短操作序列。 输出最短操作序列的长度和具体操作序列。 from collections import deque def A(t): return t[::-1] def B(t): return t[3] + t[:3] + t[5:] + t[4] def C(t): return t[0] + t[6] + t[1] + t[3] + t[4] + t[2] + t[5] + t[7] pre = dict() def bfs(): q = deque() q.append(st) while q: t = q.popleft() if t==ed: break m = [A(t), B(t), C(t)] for i in range(3): if m[i] not in pre: pre[m[i]] = (chr(65+i), t) q.append(m[i]) nums = input().split() ed = ''.join(nums) st = \"12345678\" bfs() cnt = 0 res = \"\" while ed != st: cnt+=1 res = pre[ed][0] + res ed = pre[ed][1] print(cnt) if cnt: print(res) 单词接龙 题目大意：给定一组单词和一个开头的字母，要求找出以这个字母开头的最长的“龙”，每个单词最多被使用两次。在构成龙时，两个单词相连时，它们的重合部分合并为一部分，但重合部分的长度必须大于等于1且小于两个单词的长度。\n实现思路：\n首先读入输入数据，包括单词数 n、n 个单词以及开头的字母。 构建一个字典 g，用于存储每个单词对应的可连接的单词以及对应的重合部分的长度。 对于每一对单词，比较它们的重合部分，如果符合条件，则将其加入字典 g 中。 使用深度优先搜索（DFS）来搜索以开头字母开头的最长的“龙”。 在搜索过程中，使用一个字典 cnt 来记录每个单词的使用次数，每个单词最多只能被使用两次。 递归搜索每个可连接的单词，并更新最长“龙”的长度。 最终输出最长“龙”的长度。 from collections import defaultdict n = int(input()) wds = [] for i in range(n): wds.append(input()) st = input() g = {w:[] for w in wds} for i in range(n): for j in range(n): for k in range(1, min( len(wds[i]), len(wds[j]) )): if wds[i][-k:] == wds[j][:k]: g[wds[i]].append((wds[j], k)) cnt = defaultdict(int) def dfs(dra, x): global ans cnt[x] += 1 ans = max(ans, len(dra)) for nx, k in g[x]: if cnt[nx] \u003c 2: dfs(dra + nx[k:], nx) cnt[x] -= 1 ans = 0 for w in wds: if w[0] == st: dfs(w, w) print(ans) 分成互质组 题目大意：给定 n 个正整数，要求将它们分组，使得每组中任意两个数互质。求最少需要分成多少个组。\n实现思路：\n首先读入输入数据，包括正整数的个数 n 和 n 个正整数。 使用深度优先搜索（DFS）来搜索分组的方法。 构建一个列表 g，用于存储分组情况，每个分组是一个列表，列表中存储分组中的数。 编写 DFS 函数，在函数中递归尝试将当前数放入已有的分组或新建一个分组。 在递归过程中，如果当前数可以和某个分组中的所有数互质，则将当前数加入该分组，并继续递归。 如果当前数无法加入任何分组，则新建一个分组，并继续递归。 当所有数都被分组完毕时，更新最少需要的组数。 最终输出最少需要的组数。 from math import gcd n = int(input()) a = list(map(int, input().split())) g = [] def dfs(u, i): global ans if i==n: ans = min(ans, u) return if u\u003e=ans: return for j in range(u): cnt = sum(1 for k in g[j] if gcd(a[i], k)==1) if cnt==len(g[j]): g[j].append(a[i]) dfs(u, i+1) g[j].pop() g.append([a[i]]) dfs(u+1, i+1) g.pop() ans = n dfs(0, 0) print(ans) 迭代加深 加成序列 题目大意：给定一个整数 n，找出满足以下条件的最小长度的“加成序列”：序列的第一个元素为1，最后一个元素为 n，序列中的元素满足每个元素都可以表示为序列中其他两个元素的和。\n实现思路：\n定义一个深度优先搜索（DFS）函数 dfs，用于搜索符合条件的加成序列。 在 dfs 函数中，使用一个列表 path 来记录当前搜索的加成序列，初始化 path[0] = 1。 递归地搜索加成序列的下一个元素，使得新的元素是前面元素的两两相加的结果，并满足条件 path[u] \u003c= n，其中 u 表示当前搜索的位置。 如果搜索成功，即找到了符合条件的加成序列，返回 True；否则返回 False。 在主程序中，不断读取输入的 n，并通过调用 dfs 函数来搜索符合条件的加成序列。 输出满足条件的加成序列。 def dfs(u): if u==dep: return path[u-1]==n vis = [False]*(n+1) for i in range(u-1, -1, -1): for j in range(i, -1, -1): s = path[i] + path[j] if s\u003en or s\u003c=path[u-1] or vis[s]: continue vis[s] = True path[u] = s if dfs(u+1): return True return False path = [0]*(110) path[0] = 1 while True: n = int(input()) if not n: break dep = 1 while not dfs(1): dep += 1 print(*path[:dep]) 双向DFS 送礼物 题目大意：达达帮翰翰送礼物，他一次可以搬动的重量之和不超过 W，一共有 N 个礼物，其中第 i 个礼物的重量是 G[i]。求达达在他的力气范围内一次性能搬动的最大重量。\n实现思路：\n定义两个深度优先搜索（DFS）函数 dfs1 和 dfs2，用于求解达达一次性能搬动的最大重量。 dfs1 函数用于遍历前一半的礼物，求得所有可能的搬动重量之和，并存储在集合 wgh 中。 dfs2 函数用于遍历后一半的礼物，并通过二分查找在 wgh 中找到合适的搬动重量，求得最大重量。 在主程序中，首先读入输入的 W 和 N，然后读入 N 个礼物的重量，并按照重量从大到小排序。 调用 dfs1 和 dfs2 函数求解最大重量，并输出结果。 def dfs1(u, tot): if u\u003ek: wgh.add(tot) return if tot + a[u] \u003c= w: dfs1(u+1, tot + a[u]) dfs1(u+1, tot) def dfs2(u, tot): global ans if u\u003e=n: l, r = 0, cnt-1 while l\u003cr: mid = (l+r+1)\u003e\u003e1 if wgh[mid] + tot \u003c= w: l = mid else: r = mid - 1 ans = max(ans, wgh[r] + tot) return if a[u] + tot \u003c= w: dfs2(u+1, a[u] + tot) dfs2(u+1, tot) w, n = map(int, input().split()) a = [] for i in range(n): a.append(int(input())) a.sort(reverse = True) wgh = set() k = n//2 dfs1(0, 0) wgh = sorted(list(wgh)) cnt = len(wgh) ans = -1 dfs2(k+1, 0) print(ans) 37. 解数独 \\166. 数独 题目大意：数独是一种益智游戏，要求填写一个9×9的网格，使得每行、每列、每个3×3的九宫格内数字1∼9均恰好出现一次。\n实现思路：该实现采用深度优先搜索（DFS）的方法解决数独问题。首先，通过将每个数字映射到二进制位来进行位运算，以便快速获取已填充数字的状态。然后，利用DFS递归填充数独中的空白格子，优先选择当前空白格子填充数字的选择空间较小的位置。递归的终止条件是所有空白格子都填充完毕。\nimport sys N = 9 M = 1 \u003c\u003c N row, col, cell = [0] * N, [0] * N, [[0] * 3 for _ in range(3)] mp = dict() ones = [0] * M for i in range(N): mp[1 \u003c\u003c i] = i for i in range(1 \u003c\u003c N): for j in range(N): ones[i] += (i \u003e\u003e j) \u0026 1 def lowbit(x): return x \u0026 -x def get(x, y): return row[x] \u0026 col[y] \u0026 cell[x // 3][y // 3] def draw(x, y, t, flag): global st, row, col, cell if flag: st[x * N + y] = chr(49 + t) else: st[x * N + y] = \".\" v = 1 \u003c\u003c t if not flag: v = -v row[x] -= v col[y] -= v cell[x // 3][y // 3] -= v def dfs(cnt): global st if not cnt: return True minv = 10 for i in range(N): for j in range(N): if st[i * N + j] == \".\": state = get(i, j) if ones[state] \u003c minv: minv = ones[state] x, y = i, j i = get(x, y) while i: t = mp[lowbit(i)] draw(x, y, t, True) if dfs(cnt - 1): return True draw(x, y, t, False) i -= lowbit(i) return False while True: st = sys.stdin.readline().strip() if st == \"end\": break st = list(st) cnt = 0 for i in range(N): row[i] = col[i] = M - 1 for i in range(3): for j in range(3): cell[i][j] = M - 1 for i in range(N): for j in range(N): if st[i * N + j] != \".\": t = int(st[i * N + j]) - 1 draw(i, j, t, True) else: cnt += 1 dfs(cnt) print(\"\".join(st)) 最短路 188. 武士风度的牛 题目大意：农民 John 想交易他的一头被 Don 称为 The Knight 的牛。这头牛有特殊能力，可以按照象棋中马的走法跳跃。农场被表示为一个二维坐标图，其中包含了树、灌木、石头以及草的位置。The Knight 起始位置为 K，草的位置为 H。任务是确定 The Knight 要跳多少次才能到达草的位置。\n实现思路：\n首先解析输入，得到农场的列数和行数，以及地图信息，包括障碍物和目标位置（草的位置）。 使用广度优先搜索（BFS）算法来找到从起始位置到达目标位置的最短路径。 初始化一个队列，并将起始位置加入队列中。 在循环中，每次从队列中取出一个位置，并尝试向八个方向跳跃（象棋中马的所有可能走法），如果跳跃后的位置合法且没有障碍物且未被访问过，则将该位置加入队列，并标记为已访问。 当取出的位置为目标位置时，输出跳跃的次数，即最短路径的长度，然后退出循环。 如果队列为空仍未找到目标位置，则说明数据保证一定有解，不需要处理这种情况。 from collections import deque dir = [(-2, 1), (-1, 2), (1, 2), (2, 1), (2, -1), (1, -2), (-1, -2), (-2, -1)] c, r = map(int, input().split()) g = [[] for _ in range(r)] vis = [[False]*(c+1) for _ in range(r+1)] for i in range(r): g[i] = list(input()) for j, ch in enumerate(g[i]): if ch=='H': end = (i, j) if ch=='K': start = (i, j) q = deque() q.append((*start, 0)) while q: x, y, d= q.popleft() if (x, y)==end: print(d) break for i in range(8): a, b = x + dir[i][0], y + dir[i][1] if 0\u003c=a\u003cr and 0\u003c=b\u003cc: if g[a][b]!='*' and not vis[a][b]: vis[a][b] = True q.append((a, b, d+1)) 多源BFS 题目大意：给定一个 N 行 M 列的 01 矩阵 A，定义矩阵中每个位置与所有值为1的位置的曼哈顿距离。曼哈顿距离为该位置与所有值为1的位置行坐标之差的绝对值与列坐标之差的绝对值之和。\n实现思路：\n首先读入矩阵的行数和列数，以及矩阵本身。 使用BFS（广度优先搜索）来计算每个位置到所有值为1的位置的距离。 初始化一个队列，将所有值为1的位置入队，距离初始化为0。 对队列进行BFS遍历，每次取出队首元素，计算其周围四个方向的位置，若位置合法且为0且未被访问过，则更新距离并入队。 最终输出距离矩阵B。 import sys from collections import deque input = lambda:sys.stdin.readline().strip() N = int(1e3+10) g = [[] for _ in range(N)] dis = [[-1]*N for _ in range(N)] n, m = map(int, input().split()) for i in range(1, n+1): g[i] = [0] + list(input()) q = deque() for i in range(1, n+1): for j in range(1, m+1): if g[i][j] == '1': q.append((i, j, 0)) dis[i][j] = 0 dx = [1, 0, -1, 0] dy = [0, 1, 0, -1] while q: x, y, d = q.popleft() for i in range(4): xx = x+dx[i]; yy = y+dy[i] if xx\u003e0 and xx\u003c=n and yy\u003e0 and yy\u003c=m: if g[xx][yy] == '0' and dis[xx][yy] == -1: dis[xx][yy] = d+1 q.append((xx, yy, d+1)) for i in range(1, n+1): print(*dis[i][1:m+1]) 双端队列BFS175. 电路维修 题目大意：有一个电路板，由 R 行 C 列的网格组成，每个格点都是电线的接点，每个格子包含一个可旋转的电子元件，电子元件连接一条对角线上的两个接点。达达希望通过旋转最少数量的元件，使电源与发动装置通过若干条短缆相连，但因为某些元件的方向不正确，导致电路板可能处于断路的状态。需要计算最少旋转的次数来使得电源和发动机之间连通。\n实现思路：可以使用广度优先搜索（BFS）来解决此问题。首先，初始化一个二维数组 d 用于存储从起点到每个点的最短距离。然后，利用广度优先搜索的方式遍历电路板的每个格点，如果发现某个格点的状态需要改变（即当前格点的元件方向与所需方向不一致），则更新该格点的状态并将其加入到队列中。最后，返回终点的最短距离即可，如果无法到达终点，则输出 “NO SOLUTION”。\nimport sys input = lambda:sys.stdin.readline().strip() from collections import deque dire = [(-1, -1), (-1, 1), (1, 1), (1, -1)] mov = [(-1, -1), (-1, 0), (0, 0), (0, -1)] ch = \"\\\\/\\\\/\" def bfs(): dq = deque() d = [[float('inf')]*(c+1) for _ in range(r+1)] d[0][0] = 0 dq.append((0, 0)) while dq: x, y = dq.popleft() for i in range(4): xx, yy = x + dire[i][0], y + dire[i][1] if 0\u003c=xx\u003c=r and 0\u003c=yy\u003c=c: j, k = x+mov[i][0], y + mov[i][1] w = 1 if g[j][k] != ch[i] else 0 if d[xx][yy] \u003e d[x][y] + w: d[xx][yy] = d[x][y] + w if w: dq.append((xx, yy)) else: dq.appendleft((xx, yy)) return -1 if d[r][c] == float('inf') else d[r][c] t = int(input()) for _ in range(t): r, c = map(int, input().split()) g = [input() for _ in range(r)] res = bfs() print(res if res != -1 else \"NO SOLUTION\") A* 179. 八数码 题目大意：在一个 3×3 的网格中，数字 1∼8 与一个 x 恰好不重不漏地分布在这个网格中。可以通过把 x 与其上、下、左、右四个方向之一的数字交换（如果存在）来改变网格的状态，目标是通过最少的移动次数，使得网格变为正确排列。\n实现思路：使用 A* 算法来解决该问题。首先，定义一个启发函数用于估计当前状态到达目标状态的最小移动次数。然后，利用 A* 算法进行搜索，不断更新当前状态到达目标状态的最小移动次数，并记录每一步的移动操作。最后，输出得到的完整行动记录即可。如果不存在解决方案，则输出 “unsolvable”。\nfrom heapq import heappush, heappop d = [(-1, 0), (0, 1), (1, 0), (0, -1)] op = \"urdl\" def heuristic(state): # 启发式 ans = 0 for i, st in enumerate(state): if st=='x': continue t = int(st)-1 ans += abs(t//3 - i//3) + abs(t%3 - i%3) return ans def astar(): dis, pre = dict(), dict() end = \"12345678x\" dis[start] = 0 h = [] heappush(h, (heuristic(start), start)) while h: _, state = heappop(h) if state == end: break x, y = divmod(state.index('x'), 3) src = state for i in range(4): a, b = x+d[i][0], y+d[i][1] if 0\u003c=a\u003c3 and 0\u003c=b\u003c3: ls = list(state) ls[3*x+y], ls[3*a+b] = ls[3*a+b], ls[3*x+y] new_state = ''.join(ls) if new_state not in dis or dis[new_state] \u003e dis[src] + 1: dis[new_state] = dis[src] + 1 pre[new_state] = (op[i], src) heappush(h, (dis[new_state] + heuristic(new_state), new_state)) ans = '' while end != start: ans = pre[end][0] + ans end = pre[end][1] return ans start = ''.join(input().split()) s = start.replace('x', '') cnt = sum(s[i]\u003es[j] for i in range(8) for j in range(i, 8)) if cnt\u00261: print(\"unsolvable\") else: print(astar()) IDA* 排书 寻找估价函数， 一定小于等于真实值，并越接近真实值\n这道题目要求给定 n 本书，每本书编号为 1 到 n，初始状态下，书是任意排列的。每次操作可以抽取其中连续的一段，再把这段插入到其他某个位置。目标是将书按照 1 到 n 的顺序依次排列。要求计算最少需要多少次操作。\n实现思路：\n首先定义一个函数 f()，用来计算当前状态与目标状态之间的最小操作次数。这个函数通过遍历每对相邻书的编号，判断它们是否连续，如果不连续则需要进行一次操作。最后返回操作次数。 然后定义一个深度优先搜索函数 dfs(u)，其中 u 表示当前搜索的深度。在每次搜索中，我们需要判断当前深度加上到目标状态的最小操作次数是否超过已经得到的最小操作次数，如果超过则直接返回 False，否则继续搜索。 在 dfs 函数中，首先判断如果当前状态已经是目标状态，则直接返回 True。否则，我们遍历所有可能的操作，从中选择一种操作方式，然后递归调用 dfs 函数。 在主程序中，依次读入每组数据，然后进行深度优先搜索，直到得到结果或者搜索深度达到 5。最后根据得到的结果输出最小操作次数或者 “5 or more”。 def f(): res = 0 for i in range(n-1): if a[i] != a[i+1]-1: res += 1 return (res+2)//3 def dfs(u): global a if u + f() \u003e dep: return False if f()==0: return True for leng in range(n, 0, -1): for l in range(n-leng+1): r = l+leng-1 for k in range(l, r+1): bk = a[:] j = l for i in range(k+1, r+1): a[j] = bk[i] j+=1 for i in range(l, k+1): a[j] = bk[i] j+=1 if dfs(u+1): return True a = bk[:] t = int(input()) while t: t-=1 n = int(input()) a = list(map(int, input().split())) dep = 0 while dep\u003c5 and not dfs(0): dep += 1 if dep \u003c 5: print(dep) else: print(\"5 or more\") ",
+  "wordCount" : "7965",
   "inLanguage": "en",
   "datePublished": "2024-04-09T15:37:01+08:00",
   "dateModified": "2024-04-09T15:37:01+08:00",
@@ -242,7 +242,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       算法笔记（三）——图论（Python实现）
     </div>
-    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;7 min&nbsp;·&nbsp;3027 words&nbsp;·&nbsp;updated:&nbsp;2024-04-09&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;16 min&nbsp;·&nbsp;7965 words&nbsp;·&nbsp;updated:&nbsp;2024-04-09&nbsp;·&nbsp;ShowGuan
 
 </div>
 	
@@ -313,7 +313,31 @@ document.addEventListener("DOMContentLoaded", function() {
                 <li>
                     <a href="#%e6%9f%93%e8%89%b2%e6%b3%95" aria-label="染色法">染色法</a></li>
                 <li>
-                    <a href="#%e5%8c%88%e7%89%99%e5%88%a9%e7%ae%97%e6%b3%95" aria-label="匈牙利算法">匈牙利算法</a>
+                    <a href="#%e5%8c%88%e7%89%99%e5%88%a9%e7%ae%97%e6%b3%95" aria-label="匈牙利算法">匈牙利算法</a></li>
+                <li>
+                    <a href="#dfs%e4%b9%8b%e8%bf%9e%e9%80%9a%e6%80%a7" aria-label="DFS之连通性">DFS之连通性</a></li>
+                <li>
+                    <a href="#%e9%ad%94%e6%9d%bf" aria-label="魔板">魔板</a></li>
+                <li>
+                    <a href="#%e5%8d%95%e8%af%8d%e6%8e%a5%e9%be%99" aria-label="单词接龙">单词接龙</a></li>
+                <li>
+                    <a href="#%e5%88%86%e6%88%90%e4%ba%92%e8%b4%a8%e7%bb%84" aria-label="分成互质组">分成互质组</a></li>
+                <li>
+                    <a href="#%e8%bf%ad%e4%bb%a3%e5%8a%a0%e6%b7%b1-%e5%8a%a0%e6%88%90%e5%ba%8f%e5%88%97" aria-label="迭代加深 加成序列">迭代加深 加成序列</a></li>
+                <li>
+                    <a href="#%e5%8f%8c%e5%90%91dfs-%e9%80%81%e7%a4%bc%e7%89%a9httpswwwacwingcomproblemcontentdescription173" aria-label="双向DFS 送礼物">双向DFS 送礼物</a></li>
+                <li>
+                    <a href="#37-%e8%a7%a3%e6%95%b0%e7%8b%achttpsleetcodecnproblemssudoku-solver-166-%e6%95%b0%e7%8b%achttpswwwacwingcomproblemcontentdescription168" aria-label="37. 解数独 \166. 数独">37. 解数独 \166. 数独</a></li>
+                <li>
+                    <a href="#%e6%9c%80%e7%9f%ad%e8%b7%af-188-%e6%ad%a6%e5%a3%ab%e9%a3%8e%e5%ba%a6%e7%9a%84%e7%89%9bhttpswwwacwingcomproblemcontentdescription190" aria-label="最短路 188. 武士风度的牛">最短路 188. 武士风度的牛</a></li>
+                <li>
+                    <a href="#%e5%a4%9a%e6%ba%90bfs" aria-label="多源BFS">多源BFS</a></li>
+                <li>
+                    <a href="#%e5%8f%8c%e7%ab%af%e9%98%9f%e5%88%97bfs175-%e7%94%b5%e8%b7%af%e7%bb%b4%e4%bf%aehttpswwwacwingcomproblemcontentdescription177" aria-label="双端队列BFS175. 电路维修">双端队列BFS175. 电路维修</a></li>
+                <li>
+                    <a href="#a-179-%e5%85%ab%e6%95%b0%e7%a0%81httpswwwacwingcomproblemcontentdescription181" aria-label="A* 179. 八数码">A* 179. 八数码</a></li>
+                <li>
+                    <a href="#ida-%e6%8e%92%e4%b9%a6" aria-label="IDA* 排书">IDA* 排书</a>
                 </li>
             </ul>
             </li>
@@ -857,6 +881,615 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> find(i):
 </span></span><span style="display:flex;"><span>        ans<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>print(ans)
+</span></span></code></pre></div><h3 id="dfs之连通性">DFS之连通性<a hidden class="anchor" aria-hidden="true" href="#dfs之连通性">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>sys<span style="color:#f92672">.</span>setrecursionlimit(<span style="color:#ae81ff">150000</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dir <span style="color:#f92672">=</span> [(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>), (<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>), (<span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(x, y):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> g[x][y]<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;#&#39;</span> <span style="color:#f92672">or</span> vis[x][y]:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (x, y)<span style="color:#f92672">==</span>end:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    vis[x][y] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">4</span>):
+</span></span><span style="display:flex;"><span>        a, b <span style="color:#f92672">=</span> x <span style="color:#f92672">+</span> dir[i][<span style="color:#ae81ff">0</span>], y<span style="color:#f92672">+</span>dir[i][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>a<span style="color:#f92672">&lt;</span>n <span style="color:#f92672">and</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>b<span style="color:#f92672">&lt;</span>n:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dfs(a, b): <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>k <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">110</span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> [[] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(N)]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(k):
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span>    vis <span style="color:#f92672">=</span> [[<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        g[i] <span style="color:#f92672">=</span> list(input())
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    x1, y1, x2, y2 <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    end <span style="color:#f92672">=</span> (x2, y2)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dfs(x1, y1):
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;YES&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;NO&#34;</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div><h3 id="魔板">魔板<a hidden class="anchor" aria-hidden="true" href="#魔板">#</a></h3>
+<p><strong>题目大意</strong>：给定一个 8 个格子的魔板，每个格子有一种颜色，用 1 到 8 的整数表示。有三种基本操作可以改变魔板的状态：A：交换上下两行；B：将最右边的一列插入到最左边；C：魔板中央对的4个数作顺时针旋转。现在给定一个目标状态，求用最少的基本操作完成基本状态到目标状态的转换，并输出基本操作序列。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先实现三种基本操作 A、B、C 的函数。</li>
+<li>使用广度优先搜索（BFS）算法来找到从基本状态到目标状态的最短操作序列。</li>
+<li>使用一个队列存储待处理状态，并使用一个字典记录每个状态的前驱状态和执行的操作。</li>
+<li>在每一步中，尝试对当前状态进行三种基本操作，得到新的状态，如果新状态未被访问过，则将其加入队列，并记录其前驱状态和操作。</li>
+<li>当找到目标状态时，根据前驱状态回溯得到最短操作序列。</li>
+<li>输出最短操作序列的长度和具体操作序列。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">A</span>(t):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> t[::<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">B</span>(t):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> t[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">+</span> t[:<span style="color:#ae81ff">3</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">5</span>:] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">4</span>]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">C</span>(t):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> t[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">6</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">4</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">2</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">5</span>] <span style="color:#f92672">+</span> t[<span style="color:#ae81ff">7</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>pre <span style="color:#f92672">=</span> dict()
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bfs</span>():
+</span></span><span style="display:flex;"><span>    q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>    q<span style="color:#f92672">.</span>append(st)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> t<span style="color:#f92672">==</span>ed:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        m <span style="color:#f92672">=</span> [A(t), B(t), C(t)]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">3</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> m[i] <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> pre:
+</span></span><span style="display:flex;"><span>                pre[m[i]] <span style="color:#f92672">=</span> (chr(<span style="color:#ae81ff">65</span><span style="color:#f92672">+</span>i), t)
+</span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append(m[i])
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>nums <span style="color:#f92672">=</span> input()<span style="color:#f92672">.</span>split()
+</span></span><span style="display:flex;"><span>ed <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(nums)
+</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;12345678&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>bfs()
+</span></span><span style="display:flex;"><span>cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>res <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;&#34;</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> ed <span style="color:#f92672">!=</span> st:
+</span></span><span style="display:flex;"><span>    cnt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> pre[ed][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">+</span> res
+</span></span><span style="display:flex;"><span>    ed <span style="color:#f92672">=</span> pre[ed][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>print(cnt)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> cnt:
+</span></span><span style="display:flex;"><span>    print(res)
+</span></span></code></pre></div><h3 id="单词接龙">单词接龙<a hidden class="anchor" aria-hidden="true" href="#单词接龙">#</a></h3>
+<p><strong>题目大意</strong>：给定一组单词和一个开头的字母，要求找出以这个字母开头的最长的“龙”，每个单词最多被使用两次。在构成龙时，两个单词相连时，它们的重合部分合并为一部分，但重合部分的长度必须大于等于1且小于两个单词的长度。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先读入输入数据，包括单词数 n、n 个单词以及开头的字母。</li>
+<li>构建一个字典 g，用于存储每个单词对应的可连接的单词以及对应的重合部分的长度。</li>
+<li>对于每一对单词，比较它们的重合部分，如果符合条件，则将其加入字典 g 中。</li>
+<li>使用深度优先搜索（DFS）来搜索以开头字母开头的最长的“龙”。</li>
+<li>在搜索过程中，使用一个字典 cnt 来记录每个单词的使用次数，每个单词最多只能被使用两次。</li>
+<li>递归搜索每个可连接的单词，并更新最长“龙”的长度。</li>
+<li>最终输出最长“龙”的长度。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict
+</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span>wds <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>    wds<span style="color:#f92672">.</span>append(input())
+</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> input()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> {w:[] <span style="color:#66d9ef">for</span> w <span style="color:#f92672">in</span> wds}
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, min( len(wds[i]), len(wds[j]) )):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> wds[i][<span style="color:#f92672">-</span>k:] <span style="color:#f92672">==</span> wds[j][:k]:
+</span></span><span style="display:flex;"><span>                g[wds[i]]<span style="color:#f92672">.</span>append((wds[j], k))
+</span></span><span style="display:flex;"><span>     
+</span></span><span style="display:flex;"><span>cnt <span style="color:#f92672">=</span> defaultdict(int)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(dra, x):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> ans
+</span></span><span style="display:flex;"><span>    cnt[x] <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    ans <span style="color:#f92672">=</span> max(ans, len(dra))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> nx, k <span style="color:#f92672">in</span> g[x]:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cnt[nx] <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">2</span>:
+</span></span><span style="display:flex;"><span>            dfs(dra <span style="color:#f92672">+</span> nx[k:], nx)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    cnt[x] <span style="color:#f92672">-=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> w <span style="color:#f92672">in</span> wds:
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> w[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">==</span> st:
+</span></span><span style="display:flex;"><span>        dfs(w, w)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>print(ans)
+</span></span></code></pre></div><h3 id="分成互质组">分成互质组<a hidden class="anchor" aria-hidden="true" href="#分成互质组">#</a></h3>
+<p><strong>题目大意</strong>：给定 n 个正整数，要求将它们分组，使得每组中任意两个数互质。求最少需要分成多少个组。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先读入输入数据，包括正整数的个数 n 和 n 个正整数。</li>
+<li>使用深度优先搜索（DFS）来搜索分组的方法。</li>
+<li>构建一个列表 g，用于存储分组情况，每个分组是一个列表，列表中存储分组中的数。</li>
+<li>编写 DFS 函数，在函数中递归尝试将当前数放入已有的分组或新建一个分组。</li>
+<li>在递归过程中，如果当前数可以和某个分组中的所有数互质，则将当前数加入该分组，并继续递归。</li>
+<li>如果当前数无法加入任何分组，则新建一个分组，并继续递归。</li>
+<li>当所有数都被分组完毕时，更新最少需要的组数。</li>
+<li>最终输出最少需要的组数。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> math <span style="color:#f92672">import</span> gcd
+</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span>a <span style="color:#f92672">=</span> list(map(int, input()<span style="color:#f92672">.</span>split()))
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u, i):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> ans
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span>n:
+</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> min(ans, u)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u<span style="color:#f92672">&gt;=</span>ans:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(u):
+</span></span><span style="display:flex;"><span>        cnt <span style="color:#f92672">=</span> sum(<span style="color:#ae81ff">1</span> <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> g[j] <span style="color:#66d9ef">if</span> gcd(a[i], k)<span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> cnt<span style="color:#f92672">==</span>len(g[j]):
+</span></span><span style="display:flex;"><span>            g[j]<span style="color:#f92672">.</span>append(a[i])
+</span></span><span style="display:flex;"><span>            dfs(u, i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>            g[j]<span style="color:#f92672">.</span>pop()
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    g<span style="color:#f92672">.</span>append([a[i]])
+</span></span><span style="display:flex;"><span>    dfs(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    g<span style="color:#f92672">.</span>pop()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ans <span style="color:#f92672">=</span> n
+</span></span><span style="display:flex;"><span>dfs(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>print(ans)
+</span></span></code></pre></div><h3 id="迭代加深-加成序列">迭代加深 加成序列<a hidden class="anchor" aria-hidden="true" href="#迭代加深-加成序列">#</a></h3>
+<p><strong>题目大意</strong>：给定一个整数 n，找出满足以下条件的最小长度的“加成序列”：序列的第一个元素为1，最后一个元素为 n，序列中的元素满足每个元素都可以表示为序列中其他两个元素的和。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>定义一个深度优先搜索<code>（DFS）</code>函数 <code>dfs</code>，用于搜索符合条件的加成序列。</li>
+<li>在 <code>dfs</code> 函数中，使用一个列表 <code>path</code> 来记录当前搜索的加成序列，初始化 <code>path[0] = 1</code>。</li>
+<li>递归地搜索加成序列的下一个元素，使得新的元素是前面元素的两两相加的结果，并满足条件 <code>path[u] &lt;= n</code>，其中 u 表示当前搜索的位置。</li>
+<li>如果搜索成功，即找到了符合条件的加成序列，返回 True；否则返回 False。</li>
+<li>在主程序中，不断读取输入的 n，并通过调用 <code>dfs</code> 函数来搜索符合条件的加成序列。</li>
+<li>输出满足条件的加成序列。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u<span style="color:#f92672">==</span>dep:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> path[u<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">==</span>n
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    vis <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(u<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            s <span style="color:#f92672">=</span> path[i] <span style="color:#f92672">+</span> path[j]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> s<span style="color:#f92672">&gt;</span>n <span style="color:#f92672">or</span> s<span style="color:#f92672">&lt;=</span>path[u<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>] <span style="color:#f92672">or</span> vis[s]:
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>            vis[s] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>            path[u] <span style="color:#f92672">=</span> s
+</span></span><span style="display:flex;"><span>            
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> dfs(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>): <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>path <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>(<span style="color:#ae81ff">110</span>)
+</span></span><span style="display:flex;"><span>path[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> n: <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    dep <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> <span style="color:#f92672">not</span> dfs(<span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        dep <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    print(<span style="color:#f92672">*</span>path[:dep])
+</span></span></code></pre></div><h3 id="双向dfs-送礼物httpswwwacwingcomproblemcontentdescription173">双向DFS <a href="https://www.acwing.com/problem/content/description/173/">送礼物</a><a hidden class="anchor" aria-hidden="true" href="#双向dfs-送礼物httpswwwacwingcomproblemcontentdescription173">#</a></h3>
+<p><strong>题目大意</strong>：达达帮翰翰送礼物，他一次可以搬动的重量之和不超过 W，一共有 N 个礼物，其中第 i 个礼物的重量是 G[i]。求达达在他的力气范围内一次性能搬动的最大重量。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>定义两个深度优先搜索<code>（DFS）</code>函数 <code>dfs1</code> 和 <code>dfs2</code>，用于求解达达一次性能搬动的最大重量。</li>
+<li><code>dfs1</code> 函数用于遍历前一半的礼物，求得所有可能的搬动重量之和，并存储在集合 wgh 中。</li>
+<li><code>dfs2</code> 函数用于遍历后一半的礼物，并通过二分查找在 wgh 中找到合适的搬动重量，求得最大重量。</li>
+<li>在主程序中，首先读入输入的 W 和 N，然后读入 N 个礼物的重量，并按照重量从大到小排序。</li>
+<li>调用 dfs1 和 dfs2 函数求解最大重量，并输出结果。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs1</span>(u, tot):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u<span style="color:#f92672">&gt;</span>k:
+</span></span><span style="display:flex;"><span>        wgh<span style="color:#f92672">.</span>add(tot)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> tot <span style="color:#f92672">+</span> a[u] <span style="color:#f92672">&lt;=</span> w:
+</span></span><span style="display:flex;"><span>        dfs1(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, tot <span style="color:#f92672">+</span> a[u])
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    dfs1(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, tot)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs2</span>(u, tot):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> ans
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u<span style="color:#f92672">&gt;=</span>n:
+</span></span><span style="display:flex;"><span>        l, r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, cnt<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> l<span style="color:#f92672">&lt;</span>r:
+</span></span><span style="display:flex;"><span>            mid <span style="color:#f92672">=</span> (l<span style="color:#f92672">+</span>r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">&gt;&gt;</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> wgh[mid] <span style="color:#f92672">+</span> tot <span style="color:#f92672">&lt;=</span> w:
+</span></span><span style="display:flex;"><span>                l <span style="color:#f92672">=</span> mid
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                r <span style="color:#f92672">=</span> mid <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> max(ans, wgh[r] <span style="color:#f92672">+</span> tot)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> 
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> a[u] <span style="color:#f92672">+</span> tot <span style="color:#f92672">&lt;=</span> w:
+</span></span><span style="display:flex;"><span>        dfs2(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, a[u] <span style="color:#f92672">+</span> tot)
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    dfs2(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, tot)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>w, n <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>a <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
+</span></span><span style="display:flex;"><span>    a<span style="color:#f92672">.</span>append(int(input()))
+</span></span><span style="display:flex;"><span>a<span style="color:#f92672">.</span>sort(reverse <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>wgh <span style="color:#f92672">=</span> set()
+</span></span><span style="display:flex;"><span>k <span style="color:#f92672">=</span> n<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>dfs1(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>wgh <span style="color:#f92672">=</span> sorted(list(wgh))
+</span></span><span style="display:flex;"><span>cnt <span style="color:#f92672">=</span> len(wgh)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>ans <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>dfs2(k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(ans)
+</span></span></code></pre></div><h3 id="37-解数独httpsleetcodecnproblemssudoku-solver-166-数独httpswwwacwingcomproblemcontentdescription168"><a href="https://leetcode.cn/problems/sudoku-solver/">37. 解数独</a> <a href="https://www.acwing.com/problem/content/description/168/">\166. 数独</a><a hidden class="anchor" aria-hidden="true" href="#37-解数独httpsleetcodecnproblemssudoku-solver-166-数独httpswwwacwingcomproblemcontentdescription168">#</a></h3>
+<p><strong>题目大意</strong>：数独是一种益智游戏，要求填写一个<code>9×9</code>的网格，使得每行、每列、每个<code>3×3</code>的九宫格内数字<code>1∼9</code>均恰好出现一次。</p>
+<p><strong>实现思路</strong>：该实现采用深度优先搜索<code>（DFS）</code>的方法解决数独问题。首先，通过将每个数字映射到二进制位来进行位运算，以便快速获取已填充数字的状态。然后，利用<code>DFS</code>递归填充数独中的空白格子，优先选择当前空白格子填充数字的选择空间较小的位置。递归的终止条件是所有空白格子都填充完毕。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">9</span>
+</span></span><span style="display:flex;"><span>M <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> N
+</span></span><span style="display:flex;"><span>row, col, cell <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N, [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> N, [[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> <span style="color:#ae81ff">3</span> <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">3</span>)]
+</span></span><span style="display:flex;"><span>mp <span style="color:#f92672">=</span> dict()
+</span></span><span style="display:flex;"><span>ones <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> M
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>    mp[<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> i] <span style="color:#f92672">=</span> i
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> N):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>        ones[i] <span style="color:#f92672">+=</span> (i <span style="color:#f92672">&gt;&gt;</span> j) <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">lowbit</span>(x):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> x <span style="color:#f92672">&amp;</span> <span style="color:#f92672">-</span>x
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(x, y):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> row[x] <span style="color:#f92672">&amp;</span> col[y] <span style="color:#f92672">&amp;</span> cell[x <span style="color:#f92672">//</span> <span style="color:#ae81ff">3</span>][y <span style="color:#f92672">//</span> <span style="color:#ae81ff">3</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">draw</span>(x, y, t, flag):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> st, row, col, cell
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> flag:
+</span></span><span style="display:flex;"><span>        st[x <span style="color:#f92672">*</span> N <span style="color:#f92672">+</span> y] <span style="color:#f92672">=</span> chr(<span style="color:#ae81ff">49</span> <span style="color:#f92672">+</span> t)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        st[x <span style="color:#f92672">*</span> N <span style="color:#f92672">+</span> y] <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;.&#34;</span>
+</span></span><span style="display:flex;"><span>    v <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> t
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> flag:
+</span></span><span style="display:flex;"><span>        v <span style="color:#f92672">=</span> <span style="color:#f92672">-</span>v
+</span></span><span style="display:flex;"><span>    row[x] <span style="color:#f92672">-=</span> v
+</span></span><span style="display:flex;"><span>    col[y] <span style="color:#f92672">-=</span> v
+</span></span><span style="display:flex;"><span>    cell[x <span style="color:#f92672">//</span> <span style="color:#ae81ff">3</span>][y <span style="color:#f92672">//</span> <span style="color:#ae81ff">3</span>] <span style="color:#f92672">-=</span> v
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(cnt):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> st
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> cnt:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>    minv <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> st[i <span style="color:#f92672">*</span> N <span style="color:#f92672">+</span> j] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;.&#34;</span>:
+</span></span><span style="display:flex;"><span>                state <span style="color:#f92672">=</span> get(i, j)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> ones[state] <span style="color:#f92672">&lt;</span> minv:
+</span></span><span style="display:flex;"><span>                    minv <span style="color:#f92672">=</span> ones[state]
+</span></span><span style="display:flex;"><span>                    x, y <span style="color:#f92672">=</span> i, j
+</span></span><span style="display:flex;"><span>    i <span style="color:#f92672">=</span> get(x, y)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> i:
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> mp[lowbit(i)]
+</span></span><span style="display:flex;"><span>        draw(x, y, t, <span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> dfs(cnt <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        draw(x, y, t, <span style="color:#66d9ef">False</span>)
+</span></span><span style="display:flex;"><span>        i <span style="color:#f92672">-=</span> lowbit(i)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> <span style="color:#66d9ef">True</span>:
+</span></span><span style="display:flex;"><span>    st <span style="color:#f92672">=</span> sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> st <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;end&#34;</span>:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    st <span style="color:#f92672">=</span> list(st)
+</span></span><span style="display:flex;"><span>    cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>        row[i] <span style="color:#f92672">=</span> col[i] <span style="color:#f92672">=</span> M <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">3</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">3</span>):
+</span></span><span style="display:flex;"><span>            cell[i][j] <span style="color:#f92672">=</span> M <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(N):
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> st[i <span style="color:#f92672">*</span> N <span style="color:#f92672">+</span> j] <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;.&#34;</span>:
+</span></span><span style="display:flex;"><span>                t <span style="color:#f92672">=</span> int(st[i <span style="color:#f92672">*</span> N <span style="color:#f92672">+</span> j]) <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                draw(i, j, t, <span style="color:#66d9ef">True</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                cnt <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    dfs(cnt)
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;&#34;</span><span style="color:#f92672">.</span>join(st))
+</span></span></code></pre></div><h3 id="最短路-188-武士风度的牛httpswwwacwingcomproblemcontentdescription190">最短路 <a href="https://www.acwing.com/problem/content/description/190/">188. 武士风度的牛</a><a hidden class="anchor" aria-hidden="true" href="#最短路-188-武士风度的牛httpswwwacwingcomproblemcontentdescription190">#</a></h3>
+<p><strong>题目大意</strong>：农民 <code>John</code> 想交易他的一头被 <code>Don</code> 称为 <code>The Knight</code> 的牛。这头牛有特殊能力，可以按照象棋中马的走法跳跃。农场被表示为一个二维坐标图，其中包含了树、灌木、石头以及草的位置。<code>The Knight</code> 起始位置为 <code>K</code>，草的位置为 <code>H</code>。任务是确定 <code>The Knight</code> 要跳多少次才能到达草的位置。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先解析输入，得到农场的列数和行数，以及地图信息，包括障碍物和目标位置（草的位置）。</li>
+<li>使用广度优先搜索（<code>BFS</code>）算法来找到从起始位置到达目标位置的最短路径。</li>
+<li>初始化一个队列，并将起始位置加入队列中。</li>
+<li>在循环中，每次从队列中取出一个位置，并尝试向八个方向跳跃（象棋中马的所有可能走法），如果跳跃后的位置合法且没有障碍物且未被访问过，则将该位置加入队列，并标记为已访问。</li>
+<li>当取出的位置为目标位置时，输出跳跃的次数，即最短路径的长度，然后退出循环。</li>
+<li>如果队列为空仍未找到目标位置，则说明数据保证一定有解，不需要处理这种情况。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dir <span style="color:#f92672">=</span> [(<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>), (<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>), (<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#ae81ff">2</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), (<span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>), (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>), (<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>c, r <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> [[] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(r)]
+</span></span><span style="display:flex;"><span>vis <span style="color:#f92672">=</span> [[<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>(c<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(r):
+</span></span><span style="display:flex;"><span>    g[i] <span style="color:#f92672">=</span> list(input())
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j, ch <span style="color:#f92672">in</span> enumerate(g[i]):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> ch<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;H&#39;</span>:
+</span></span><span style="display:flex;"><span>            end <span style="color:#f92672">=</span> (i, j)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> ch<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;K&#39;</span>:
+</span></span><span style="display:flex;"><span>            start <span style="color:#f92672">=</span> (i, j)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>q <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>q<span style="color:#f92672">.</span>append((<span style="color:#f92672">*</span>start, <span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>    x, y, d<span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (x, y)<span style="color:#f92672">==</span>end:
+</span></span><span style="display:flex;"><span>        print(d)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">8</span>):
+</span></span><span style="display:flex;"><span>        a, b <span style="color:#f92672">=</span> x <span style="color:#f92672">+</span> dir[i][<span style="color:#ae81ff">0</span>], y <span style="color:#f92672">+</span> dir[i][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>a<span style="color:#f92672">&lt;</span>r <span style="color:#f92672">and</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>b<span style="color:#f92672">&lt;</span>c:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> g[a][b]<span style="color:#f92672">!=</span><span style="color:#e6db74">&#39;*&#39;</span> <span style="color:#f92672">and</span> <span style="color:#f92672">not</span> vis[a][b]:
+</span></span><span style="display:flex;"><span>                vis[a][b] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append((a, b, d<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>))
+</span></span></code></pre></div><h3 id="多源bfs">多源BFS<a hidden class="anchor" aria-hidden="true" href="#多源bfs">#</a></h3>
+<p><strong>题目大意</strong>：给定一个 N 行 M 列的 01 矩阵 A，定义矩阵中每个位置与所有值为1的位置的曼哈顿距离。曼哈顿距离为该位置与所有值为1的位置行坐标之差的绝对值与列坐标之差的绝对值之和。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先读入矩阵的行数和列数，以及矩阵本身。</li>
+<li>使用BFS（广度优先搜索）来计算每个位置到所有值为1的位置的距离。</li>
+<li>初始化一个队列，将所有值为1的位置入队，距离初始化为0。</li>
+<li>对队列进行BFS遍历，每次取出队首元素，计算其周围四个方向的位置，若位置合法且为0且未被访问过，则更新距离并入队。</li>
+<li>最终输出距离矩阵B。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e3</span><span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>g <span style="color:#f92672">=</span> [[] <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(N)]
+</span></span><span style="display:flex;"><span>dis <span style="color:#f92672">=</span> [[<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>N <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(N)]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>n, m <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    g[i] <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">+</span> list(input())
+</span></span><span style="display:flex;"><span> 
+</span></span><span style="display:flex;"><span>q <span style="color:#f92672">=</span> deque()   
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> g[i][j] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;1&#39;</span>:
+</span></span><span style="display:flex;"><span>           q<span style="color:#f92672">.</span>append((i, j, <span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>           dis[i][j] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>           
+</span></span><span style="display:flex;"><span>dx <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>]
+</span></span><span style="display:flex;"><span>dy <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> q:
+</span></span><span style="display:flex;"><span>    x, y, d <span style="color:#f92672">=</span> q<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">4</span>):
+</span></span><span style="display:flex;"><span>        xx <span style="color:#f92672">=</span> x<span style="color:#f92672">+</span>dx[i]; yy <span style="color:#f92672">=</span> y<span style="color:#f92672">+</span>dy[i]
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> xx<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> xx<span style="color:#f92672">&lt;=</span>n <span style="color:#f92672">and</span> yy<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span> <span style="color:#f92672">and</span> yy<span style="color:#f92672">&lt;=</span>m:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> g[xx][yy] <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;0&#39;</span> <span style="color:#f92672">and</span> dis[xx][yy] <span style="color:#f92672">==</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>                dis[xx][yy] <span style="color:#f92672">=</span> d<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                q<span style="color:#f92672">.</span>append((xx, yy, d<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>    print(<span style="color:#f92672">*</span>dis[i][<span style="color:#ae81ff">1</span>:m<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>])
+</span></span><span style="display:flex;"><span>    
+</span></span></code></pre></div><h3 id="双端队列bfs175-电路维修httpswwwacwingcomproblemcontentdescription177">双端队列BFS<a href="https://www.acwing.com/problem/content/description/177/">175. 电路维修</a><a hidden class="anchor" aria-hidden="true" href="#双端队列bfs175-电路维修httpswwwacwingcomproblemcontentdescription177">#</a></h3>
+<p><strong>题目大意</strong>：有一个电路板，由 R 行 C 列的网格组成，每个格点都是电线的接点，每个格子包含一个可旋转的电子元件，电子元件连接一条对角线上的两个接点。达达希望通过旋转最少数量的元件，使电源与发动装置通过若干条短缆相连，但因为某些元件的方向不正确，导致电路板可能处于断路的状态。需要计算最少旋转的次数来使得电源和发动机之间连通。</p>
+<p><strong>实现思路</strong>：可以使用广度优先搜索（BFS）来解决此问题。首先，初始化一个二维数组 d 用于存储从起点到每个点的最短距离。然后，利用广度优先搜索的方式遍历电路板的每个格点，如果发现某个格点的状态需要改变（即当前格点的元件方向与所需方向不一致），则更新该格点的状态并将其加入到队列中。最后，返回终点的最短距离即可，如果无法到达终点，则输出 &ldquo;NO SOLUTION&rdquo;。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
+</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
+</span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> deque
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>dire <span style="color:#f92672">=</span> [(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>mov <span style="color:#f92672">=</span> [(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>), (<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>), (<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>), (<span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>ch <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">/</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">/&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">bfs</span>():
+</span></span><span style="display:flex;"><span>    dq <span style="color:#f92672">=</span> deque()
+</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> [[float(<span style="color:#e6db74">&#39;inf&#39;</span>)]<span style="color:#f92672">*</span>(c<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>) <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>    d[<span style="color:#ae81ff">0</span>][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    dq<span style="color:#f92672">.</span>append((<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> dq:
+</span></span><span style="display:flex;"><span>        x, y <span style="color:#f92672">=</span> dq<span style="color:#f92672">.</span>popleft()
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">4</span>):
+</span></span><span style="display:flex;"><span>            xx, yy <span style="color:#f92672">=</span> x <span style="color:#f92672">+</span> dire[i][<span style="color:#ae81ff">0</span>], y <span style="color:#f92672">+</span> dire[i][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>xx<span style="color:#f92672">&lt;=</span>r <span style="color:#f92672">and</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>yy<span style="color:#f92672">&lt;=</span>c:
+</span></span><span style="display:flex;"><span>                j, k <span style="color:#f92672">=</span> x<span style="color:#f92672">+</span>mov[i][<span style="color:#ae81ff">0</span>], y <span style="color:#f92672">+</span> mov[i][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>                w <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> g[j][k] <span style="color:#f92672">!=</span> ch[i] <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> d[xx][yy] <span style="color:#f92672">&gt;</span> d[x][y] <span style="color:#f92672">+</span> w:
+</span></span><span style="display:flex;"><span>                    d[xx][yy] <span style="color:#f92672">=</span> d[x][y] <span style="color:#f92672">+</span> w
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">if</span> w:
+</span></span><span style="display:flex;"><span>                        dq<span style="color:#f92672">.</span>append((xx, yy))
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>                        dq<span style="color:#f92672">.</span>appendleft((xx, yy))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">if</span> d[r][c] <span style="color:#f92672">==</span> float(<span style="color:#e6db74">&#39;inf&#39;</span>) <span style="color:#66d9ef">else</span> d[r][c]
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>t <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(t):
+</span></span><span style="display:flex;"><span>    r, c <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>    g <span style="color:#f92672">=</span> [input() <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(r)]
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> bfs()
+</span></span><span style="display:flex;"><span>    print(res <span style="color:#66d9ef">if</span> res <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#34;NO SOLUTION&#34;</span>)
+</span></span></code></pre></div><h3 id="a-179-八数码httpswwwacwingcomproblemcontentdescription181"><code>A*</code> <a href="https://www.acwing.com/problem/content/description/181/">179. 八数码</a><a hidden class="anchor" aria-hidden="true" href="#a-179-八数码httpswwwacwingcomproblemcontentdescription181">#</a></h3>
+<p><strong>题目大意</strong>：在一个 3×3 的网格中，数字 1∼8 与一个 x 恰好不重不漏地分布在这个网格中。可以通过把 x 与其上、下、左、右四个方向之一的数字交换（如果存在）来改变网格的状态，目标是通过最少的移动次数，使得网格变为正确排列。</p>
+<p><strong>实现思路</strong>：使用 <code>A*</code> 算法来解决该问题。首先，定义一个启发函数用于估计当前状态到达目标状态的最小移动次数。然后，利用 A* 算法进行搜索，不断更新当前状态到达目标状态的最小移动次数，并记录每一步的移动操作。最后，输出得到的完整行动记录即可。如果不存在解决方案，则输出 &ldquo;unsolvable&rdquo;。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> heapq <span style="color:#f92672">import</span> heappush, heappop
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>d <span style="color:#f92672">=</span> [(<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>), (<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>), (<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>), (<span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)]
+</span></span><span style="display:flex;"><span>op <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;urdl&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">heuristic</span>(state): <span style="color:#75715e"># 启发式</span>
+</span></span><span style="display:flex;"><span>    ans <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i, st <span style="color:#f92672">in</span> enumerate(state):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> st<span style="color:#f92672">==</span><span style="color:#e6db74">&#39;x&#39;</span>: <span style="color:#66d9ef">continue</span>
+</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> int(st)<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">+=</span> abs(t<span style="color:#f92672">//</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">-</span> i<span style="color:#f92672">//</span><span style="color:#ae81ff">3</span>) <span style="color:#f92672">+</span> abs(t<span style="color:#f92672">%</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">-</span> i<span style="color:#f92672">%</span><span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ans
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">astar</span>():
+</span></span><span style="display:flex;"><span>    dis, pre <span style="color:#f92672">=</span> dict(), dict()
+</span></span><span style="display:flex;"><span>    end <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;12345678x&#34;</span>
+</span></span><span style="display:flex;"><span>    dis[start] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    h <span style="color:#f92672">=</span> []
+</span></span><span style="display:flex;"><span>    heappush(h, (heuristic(start), start))
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> h:
+</span></span><span style="display:flex;"><span>        _, state <span style="color:#f92672">=</span> heappop(h)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> state <span style="color:#f92672">==</span> end:
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">break</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        x, y <span style="color:#f92672">=</span> divmod(state<span style="color:#f92672">.</span>index(<span style="color:#e6db74">&#39;x&#39;</span>), <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>        src <span style="color:#f92672">=</span> state
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">4</span>):
+</span></span><span style="display:flex;"><span>            a, b <span style="color:#f92672">=</span> x<span style="color:#f92672">+</span>d[i][<span style="color:#ae81ff">0</span>], y<span style="color:#f92672">+</span>d[i][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>a<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">3</span> <span style="color:#f92672">and</span> <span style="color:#ae81ff">0</span><span style="color:#f92672">&lt;=</span>b<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">3</span>:
+</span></span><span style="display:flex;"><span>                ls <span style="color:#f92672">=</span> list(state)
+</span></span><span style="display:flex;"><span>                ls[<span style="color:#ae81ff">3</span><span style="color:#f92672">*</span>x<span style="color:#f92672">+</span>y], ls[<span style="color:#ae81ff">3</span><span style="color:#f92672">*</span>a<span style="color:#f92672">+</span>b] <span style="color:#f92672">=</span> ls[<span style="color:#ae81ff">3</span><span style="color:#f92672">*</span>a<span style="color:#f92672">+</span>b], ls[<span style="color:#ae81ff">3</span><span style="color:#f92672">*</span>x<span style="color:#f92672">+</span>y]
+</span></span><span style="display:flex;"><span>                new_state <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(ls)
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> new_state <span style="color:#f92672">not</span> <span style="color:#f92672">in</span> dis <span style="color:#f92672">or</span> dis[new_state] <span style="color:#f92672">&gt;</span> dis[src] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>                    dis[new_state] <span style="color:#f92672">=</span> dis[src] <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                    pre[new_state] <span style="color:#f92672">=</span> (op[i], src)
+</span></span><span style="display:flex;"><span>                    
+</span></span><span style="display:flex;"><span>                    heappush(h, (dis[new_state] <span style="color:#f92672">+</span> heuristic(new_state), new_state))
+</span></span><span style="display:flex;"><span>                    
+</span></span><span style="display:flex;"><span>    ans <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> end <span style="color:#f92672">!=</span> start:
+</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> pre[end][<span style="color:#ae81ff">0</span>] <span style="color:#f92672">+</span> ans
+</span></span><span style="display:flex;"><span>        end <span style="color:#f92672">=</span> pre[end][<span style="color:#ae81ff">1</span>]
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ans
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>start <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;&#39;</span><span style="color:#f92672">.</span>join(input()<span style="color:#f92672">.</span>split())
+</span></span><span style="display:flex;"><span>s <span style="color:#f92672">=</span> start<span style="color:#f92672">.</span>replace(<span style="color:#e6db74">&#39;x&#39;</span>, <span style="color:#e6db74">&#39;&#39;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>cnt <span style="color:#f92672">=</span> sum(s[i]<span style="color:#f92672">&gt;</span>s[j] <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">8</span>) <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i, <span style="color:#ae81ff">8</span>))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> cnt<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>    print(<span style="color:#e6db74">&#34;unsolvable&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>    print(astar())
+</span></span></code></pre></div><h3 id="ida-排书"><code>IDA*</code> 排书<a hidden class="anchor" aria-hidden="true" href="#ida-排书">#</a></h3>
+<p>寻找估价函数， 一定小于等于真实值，并越接近真实值</p>
+<p>这道题目要求给定 n 本书，每本书编号为 1 到 n，初始状态下，书是任意排列的。每次操作可以抽取其中连续的一段，再把这段插入到其他某个位置。目标是将书按照 1 到 n 的顺序依次排列。要求计算最少需要多少次操作。</p>
+<p><strong>实现思路</strong>：</p>
+<ol>
+<li>首先定义一个函数 f()，用来计算当前状态与目标状态之间的最小操作次数。这个函数通过遍历每对相邻书的编号，判断它们是否连续，如果不连续则需要进行一次操作。最后返回操作次数。</li>
+<li>然后定义一个深度优先搜索函数 dfs(u)，其中 u 表示当前搜索的深度。在每次搜索中，我们需要判断当前深度加上到目标状态的最小操作次数是否超过已经得到的最小操作次数，如果超过则直接返回 False，否则继续搜索。</li>
+<li>在 dfs 函数中，首先判断如果当前状态已经是目标状态，则直接返回 True。否则，我们遍历所有可能的操作，从中选择一种操作方式，然后递归调用 dfs 函数。</li>
+<li>在主程序中，依次读入每组数据，然后进行深度优先搜索，直到得到结果或者搜索深度达到 5。最后根据得到的结果输出最小操作次数或者 &ldquo;5 or more&rdquo;。</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">f</span>():
+</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> a[i] <span style="color:#f92672">!=</span> a[i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>:
+</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (res<span style="color:#f92672">+</span><span style="color:#ae81ff">2</span>)<span style="color:#f92672">//</span><span style="color:#ae81ff">3</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(u):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> a
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> u <span style="color:#f92672">+</span> f() <span style="color:#f92672">&gt;</span> dep:
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> f()<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>: 
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> leng <span style="color:#f92672">in</span> range(n, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> l <span style="color:#f92672">in</span> range(n<span style="color:#f92672">-</span>leng<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>            r <span style="color:#f92672">=</span> l<span style="color:#f92672">+</span>leng<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> k <span style="color:#f92672">in</span> range(l, r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>                bk <span style="color:#f92672">=</span> a[:]
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                j <span style="color:#f92672">=</span> l
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, r<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>                    a[j] <span style="color:#f92672">=</span> bk[i]
+</span></span><span style="display:flex;"><span>                    j<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                    
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(l, k<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>                    a[j] <span style="color:#f92672">=</span> bk[i]
+</span></span><span style="display:flex;"><span>                    j<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> dfs(u<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
+</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>                a <span style="color:#f92672">=</span> bk[:]
+</span></span><span style="display:flex;"><span>                
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>t <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span> t:
+</span></span><span style="display:flex;"><span>    t<span style="color:#f92672">-=</span><span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> int(input())
+</span></span><span style="display:flex;"><span>    a <span style="color:#f92672">=</span> list(map(int, input()<span style="color:#f92672">.</span>split()))
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    dep <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> dep<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">5</span> <span style="color:#f92672">and</span> <span style="color:#f92672">not</span> dfs(<span style="color:#ae81ff">0</span>):
+</span></span><span style="display:flex;"><span>        dep <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> dep <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">5</span>:
+</span></span><span style="display:flex;"><span>        print(dep)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
+</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;5 or more&#34;</span>)
 </span></span></code></pre></div>
 
   </div>
