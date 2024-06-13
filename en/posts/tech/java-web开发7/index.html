@@ -128,8 +128,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Java", "Web"
   ],
-  "articleBody": "Java Web开发(7) Spring原理 配置优先级 SpringBoot中支持三种格式配置文件的优先级\nproperties yaml yml 配置 SpringBoot除了支持配置文件属性配置，还支持Java系统属性和命令行参数的方式进行属性配置\nJava系统属性\n-Dserver.port=9000 命令行参数\n--server.port=10010 打包时指定端口号(cmd 命令)\njava -Dserver.port=9000 -jar tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 powershell命令行参数解释不同\njava -D\"server.port=9000\" -jar .\\tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 Java系统属性-Dserver.port=9000优先级高于三种配置文件， 而--server.port=10011高于Java系统属性\nBean管理 获取bean\n默认情况下，Spring项目启动时，会把bean都创建好放在IOC容器中，如果想要主动获取这些bean， 可以通过如下方式\n根据name获取bean\nObject getBean(String name) 根据类型获取bean\n\u003cT\u003e T getBean(Class\u003cT\u003e requiredType) 根据name获取bean（带类型转换）\n\u003cT\u003e T getBean(String name, Class\u003cT\u003e requiredType) BUG解决Could not autowire. No beans of 'ApplicationContext' type found.的问题\nidea导入出错\nimport org.springframework.context.ApplicationContext; DeptController bean1 = (DeptController) applicationContext.getBean(\"deptController\"); System.out.println(bean1); DeptController bean2 = (DeptController) applicationContext.getBean(DeptController.class); System.out.println(bean2); DeptController bean3 = (DeptController) applicationContext.getBean(\"deptController\", DeptController.class); System.out.println(bean3); bean的作用域 作用域 说明 singleton 容器内同名称的bean只有一个实例（单例）默认 prototype 每次使用该bean时会创建新的实例（非单例） request 每个请求范围内会创建新的实例（web环境中，了解） session 每个会话范围内会创建新的实例（web环境中，了解） application 每个应用范围内会创建新的实例（web环境中，了解） //@Lazy @Scope(\"prototype\") 注意事项：\n默认singleton的bean，在容器启动时背创建，可以使用@Lazy注解来延迟初始化（延迟到第一次使用） prototype的bean，每一次使用该bean的时候都会创建一个新的实例 实际开发中，绝大部分的bean都是单例的，也就是说绝大部分的bean不需要配置scope属性 ",
-  "wordCount" : "692",
+  "articleBody": "Java Web开发(7) Spring原理 配置优先级 SpringBoot中支持三种格式配置文件的优先级\nproperties yaml yml 配置 SpringBoot除了支持配置文件属性配置，还支持Java系统属性和命令行参数的方式进行属性配置\nJava系统属性\n-Dserver.port=9000 命令行参数\n--server.port=10010 打包时指定端口号(cmd 命令)\njava -Dserver.port=9000 -jar tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 powershell命令行参数解释不同\njava -D\"server.port=9000\" -jar .\\tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 Java系统属性-Dserver.port=9000优先级高于三种配置文件， 而--server.port=10011高于Java系统属性\nBean管理 获取bean\n默认情况下，Spring项目启动时，会把bean都创建好放在IOC容器中，如果想要主动获取这些bean， 可以通过如下方式\n根据name获取bean\nObject getBean(String name) 根据类型获取bean\n\u003cT\u003e T getBean(Class\u003cT\u003e requiredType) 根据name获取bean（带类型转换）\n\u003cT\u003e T getBean(String name, Class\u003cT\u003e requiredType) BUG解决Could not autowire. No beans of 'ApplicationContext' type found.的问题\nidea导入出错\nimport org.springframework.context.ApplicationContext; DeptController bean1 = (DeptController) applicationContext.getBean(\"deptController\"); System.out.println(bean1); DeptController bean2 = (DeptController) applicationContext.getBean(DeptController.class); System.out.println(bean2); DeptController bean3 = (DeptController) applicationContext.getBean(\"deptController\", DeptController.class); System.out.println(bean3); bean的作用域 作用域 说明 singleton 容器内同名称的bean只有一个实例（单例）默认 prototype 每次使用该bean时会创建新的实例（非单例） request 每个请求范围内会创建新的实例（web环境中，了解） session 每个会话范围内会创建新的实例（web环境中，了解） application 每个应用范围内会创建新的实例（web环境中，了解） //@Lazy @Scope(\"prototype\") 注意事项：\n默认singleton的bean，在容器启动时背创建，可以使用@Lazy注解来延迟初始化（延迟到第一次使用） prototype的bean，每一次使用该bean的时候都会创建一个新的实例 实际开发中，绝大部分的bean都是单例的，也就是说绝大部分的bean不需要配置scope属性 第三方bean 如果要管理的bean对象来自第三方（不是自定义的），是无法使用@Component及衍生注解声明bean的，就需要用到@Bean注解 若要管理的第三方bean对象，建议对这些bean进行集中分类配置，可以通过@Configuration注解声明一个配置类。 @Configuration public class CommonConfig { @Bean // 第三方bean对象 // 获取bean对象 : 如果没有指定bean名称，则默认为方法名 // 第三方bean对象需要对象注入，只需要在方法参数中写该参数即可 public SAXReader reader(DeptService deptService){ System.out.println(deptService); return new SAXReader(); } } @Component及衍生注解与@Bean注解使用场景：\n项目中自定义的，使用@Component及其衍生注解 项目中引入第三方的，使用@Bean注解 SpringBoot原理 起步依赖：SpringBoot使用Maven依赖传递管理依赖，可以自动配置依赖\n自动配置：\nSpringBoot的自动配置就是当Spring容器启动后，一些配置类，bean对象就自动存入到了IOC容器中，不需要我们手动去声明，从而简化了开发，省去了繁琐的配置操作。 自动配置原理 方案一：@ComponentScan 组件扫描\n@ComponentScan({\"com.example\", \"com.showguan\"}) public class TilasWebManagementApplication { 方案二：@Import导入。使用@Import导入的类会被Spring加载到IOC容器中，导入形式\n导入普通类 导入配置类 导入ImportSelector接口实现类 @EnableXXX注解，封装@Import注解 //@Import({TokenParser.class}) //@Import({HeaderConfig.class}) //@Import({MyImportSelector.class}) @EnableHeaderConfig public class TilasWebManagementApplication { } 源码跟踪 @SpringBootApplication\n该注解标识在SpringBoot工程引导类上，是SpringBoot中最最最重要的注解。 @SpringBootConfiguration：该注解与@Configuration注解作用相同，用来声明当前也是一个配置类 @ComponentScan：组件扫描，默认扫描当前引导类所在包及其子包 @EnableAutoConfiguration：SpringBoot实现自动化配置的核心注解 @Conditional 作用：按照一定的条件进行判断，在满足给定条件后才会注册对应的bean对象到Spring IOC容器中 位置：方法，类 @Conditional 本身是一个父注解，派生出大量的子注解 @ConditionalOnClass：判断环境中是否有对应字节码文件，才注册bean到IOC容器 @ConditonalOnMissingBean：判断环境中没有对应的bean（类型或名称），才注册这个bean到IOC容器中 （常用场景：先使用自己创建的bean，如果自己没有创建，则使用系统默认的bean）– 指定类型（value属性） 或 名称（name属性） @ConditionalProperty：判断配置文件中有对应属性和值，才注册bean到IOC容器中 自定义starter 场景：在实际开发中，经常会定义一些公共组件，提供给项目团队使用。而在SpringBoot的项目中，一般会将这些公共组件封装为SpringBoot的starter 步骤：\n创建aliyun-oss-spring-boot-starter模块 创建aliyun-oss-spring-boot-autoconfigure模块，在starter中引入该模块 在aliyun-oss-spring-boot-autoconfigure 模块中的定义自动配置功能，并定义自动配置文件 META-INF/spring/xxx.imports 文件目录结构：\n外部类需要使用OSS功能时：\n1、引入依赖 2、编写yml文件的必要参数 3、直接注入即可\n总结 Web三层架构\nSpringMVC 是 Spring framework中的Web模块\nSSM(SpringMVC + Spring framework + Mybatis)\nMVN高级 maven生成imi文件\nmvn idea:module 为什么要分模块设计？ 方便项目的管理维护，扩展，也方便模块间的相互调用，资源共享。\n注意事项 分模块设计需要先针对模块功能进行设计，再进行编码。不会先将工程开发完毕，然后进行拆分。 继承关系实现 常见打包方式：\njar：普通模块打包，springboot项目基本都是jar包（内嵌tomcat运行） war：普通web程序打包，需要部署在外部的tomcat服务器上 pom：父工程或聚合工程，该模块不写代码，仅进行依赖管理 步骤:\n创建maven模块 tlias-parent，该工程为父工程， 设置打包方式pom\norg.springframework.boot spring-boot-starter-parent 3.2.6 com.showguan tlias-parent 1.0-SNAPSHOT pom 在子工程的pom.xml文件中，配置继承关系\ncom.showguan tlias-parent 1.0-SNAPSHOT ../tlias-parent/pom.xml 注意事项：\n在子工程中，配置了继承关系之后，坐标中的groupid是可以省略的，因为会自动继承父工程的。 relativePath指定父工程的pom文件的相对位置（如果不指定，将从本地仓库/远程仓库查找该工程）。 在父工程中配置各个工程共有的依赖（子工程会自动继承父工程的依赖）\norg.projectlombok lombok 若父子工程都配置了同一个依赖，以子工程的依赖为准。 版本锁定 在maven中，可以在父工程的pom文件中 通过 来统一管理依赖版本 父工程：\n0.9.1 io.jsonwebtoken jjwt ${jjwt.version} 子工程（仍需引入依赖，但是不需要版本号）：\nio.jsonwebtoken jjwt 注意事项：\n子工程引入依赖时，无需指定版本号，父工程统一管理，变更依赖版本，只需要父工程中统一变更。 聚合 将多个模块组织成一个整体，同时进行项目的构建\n聚合工程 一个不具有业务功能的\"空\"工程（有且仅有一个pom文件\n作用：快速构建项目（无需根据依赖关系手动构建，直接在聚合工程上构建即可）\n在parent 的pom.xml文件内添加\n../tlias-pojo ../tlias-utils ../tlias-web-management 聚合和继承：\n作用 聚合用于快速构建项目 继承用于简化依赖配置、统一管理依赖 相同点 聚合与继承的pom.xml文件打包方式均为pom， 可以将两种关系制作到同一个pom文件中 聚合与继承均属于设计型模块，并无实际的模块内容 不同点 聚合是在聚合工程中配置关系，聚合可以感知到参与聚合的模块有哪些 继承是在子模块中配置关系，父模块无法感知哪些子模块继承了自己 私服 私服是一种特殊的仓库，它是架设在局域网内的仓库服务，用来代理位于外部的中央仓库，用于解决团队内部的资源共享和资源同步问题。 资源上传与下载\n项目版本：\ntlias-web-management 0.0.1-SNAPSHOT tilas-web-management tilas-web-management RELEASE（发行版本）：功能趋于稳定，当前更新停止，可以用于发行的版本，存储在私服中的RELEASE仓库中。 SNAPSHOT（快照版本）：功能不稳定，尚处于开发中的版本，即快照版本，存储在私服的SNAPSHOT仓库中。 ",
+  "wordCount" : "3242",
   "inLanguage": "en",
   "datePublished": "2024-06-11T22:30:13+08:00",
   "dateModified": "2024-06-11T22:20:13+08:00",
@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       JavaWeb学习笔记
     </div>
-    <div class="post-meta"><span title='2024-06-11 22:30:13 +0800 CST'>2024-06-11</span>&nbsp;·&nbsp;2 min&nbsp;·&nbsp;692 words&nbsp;·&nbsp;updated:&nbsp;2024-06-11&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-06-11 22:30:13 +0800 CST'>2024-06-11</span>&nbsp;·&nbsp;7 min&nbsp;·&nbsp;3242 words&nbsp;·&nbsp;updated:&nbsp;2024-06-11&nbsp;·&nbsp;ShowGuan
 
 </div>
 	
@@ -273,10 +273,49 @@ document.addEventListener("DOMContentLoaded", function() {
                     <a href="#bean%e7%ae%a1%e7%90%86" aria-label="Bean管理">Bean管理</a><ul>
                         
                 <li>
-                    <a href="#bean%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f" aria-label="bean的作用域">bean的作用域</a>
+                    <a href="#bean%e7%9a%84%e4%bd%9c%e7%94%a8%e5%9f%9f" aria-label="bean的作用域">bean的作用域</a></li>
+                <li>
+                    <a href="#%e7%ac%ac%e4%b8%89%e6%96%b9bean" aria-label="第三方bean">第三方bean</a></li></ul>
                 </li>
-            </ul>
-            </li>
+                <li>
+                    <a href="#springboot%e5%8e%9f%e7%90%86" aria-label="SpringBoot原理">SpringBoot原理</a><ul>
+                        
+                <li>
+                    <a href="#%e8%87%aa%e5%8a%a8%e9%85%8d%e7%bd%ae%e5%8e%9f%e7%90%86" aria-label="自动配置原理">自动配置原理</a><ul>
+                        
+                <li>
+                    <a href="#%e6%ba%90%e7%a0%81%e8%b7%9f%e8%b8%aa" aria-label="源码跟踪">源码跟踪</a></li>
+                <li>
+                    <a href="#conditional" aria-label="@Conditional">@Conditional</a></li>
+                <li>
+                    <a href="#%e8%87%aa%e5%ae%9a%e4%b9%89starter" aria-label="自定义starter">自定义starter</a><ul>
+                        
+                <li>
+                    <a href="#1%e5%bc%95%e5%85%a5%e4%be%9d%e8%b5%96" aria-label="1、引入依赖">1、引入依赖</a></li>
+                <li>
+                    <a href="#2%e7%bc%96%e5%86%99yml%e6%96%87%e4%bb%b6%e7%9a%84%e5%bf%85%e8%a6%81%e5%8f%82%e6%95%b0" aria-label="2、编写yml文件的必要参数">2、编写yml文件的必要参数</a></li></ul>
+                </li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%80%bb%e7%bb%93" aria-label="总结">总结</a></li>
+                <li>
+                    <a href="#mvn%e9%ab%98%e7%ba%a7" aria-label="MVN高级">MVN高级</a><ul>
+                        
+                <li>
+                    <a href="#%e4%b8%ba%e4%bb%80%e4%b9%88%e8%a6%81%e5%88%86%e6%a8%a1%e5%9d%97%e8%ae%be%e8%ae%a1" aria-label="为什么要分模块设计？">为什么要分模块设计？</a></li>
+                <li>
+                    <a href="#%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9" aria-label="注意事项">注意事项</a></li>
+                <li>
+                    <a href="#%e7%bb%a7%e6%89%bf%e5%85%b3%e7%b3%bb%e5%ae%9e%e7%8e%b0" aria-label="继承关系实现">继承关系实现</a></li>
+                <li>
+                    <a href="#%e7%89%88%e6%9c%ac%e9%94%81%e5%ae%9a" aria-label="版本锁定">版本锁定</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e8%81%9a%e5%90%88" aria-label="聚合">聚合</a></li>
+                <li>
+                    <a href="#%e7%a7%81%e6%9c%8d" aria-label="私服">私服</a>
+                </li>
             </ul>
             </li>
             </ul>
@@ -388,6 +427,250 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>默认<code>singleton</code>的bean，在容器启动时背创建，可以使用@Lazy注解来延迟初始化（延迟到第一次使用）</li>
 <li><code>prototype</code>的bean，每一次使用该bean的时候都会创建一个新的实例</li>
 <li>实际开发中，绝大部分的bean都是单例的，也就是说绝大部分的bean不需要配置scope属性</li>
+</ul>
+<h3 id="第三方bean">第三方bean<a hidden class="anchor" aria-hidden="true" href="#第三方bean">#</a></h3>
+<ul>
+<li>如果要管理的bean对象来自第三方（不是自定义的），是无法使用<code>@Component</code>及衍生注解声明bean的，<strong>就需要用到<code>@Bean</code>注解</strong></li>
+<li>若要管理的第三方bean对象，建议对这些bean进行集中分类配置，可以通过<code>@Configuration</code>注解声明一个配置类。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CommonConfig</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 第三方bean对象</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取bean对象 : 如果没有指定bean名称，则默认为方法名</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 第三方bean对象需要对象注入，只需要在方法参数中写该参数即可</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> SAXReader <span style="color:#a6e22e">reader</span>(DeptService deptService){
+</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(deptService);
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> SAXReader();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><code>@Component</code>及衍生注解与<code>@Bean</code>注解使用场景：</p>
+<ol>
+<li>项目中自定义的，使用@Component及其衍生注解</li>
+<li>项目中引入第三方的，使用@Bean注解</li>
+</ol>
+<h2 id="springboot原理">SpringBoot原理<a hidden class="anchor" aria-hidden="true" href="#springboot原理">#</a></h2>
+<p><strong>起步依赖</strong>：<code>SpringBoot</code>使用<code>Maven</code>依赖传递管理依赖，可以自动配置依赖</p>
+<p><strong>自动配置</strong>：</p>
+<ul>
+<li><code>SpringBoot</code>的自动配置就是当<code>Spring</code>容器启动后，一些配置类，<code>bean</code>对象就自动存入到了<code>IOC</code>容器中，不需要我们手动去声明，从而简化了开发，省去了繁琐的配置操作。</li>
+</ul>
+<h3 id="自动配置原理">自动配置原理<a hidden class="anchor" aria-hidden="true" href="#自动配置原理">#</a></h3>
+<ul>
+<li>
+<p>方案一：<code>@ComponentScan</code> 组件扫描</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@ComponentScan</span>({<span style="color:#e6db74">&#34;com.example&#34;</span>, <span style="color:#e6db74">&#34;com.showguan&#34;</span>})
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TilasWebManagementApplication</span> {
+</span></span></code></pre></div></li>
+<li>
+<p>方案二：<code>@Import</code>导入。使用<code>@Import</code>导入的类会被Spring加载到IOC容器中，导入形式</p>
+<ul>
+<li>导入普通类</li>
+<li>导入配置类</li>
+<li>导入<code>ImportSelector</code>接口实现类</li>
+<li><code>@EnableXXX</code>注解，封装<code>@Import</code>注解</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">//@Import({TokenParser.class})</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//@Import({HeaderConfig.class})</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//@Import({MyImportSelector.class})</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableHeaderConfig</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TilasWebManagementApplication</span> {
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="源码跟踪">源码跟踪<a hidden class="anchor" aria-hidden="true" href="#源码跟踪">#</a></h4>
+<p><code>@SpringBootApplication</code></p>
+<ul>
+<li>该注解标识在SpringBoot工程引导类上，是SpringBoot中<strong>最最最</strong>重要的注解。
+<ul>
+<li><code>@SpringBootConfiguration</code>：该注解与<code>@Configuration</code>注解作用相同，用来声明当前也是一个配置类</li>
+<li><code>@ComponentScan</code>：组件扫描，默认扫描当前引导类所在包及其子包</li>
+<li><code>@EnableAutoConfiguration</code>：SpringBoot实现自动化配置的核心注解</li>
+</ul>
+</li>
+</ul>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612192502791.png" alt="image-20240612192502791"  />
+</p>
+<h4 id="conditional"><strong>@Conditional</strong><a hidden class="anchor" aria-hidden="true" href="#conditional">#</a></h4>
+<ul>
+<li>作用：按照一定的条件进行判断，在满足给定条件后才会注册对应的bean对象到Spring IOC容器中</li>
+<li>位置：方法，类</li>
+<li><code>@Conditional</code> 本身是一个父注解，派生出大量的子注解
+<ul>
+<li><code>@ConditionalOnClass</code>：判断环境中是否有对应<strong>字节码文件</strong>，才注册bean到IOC容器</li>
+<li><code>@ConditonalOnMissingBean</code>：判断环境中没有对应的bean（类型或名称），才注册这个bean到IOC容器中 （常用场景：先使用自己创建的bean，如果自己没有创建，则使用系统默认的bean）&ndash; 指定类型（value属性） 或 名称（name属性）</li>
+<li><code>@ConditionalProperty</code>：判断配置文件中有对应属性和值，才注册bean到IOC容器中</li>
+</ul>
+</li>
+</ul>
+<h4 id="自定义starter">自定义<code>starter</code><a hidden class="anchor" aria-hidden="true" href="#自定义starter">#</a></h4>
+<ul>
+<li>场景：在实际开发中，经常会定义一些公共组件，提供给项目团队使用。而在SpringBoot的项目中，一般会将这些公共组件封装为SpringBoot的starter</li>
+</ul>
+<p>步骤：</p>
+<ul>
+<li>创建<code>aliyun-oss-spring-boot-starter</code>模块</li>
+<li>创建<code>aliyun-oss-spring-boot-autoconfigure</code>模块，<strong>在starter中引入该模块</strong></li>
+<li>在<code>aliyun-oss-spring-boot-autoconfigure</code> 模块中的定义自动配置功能，并定义自动配置文件 <code>META-INF/spring/xxx.imports</code></li>
+</ul>
+<p>文件目录结构：</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612211132888.png" alt="image-20240612211132888"  />
+</p>
+<p>外部类需要使用OSS功能时：</p>
+<h5 id="1引入依赖">1、引入依赖<a hidden class="anchor" aria-hidden="true" href="#1引入依赖">#</a></h5>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612211241678.png" alt="image-20240612211241678"  />
+</p>
+<h5 id="2编写yml文件的必要参数">2、编写yml文件的必要参数<a hidden class="anchor" aria-hidden="true" href="#2编写yml文件的必要参数">#</a></h5>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612211329606.png" alt="image-20240612211329606"  />
+</p>
+<p>3、直接注入即可</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612212448857.png" alt="image-20240612212448857"  />
+</p>
+<h2 id="总结">总结<a hidden class="anchor" aria-hidden="true" href="#总结">#</a></h2>
+<p>Web三层架构</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612213834814.png" alt="image-20240612213834814"  />
+</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612213933054.png" alt="image-20240612213933054"  />
+</p>
+<p><strong>SpringMVC 是 Spring framework中的Web模块</strong></p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240612214111620.png" alt="image-20240612214111620"  />
+</p>
+<p><strong>SSM</strong>(SpringMVC + Spring framework + Mybatis)</p>
+<h2 id="mvn高级">MVN高级<a hidden class="anchor" aria-hidden="true" href="#mvn高级">#</a></h2>
+<p><strong>maven生成imi文件</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>mvn idea:module
+</span></span></code></pre></div><h3 id="为什么要分模块设计">为什么要分模块设计？<a hidden class="anchor" aria-hidden="true" href="#为什么要分模块设计">#</a></h3>
+<p>方便项目的管理维护，扩展，也方便模块间的相互调用，资源共享。</p>
+<h3 id="注意事项">注意事项<a hidden class="anchor" aria-hidden="true" href="#注意事项">#</a></h3>
+<ul>
+<li>分模块设计需要先针对模块功能进行设计，再进行编码。不会先将工程开发完毕，然后进行拆分。</li>
+</ul>
+<h3 id="继承关系实现">继承关系实现<a hidden class="anchor" aria-hidden="true" href="#继承关系实现">#</a></h3>
+<p><strong>常见打包方式</strong>：</p>
+<ul>
+<li><strong>jar</strong>：普通模块打包，springboot项目基本都是jar包（内嵌tomcat运行）</li>
+<li><strong>war</strong>：普通web程序打包，需要部署在外部的tomcat服务器上</li>
+<li><strong>pom</strong>：父工程或聚合工程，该模块不写代码，仅进行依赖管理</li>
+</ul>
+<p>步骤:</p>
+<ol>
+<li>
+<p>创建maven模块 tlias-parent，该工程为父工程， 设置打包方式<strong>pom</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    设置spring工程的父工程--&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;parent&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>spring-boot-starter-parent<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>3.2.6<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;relativePath/&gt;</span> <span style="color:#75715e">&lt;!-- lookup parent from repository --&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/parent&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;groupId&gt;</span>com.showguan<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;artifactId&gt;</span>tlias-parent<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;version&gt;</span>1.0-SNAPSHOT<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    设置打包方式--&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;packaging&gt;</span>pom<span style="color:#f92672">&lt;/packaging&gt;</span>
+</span></span></code></pre></div></li>
+<li>
+<p>在子工程的<strong>pom.xml</strong>文件中，配置继承关系</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;parent&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>com.showguan<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>tlias-parent<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>1.0-SNAPSHOT<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;relativePath&gt;</span>../tlias-parent/pom.xml<span style="color:#f92672">&lt;/relativePath&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/parent&gt;</span>
+</span></span></code></pre></div><p><strong>注意事项</strong>：</p>
+<ul>
+<li>在子工程中，配置了继承关系之后，坐标中的<strong>groupid</strong>是可以省略的，因为会自动继承父工程的。</li>
+<li>relativePath指定父工程的pom文件的相对位置（如果不指定，将从本地仓库/远程仓库查找该工程）。</li>
+</ul>
+</li>
+<li>
+<p>在父工程中配置各个工程共有的依赖（子工程会自动继承父工程的依赖）</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>org.projectlombok<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>lombok<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependencies&gt;</span>
+</span></span></code></pre></div><ul>
+<li>若父子工程都配置了同一个依赖，以子工程的依赖为准。</li>
+</ul>
+</li>
+</ol>
+<h3 id="版本锁定">版本锁定<a hidden class="anchor" aria-hidden="true" href="#版本锁定">#</a></h3>
+<ul>
+<li>在maven中，可以在父工程的pom文件中 通过 <code>&lt;dependencyManagement&gt;</code> 来统一管理依赖版本</li>
+</ul>
+<p>父工程：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;properties&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;jjwt.version&gt;</span>0.9.1<span style="color:#f92672">&lt;/jjwt.version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/properties&gt;</span>
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependencyManagement&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">&lt;groupId&gt;</span>io.jsonwebtoken<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">&lt;artifactId&gt;</span>jjwt<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">&lt;version&gt;</span>${jjwt.version}<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;dependencies&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependencyManagement&gt;</span>
+</span></span></code></pre></div><p>子工程（仍需引入依赖，但是不需要版本号）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>io.jsonwebtoken<span style="color:#f92672">&lt;/groupId&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>jjwt<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
+</span></span></code></pre></div><p><strong>注意事项</strong>：</p>
+<ul>
+<li>子工程引入依赖时，无需指定<code>&lt;version&gt;</code>版本号，父工程统一管理，变更依赖版本，只需要父工程中统一变更。</li>
+</ul>
+<h2 id="聚合">聚合<a hidden class="anchor" aria-hidden="true" href="#聚合">#</a></h2>
+<p>将多个模块组织成一个整体，同时进行项目的构建</p>
+<ul>
+<li><strong>聚合工程</strong></li>
+</ul>
+<p>一个不具有业务功能的&quot;空&quot;工程（有且仅有一个pom文件</p>
+<p><strong>作用</strong>：快速构建项目（无需根据依赖关系手动构建，直接在聚合工程上构建即可）</p>
+<p>在parent 的pom.xml文件内添加</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;modules&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;module&gt;</span>../tlias-pojo<span style="color:#f92672">&lt;/module&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;module&gt;</span>../tlias-utils<span style="color:#f92672">&lt;/module&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;module&gt;</span>../tlias-web-management<span style="color:#f92672">&lt;/module&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/modules&gt;</span>
+</span></span></code></pre></div><p>聚合和继承：</p>
+<ul>
+<li>作用
+<ul>
+<li>聚合用于快速构建项目</li>
+<li>继承用于简化依赖配置、统一管理依赖</li>
+</ul>
+</li>
+<li><strong>相同点</strong>
+<ul>
+<li>聚合与继承的pom.xml文件打包方式均为pom， 可以将两种关系制作到同一个pom文件中</li>
+<li>聚合与继承均属于<strong>设计型模块</strong>，<strong>并无实际的模块内容</strong></li>
+</ul>
+</li>
+<li><strong>不同点</strong>
+<ul>
+<li>聚合是在聚合工程中配置关系，聚合可以感知到参与聚合的模块有哪些</li>
+<li>继承是在子模块中配置关系，父模块无法感知哪些子模块继承了自己</li>
+</ul>
+</li>
+</ul>
+<h2 id="私服">私服<a hidden class="anchor" aria-hidden="true" href="#私服">#</a></h2>
+<ul>
+<li>私服是一种特殊的仓库，它是架设在局域网内的仓库服务，用来代理位于外部的中央仓库，用于解决团队内部的资源共享和资源同步问题。</li>
+</ul>
+<p>资源上传与下载</p>
+<p><strong>项目版本</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;artifactId&gt;</span>tlias-web-management<span style="color:#f92672">&lt;/artifactId&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;version&gt;</span>0.0.1-SNAPSHOT<span style="color:#f92672">&lt;/version&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;name&gt;</span>tilas-web-management<span style="color:#f92672">&lt;/name&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;description&gt;</span>tilas-web-management<span style="color:#f92672">&lt;/description&gt;</span>
+</span></span></code></pre></div><ul>
+<li><strong>RELEASE（发行版本）</strong>：功能趋于稳定，当前更新停止，可以用于发行的版本，存储在私服中的RELEASE仓库中。</li>
+<li><strong>SNAPSHOT</strong>（快照版本）：功能不稳定，尚处于开发中的版本，即快照版本，存储在私服的SNAPSHOT仓库中。</li>
 </ul>
 
 
