@@ -1,0 +1,1547 @@
+<!DOCTYPE html>
+<html lang="en" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>Android（2） | Kennem</title>
+<meta name="keywords" content="Android">
+<meta name="description" content="Android学习笔记">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/en/posts/tech/android2/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.92e6d237fe179cc604a93575ea9ce4dbea8c09a9b1c7aa3449a9a0514c2b3ab5.css" integrity="sha256-kubSN/4XnMYEqTV16pzk2&#43;qMCamxx6o0SamgUUwrOrU=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="en" href="https://kennems.github.io/en/posts/tech/android2/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                <meta property="og:title" content="Android（2）" />
+<meta property="og:description" content="Android学习笔记" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/en/posts/tech/android2/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-06-21T22:30:13+08:00" />
+<meta property="article:modified_time" content="2024-06-21T22:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Android（2）"/>
+<meta name="twitter:description" content="Android学习笔记"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/en/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/en/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Android（2）",
+      "item": "https://kennems.github.io/en/posts/tech/android2/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Android（2）",
+  "name": "Android（2）",
+  "description": "Android学习笔记",
+  "keywords": [
+    "Android"
+  ],
+  "articleBody": "Android（2） Activity的启动和结束 从当前页面跳转到新页面，跳转代码如下：\nstartActivity(new Intent(源页面.this， 目标页面.this)) 从当前页面回到上一个页面，相当于关闭当前页面，返回代码如下：\nfinish(); //结束当前的活动页面 Activity声明周期 onCreate ：创建活动。把页面布局加载进内存，进入了初始状态。 onStart：开始活动。把活动显示在屏幕上，进入了就绪状态 onResume：恢复活动。活动页面进入了活跃状态，能够与用户正常交互，例如允许响应用户的点击动作，允许用户输入文字等等。动画开启 onPause：暂停活动。页面进入暂停状态，无法与用户正常交互。动画暂停 onStop：停止活动。页面不在屏幕上显示。 onDestroy：销毁活动。回收活动占用的系统资源，把页面从内存中清除。 onRestart：重启活动。重新加载内存中的页面数据。 onNewIntent：重用已有的活动实例 Activity的启动模式 显示Intent和隐式Intent Intent是各个组件之间信息沟通的桥梁，它用于Android各组件之间的通信，主要完成下列工作：\n标明本次通信请求从哪里来，到哪里去，要怎么走。 发起方携带本次通信需要的数据内容，接收方从收到的意图中解析数据 发起方若想判断接收方的处理结果，意图就要负责让接收方传回应答的数据内容 显示Intent 显示Intent，直接指定来源活动与目标活动，属于精确匹配。三种构建方式：\n在Intent的构造函数中指定 调用意图对象的setClass方法指定 调用意图对象的setComponent方法指定 隐式Intent 没有明确指定要跳转的目标活动，只给出一个动作字符串让系统自动匹配。属于模糊匹配。动作名称既可以通过setAction方法指定，也可以通过构造函数Intent(String action)直接生成意图对象。常用的系统动作如下表：\nAndroidManifest.xml 指定一个需要自定义跳转的View, 将 和 两个标签分别修改为，自定义包名，以及android.intent.category.DEFAULT\n",
+  "wordCount" : "4248",
+  "inLanguage": "en",
+  "datePublished": "2024-06-21T22:30:13+08:00",
+  "dateModified": "2024-06-21T22:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/en/posts/tech/android2/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/en/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/en/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/en/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/en/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/en/archives/" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/en/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/en/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/en/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/en/">Home</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/en/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/en/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Android（2）
+    </h1>
+    <div class="post-description">
+      Android学习笔记
+    </div>
+    <div class="post-meta"><span title='2024-06-21 22:30:13 +0800 CST'>2024-06-21</span>&nbsp;·&nbsp;9 min&nbsp;·&nbsp;4248 words&nbsp;·&nbsp;updated:&nbsp;2024-06-21&nbsp;·&nbsp;ShowGuan
+
+</div>
+	
+	 <div class="post-password">
+        
+    </div>
+  </header> <div class="toc">
+    <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">Table of Contents</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#android2" aria-label="Android（2）">Android（2）</a><ul>
+                        
+                <li>
+                    <a href="#activity%e7%9a%84%e5%90%af%e5%8a%a8%e5%92%8c%e7%bb%93%e6%9d%9f" aria-label="Activity的启动和结束">Activity的启动和结束</a></li>
+                <li>
+                    <a href="#activity%e5%a3%b0%e6%98%8e%e5%91%a8%e6%9c%9f" aria-label="Activity声明周期">Activity声明周期</a></li>
+                <li>
+                    <a href="#activity%e7%9a%84%e5%90%af%e5%8a%a8%e6%a8%a1%e5%bc%8f" aria-label="Activity的启动模式">Activity的启动模式</a></li>
+                <li>
+                    <a href="#%e6%98%be%e7%a4%baintent%e5%92%8c%e9%9a%90%e5%bc%8fintent" aria-label="显示Intent和隐式Intent">显示Intent和隐式Intent</a><ul>
+                        
+                <li>
+                    <a href="#%e6%98%be%e7%a4%baintent" aria-label="显示Intent">显示Intent</a></li>
+                <li>
+                    <a href="#%e9%9a%90%e5%bc%8fintent" aria-label="隐式Intent">隐式Intent</a><ul>
+                        
+                <li>
+                    <a href="#androidmanifestxml" aria-label="AndroidManifest.xml">AndroidManifest.xml</a></li>
+                <li>
+                    <a href="#xml" aria-label="XML">XML</a></li>
+                <li>
+                    <a href="#java" aria-label="Java">Java</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%90%91%e4%b8%8b%e4%b8%80%e4%b8%aaactivity%e5%8f%91%e9%80%81%e6%95%b0%e6%8d%ae" aria-label="向下一个Activity发送数据">向下一个Activity发送数据</a><ul>
+                        
+                <li>
+                    <a href="#xml-1" aria-label="XML">XML</a><ul>
+                        
+                <li>
+                    <a href="#sendxml" aria-label="send.xml">send.xml</a></li>
+                <li>
+                    <a href="#receivexml" aria-label="receive.xml">receive.xml</a></li></ul>
+                </li>
+                <li>
+                    <a href="#java-1" aria-label="Java">Java</a><ul>
+                        
+                <li>
+                    <a href="#actsentactivityjava" aria-label="ActSentActivity.java">ActSentActivity.java</a></li>
+                <li>
+                    <a href="#actreceiveactivityjava" aria-label="ActReceiveActivity.java">ActReceiveActivity.java</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%90%91%e4%b8%8a%e4%b8%80%e4%b8%aaactivity%e8%bf%94%e5%9b%9e%e6%95%b0%e6%8d%ae" aria-label="向上一个Activity返回数据">向上一个Activity返回数据</a><ul>
+                        
+                <li>
+                    <a href="#xml-2" aria-label="XML">XML</a><ul>
+                        
+                <li>
+                    <a href="#requestxml" aria-label="request.xml">request.xml</a></li>
+                <li>
+                    <a href="#responsexml" aria-label="response.xml">response.xml</a></li></ul>
+                </li>
+                <li>
+                    <a href="#java-2" aria-label="Java">Java</a><ul>
+                        
+                <li>
+                    <a href="#actrequestactivityjava" aria-label="ActRequestActivity.java">ActRequestActivity.java</a></li>
+                <li>
+                    <a href="#actresponseactivityjava" aria-label="ActResponseActivity.java">ActResponseActivity.java</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%b8%ba%e6%b4%bb%e5%8a%a8%e8%a1%a5%e5%85%85%e9%99%84%e5%8a%a0%e4%bf%a1%e6%81%af" aria-label="为活动补充附加信息">为活动补充附加信息</a></li>
+                <li>
+                    <a href="#%e5%9c%a8%e4%bb%a3%e7%a0%81%e4%b8%ad%e8%8e%b7%e5%8f%96%e5%85%83%e6%95%b0%e6%8d%ae" aria-label="在代码中获取元数据">在代码中获取元数据</a></li>
+                <li>
+                    <a href="#%e4%b8%ad%e7%ba%a7%e6%8e%a7%e4%bb%b6" aria-label="中级控件">中级控件</a><ul>
+                        
+                <li>
+                    <a href="#%e5%9b%be%e5%bd%a2drawable" aria-label="图形Drawable">图形Drawable</a></li>
+                <li>
+                    <a href="#%e5%bd%a2%e7%8a%b6%e5%9b%be%e5%bd%a2" aria-label="形状图形">形状图形</a><ul>
+                        
+                <li>
+                    <a href="#drawable%e4%b8%adxml" aria-label="drawable中xml">drawable中xml</a></li>
+                <li>
+                    <a href="#activity_draw_shapexml" aria-label="activity_draw_shape.xml">activity_draw_shape.xml</a></li>
+                <li>
+                    <a href="#java-3" aria-label="Java">Java</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e4%b9%9d%e5%ae%ab%e6%a0%bc%e5%9b%be%e7%89%87" aria-label="九宫格图片">九宫格图片</a><ul>
+                        
+                <li>
+                    <a href="#%e5%88%9b%e5%bb%ba9%e6%96%87%e4%bb%b6" aria-label="创建.9文件">创建.9文件</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%8a%b6%e6%80%81%e5%88%97%e8%a1%a8%e5%9b%be%e5%bd%a2" aria-label="状态列表图形">状态列表图形</a><ul>
+                        
+                <li>
+                    <a href="#btn_nice_selectorxml" aria-label="btn_nice_selector.xml">btn_nice_selector.xml</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%a4%8d%e9%80%89%e6%a1%86checkbox" aria-label="复选框checkbox">复选框checkbox</a><ul>
+                        
+                <li>
+                    <a href="#xml-3" aria-label="xml">xml</a></li>
+                <li>
+                    <a href="#java-4" aria-label="Java">Java</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%bc%80%e5%85%b3switch" aria-label="开关Switch">开关Switch</a><ul>
+                        
+                <li>
+                    <a href="#xml-4" aria-label="xml">xml</a></li>
+                <li>
+                    <a href="#java-5" aria-label="Java">Java</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e7%94%a8checkbox%e5%ae%9e%e7%8e%b0switch" aria-label="用checkbox实现switch">用checkbox实现switch</a><ul>
+                        
+                <li>
+                    <a href="#xml-5" aria-label="xml">xml</a></li>
+                <li>
+                    <a href="#java-6" aria-label="Java">Java</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%8d%95%e9%80%89%e6%8c%89%e9%92%aeradiobutton" aria-label="单选按钮RadioButton">单选按钮RadioButton</a></li>
+                <li>
+                    <a href="#%e6%96%87%e6%9c%ac%e8%be%93%e5%85%a5%e6%a1%86edittext" aria-label="文本输入框EditText">文本输入框EditText</a></li>
+                <li>
+                    <a href="#edittext%e8%ae%be%e7%bd%ae%e5%a4%96%e6%a1%86" aria-label="EditText设置外框">EditText设置外框</a><ul>
+                        
+                <li>
+                    <a href="#xml-6" aria-label="XML">XML</a></li>
+                <li>
+                    <a href="#java-7" aria-label="Java">Java</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%96%87%e6%9c%ac%e6%a1%86%e6%8f%90%e7%a4%ba%e4%bf%a1%e6%81%af" aria-label="文本框提示信息">文本框提示信息</a><ul>
+                        
+                <li>
+                    <a href="#xml-7" aria-label="XML">XML</a></li>
+                <li>
+                    <a href="#java-8" aria-label="Java">Java</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+    </details>
+</div>
+
+  <div class="post-content"><h1 id="android2">Android（2）<a hidden class="anchor" aria-hidden="true" href="#android2">#</a></h1>
+<h2 id="activity的启动和结束">Activity的启动和结束<a hidden class="anchor" aria-hidden="true" href="#activity的启动和结束">#</a></h2>
+<p>从当前页面跳转到新页面，跳转代码如下：</p>
+<ul>
+<li><code>startActivity(new Intent(源页面.this， 目标页面.this))</code></li>
+</ul>
+<p>从当前页面回到上一个页面，相当于关闭当前页面，返回代码如下：</p>
+<ul>
+<li><code>finish();</code> //结束当前的活动页面</li>
+</ul>
+<h2 id="activity声明周期">Activity声明周期<a hidden class="anchor" aria-hidden="true" href="#activity声明周期">#</a></h2>
+<ul>
+<li><code>onCreate</code> ：创建活动。把页面布局加载进内存，进入了初始状态。</li>
+<li><code>onStart</code>：开始活动。把活动显示在屏幕上，进入了就绪状态</li>
+<li><code>onResume</code>：恢复活动。活动页面<strong>进入了活跃状态</strong>，能够与用户正常交互，例如允许响应用户的点击动作，允许用户输入文字等等。<strong>动画开启</strong></li>
+<li><code>onPause</code>：暂停活动。页面进入<strong>暂停状态</strong>，无法与用户正常交互。<strong>动画暂停</strong></li>
+<li><code>onStop</code>：停止活动。页面不在屏幕上显示。</li>
+<li><code>onDestroy</code>：销毁活动。<strong>回收活动占用的系统资源</strong>，把页面从内存中清除。</li>
+<li><code>onRestart</code>：重启活动。重新加载内存中的页面数据。</li>
+<li><code>onNewIntent</code>：重用已有的活动实例</li>
+</ul>
+<h2 id="activity的启动模式">Activity的启动模式<a hidden class="anchor" aria-hidden="true" href="#activity的启动模式">#</a></h2>
+<h2 id="显示intent和隐式intent">显示Intent和隐式Intent<a hidden class="anchor" aria-hidden="true" href="#显示intent和隐式intent">#</a></h2>
+<p><code>Intent</code>是各个组件之间信息沟通的桥梁，它用于<code>Android</code>各组件之间的通信，主要完成下列工作：</p>
+<ul>
+<li>标明本次通信请求从哪里来，到哪里去，要怎么走。</li>
+<li>发起方携带本次通信需要的数据内容，接收方从收到的意图中解析数据</li>
+<li>发起方若想判断接收方的处理结果，意图就要负责让接收方传回应答的数据内容</li>
+</ul>
+<h3 id="显示intent">显示Intent<a hidden class="anchor" aria-hidden="true" href="#显示intent">#</a></h3>
+<p>显示<code>Intent</code>，直接指定来源活动与目标活动，属于精确匹配。三种构建方式：</p>
+<ul>
+<li>在Intent的构造函数中指定</li>
+<li>调用意图对象的<code>setClass</code>方法指定</li>
+<li>调用意图对象的<code>setComponent</code>方法指定</li>
+</ul>
+<h3 id="隐式intent">隐式Intent<a hidden class="anchor" aria-hidden="true" href="#隐式intent">#</a></h3>
+<p>没有明确指定要跳转的目标活动，只给出一个动作字符串让系统自动匹配。属于模糊匹配。动作名称既可以通过<code>setAction</code>方法指定，也可以通过构造函数<code>Intent(String action)</code>直接生成意图对象。常用的系统动作如下表：</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240618144331648.png" alt="image-20240618144331648"  />
+</p>
+<!-- raw HTML omitted -->
+<h4 id="androidmanifestxml">AndroidManifest.xml<a hidden class="anchor" aria-hidden="true" href="#androidmanifestxml">#</a></h4>
+<p>指定一个需要自定义跳转的View, 将<code>&lt;action&gt;</code> 和 <code>&lt;category&gt;</code>两个标签分别修改为，自定义包名，以及<code>android.intent.category.DEFAULT</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#f92672">&lt;activity</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;.LoginInputActivity&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:exported=</span><span style="color:#e6db74">&#34;true&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;intent-filter&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;action</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.intent.action.kennem&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;category</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.intent.category.DEFAULT&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;/intent-filter&gt;</span>
+</span></span><span style="display:flex;"><span>         <span style="color:#f92672">&lt;/activity&gt;</span>
+</span></span></code></pre></div><h4 id="xml">XML<a hidden class="anchor" aria-hidden="true" href="#xml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:padding=</span><span style="color:#e6db74">&#34;5dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;点击以下按钮对号码123321发起请求&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_dial&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;跳转到拨号页面&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_sms&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;跳转到发短信页面&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_my&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;跳转到我的页面&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java">Java<a hidden class="anchor" aria-hidden="true" href="#java">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">// 定义一个名为 ActUriActivity 的 Activity 类，继承自 AppCompatActivity 并实现 View.OnClickListener 接口</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActUriActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置 Activity 的布局文件</span>
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_uri</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 为三个按钮设置点击监听器</span>
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_dial</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_sms</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_my</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个 Intent 对象，用于启动其他 Activity</span>
+</span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 定义一个电话号码字符串</span>
+</span></span><span style="display:flex;"><span>        String phoneNum <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;123654789&#34;</span>;
+</span></span><span style="display:flex;"><span>        
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 根据点击的按钮 ID 执行相应的操作</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (v.<span style="color:#a6e22e">getId</span>() <span style="color:#f92672">==</span> R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_dial</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 设置 Intent 的 Action 为拨号</span>
+</span></span><span style="display:flex;"><span>            intent.<span style="color:#a6e22e">setAction</span>(Intent.<span style="color:#a6e22e">ACTION_DIAL</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 创建一个 Uri 对象，表示电话号码</span>
+</span></span><span style="display:flex;"><span>            Uri uri <span style="color:#f92672">=</span> Uri.<span style="color:#a6e22e">parse</span>(<span style="color:#e6db74">&#34;tel:&#34;</span> <span style="color:#f92672">+</span> phoneNum);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 将 Uri 数据设置到 Intent 中</span>
+</span></span><span style="display:flex;"><span>            intent.<span style="color:#a6e22e">setData</span>(uri);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 启动拨号界面</span>
+</span></span><span style="display:flex;"><span>            startActivity(intent);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (v.<span style="color:#a6e22e">getId</span>() <span style="color:#f92672">==</span> R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_sms</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 设置 Intent 的 Action 为发送短信</span>
+</span></span><span style="display:flex;"><span>            intent.<span style="color:#a6e22e">setAction</span>(Intent.<span style="color:#a6e22e">ACTION_SENDTO</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 创建一个 Uri 对象，表示短信号码</span>
+</span></span><span style="display:flex;"><span>            Uri uri2 <span style="color:#f92672">=</span> Uri.<span style="color:#a6e22e">parse</span>(<span style="color:#e6db74">&#34;smsto:&#34;</span> <span style="color:#f92672">+</span> phoneNum);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 将 Uri 数据设置到 Intent 中</span>
+</span></span><span style="display:flex;"><span>            intent.<span style="color:#a6e22e">setData</span>(uri2);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 启动短信界面</span>
+</span></span><span style="display:flex;"><span>            startActivity(intent);
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (v.<span style="color:#a6e22e">getId</span>() <span style="color:#f92672">==</span> R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_my</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 设置 Intent 的 Action 为自定义 Action</span>
+</span></span><span style="display:flex;"><span>            intent.<span style="color:#a6e22e">setAction</span>(<span style="color:#e6db74">&#34;android.intent.action.kennem&#34;</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 添加默认类别</span>
+</span></span><span style="display:flex;"><span>            intent.<span style="color:#a6e22e">addCategory</span>(Intent.<span style="color:#a6e22e">CATEGORY_DEFAULT</span>);
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 启动自定义的 Activity</span>
+</span></span><span style="display:flex;"><span>            startActivity(intent);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>向下一个Activity发送数据</p>
+<ul>
+<li>Intent使用Bundle对象存放待传递的数据信息。</li>
+<li>Bundle对象操作各种类型数据的读写方法说明：</li>
+</ul>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240618144725297.png" alt="image-20240618144725297"  />
+</p>
+<h2 id="向下一个activity发送数据">向下一个Activity发送数据<a hidden class="anchor" aria-hidden="true" href="#向下一个activity发送数据">#</a></h2>
+<h3 id="xml-1">XML<a hidden class="anchor" aria-hidden="true" href="#xml-1">#</a></h3>
+<h4 id="sendxml">send.xml<a hidden class="anchor" aria-hidden="true" href="#sendxml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_send&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;坚持下去&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:textSize=</span><span style="color:#e6db74">&#34;20sp&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_send&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:gravity=</span><span style="color:#e6db74">&#34;center&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;发送以上的文字&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="receivexml">receive.xml<a hidden class="anchor" aria-hidden="true" href="#receivexml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_receive&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;坚持下去&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:textSize=</span><span style="color:#e6db74">&#34;20sp&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h3 id="java-1">Java<a hidden class="anchor" aria-hidden="true" href="#java-1">#</a></h3>
+<h4 id="actsentactivityjava">ActSentActivity.java<a hidden class="anchor" aria-hidden="true" href="#actsentactivityjava">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter04;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActSentActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_send;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_sent</span>);
+</span></span><span style="display:flex;"><span>        tv_send <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_send</span>);
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_send</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent(<span style="color:#66d9ef">this</span>, ActReceiveActivity.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Bundle();
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;request_time&#34;</span>, DateUtil.<span style="color:#a6e22e">getNowTime</span>());
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;request_content&#34;</span>, tv_send.<span style="color:#a6e22e">getText</span>().<span style="color:#a6e22e">toString</span>());
+</span></span><span style="display:flex;"><span>        intent.<span style="color:#a6e22e">putExtras</span>(bundle);
+</span></span><span style="display:flex;"><span>        startActivity(intent);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="actreceiveactivityjava">ActReceiveActivity.java<a hidden class="anchor" aria-hidden="true" href="#actreceiveactivityjava">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter04;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActReceiveActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_send;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_receive;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_receive</span>);
+</span></span><span style="display:flex;"><span>        tv_receive <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_receive</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> getIntent().<span style="color:#a6e22e">getExtras</span>();
+</span></span><span style="display:flex;"><span>        String request_time <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;request_time&#34;</span>);
+</span></span><span style="display:flex;"><span>        String request_content <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;request_content&#34;</span>);
+</span></span><span style="display:flex;"><span>        String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;成功收到消息，收到时间为%s, 收到内容为%s&#34;</span>, request_time, request_content);
+</span></span><span style="display:flex;"><span>        tv_receive.<span style="color:#a6e22e">setText</span>(desc);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="向上一个activity返回数据">向上一个Activity返回数据<a hidden class="anchor" aria-hidden="true" href="#向上一个activity返回数据">#</a></h2>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/requestDemo.gif" alt="requestDemo"  />
+</p>
+<h3 id="xml-2">XML<a hidden class="anchor" aria-hidden="true" href="#xml-2">#</a></h3>
+<h4 id="requestxml">request.xml<a hidden class="anchor" aria-hidden="true" href="#requestxml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_request&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_margin=</span><span style="color:#e6db74">&#34;30dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:textSize=</span><span style="color:#e6db74">&#34;15sp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_request&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_margin=</span><span style="color:#e6db74">&#34;30dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:gravity=</span><span style="color:#e6db74">&#34;center&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;请求传送数据&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_response&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_margin=</span><span style="color:#e6db74">&#34;30dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="responsexml">response.xml<a hidden class="anchor" aria-hidden="true" href="#responsexml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xmlns:app=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res-auto&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">xmlns:tools=</span><span style="color:#e6db74">&#34;http://schemas.android.com/tools&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_request&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_response&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:gravity=</span><span style="color:#e6db74">&#34;center&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;请求传送数据&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_response&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h3 id="java-2">Java<a hidden class="anchor" aria-hidden="true" href="#java-2">#</a></h3>
+<h4 id="actrequestactivityjava">ActRequestActivity.java<a hidden class="anchor" aria-hidden="true" href="#actrequestactivityjava">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter04;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActRequestActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> String mRequest <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;今天是2024/06/18， 坚持就是胜利，效率就是王者&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> ActivityResultLauncher<span style="color:#f92672">&lt;</span>Intent<span style="color:#f92672">&gt;</span> register;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_response;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_request;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_request</span>);
+</span></span><span style="display:flex;"><span>        tv_request <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_request</span>);
+</span></span><span style="display:flex;"><span>        tv_response <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_response</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        tv_request.<span style="color:#a6e22e">setText</span>(<span style="color:#e6db74">&#34;待发送的文本&#34;</span> <span style="color:#f92672">+</span> mRequest);
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_request</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        register <span style="color:#f92672">=</span> registerForActivityResult(<span style="color:#66d9ef">new</span> ActivityResultContracts.<span style="color:#a6e22e">StartActivityForResult</span>(), result <span style="color:#f92672">-&gt;</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(result <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>                Intent intent <span style="color:#f92672">=</span> result.<span style="color:#a6e22e">getData</span>();
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span>(intent <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> result.<span style="color:#a6e22e">getResultCode</span>() <span style="color:#f92672">==</span> Activity.<span style="color:#a6e22e">RESULT_OK</span>){
+</span></span><span style="display:flex;"><span>                    Bundle bundle <span style="color:#f92672">=</span> intent.<span style="color:#a6e22e">getExtras</span>();
+</span></span><span style="display:flex;"><span>                    String request_time <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;response_time&#34;</span>);
+</span></span><span style="display:flex;"><span>                    String request_content <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;response_content&#34;</span>);
+</span></span><span style="display:flex;"><span>                    String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;收到应答消息，应答时间为%s, 应答内容为%s&#34;</span>, request_time, request_content);
+</span></span><span style="display:flex;"><span>                    tv_response.<span style="color:#a6e22e">setText</span>(desc);
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        });
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent(<span style="color:#66d9ef">this</span>, ActResponseActivity.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Bundle();
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;request_time&#34;</span>, DateUtil.<span style="color:#a6e22e">getNowTime</span>());
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;request_content&#34;</span>, mRequest);
+</span></span><span style="display:flex;"><span>        intent.<span style="color:#a6e22e">putExtras</span>(bundle);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        register.<span style="color:#a6e22e">launch</span>(intent);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="actresponseactivityjava">ActResponseActivity.java<a hidden class="anchor" aria-hidden="true" href="#actresponseactivityjava">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter04;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActResponseActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String mResponse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;我™一定能进小米&#34;</span>;S
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_response</span>);
+</span></span><span style="display:flex;"><span>        TextView tv_request <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_request</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> getIntent().<span style="color:#a6e22e">getExtras</span>();
+</span></span><span style="display:flex;"><span>        String request_time <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;request_time&#34;</span>);
+</span></span><span style="display:flex;"><span>        String request_content <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;request_content&#34;</span>);
+</span></span><span style="display:flex;"><span>        String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;成功收到消息，收到时间为%s, 收到内容为%s&#34;</span>, request_time, request_content);
+</span></span><span style="display:flex;"><span>        tv_request.<span style="color:#a6e22e">setText</span>(desc);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_response</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        TextView tv_response <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_response</span>);
+</span></span><span style="display:flex;"><span>        tv_response.<span style="color:#a6e22e">setText</span>(<span style="color:#e6db74">&#34;待返回的内容：&#34;</span> <span style="color:#f92672">+</span> mResponse);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent(<span style="color:#66d9ef">this</span>, ActRequestActivity.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Bundle();
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;response_time&#34;</span>, DateUtil.<span style="color:#a6e22e">getNowTime</span>());
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;response_content&#34;</span>, <span style="color:#e6db74">&#34;应答内容&#34;</span> <span style="color:#f92672">+</span> mResponse);
+</span></span><span style="display:flex;"><span>        intent.<span style="color:#a6e22e">putExtras</span>(bundle);
+</span></span><span style="display:flex;"><span>        setResult(Activity.<span style="color:#a6e22e">RESULT_OK</span>, intent);
+</span></span><span style="display:flex;"><span>        finish();
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="为活动补充附加信息">为活动补充附加信息<a hidden class="anchor" aria-hidden="true" href="#为活动补充附加信息">#</a></h2>
+<p>将string信息定义在<code>strings.xml</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#f92672">&lt;resources&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;string</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;app_name&#34;</span><span style="color:#f92672">&gt;</span>chapter04<span style="color:#f92672">&lt;/string&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;string</span> <span style="color:#a6e22e">name=</span><span style="color:#e6db74">&#34;weather_info&#34;</span><span style="color:#f92672">&gt;</span>今天是个糟糕的一天<span style="color:#f92672">&lt;/string&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/resources&gt;</span>
+</span></span></code></pre></div><p>java代码中引用即可：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>        TextView tv_resource <span style="color:#f92672">=</span>  findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_resource</span>);
+</span></span><span style="display:flex;"><span>        String value <span style="color:#f92672">=</span> getString(R.<span style="color:#a6e22e">string</span>.<span style="color:#a6e22e">weather_info</span>);
+</span></span><span style="display:flex;"><span>        tv_resource.<span style="color:#a6e22e">setText</span>(value);
+</span></span></code></pre></div><h2 id="在代码中获取元数据">在代码中获取元数据<a hidden class="anchor" aria-hidden="true" href="#在代码中获取元数据">#</a></h2>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619165527827.png" alt="image-20240619165527827"  />
+</p>
+<ol>
+<li>在<code>AndroidManifest.xml</code>文件中指定metadata</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#f92672">&lt;activity</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;.ActStartActivity&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:exported=</span><span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:launchMode=</span><span style="color:#e6db74">&#34;standard&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;intent-filter&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;action</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.intent.action.MAIN&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;category</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.intent.category.LAUNCHER&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;/intent-filter&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;meta-data</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.app.shortcuts&#34;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">android:resource=</span><span style="color:#e6db74">&#34;@xml/shortcuts&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/activity&gt;</span>
+</span></span></code></pre></div><ol start="2">
+<li>编写<code>shortcuts.xml</code>， 指定显示的名称和要跳转的页面</li>
+</ol>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619165658290.png" alt="image-20240619165658290"  />
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;shortcuts</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;shortcut</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:enabled=</span><span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:icon=</span><span style="color:#e6db74">&#34;@mipmap/ic_launcher&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutId=</span><span style="color:#e6db74">&#34;first&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutLongLabel=</span><span style="color:#e6db74">&#34;@string/first_long&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutShortLabel=</span><span style="color:#e6db74">&#34;@string/first_short&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;intent</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:action=</span><span style="color:#e6db74">&#34;android.intent.action.VIEW&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:targetClass=</span><span style="color:#e6db74">&#34;com.showguan.chapter04.ActStartActivity&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:targetPackage=</span><span style="color:#e6db74">&#34;com.showguan.chapter04&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;categories</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.shortcut.conversation&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/intent&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/shortcut&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;shortcut</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:enabled=</span><span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:icon=</span><span style="color:#e6db74">&#34;@mipmap/ic_launcher&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutId=</span><span style="color:#e6db74">&#34;second&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutLongLabel=</span><span style="color:#e6db74">&#34;@string/second_long&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutShortLabel=</span><span style="color:#e6db74">&#34;@string/second_short&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;intent</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:action=</span><span style="color:#e6db74">&#34;android.intent.action.VIEW&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:targetClass=</span><span style="color:#e6db74">&#34;com.showguan.chapter04.JumpFirstActivity&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:targetPackage=</span><span style="color:#e6db74">&#34;com.showguan.chapter04&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;categories</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.shortcut.conversation&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/intent&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/shortcut&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;shortcut</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:enabled=</span><span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:icon=</span><span style="color:#e6db74">&#34;@mipmap/ic_launcher&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutId=</span><span style="color:#e6db74">&#34;third&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutLongLabel=</span><span style="color:#e6db74">&#34;@string/third_long&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:shortcutShortLabel=</span><span style="color:#e6db74">&#34;@string/third_short&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;intent</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:action=</span><span style="color:#e6db74">&#34;android.intent.action.VIEW&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:targetClass=</span><span style="color:#e6db74">&#34;com.showguan.chapter04.LoginInputActivity&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:targetPackage=</span><span style="color:#e6db74">&#34;com.showguan.chapter04&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;categories</span> <span style="color:#a6e22e">android:name=</span><span style="color:#e6db74">&#34;android.shortcut.conversation&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/intent&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/shortcut&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/shortcuts&gt;</span>
+</span></span></code></pre></div><p>注意名称需要存储在<code>strings.xml</code>中</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619170009370.png" alt="image-20240619170009370"  />
+</p>
+<ol start="3">
+<li><code>AndroidManifest.xml</code>中需要跳转的页面<code>exported</code>属性要设置为<code>true</code></li>
+</ol>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619170059258.png" alt="image-20240619170059258"  />
+</p>
+<h2 id="中级控件">中级控件<a hidden class="anchor" aria-hidden="true" href="#中级控件">#</a></h2>
+<h3 id="图形drawable">图形Drawable<a hidden class="anchor" aria-hidden="true" href="#图形drawable">#</a></h3>
+<ul>
+<li>
+<p>Drawable类型表达了各种各样的图形，包括图片，色块，画板， 背景等</p>
+</li>
+<li>
+<p>包含图片在内的图形文件放在res目录的各个drawable目录下，其中drawable目录一般保存描述性的XML文件，而图片文件一般放在具体分辨率的drawable目录下。</p>
+</li>
+<li>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619195129068.png" alt="image-20240619195129068"  />
+</p>
+<ul>
+<li><code>drawable-ldpi</code>, <code>drawable-mdpi</code>, <code>drawable-hdpi</code>, <code>drawable-xhdpi</code>,<code>drawable-xxhdpi</code>， <code>drawable-xxhdpi</code>表示低分辨率，中等分辨率，高分辨率，超高分辨率， 超超高分辨率</li>
+</ul>
+</li>
+<li>
+<p>各视图的<code>background</code>属性，<code>ImageView</code>和<code>ImageButton</code>的src属性，TextView和Button四个方向的drawable系列属性都可以引用图形文件。</p>
+</li>
+</ul>
+<h3 id="形状图形">形状图形<a hidden class="anchor" aria-hidden="true" href="#形状图形">#</a></h3>
+<ul>
+<li><code>shape</code>图形又称形状图形，它用来描述常见的几何形状，包括矩形，圆角矩形，圆形，椭圆等。</li>
+<li>形状图形</li>
+</ul>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/shape.gif" alt="shape"  />
+</p>
+<h4 id="drawable中xml">drawable中xml<a hidden class="anchor" aria-hidden="true" href="#drawable中xml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;shape</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:shape=</span><span style="color:#e6db74">&#34;oval&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;solid</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:color=</span><span style="color:#e6db74">&#34;#ff66aa&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;stroke</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:width=</span><span style="color:#e6db74">&#34;1dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:color=</span><span style="color:#e6db74">&#34;#aaaaaa&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/shape&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;shape</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    填充颜色--&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;solid</span> <span style="color:#a6e22e">android:color=</span><span style="color:#e6db74">&#34;#ffdd66&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    轮廓粗细与颜色--&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;stroke</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:width=</span><span style="color:#e6db74">&#34;1dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:color=</span><span style="color:#e6db74">&#34;#aaaaaa&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    形状四个圆角的半径--&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;corners</span> <span style="color:#a6e22e">android:radius=</span><span style="color:#e6db74">&#34;10dp&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/shape&gt;</span>
+</span></span></code></pre></div><h4 id="activity_draw_shapexml">activity_draw_shape.xml<a hidden class="anchor" aria-hidden="true" href="#activity_draw_shapexml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;View</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/v_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;200dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_margin=</span><span style="color:#e6db74">&#34;10dp&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;LinearLayout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;horizontal&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_rect&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;0dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_weight=</span><span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;圆角矩形按钮&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/btn_oval&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;0dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_weight=</span><span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;椭圆按钮&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java-3">Java<a hidden class="anchor" aria-hidden="true" href="#java-3">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter05;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DrawShapeActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> View v_content;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_draw_shape</span>);
+</span></span><span style="display:flex;"><span>        v_content <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">v_content</span>);
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_rect</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_oval</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>        v_content.<span style="color:#a6e22e">setBackgroundResource</span>(R.<span style="color:#a6e22e">drawable</span>.<span style="color:#a6e22e">shape_rect_gold</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(v.<span style="color:#a6e22e">getId</span>() <span style="color:#f92672">==</span> R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_rect</span>){
+</span></span><span style="display:flex;"><span>            v_content.<span style="color:#a6e22e">setBackgroundResource</span>(R.<span style="color:#a6e22e">drawable</span>.<span style="color:#a6e22e">shape_rect_gold</span>);
+</span></span><span style="display:flex;"><span>        }<span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (v.<span style="color:#a6e22e">getId</span>()<span style="color:#f92672">==</span>R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_oval</span>){
+</span></span><span style="display:flex;"><span>            v_content.<span style="color:#a6e22e">setBackgroundResource</span>(R.<span style="color:#a6e22e">drawable</span>.<span style="color:#a6e22e">shape_oval_rose</span>);
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="九宫格图片">九宫格图片<a hidden class="anchor" aria-hidden="true" href="#九宫格图片">#</a></h3>
+<ul>
+<li>将某张图片设置为视图背景时，如果图片尺寸太小，则系统会自动拉伸图片使之填满背景</li>
+<li>可是一旦图片拉得过大，其画面容易变得模糊</li>
+</ul>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619200715775.png" alt="image-20240619200715775"  />
+</p>
+<h4 id="创建9文件">创建.9文件<a hidden class="anchor" aria-hidden="true" href="#创建9文件">#</a></h4>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619200856720.png" alt="image-20240619200856720"  />
+</p>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619201138565.png" alt="image-20240619201138565"  />
+</p>
+<h3 id="状态列表图形">状态列表图形<a hidden class="anchor" aria-hidden="true" href="#状态列表图形">#</a></h3>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240619202158063.png" alt="image-20240619202158063"  />
+</p>
+<h4 id="btn_nice_selectorxml">btn_nice_selector.xml<a hidden class="anchor" aria-hidden="true" href="#btn_nice_selectorxml">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;selector</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;item</span> <span style="color:#a6e22e">android:state_pressed=</span><span style="color:#e6db74">&#34;true&#34;</span> <span style="color:#a6e22e">android:drawable=</span><span style="color:#e6db74">&#34;@drawable/button_pressed&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;item</span> <span style="color:#a6e22e">android:drawable=</span><span style="color:#e6db74">&#34;@drawable/button_normal&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/selector&gt;</span>
+</span></span></code></pre></div><h3 id="复选框checkbox">复选框checkbox<a hidden class="anchor" aria-hidden="true" href="#复选框checkbox">#</a></h3>
+<!-- raw HTML omitted -->
+<h4 id="xml-3">xml<a hidden class="anchor" aria-hidden="true" href="#xml-3">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;CheckBox</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/ck_system&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;5dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;系统的checkbox&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;CheckBox</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/ck_custom&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:button=</span><span style="color:#e6db74">&#34;@drawable/checkbox_selector&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;10dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:checked=</span><span style="color:#e6db74">&#34;true&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;系统的checkbox&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java-4">Java<a hidden class="anchor" aria-hidden="true" href="#java-4">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter05;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> android.os.Bundle;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> android.view.View;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> android.widget.CheckBox;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> android.widget.CompoundButton;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> androidx.activity.EdgeToEdge;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> androidx.appcompat.app.AppCompatActivity;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> androidx.core.graphics.Insets;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> androidx.core.view.ViewCompat;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> androidx.core.view.WindowInsetsCompat;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CheckBoxActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> CompoundButton.<span style="color:#a6e22e">OnCheckedChangeListener</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_check_box</span>);
+</span></span><span style="display:flex;"><span>        CheckBox ck_system <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">ck_system</span>);
+</span></span><span style="display:flex;"><span>        CheckBox ck_custom <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">ck_custom</span>);
+</span></span><span style="display:flex;"><span>        ck_system.<span style="color:#a6e22e">setOnCheckedChangeListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>        ck_custom.<span style="color:#a6e22e">setOnCheckedChangeListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCheckedChanged</span>(CompoundButton buttonView, <span style="color:#66d9ef">boolean</span> isChecked) {
+</span></span><span style="display:flex;"><span>        String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;您%s此按钮。&#34;</span> , isChecked <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;勾选了&#34;</span> : <span style="color:#e6db74">&#34;取消勾选了&#34;</span>);
+</span></span><span style="display:flex;"><span>        buttonView.<span style="color:#a6e22e">setText</span>(desc);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="开关switch">开关Switch<a hidden class="anchor" aria-hidden="true" href="#开关switch">#</a></h3>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/switch.gif" alt="switch"  />
+</p>
+<h4 id="xml-4">xml<a hidden class="anchor" aria-hidden="true" href="#xml-4">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;LinearLayout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;horizontal&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;0dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_gravity=</span><span style="color:#e6db74">&#34;start&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;5dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_weight=</span><span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;开关&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:textSize=</span><span style="color:#e6db74">&#34;17sp&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;Switch</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/sw_status&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_gravity=</span><span style="color:#e6db74">&#34;end&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:width=</span><span style="color:#e6db74">&#34;80dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:height=</span><span style="color:#e6db74">&#34;30dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:padding=</span><span style="color:#e6db74">&#34;5dp&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_result&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;0dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_gravity=</span><span style="color:#e6db74">&#34;start&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;10dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_weight=</span><span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:gravity=</span><span style="color:#e6db74">&#34;start&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java-5">Java<a hidden class="anchor" aria-hidden="true" href="#java-5">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter05;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SwitchActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> CompoundButton.<span style="color:#a6e22e">OnCheckedChangeListener</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_result;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_switch</span>);
+</span></span><span style="display:flex;"><span>        Switch sw_status <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">sw_status</span>);
+</span></span><span style="display:flex;"><span>        tv_result <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_result</span>);
+</span></span><span style="display:flex;"><span>        sw_status.<span style="color:#a6e22e">setOnCheckedChangeListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCheckedChanged</span>(CompoundButton buttonView, <span style="color:#66d9ef">boolean</span> isChecked) {
+</span></span><span style="display:flex;"><span>        String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;Switch按钮的状态是%s&#34;</span>, isChecked <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;开&#34;</span> : <span style="color:#e6db74">&#34;关&#34;</span>);
+</span></span><span style="display:flex;"><span>        tv_result.<span style="color:#a6e22e">setText</span>(desc);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="用checkbox实现switch">用checkbox实现switch<a hidden class="anchor" aria-hidden="true" href="#用checkbox实现switch">#</a></h3>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/switchIOSStyle.gif" alt="switchIOSStyle"  />
+</p>
+<h4 id="xml-5">xml<a hidden class="anchor" aria-hidden="true" href="#xml-5">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;LinearLayout</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;horizontal&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;0dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_gravity=</span><span style="color:#e6db74">&#34;start&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;5dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_weight=</span><span style="color:#e6db74">&#34;1&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;开关&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:textSize=</span><span style="color:#e6db74">&#34;17sp&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;CheckBox</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/ck_status&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;60dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;30dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:layout_gravity=</span><span style="color:#e6db74">&#34;end&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:width=</span><span style="color:#e6db74">&#34;80dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:height=</span><span style="color:#e6db74">&#34;30dp&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:background=</span><span style="color:#e6db74">&#34;@drawable/switch_selector&#34;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">android:button=</span><span style="color:#e6db74">&#34;@null&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;TextView</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/tv_result&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_gravity=</span><span style="color:#e6db74">&#34;start&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;10dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:gravity=</span><span style="color:#e6db74">&#34;start&#34;</span> <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java-6">Java<a hidden class="anchor" aria-hidden="true" href="#java-6">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter05;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SwitchIOSActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> CompoundButton.<span style="color:#a6e22e">OnCheckedChangeListener</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_result;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_switch_iosactivity</span>);
+</span></span><span style="display:flex;"><span>        CheckBox ck_status <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">ck_status</span>);
+</span></span><span style="display:flex;"><span>        tv_result <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_result</span>);
+</span></span><span style="display:flex;"><span>        ck_status.<span style="color:#a6e22e">setOnCheckedChangeListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCheckedChanged</span>(CompoundButton buttonView, <span style="color:#66d9ef">boolean</span> isChecked) {
+</span></span><span style="display:flex;"><span>        String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;开关按钮的状态是%s&#34;</span>, isChecked <span style="color:#f92672">?</span> <span style="color:#e6db74">&#34;开&#34;</span> : <span style="color:#e6db74">&#34;关&#34;</span>);
+</span></span><span style="display:flex;"><span>        tv_result.<span style="color:#a6e22e">setText</span>(desc);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="单选按钮radiobutton">单选按钮RadioButton<a hidden class="anchor" aria-hidden="true" href="#单选按钮radiobutton">#</a></h3>
+<h3 id="文本输入框edittext">文本输入框EditText<a hidden class="anchor" aria-hidden="true" href="#文本输入框edittext">#</a></h3>
+<h3 id="edittext设置外框">EditText设置外框<a hidden class="anchor" aria-hidden="true" href="#edittext设置外框">#</a></h3>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/editBoard.gif" alt="editBoard"  />
+</p>
+<h4 id="xml-6">XML<a hidden class="anchor" aria-hidden="true" href="#xml-6">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:padding=</span><span style="color:#e6db74">&#34;5dp&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;EditText</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:hint=</span><span style="color:#e6db74">&#34;这里是默认边框&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:inputType=</span><span style="color:#e6db74">&#34;text&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;EditText</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:hint=</span><span style="color:#e6db74">&#34;这里没有边框&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:inputType=</span><span style="color:#e6db74">&#34;text&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;5dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:background=</span><span style="color:#e6db74">&#34;@null&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;EditText</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:hint=</span><span style="color:#e6db74">&#34;这里是圆角边框&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:inputType=</span><span style="color:#e6db74">&#34;text&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;5dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:background=</span><span style="color:#e6db74">&#34;@drawable/edittext_selector&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java-7">Java<a hidden class="anchor" aria-hidden="true" href="#java-7">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EditBoardActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_edit_board</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="文本框提示信息">文本框提示信息<a hidden class="anchor" aria-hidden="true" href="#文本框提示信息">#</a></h3>
+<p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/editFocus.gif" alt="editFocus"  />
+</p>
+<h4 id="xml-7">XML<a hidden class="anchor" aria-hidden="true" href="#xml-7">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt;</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;LinearLayout</span> <span style="color:#a6e22e">xmlns:android=</span><span style="color:#e6db74">&#34;http://schemas.android.com/apk/res/android&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/main&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:orientation=</span><span style="color:#e6db74">&#34;vertical&#34;</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">android:padding=</span><span style="color:#e6db74">&#34;5dp&#34;</span><span style="color:#f92672">&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;EditText</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/et_phone&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:hint=</span><span style="color:#e6db74">&#34;请输入11位手机号码&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:inputType=</span><span style="color:#e6db74">&#34;number&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:maxLength=</span><span style="color:#e6db74">&#34;11&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;15dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:background=</span><span style="color:#e6db74">&#34;@drawable/edittext_selector&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;EditText</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:id=</span><span style="color:#e6db74">&#34;@+id/et_password&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:hint=</span><span style="color:#e6db74">&#34;请输入6位密码&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:inputType=</span><span style="color:#e6db74">&#34;numberPassword&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:maxLength=</span><span style="color:#e6db74">&#34;11&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;15dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:background=</span><span style="color:#e6db74">&#34;@drawable/edittext_selector&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;Button</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_width=</span><span style="color:#e6db74">&#34;match_parent&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_marginTop=</span><span style="color:#e6db74">&#34;15dp&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:layout_height=</span><span style="color:#e6db74">&#34;wrap_content&#34;</span>
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">android:text=</span><span style="color:#e6db74">&#34;登录&#34;</span><span style="color:#f92672">/&gt;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/LinearLayout&gt;</span>
+</span></span></code></pre></div><h4 id="java-8">Java<a hidden class="anchor" aria-hidden="true" href="#java-8">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter05;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">EditFocusActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnFocusChangeListener</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> EditText et_phone;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_edit_focus</span>);
+</span></span><span style="display:flex;"><span>        et_phone <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">et_phone</span>);
+</span></span><span style="display:flex;"><span>        et_phone.<span style="color:#a6e22e">setOnFocusChangeListener</span>(<span style="color:#66d9ef">this</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onFocusChange</span>(View v, <span style="color:#66d9ef">boolean</span> hasFocus) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span>hasFocus){
+</span></span><span style="display:flex;"><span>            String phone <span style="color:#f92672">=</span> et_phone.<span style="color:#a6e22e">getText</span>().<span style="color:#a6e22e">toString</span>();
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(TextUtils.<span style="color:#a6e22e">isEmpty</span>(phone) <span style="color:#f92672">||</span> phone.<span style="color:#a6e22e">length</span>() <span style="color:#f92672">&lt;</span> 11){
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//                et_phone.requestFocus();</span>
+</span></span><span style="display:flex;"><span>                Toast.<span style="color:#a6e22e">makeText</span>(<span style="color:#66d9ef">this</span>, <span style="color:#e6db74">&#34;请输入11位手机号码&#34;</span>, Toast.<span style="color:#a6e22e">LENGTH_SHORT</span>).<span style="color:#a6e22e">show</span>();
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/en/tags/android/">Android</a></li>
+    </ul>
+		
+	
+	<ul id="categories">
+	  
+		<li><a href="https://kennems.github.io/en/categories/android%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">Android学习笔记</a> </li>
+	  
+	</ul>
+	
+	
+<nav class="paginav">
+  <a class="next" href="https://kennems.github.io/en/posts/tech/android1/">
+    <span class="title">Next »</span>
+    <br>
+    <span>Android（1）</span>
+  </a>
+</nav>
+
+
+<ul class="share-buttons">
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on x"
+            href="https://x.com/intent/tweet/?text=Android%ef%bc%882%ef%bc%89&amp;url=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f&amp;hashtags=Android">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M512 62.554 L 512 449.446 C 512 483.97 483.97 512 449.446 512 L 62.554 512 C 28.03 512 0 483.97 0 449.446 L 0 62.554 C 0 28.03 28.029 0 62.554 0 L 449.446 0 C 483.971 0 512 28.03 512 62.554 Z M 269.951 190.75 L 182.567 75.216 L 56 75.216 L 207.216 272.95 L 63.9 436.783 L 125.266 436.783 L 235.9 310.383 L 332.567 436.783 L 456 436.783 L 298.367 228.367 L 432.367 75.216 L 371.033 75.216 Z M 127.633 110 L 164.101 110 L 383.481 400.065 L 349.5 400.065 Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on linkedin"
+            href="https://www.linkedin.com/shareArticle?mini=true&amp;url=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f&amp;title=Android%ef%bc%882%ef%bc%89&amp;summary=Android%ef%bc%882%ef%bc%89&amp;source=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-288.985,423.278l0,-225.717l-75.04,0l0,225.717l75.04,0Zm270.539,0l0,-129.439c0,-69.333 -37.018,-101.586 -86.381,-101.586c-39.804,0 -57.634,21.891 -67.617,37.266l0,-31.958l-75.021,0c0.995,21.181 0,225.717 0,225.717l75.02,0l0,-126.056c0,-6.748 0.486,-13.492 2.474,-18.315c5.414,-13.475 17.767,-27.434 38.494,-27.434c27.135,0 38.007,20.707 38.007,51.037l0,120.768l75.024,0Zm-307.552,-334.556c-25.674,0 -42.448,16.879 -42.448,39.002c0,21.658 16.264,39.002 41.455,39.002l0.484,0c26.165,0 42.452,-17.344 42.452,-39.002c-0.485,-22.092 -16.241,-38.954 -41.943,-39.002Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on reddit"
+            href="https://reddit.com/submit?url=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f&title=Android%ef%bc%882%ef%bc%89">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-3.446,265.638c0,-22.964 -18.616,-41.58 -41.58,-41.58c-11.211,0 -21.361,4.457 -28.841,11.666c-28.424,-20.508 -67.586,-33.757 -111.204,-35.278l18.941,-89.121l61.884,13.157c0.756,15.734 13.642,28.29 29.56,28.29c16.407,0 29.706,-13.299 29.706,-29.701c0,-16.403 -13.299,-29.702 -29.706,-29.702c-11.666,0 -21.657,6.792 -26.515,16.578l-69.105,-14.69c-1.922,-0.418 -3.939,-0.042 -5.585,1.036c-1.658,1.073 -2.811,2.761 -3.224,4.686l-21.152,99.438c-44.258,1.228 -84.046,14.494 -112.837,35.232c-7.468,-7.164 -17.589,-11.591 -28.757,-11.591c-22.965,0 -41.585,18.616 -41.585,41.58c0,16.896 10.095,31.41 24.568,37.918c-0.639,4.135 -0.99,8.328 -0.99,12.576c0,63.977 74.469,115.836 166.33,115.836c91.861,0 166.334,-51.859 166.334,-115.836c0,-4.218 -0.347,-8.387 -0.977,-12.493c14.564,-6.47 24.735,-21.034 24.735,-38.001Zm-119.474,108.193c-20.27,20.241 -59.115,21.816 -70.534,21.816c-11.428,0 -50.277,-1.575 -70.522,-21.82c-3.007,-3.008 -3.007,-7.882 0,-10.889c3.003,-2.999 7.882,-3.003 10.885,0c12.777,12.781 40.11,17.317 59.637,17.317c19.522,0 46.86,-4.536 59.657,-17.321c3.016,-2.999 7.886,-2.995 10.885,0.008c3.008,3.011 3.003,7.882 -0.008,10.889Zm-5.23,-48.781c-16.373,0 -29.701,-13.324 -29.701,-29.698c0,-16.381 13.328,-29.714 29.701,-29.714c16.378,0 29.706,13.333 29.706,29.714c0,16.374 -13.328,29.698 -29.706,29.698Zm-160.386,-29.702c0,-16.381 13.328,-29.71 29.714,-29.71c16.369,0 29.689,13.329 29.689,29.71c0,16.373 -13.32,29.693 -29.689,29.693c-16.386,0 -29.714,-13.32 -29.714,-29.693Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on facebook"
+            href="https://facebook.com/sharer/sharer.php?u=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-106.468,0l0,-192.915l66.6,0l12.672,-82.621l-79.272,0l0,-53.617c0,-22.603 11.073,-44.636 46.58,-44.636l36.042,0l0,-70.34c0,0 -32.71,-5.582 -63.982,-5.582c-65.288,0 -107.96,39.569 -107.96,111.204l0,62.971l-72.573,0l0,82.621l72.573,0l0,192.915l-191.104,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on whatsapp"
+            href="https://api.whatsapp.com/send?text=Android%ef%bc%882%ef%bc%89%20-%20https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f">
+            <svg version="1.1" viewBox="0 0 512 512" xml:space="preserve" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M449.446,0c34.525,0 62.554,28.03 62.554,62.554l0,386.892c0,34.524 -28.03,62.554 -62.554,62.554l-386.892,0c-34.524,0 -62.554,-28.03 -62.554,-62.554l0,-386.892c0,-34.524 28.029,-62.554 62.554,-62.554l386.892,0Zm-58.673,127.703c-33.842,-33.881 -78.847,-52.548 -126.798,-52.568c-98.799,0 -179.21,80.405 -179.249,179.234c-0.013,31.593 8.241,62.428 23.927,89.612l-25.429,92.884l95.021,-24.925c26.181,14.28 55.659,21.807 85.658,21.816l0.074,0c98.789,0 179.206,-80.413 179.247,-179.243c0.018,-47.895 -18.61,-92.93 -52.451,-126.81Zm-126.797,275.782l-0.06,0c-26.734,-0.01 -52.954,-7.193 -75.828,-20.767l-5.441,-3.229l-56.386,14.792l15.05,-54.977l-3.542,-5.637c-14.913,-23.72 -22.791,-51.136 -22.779,-79.287c0.033,-82.142 66.867,-148.971 149.046,-148.971c39.793,0.014 77.199,15.531 105.329,43.692c28.128,28.16 43.609,65.592 43.594,105.4c-0.034,82.149 -66.866,148.983 -148.983,148.984Zm81.721,-111.581c-4.479,-2.242 -26.499,-13.075 -30.604,-14.571c-4.105,-1.495 -7.091,-2.241 -10.077,2.241c-2.986,4.483 -11.569,14.572 -14.182,17.562c-2.612,2.988 -5.225,3.364 -9.703,1.12c-4.479,-2.241 -18.91,-6.97 -36.017,-22.23c-13.314,-11.876 -22.304,-26.542 -24.916,-31.026c-2.612,-4.484 -0.279,-6.908 1.963,-9.14c2.016,-2.007 4.48,-5.232 6.719,-7.847c2.24,-2.615 2.986,-4.484 4.479,-7.472c1.493,-2.99 0.747,-5.604 -0.374,-7.846c-1.119,-2.241 -10.077,-24.288 -13.809,-33.256c-3.635,-8.733 -7.327,-7.55 -10.077,-7.688c-2.609,-0.13 -5.598,-0.158 -8.583,-0.158c-2.986,0 -7.839,1.121 -11.944,5.604c-4.105,4.484 -15.675,15.32 -15.675,37.364c0,22.046 16.048,43.342 18.287,46.332c2.24,2.99 31.582,48.227 76.511,67.627c10.685,4.615 19.028,7.371 25.533,9.434c10.728,3.41 20.492,2.929 28.209,1.775c8.605,-1.285 26.499,-10.833 30.231,-21.295c3.732,-10.464 3.732,-19.431 2.612,-21.298c-1.119,-1.869 -4.105,-2.99 -8.583,-5.232Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on telegram"
+            href="https://telegram.me/share/url?text=Android%ef%bc%882%ef%bc%89&amp;url=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f">
+            <svg version="1.1" xml:space="preserve" viewBox="2 2 28 28" height="30px" width="30px" fill="currentColor">
+                <path
+                    d="M26.49,29.86H5.5a3.37,3.37,0,0,1-2.47-1,3.35,3.35,0,0,1-1-2.47V5.48A3.36,3.36,0,0,1,3,3,3.37,3.37,0,0,1,5.5,2h21A3.38,3.38,0,0,1,29,3a3.36,3.36,0,0,1,1,2.46V26.37a3.35,3.35,0,0,1-1,2.47A3.38,3.38,0,0,1,26.49,29.86Zm-5.38-6.71a.79.79,0,0,0,.85-.66L24.73,9.24a.55.55,0,0,0-.18-.46.62.62,0,0,0-.41-.17q-.08,0-16.53,6.11a.59.59,0,0,0-.41.59.57.57,0,0,0,.43.52l4,1.24,1.61,4.83a.62.62,0,0,0,.63.43.56.56,0,0,0,.4-.17L16.54,20l4.09,3A.9.9,0,0,0,21.11,23.15ZM13.8,20.71l-1.21-4q8.72-5.55,8.78-5.55c.15,0,.23,0,.23.16a.18.18,0,0,1,0,.06s-2.51,2.3-7.52,6.8Z" />
+            </svg>
+        </a>
+    </li>
+    <li>
+        <a target="_blank" rel="noopener noreferrer" aria-label="share Android（2） on ycombinator"
+            href="https://news.ycombinator.com/submitlink?t=Android%ef%bc%882%ef%bc%89&u=https%3a%2f%2fkennems.github.io%2fen%2fposts%2ftech%2fandroid2%2f">
+            <svg version="1.1" xml:space="preserve" width="30px" height="30px" viewBox="0 0 512 512" fill="currentColor"
+                xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape">
+                <path
+                    d="M449.446 0C483.971 0 512 28.03 512 62.554L512 449.446C512 483.97 483.97 512 449.446 512L62.554 512C28.03 512 0 483.97 0 449.446L0 62.554C0 28.03 28.029 0 62.554 0L449.446 0ZM183.8767 87.9921H121.8427L230.6673 292.4508V424.0079H281.3328V292.4508L390.1575 87.9921H328.1233L256 238.2489z" />
+            </svg>
+        </a>
+    </li>
+</ul>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://kennems.github.io/en/">Kennem</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = 'copy';
+
+        function copyingDone() {
+            copybutton.innerHTML = 'copied!';
+            setTimeout(() => {
+                copybutton.innerHTML = 'copy';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+</body>
+
+</html>
