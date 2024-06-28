@@ -128,8 +128,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Android"
   ],
-  "articleBody": "Android（2） Activity的启动和结束 从当前页面跳转到新页面，跳转代码如下：\nstartActivity(new Intent(源页面.class， 目标页面.class)) 从当前页面回到上一个页面，相当于关闭当前页面，返回代码如下：\nfinish(); //结束当前的活动页面 Activity声明周期 onCreate ：创建活动。把页面布局加载进内存，进入了初始状态。 onStart：开始活动。把活动显示在屏幕上，进入了就绪状态 onResume：恢复活动。活动页面进入了活跃状态，能够与用户正常交互，例如允许响应用户的点击动作，允许用户输入文字等等。动画开启 onPause：暂停活动。页面进入暂停状态，无法与用户正常交互。动画暂停 onStop：停止活动。页面不在屏幕上显示。 onDestroy：销毁活动。回收活动占用的系统资源，把页面从内存中清除。 onRestart：重启活动。重新加载内存中的页面数据。 onNewIntent：重用已有的活动实例 Activity的启动模式 显示Intent和隐式Intent Intent是各个组件之间信息沟通的桥梁，它用于Android各组件之间的通信，主要完成下列工作：\n标明本次通信请求从哪里来，到哪里去，要怎么走。 发起方携带本次通信需要的数据内容，接收方从收到的意图中解析数据 发起方若想判断接收方的处理结果，意图就要负责让接收方传回应答的数据内容 显示Intent 显示Intent，直接指定来源活动与目标活动，属于精确匹配。三种构建方式：\n在Intent的构造函数中指定 调用意图对象的setClass方法指定 调用意图对象的setComponent方法指定 隐式Intent 没有明确指定要跳转的目标活动，只给出一个动作字符串让系统自动匹配。属于模糊匹配。动作名称既可以通过setAction方法指定，也可以通过构造函数Intent(String action)直接生成意图对象。常用的系统动作如下表：\nAndroidManifest.xml 指定一个需要自定义跳转的View, 将 和 两个标签分别修改为，自定义包名，以及android.intent.category.DEFAULT\n",
-  "wordCount" : "5802",
+  "articleBody": "Android（2） Activity的启动和结束 从当前页面跳转到新页面，跳转代码如下：\nstartActivity(new Intent(源页面.this， 目标页面.class)) 从当前页面回到上一个页面，相当于关闭当前页面，返回代码如下：\nfinish(); //结束当前的活动页面 Activity声明周期 onCreate ：创建活动。把页面布局加载进内存，进入了初始状态。 onStart：开始活动。把活动显示在屏幕上，进入了就绪状态 onResume：恢复活动。活动页面进入了活跃状态，能够与用户正常交互，例如允许响应用户的点击动作，允许用户输入文字等等。动画开启 onPause：暂停活动。页面进入暂停状态，无法与用户正常交互。动画暂停 onStop：停止活动。页面不在屏幕上显示。 onDestroy：销毁活动。回收活动占用的系统资源，把页面从内存中清除。 onRestart：重启活动。重新加载内存中的页面数据。 onNewIntent：重用已有的活动实例 Activity的启动模式 launchMode属性值 说明 standard 标准模式，无论何时启动哪个活动，都是重新创建该页面的实例并放入栈顶。如果不指定launchMode属性，则默认为标准模式 singleTop 启动新活动时，判断如果栈顶正好就是该活动的实例，则重用该实例；否则创建新的实例并放入栈顶，也就是按照standard模式处理 singleTask 启动新活动时，判断如果栈中存在该活动的实例，则重用该实例，启动新活动时，判断如果栈中存在该活动的实例，则重用该实例，并清除位于该实例上面的所有实例；否则按照standard模式处理 singleInstance 启动新活动时，将该活动的实例放入一个新栈中，原栈的实例列表保持不变 启动标志的取值说明如下：\nIntent.FLAG_ACTIVITY_NEW_TASK：开辟一个新的任务栈\nIntent.FLAG_ACTIVITY_SINGLE_TOP：当栈顶为待跳转的活动实例之时，则重用栈顶的实例\nIntent.FLAG_ACTIVITY_CLEAR_TOP：当栈中存在待跳转的活动实例时，则重新创建一个新实例，并清除原实例上方的所有实例\nIntent.FLAG_ACTIVITY_NO_HISTORY：栈中不保存新启动的活动实例\nIntent.FLAG_ACTIVITY_CLEAR_TASK：跳转到新页面时，栈中的原有实例都被清空\n显示Intent和隐式Intent Intent是各个组件之间信息沟通的桥梁，它用于Android各组件之间的通信，主要完成下列工作：\n标明本次通信请求从哪里来，到哪里去，要怎么走。 发起方携带本次通信需要的数据内容，接收方从收到的意图中解析数据 发起方若想判断接收方的处理结果，意图就要负责让接收方传回应答的数据内容 显示Intent 显示Intent，直接指定来源活动与目标活动，属于精确匹配。三种构建方式：\n在Intent的构造函数中指定 调用意图对象的setClass方法指定 调用意图对象的setComponent方法指定 @Override public void onClick(View v) { // startActivity(new Intent(this, ActFinishActivity.class)); // Intent intent = new Intent(); // intent.setClass(this, ActFinishActivity.class) // startActivity(intent); Intent intent = new Intent(); ComponentName componentName = new ComponentName(this, ActFinishActivity.class); intent.setComponent(componentName); Log.d(TAG, \"ActStartActivity onClick\"); } 隐式Intent 没有明确指定要跳转的目标活动，只给出一个动作字符串让系统自动匹配。属于模糊匹配。动作名称既可以通过setAction方法指定，也可以通过构造函数Intent(String action)直接生成意图对象。常用的系统动作如下表：\nAndroidManifest.xml 指定一个需要自定义跳转的View, 将 和 两个标签分别修改为，自定义包名，以及android.intent.category.DEFAULT\n",
+  "wordCount" : "6901",
   "inLanguage": "zh",
   "datePublished": "2024-06-21T22:30:13+08:00",
   "dateModified": "2024-06-21T22:20:13+08:00",
@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Android学习笔记
     </div>
-    <div class="post-meta"><span title='2024-06-21 22:30:13 +0800 CST'>2024-06-21</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5802 字&nbsp;·&nbsp;updated:&nbsp;2024-06-21&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-06-21 22:30:13 +0800 CST'>2024-06-21</span>&nbsp;·&nbsp;14 分钟&nbsp;·&nbsp;6901 字&nbsp;·&nbsp;updated:&nbsp;2024-06-21&nbsp;·&nbsp;ShowGuan
 
 </div>
 	
@@ -449,7 +449,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <h2 id="activity的启动和结束">Activity的启动和结束<a hidden class="anchor" aria-hidden="true" href="#activity的启动和结束">#</a></h2>
 <p>从当前页面跳转到新页面，跳转代码如下：</p>
 <ul>
-<li><code>startActivity(new Intent(源页面.class， 目标页面.class))</code></li>
+<li><code>startActivity(new Intent(源页面.this， 目标页面.class))</code></li>
 </ul>
 <p>从当前页面回到上一个页面，相当于关闭当前页面，返回代码如下：</p>
 <ul>
@@ -467,6 +467,50 @@ document.addEventListener("DOMContentLoaded", function() {
 <li><code>onNewIntent</code>：重用已有的活动实例</li>
 </ul>
 <h2 id="activity的启动模式">Activity的启动模式<a hidden class="anchor" aria-hidden="true" href="#activity的启动模式">#</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align:center"><strong>launchMode</strong>属性值</th>
+<th style="text-align:center"><strong>说明</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:center">standard</td>
+<td style="text-align:center">标准模式，无论何时启动哪个活动，都是重新创建该页面的实例并放入栈顶。如果不指定launchMode属性，则默认为标准模式</td>
+</tr>
+<tr>
+<td style="text-align:center">singleTop</td>
+<td style="text-align:center">启动新活动时，判断如果栈顶正好就是该活动的实例，则重用该实例；否则创建新的实例并放入栈顶，也就是按照standard模式处理</td>
+</tr>
+<tr>
+<td style="text-align:center">singleTask</td>
+<td style="text-align:center">启动新活动时，判断如果栈中存在该活动的实例，则重用该实例，启动新活动时，判断如果栈中存在该活动的实例，则重用该实例，并清除位于该实例上面的所有实例；否则按照standard模式处理</td>
+</tr>
+<tr>
+<td style="text-align:center">singleInstance</td>
+<td style="text-align:center">启动新活动时，将该活动的实例放入一个新栈中，原栈的实例列表保持不变</td>
+</tr>
+</tbody>
+</table>
+<p><strong>启动标志的取值说明如下</strong>：</p>
+<ul>
+<li>
+<p><code>Intent.FLAG_ACTIVITY_NEW_TASK</code>：开辟一个新的任务栈</p>
+</li>
+<li>
+<p><code>Intent.FLAG_ACTIVITY_SINGLE_TOP</code>：当栈顶为待跳转的活动实例之时，则重用栈顶的实例</p>
+</li>
+<li>
+<p><code>Intent.FLAG_ACTIVITY_CLEAR_TOP</code>：当栈中存在待跳转的活动实例时，则重新创建一个新实例，并清除原实例上方的所有实例</p>
+</li>
+<li>
+<p><code>Intent.FLAG_ACTIVITY_NO_HISTORY</code>：栈中不保存新启动的活动实例</p>
+</li>
+<li>
+<p><code>Intent.FLAG_ACTIVITY_CLEAR_TASK</code>：跳转到新页面时，栈中的原有实例都被清空</p>
+</li>
+</ul>
 <h2 id="显示intent和隐式intent">显示Intent和隐式Intent<a hidden class="anchor" aria-hidden="true" href="#显示intent和隐式intent">#</a></h2>
 <p><code>Intent</code>是各个组件之间信息沟通的桥梁，它用于<code>Android</code>各组件之间的通信，主要完成下列工作：</p>
 <ul>
@@ -481,7 +525,18 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>调用意图对象的<code>setClass</code>方法指定</li>
 <li>调用意图对象的<code>setComponent</code>方法指定</li>
 </ul>
-<h3 id="隐式intent">隐式Intent<a hidden class="anchor" aria-hidden="true" href="#隐式intent">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        startActivity(new Intent(this, ActFinishActivity.class));</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        Intent intent = new Intent();</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        intent.setClass(this, ActFinishActivity.class)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        startActivity(intent);</span>
+</span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent();
+</span></span><span style="display:flex;"><span>        ComponentName componentName <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ComponentName(<span style="color:#66d9ef">this</span>, ActFinishActivity.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        intent.<span style="color:#a6e22e">setComponent</span>(componentName);
+</span></span><span style="display:flex;"><span>        Log.<span style="color:#a6e22e">d</span>(TAG, <span style="color:#e6db74">&#34;ActStartActivity onClick&#34;</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="隐式intent">隐式Intent<a hidden class="anchor" aria-hidden="true" href="#隐式intent">#</a></h3>
 <p>没有明确指定要跳转的目标活动，只给出一个动作字符串让系统自动匹配。属于模糊匹配。动作名称既可以通过<code>setAction</code>方法指定，也可以通过构造函数<code>Intent(String action)</code>直接生成意图对象。常用的系统动作如下表：</p>
 <p><img loading="lazy" src="https://cdn.jsdelivr.net/gh/kennems/blog-image/image-20240618144331648.png" alt="image-20240618144331648"  />
 </p>
@@ -744,28 +799,41 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter04;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActRequestActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 要发送的请求内容</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> String mRequest <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;今天是2024/06/18， 坚持就是胜利，效率就是王者&#34;</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 用于启动活动并接收结果的启动器</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> ActivityResultLauncher<span style="color:#f92672">&lt;</span>Intent<span style="color:#f92672">&gt;</span> register;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 显示响应内容的TextView</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_response;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 显示请求内容的TextView</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> TextView tv_request;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置活动的布局</span>
 </span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_request</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定显示请求内容的TextView</span>
 </span></span><span style="display:flex;"><span>        tv_request <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_request</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定显示响应内容的TextView</span>
 </span></span><span style="display:flex;"><span>        tv_response <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_response</span>);
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        tv_request.<span style="color:#a6e22e">setText</span>(<span style="color:#e6db74">&#34;待发送的文本&#34;</span> <span style="color:#f92672">+</span> mRequest);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置待发送的文本内容</span>
+</span></span><span style="display:flex;"><span>        tv_request.<span style="color:#a6e22e">setText</span>(<span style="color:#e6db74">&#34;待发送的文本：&#34;</span> <span style="color:#f92672">+</span> mRequest);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定按钮点击事件</span>
 </span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_request</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 注册一个用于启动活动并接收结果的启动器</span>
 </span></span><span style="display:flex;"><span>        register <span style="color:#f92672">=</span> registerForActivityResult(<span style="color:#66d9ef">new</span> ActivityResultContracts.<span style="color:#a6e22e">StartActivityForResult</span>(), result <span style="color:#f92672">-&gt;</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(result <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>){
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (result <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 获取返回的Intent</span>
 </span></span><span style="display:flex;"><span>                Intent intent <span style="color:#f92672">=</span> result.<span style="color:#a6e22e">getData</span>();
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span>(intent <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> result.<span style="color:#a6e22e">getResultCode</span>() <span style="color:#f92672">==</span> Activity.<span style="color:#a6e22e">RESULT_OK</span>){
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (intent <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> result.<span style="color:#a6e22e">getResultCode</span>() <span style="color:#f92672">==</span> Activity.<span style="color:#a6e22e">RESULT_OK</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 获取Intent中的数据</span>
 </span></span><span style="display:flex;"><span>                    Bundle bundle <span style="color:#f92672">=</span> intent.<span style="color:#a6e22e">getExtras</span>();
 </span></span><span style="display:flex;"><span>                    String request_time <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;response_time&#34;</span>);
 </span></span><span style="display:flex;"><span>                    String request_content <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;response_content&#34;</span>);
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 格式化显示响应消息</span>
 </span></span><span style="display:flex;"><span>                    String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;收到应答消息，应答时间为%s, 应答内容为%s&#34;</span>, request_time, request_content);
 </span></span><span style="display:flex;"><span>                    tv_response.<span style="color:#a6e22e">setText</span>(desc);
 </span></span><span style="display:flex;"><span>                }
@@ -775,13 +843,18 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个启动ActResponseActivity的Intent</span>
 </span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent(<span style="color:#66d9ef">this</span>, ActResponseActivity.<span style="color:#a6e22e">class</span>);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个Bundle用于传递请求数据</span>
 </span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Bundle();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将当前时间和请求内容放入Bundle</span>
 </span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;request_time&#34;</span>, DateUtil.<span style="color:#a6e22e">getNowTime</span>());
 </span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;request_content&#34;</span>, mRequest);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将Bundle放入Intent</span>
 </span></span><span style="display:flex;"><span>        intent.<span style="color:#a6e22e">putExtras</span>(bundle);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动活动并等待结果</span>
 </span></span><span style="display:flex;"><span>        register.<span style="color:#a6e22e">launch</span>(intent);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
@@ -789,33 +862,49 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.showguan.chapter04;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ActResponseActivity</span> <span style="color:#66d9ef">extends</span> AppCompatActivity <span style="color:#66d9ef">implements</span> View.<span style="color:#a6e22e">OnClickListener</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String mResponse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;我™一定能进小米&#34;</span>;S
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 静态常量，表示响应的内容</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">final</span> String mResponse <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;我™一定能进小米&#34;</span>;
+</span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onCreate</span>(Bundle savedInstanceState) {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">onCreate</span>(savedInstanceState);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置活动的布局</span>
 </span></span><span style="display:flex;"><span>        setContentView(R.<span style="color:#a6e22e">layout</span>.<span style="color:#a6e22e">activity_act_response</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定显示请求内容的TextView</span>
 </span></span><span style="display:flex;"><span>        TextView tv_request <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_request</span>);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取启动此活动时传递的Intent中的Extras</span>
 </span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> getIntent().<span style="color:#a6e22e">getExtras</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 从Extras中获取请求的时间和内容</span>
 </span></span><span style="display:flex;"><span>        String request_time <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;request_time&#34;</span>);
 </span></span><span style="display:flex;"><span>        String request_content <span style="color:#f92672">=</span> bundle.<span style="color:#a6e22e">getString</span>(<span style="color:#e6db74">&#34;request_content&#34;</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 格式化显示接收到的请求消息</span>
 </span></span><span style="display:flex;"><span>        String desc <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">format</span>(<span style="color:#e6db74">&#34;成功收到消息，收到时间为%s, 收到内容为%s&#34;</span>, request_time, request_content);
 </span></span><span style="display:flex;"><span>        tv_request.<span style="color:#a6e22e">setText</span>(desc);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定响应按钮的点击事件</span>
 </span></span><span style="display:flex;"><span>        findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">btn_response</span>).<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">this</span>);
 </span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 绑定显示响应内容的TextView</span>
 </span></span><span style="display:flex;"><span>        TextView tv_response <span style="color:#f92672">=</span> findViewById(R.<span style="color:#a6e22e">id</span>.<span style="color:#a6e22e">tv_response</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置待返回的响应内容</span>
 </span></span><span style="display:flex;"><span>        tv_response.<span style="color:#a6e22e">setText</span>(<span style="color:#e6db74">&#34;待返回的内容：&#34;</span> <span style="color:#f92672">+</span> mResponse);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个返回给ActRequestActivity的Intent</span>
 </span></span><span style="display:flex;"><span>        Intent intent <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Intent(<span style="color:#66d9ef">this</span>, ActRequestActivity.<span style="color:#a6e22e">class</span>);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个Bundle用于传递响应数据</span>
 </span></span><span style="display:flex;"><span>        Bundle bundle <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Bundle();
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将当前时间和响应内容放入Bundle</span>
 </span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;response_time&#34;</span>, DateUtil.<span style="color:#a6e22e">getNowTime</span>());
-</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;response_content&#34;</span>, <span style="color:#e6db74">&#34;应答内容&#34;</span> <span style="color:#f92672">+</span> mResponse);
+</span></span><span style="display:flex;"><span>        bundle.<span style="color:#a6e22e">putString</span>(<span style="color:#e6db74">&#34;response_content&#34;</span>, <span style="color:#e6db74">&#34;应答内容：&#34;</span> <span style="color:#f92672">+</span> mResponse);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将Bundle放入Intent</span>
 </span></span><span style="display:flex;"><span>        intent.<span style="color:#a6e22e">putExtras</span>(bundle);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置结果码和返回的Intent</span>
 </span></span><span style="display:flex;"><span>        setResult(Activity.<span style="color:#a6e22e">RESULT_OK</span>, intent);
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 结束当前活动</span>
 </span></span><span style="display:flex;"><span>        finish();
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
@@ -1728,10 +1817,10 @@ document.addEventListener("DOMContentLoaded", function() {
 	
 	
 <nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/zh/posts/tech/%E6%95%B0%E5%AD%97%E5%9B%BE%E5%83%8F%E5%A4%84%E7%90%86%E8%AF%BE%E7%A8%8B%E7%BB%BC%E5%90%88%E9%A1%B9%E7%9B%AE%E5%9F%BA%E4%BA%8E%E5%A4%9A%E7%A7%8D%E6%BB%A4%E6%B3%A2%E5%99%A8%E7%9A%84%E5%9B%BE%E5%83%8F%E5%8E%BB%E5%99%AA%E7%AE%97%E6%B3%95%E6%AF%94%E8%BE%83%E4%B8%8E%E5%88%86%E6%9E%90/">
+  <a class="prev" href="https://kennems.github.io/zh/posts/tech/android4/">
     <span class="title">« 上一页</span>
     <br>
-    <span>《数字图像处理》课程综合项目(Matlab)</span>
+    <span>Android（4）</span>
   </a>
   <a class="next" href="https://kennems.github.io/zh/posts/tech/android3/">
     <span class="title">下一页 »</span>
