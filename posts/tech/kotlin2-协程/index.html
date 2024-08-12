@@ -128,8 +128,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Kotlin"
   ],
-  "articleBody": "Kotlin(2) 协程 协程处理的问题：\n处理耗时任务， 这种任务常常会阻塞主线程 保证主线程安全，即确保安全的从主线程调用任何suspend函数 异步任务 协程让异步逻辑同步化，杜绝回调地狱 协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复 协程的挂起与恢复 常规函数基础操作包括 ： invoke(call) 和 return, 协程新增了 suspend 和 resume ； suspend —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量 resume——用于让已暂停的协程从其暂停处继续执行 挂起函数 使用suspend关键字修饰的函数叫做挂起函数 挂起函数只能在协程体内或其他挂起函数内调用 Kotlin协程的两部分 基础设施层次，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持 业务框架层，协程的上层框架支持 调度器 所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。\nDispatchers.Main Android上的主线程，用来处理UI交互和一些轻量级任务\n调用suspend函数 调用UI函数 更新LiveData Dispatchers.IO 专为磁盘和网络IO进行了优化\n数据库 文件读写 网络处理 Dispatchers.Default 非主线程，专为CPU密集型任务进行了优化\n数组排序 JSON数据解析 处理差异判断 任务泄漏 类似内存泄漏\n结构化并发：\n取消任务：当某项任务不再需要时取消它\n追踪任务，当任务正在执行时，追踪它 发出错误信号，当协程失败时， 发出错误信号表明有错误发生 Coroutine Scope 定义协程必须指定其CoroutineScope， 它会跟踪所有协程，同样它还可以取消由它启动的所有协程\n重用的相关API有：\nGlobalScope：生命周期是process级别的，即使Activity， Fragment 已经被销毁，协程仍然在执行 MainScope，在Activity中使用，可以在onDestroy()中取消协程 viewModelScope，只能在ViewModel中使用，绑定ViewModel的声明周期 lifecycleScope，只能在Activity，Fragment中使用，会绑定Activity 和 Fragment的生命周期 协程使用 retrofit API // 定义 UserServiceApi 接口，用于声明与用户相关的API请求 interface UserServiceApi { // 声明一个 GET 请求，用于加载指定名称的用户信息 // @Query 注解表示请求中的查询参数 \"name\"，会附加到URL中 // 返回类型是 Call，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行 @GET(\"user\") fun loadUser(@Query(\"name\") name: String): Call // 声明一个 GET 请求，使用 Kotlin 的协程机制 // suspend 关键字表示这是一个挂起函数，可以在协程中被调用 // 返回类型是 User，表示直接返回解析后的用户对象 @GET(\"user\") suspend fun getUser(@Query(\"name\") name: String): User } // 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器 val userServiceApi: UserServiceApi by lazy { // 使用 Retrofit.Builder 构建 Retrofit 实例 val retrofit = retrofit2.Retrofit.Builder() // 设置 API 请求的基础 URL .baseUrl(\"https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/\") // 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据 .addConverterFactory(MoshiConverterFactory.create()) // 构建 Retrofit 实例 .build() // 创建并返回 UserServiceApi 的具体实现 retrofit.create(UserServiceApi::class.java) } User data class User(val name: String, val address: String) UserRepository.kt class UserRepository { // 声明一个挂起函数 getUser，用于获取用户信息 // 该函数在协程中执行 suspend fun getUser(name: String): User { // 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数 // userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息 return userServiceApi.getUser(name) } } MainViewModel.kt // MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑 class MainViewModel : ViewModel() { // MutableLiveData 用于存储和观察用户数据的 LiveData // 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI val userLiveData = MutableLiveData() // 创建 UserRepository 实例，用于获取用户数据 private val userRepository = UserRepository() // getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中 fun getUser(name: String) { // 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围 viewModelScope.launch { // 调用 UserRepository 的 getUser 方法，获取用户信息 // 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI userLiveData.value = userRepository.getUser(name) } } } Activity // MainActivity7 继承自 AppCompatActivity，用于显示主界面 class MainActivity7 : AppCompatActivity() { // 使用 viewModels 委托来获取 MainViewModel 实例 private val mainViewModel: MainViewModel by viewModels() // 存储对 TextView 的引用（可选，后续可以用来更新 UI） private var nameTextView: TextView? = null // 创建一个 MainScope 实例，用于管理协程生命周期 // 工厂设计模式实例化 MainScope private val mainScope = MainScope() @SuppressLint(\"StaticFieldLeak\") // SuppressLint 注解用于忽略静态字段泄漏警告 override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) // 启用边缘到边缘模式，以使布局填充整个屏幕 enableEdgeToEdge() // 设置活动的布局 setContentView(R.layout.activity_main7) // 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距 ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets -\u003e // 获取系统窗口的内边距 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) // 设置视图的内边距，避免被系统窗口遮挡 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) // 返回处理后的 insets insets } // 使用 DataBindingUtil 绑定布局文件与视图模型 val binding = DataBindingUtil.setContentView(this, R.layout.activity_main7) // 将 ViewModel 绑定到布局 binding.viewModel = mainViewModel // 设置生命周期所有者，使数据绑定可以观察 LiveData binding.lifecycleOwner = this // 设置提交按钮的点击监听器 binding.submitButton.setOnClickListener(View.OnClickListener { // 当按钮被点击时，调用 ViewModel 的 getUser 方法 // 这里使用 \"ken\" 作为查询参数 mainViewModel.getUser(\"ken\") }) } // 活动销毁时取消协程，释放资源 override fun onDestroy() { super.onDestroy() // 取消所有在 MainScope 中启动的协程 mainScope.cancel() } } 协程构建器 launch与async构建器都用来启动新协程 launch，返回 Job 并且不附带任何结果值 async，返回一个Deferred，Deferred也是一个Job，可以使用.await()在一个延期的值上得到它的最终结果 等待一个作业 join和await 组合并发 协程的启动模式 DEFAULT：协程创建后，立即开始调度，在调度前如果协程被取消，其将直接进入取消响应的状态 ATOMIC：协程创建后，立即开始调度，协程执行到第一个挂起点之前不响应取消 LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态 UNDISPATCHED：协程创建后立即在当前函数调用栈中执行，直到遇到第一个真正挂起的点 coroutineScope 与 runBlocking runBlocking是常规函数，而coroutineScope是挂起函数 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途 区别：\ncoroutineScope：一个协程失败了，所有其他兄弟协程也会被取消 supervisorScope：一个协程失败了，不会影响其他兄弟协程 Job对象 对于每一个创建的协程（通过launch或者async），会返回一个Job实例，该实例是协程的唯一标识，并且负责管理协程的生命周期 一个任务可以包含一系列状态，新创建（New）、活跃（Active）、完成中（Completing）、已完成（Completed）、取消中（Cancelling）和已取消（Cancelled）。可以访问Job的属性：isActive，isCancelled和isCompleted。 Job的生命周期 如果协程处于活跃状态，协程运行出错或者调用 job.cancel() 都会将当前任务置为取消中（Cancelling）状态（isActive = false, isCancelled = true）。当所有的子协程都完成后，协程会进入已取消（Cancelled）。\n@Test fun `test scope cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 // delay(100) // 取消 scope 中的所有协程 // scope.cancel() // 两个均不打印 // 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话） delay(1500) // 两个可以正常打印 } @Test fun `test brother cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" val job1 = scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" val job2 = scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 delay(100) // 取消 job1，但不取消 job2 job1.cancel() // 延迟 1500 毫秒，确保可以看到 job2 的输出 delay(1500) } 取消协程 在cancel()后保证协程被取消\n@Test fun `test cancel cpu task by isActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次或协程被取消 while (i \u003c 5 \u0026\u0026 isActive) { // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } @Test fun `test cancel cpu task by ensureActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次 while (i \u003c 5) { // 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException ensureActive() // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } CPU密集型任务取消 isActive是一个可以被使用在CoroutineScope中的扩展属性，检查Job是否处于活跃状态\nensureActive()， 如果job处于非活跃状态，这个方法会立即抛出异常\nyield函数会检查所在协程的状态，如果已经取消，则抛出CancellationExcepiton予以相应。此外，它还会尝试让出线程的执行权，给其他协程提供执行机会。\n协程取消的副作用 在finally中释放资源。\n@Test fun `test release resources`() = runBlocking { val job = launch { try { repeat(1000){ it-\u003e println(\"job : I'm sleeping $it ...\") delay(500L) } } catch (e: Exception) { println(\"Job: I'm running finally\") // 释放资源 } } delay(1300) println(\"main : I'm tired of waiting\") job.cancelAndJoin() println(\"main : Now I can quit.\") } use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。\n@Test fun `test use function`() = runBlocking { // 使用 use 函数自动管理资源 // use 函数会自动关闭资源，无需手动调用 close BufferedReader(FileReader(\"D:\\\\test\\\\test.txt\")).use { var line: String? // 无限循环读取文件内容，直到文件末尾 while (true) { // 读取一行内容，如果为 null（文件末尾），则退出循环 line = it.readLine() ?: break println(line) // 打印每一行内容 } } } 不能被取消的任务 @Test fun `test cancel with NonCancellable`() = runBlocking { // 启动一个新的协程 val job = launch { try { // 在协程中重复执行任务1000次 repeat(1000) { it -\u003e println(\"job : I'm sleeping $it ...\") // 打印当前任务的状态 delay(500L) // 暂停500毫秒 } } finally { // 这里的代码块在协程取消时执行 // 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消 withContext(NonCancellable) { println(\"job: I'm running finally\") // 打印消息，表示进入了 finally 部分 delay(1000L) // 这里的延迟不会被取消，即使协程已经被取消 println(\"job: And I've just delayed for 1 sec \") // 打印延迟后的消息 } } } // 主协程延迟1300毫秒，给子协程足够的时间运行 delay(1300) println(\"main: I'm tired of waiting!\") // 打印主协程等待的消息 // 取消子协程并等待它完成 job.cancelAndJoin() println(\"main: Now I can quit.\") // 打印主协程完成后的消息 } 超时任务 取消协程的理由是有可能超时 withTimeoutOrNull 通过返回null来进行超时操作，从而替代抛出一个异常 @Test fun `test deal with timeout`() = runBlocking { // 使用 withTimeout 函数设置超时时间 withTimeout(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } } } @Test fun `test deal with timeout return null`() = runBlocking { // 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null val result = withTimeoutOrNull(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } \"Done\" // 如果在1300毫秒内完成所有任务，将返回 \"Done\" } // 打印 result 结果，如果任务在超时时间内完成，则 result 为 \"Done\"，否则为 null println(\"Result is $result\") } 协程上下文 CoroutineContext是一组用于定义协程行为的元素，它由如下几项构成：\nJob：控制协程的生命周期 CoroutineDispatcher：向合适的线程分发任务 CoroutineName：协程的名称，调试的时候很有用 CoroutineExceptionHandler：处理未被捕捉的异常 组合上下文中的元素 有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。 @Test fun `test CoroutineContext`() = runBlocking { launch(Dispatchers.Default + CoroutineName(\"test\")) { println(\"I'm working in thread ${Thread.currentThread().name}\") } } 协程上下文的继承 协程的上下文 = 默认值 + 继承的CoroutineContext + 参数\n异常处理的必要性 @OptIn(ExperimentalStdlibApi::class) // 标记该代码使用了实验性标准库 API @Test // 表示这是一个测试函数 fun `test CoroutineContext extend2`() = runBlocking { // 使用 runBlocking 启动协程 // 创建一个协程异常处理器，用于捕获协程中的异常 val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception -\u003e println(\"Caught : $exception\") // 打印捕获到的异常 } // 创建一个协程作用域，包含一个 Job，使用主线程调度器和异常处理器 val scope = CoroutineScope( Job() + Dispatchers.Main + coroutineExceptionHandler // Job() 用于管理协程的生命周期 ) // 在 IO 线程上启动一个新的协程 val job = scope.launch(Dispatchers.IO) { // 获取当前协程上下文中的调度器 val dispatcher = coroutineContext[CoroutineDispatcher] // 打印当前使用的调度器 println(\"Current dispatcher: $dispatcher\") } // 等待协程完成 job.join() // 确保主协程在子协程完成后再继续 } 异常处理的必要性 异常的传播 协程构建器有两种形式：1、自动传播异常（launch与actor）2、向用户暴露异常（async与produce）， 当这些构建器用于创建一个根协程时（该协程不是另一个协程的子协程），前者这类构建器，异常会在它发生的第一时间被抛出，而后者则依赖用户来最终消费异常，例如通过await或receive。 ",
-  "wordCount" : "5177",
+  "articleBody": "Kotlin(2) 协程 看明白，讲清楚。\n协程处理的问题：\n处理耗时任务， 这种任务常常会阻塞主线程 保证主线程安全，即确保安全的从主线程调用任何suspend函数 异步任务 协程让异步逻辑同步化，杜绝回调地狱 协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复 协程的挂起与恢复 常规函数基础操作包括 ： invoke(call) 和 return, 协程新增了 suspend 和 resume ； suspend —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量 resume——用于让已暂停的协程从其暂停处继续执行 挂起函数 使用suspend关键字修饰的函数叫做挂起函数 挂起函数只能在协程体内或其他挂起函数内调用 Kotlin协程的两部分 基础设施层次，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持 业务框架层，协程的上层框架支持 调度器 所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。\nDispatchers.Main Android上的主线程，用来处理UI交互和一些轻量级任务\n调用suspend函数 调用UI函数 更新LiveData Dispatchers.IO 专为磁盘和网络IO进行了优化\n数据库 文件读写 网络处理 Dispatchers.Default 非主线程，专为CPU密集型任务进行了优化\n数组排序 JSON数据解析 处理差异判断 任务泄漏 类似内存泄漏\n结构化并发：\n取消任务：当某项任务不再需要时取消它\n追踪任务，当任务正在执行时，追踪它 发出错误信号，当协程失败时， 发出错误信号表明有错误发生 Coroutine Scope 定义协程必须指定其CoroutineScope， 它会跟踪所有协程，同样它还可以取消由它启动的所有协程\n重用的相关API有：\nGlobalScope：生命周期是process级别的，即使Activity， Fragment 已经被销毁，协程仍然在执行 MainScope，在Activity中使用，可以在onDestroy()中取消协程 viewModelScope，只能在ViewModel中使用，绑定ViewModel的声明周期 lifecycleScope，只能在Activity，Fragment中使用，会绑定Activity 和 Fragment的生命周期 协程使用 retrofit API // 定义 UserServiceApi 接口，用于声明与用户相关的API请求 interface UserServiceApi { // 声明一个 GET 请求，用于加载指定名称的用户信息 // @Query 注解表示请求中的查询参数 \"name\"，会附加到URL中 // 返回类型是 Call，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行 @GET(\"user\") fun loadUser(@Query(\"name\") name: String): Call // 声明一个 GET 请求，使用 Kotlin 的协程机制 // suspend 关键字表示这是一个挂起函数，可以在协程中被调用 // 返回类型是 User，表示直接返回解析后的用户对象 @GET(\"user\") suspend fun getUser(@Query(\"name\") name: String): User } // 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器 val userServiceApi: UserServiceApi by lazy { // 使用 Retrofit.Builder 构建 Retrofit 实例 val retrofit = retrofit2.Retrofit.Builder() // 设置 API 请求的基础 URL .baseUrl(\"https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/\") // 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据 .addConverterFactory(MoshiConverterFactory.create()) // 构建 Retrofit 实例 .build() // 创建并返回 UserServiceApi 的具体实现 retrofit.create(UserServiceApi::class.java) } User data class User(val name: String, val address: String) UserRepository.kt class UserRepository { // 声明一个挂起函数 getUser，用于获取用户信息 // 该函数在协程中执行 suspend fun getUser(name: String): User { // 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数 // userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息 return userServiceApi.getUser(name) } } MainViewModel.kt // MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑 class MainViewModel : ViewModel() { // MutableLiveData 用于存储和观察用户数据的 LiveData // 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI val userLiveData = MutableLiveData() // 创建 UserRepository 实例，用于获取用户数据 private val userRepository = UserRepository() // getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中 fun getUser(name: String) { // 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围 viewModelScope.launch { // 调用 UserRepository 的 getUser 方法，获取用户信息 // 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI userLiveData.value = userRepository.getUser(name) } } } Activity // MainActivity7 继承自 AppCompatActivity，用于显示主界面 class MainActivity7 : AppCompatActivity() { // 使用 viewModels 委托来获取 MainViewModel 实例 private val mainViewModel: MainViewModel by viewModels() // 存储对 TextView 的引用（可选，后续可以用来更新 UI） private var nameTextView: TextView? = null // 创建一个 MainScope 实例，用于管理协程生命周期 // 工厂设计模式实例化 MainScope private val mainScope = MainScope() @SuppressLint(\"StaticFieldLeak\") // SuppressLint 注解用于忽略静态字段泄漏警告 override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) // 启用边缘到边缘模式，以使布局填充整个屏幕 enableEdgeToEdge() // 设置活动的布局 setContentView(R.layout.activity_main7) // 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距 ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets -\u003e // 获取系统窗口的内边距 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) // 设置视图的内边距，避免被系统窗口遮挡 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) // 返回处理后的 insets insets } // 使用 DataBindingUtil 绑定布局文件与视图模型 val binding = DataBindingUtil.setContentView(this, R.layout.activity_main7) // 将 ViewModel 绑定到布局 binding.viewModel = mainViewModel // 设置生命周期所有者，使数据绑定可以观察 LiveData binding.lifecycleOwner = this // 设置提交按钮的点击监听器 binding.submitButton.setOnClickListener(View.OnClickListener { // 当按钮被点击时，调用 ViewModel 的 getUser 方法 // 这里使用 \"ken\" 作为查询参数 mainViewModel.getUser(\"ken\") }) } // 活动销毁时取消协程，释放资源 override fun onDestroy() { super.onDestroy() // 取消所有在 MainScope 中启动的协程 mainScope.cancel() } } 协程构建器 launch与async构建器都用来启动新协程 launch，返回 Job 并且不附带任何结果值 async，返回一个Deferred，Deferred也是一个Job，可以使用.await()在一个延期的值上得到它的最终结果 等待一个作业 join和await 组合并发 协程的启动模式 DEFAULT：协程创建后，立即开始调度，在调度前如果协程被取消，其将直接进入取消响应的状态 ATOMIC：协程创建后，立即开始调度，协程执行到第一个挂起点之前不响应取消 LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态 UNDISPATCHED：协程创建后立即在当前函数调用栈中执行，直到遇到第一个真正挂起的点 coroutineScope 与 runBlocking runBlocking是常规函数，而coroutineScope是挂起函数 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途 区别：\ncoroutineScope：一个协程失败了，所有其他兄弟协程也会被取消 supervisorScope：一个协程失败了，不会影响其他兄弟协程 Job对象 对于每一个创建的协程（通过launch或者async），会返回一个Job实例，该实例是协程的唯一标识，并且负责管理协程的生命周期 一个任务可以包含一系列状态，新创建（New）、活跃（Active）、完成中（Completing）、已完成（Completed）、取消中（Cancelling）和已取消（Cancelled）。可以访问Job的属性：isActive，isCancelled和isCompleted。 Job的生命周期 如果协程处于活跃状态，协程运行出错或者调用 job.cancel() 都会将当前任务置为取消中（Cancelling）状态（isActive = false, isCancelled = true）。当所有的子协程都完成后，协程会进入已取消（Cancelled）。\n@Test fun `test scope cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 // delay(100) // 取消 scope 中的所有协程 // scope.cancel() // 两个均不打印 // 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话） delay(1500) // 两个可以正常打印 } @Test fun `test brother cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" val job1 = scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" val job2 = scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 delay(100) // 取消 job1，但不取消 job2 job1.cancel() // 延迟 1500 毫秒，确保可以看到 job2 的输出 delay(1500) } 取消协程 在cancel()后保证协程被取消\n@Test fun `test cancel cpu task by isActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次或协程被取消 while (i \u003c 5 \u0026\u0026 isActive) { // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } @Test fun `test cancel cpu task by ensureActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次 while (i \u003c 5) { // 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException ensureActive() // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } CPU密集型任务取消 isActive是一个可以被使用在CoroutineScope中的扩展属性，检查Job是否处于活跃状态\nensureActive()， 如果job处于非活跃状态，这个方法会立即抛出异常\nyield函数会检查所在协程的状态，如果已经取消，则抛出CancellationExcepiton予以相应。此外，它还会尝试让出线程的执行权，给其他协程提供执行机会。\n协程取消的副作用 在finally中释放资源。\n@Test fun `test release resources`() = runBlocking { val job = launch { try { repeat(1000){ it-\u003e println(\"job : I'm sleeping $it ...\") delay(500L) } } catch (e: Exception) { println(\"Job: I'm running finally\") // 释放资源 } } delay(1300) println(\"main : I'm tired of waiting\") job.cancelAndJoin() println(\"main : Now I can quit.\") } use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。\n@Test fun `test use function`() = runBlocking { // 使用 use 函数自动管理资源 // use 函数会自动关闭资源，无需手动调用 close BufferedReader(FileReader(\"D:\\\\test\\\\test.txt\")).use { var line: String? // 无限循环读取文件内容，直到文件末尾 while (true) { // 读取一行内容，如果为 null（文件末尾），则退出循环 line = it.readLine() ?: break println(line) // 打印每一行内容 } } } 不能被取消的任务 @Test fun `test cancel with NonCancellable`() = runBlocking { // 启动一个新的协程 val job = launch { try { // 在协程中重复执行任务1000次 repeat(1000) { it -\u003e println(\"job : I'm sleeping $it ...\") // 打印当前任务的状态 delay(500L) // 暂停500毫秒 } } finally { // 这里的代码块在协程取消时执行 // 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消 withContext(NonCancellable) { println(\"job: I'm running finally\") // 打印消息，表示进入了 finally 部分 delay(1000L) // 这里的延迟不会被取消，即使协程已经被取消 println(\"job: And I've just delayed for 1 sec \") // 打印延迟后的消息 } } } // 主协程延迟1300毫秒，给子协程足够的时间运行 delay(1300) println(\"main: I'm tired of waiting!\") // 打印主协程等待的消息 // 取消子协程并等待它完成 job.cancelAndJoin() println(\"main: Now I can quit.\") // 打印主协程完成后的消息 } 超时任务 取消协程的理由是有可能超时 withTimeoutOrNull 通过返回null来进行超时操作，从而替代抛出一个异常 @Test fun `test deal with timeout`() = runBlocking { // 使用 withTimeout 函数设置超时时间 withTimeout(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } } } @Test fun `test deal with timeout return null`() = runBlocking { // 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null val result = withTimeoutOrNull(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } \"Done\" // 如果在1300毫秒内完成所有任务，将返回 \"Done\" } // 打印 result 结果，如果任务在超时时间内完成，则 result 为 \"Done\"，否则为 null println(\"Result is $result\") } 协程上下文 CoroutineContext是一组用于定义协程行为的元素，它由如下几项构成：\nJob：控制协程的生命周期 CoroutineDispatcher：向合适的线程分发任务 CoroutineName：协程的名称，调试的时候很有用 CoroutineExceptionHandler：处理未被捕捉的异常 组合上下文中的元素 有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。 @Test fun `test CoroutineContext`() = runBlocking { launch(Dispatchers.Default + CoroutineName(\"test\")) { println(\"I'm working in thread ${Thread.currentThread().name}\") } } 协程上下文的继承 协程的上下文 = 默认值 + 继承的CoroutineContext + 参数\n异常处理的必要性 @OptIn(ExperimentalStdlibApi::class) // 标记该代码使用了实验性标准库 API @Test // 表示这是一个测试函数 fun `test CoroutineContext extend2`() = runBlocking { // 使用 runBlocking 启动协程 // 创建一个协程异常处理器，用于捕获协程中的异常 val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception -\u003e println(\"Caught : $exception\") // 打印捕获到的异常 } // 创建一个协程作用域，包含一个 Job，使用主线程调度器和异常处理器 val scope = CoroutineScope( Job() + Dispatchers.Main + coroutineExceptionHandler // Job() 用于管理协程的生命周期 ) // 在 IO 线程上启动一个新的协程 val job = scope.launch(Dispatchers.IO) { // 获取当前协程上下文中的调度器 val dispatcher = coroutineContext[CoroutineDispatcher] // 打印当前使用的调度器 println(\"Current dispatcher: $dispatcher\") } // 等待协程完成 job.join() // 确保主协程在子协程完成后再继续 } 异常处理的必要性 异常的传播 协程构建器有两种形式：1、自动传播异常（launch与actor）2、向用户暴露异常（async与produce）， 当这些构建器用于创建一个根协程时（该协程不是另一个协程的子协程），前者这类构建器，异常会在它发生的第一时间被抛出，而后者则依赖用户来最终消费异常，例如通过await或receive。 // 根协程 @Test @OptIn(DelicateCoroutinesApi::class) fun `test exception propagation`() = runBlocking { // 在 GlobalScope 中启动一个新协程，返回一个 Job 对象 val job = GlobalScope.launch { try { // 在协程中抛出一个 IndexOutOfBoundsException throw IndexOutOfBoundsException() } catch (e: Exception) { // 捕获异常并打印一条消息，指示捕获了 IndexOutOfBoundsException println(\"IndexOutOfBoundsException\") // 如果需要可以选择打印堆栈轨迹 // e.printStackTrace() } } // 等待协程完成 job.join() // 在 GlobalScope 中启动一个新协程，并返回一个 Deferred 对象 val deffer = GlobalScope.async { // 在协程中抛出一个 ArithmeticException throw ArithmeticException() } try { // 等待异步任务完成并获取结果，如果任务抛出异常，这里会重新抛出异常 deffer.await() } catch (e: Exception) { // 捕获异常并打印一条消息，指示捕获了 ArithmeticException println(\"ArithmeticException\") // 如果需要可以选择打印堆栈轨迹 // e.printStackTrace() } } 非根协程的异常 其他协程所创建的协程中，产生的异常总是会被传播 /* 非根协程，job是scope内的子协程，所以会直接消费掉异常 */ @Test fun `test exception propagation2`() = runBlocking { // 创建一个新的 CoroutineScope，使用 Job 作为其上下文元素 val scope = CoroutineScope(Job()) // 在 scope 中启动一个新协程，返回一个 Job 对象 val job = scope.launch { // 在协程中启动一个异步任务 async { // 在异步任务中抛出一个 IllegalArgumentException throw IllegalArgumentException() } } // 等待 launch 启动的协程完成 job.join() } 异常的传播特性 当一个协程由于一个异常而运行失败时，它会传播这个异常并传递给它的父级。接下来，父级会进行下面几步操作： 取消它自己的子级 取消它自己 将异常传播并传递给它的父级 SupervisorJob 使用SupervisorJob时，一个子协程的运行失败不会影响其他子协程，SupervisorJob不会传播异常给它的父级，它会让子协程自己处理异常。 需求：在作用域内定义作业的UI组件，如果任何一个UI的子作业执行失败了，它并不总是有必要取消整个UI组件，但是如果UI组件被销毁了，由于它的结果不再被需要了，它就有必要使所有的子作业执行失败。 @Test fun `test supervisorJob`() = runBlocking { // 创建一个新的 CoroutineScope，使用 SupervisorJob 作为其上下文元素 val supervisor = CoroutineScope(SupervisorJob()) // 如果使用普通的 Job，注释掉上一行并启用以下行 // val supervisor = CoroutineScope(Job()) // 在 supervisor 作用域中启动第一个子协程，返回一个 Job 对象 val job1 = supervisor.launch { // 延迟 100 毫秒以模拟一些工作 delay(100) println(\"child 1\") // 在第一个子协程中抛出一个 IllegalArgumentException throw IllegalArgumentException() } // 在 supervisor 作用域中启动第二个子协程，返回一个 Job 对象 val job2 = supervisor.launch { try { // 无限延迟以模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当协程取消时，最终会打印 \"child 2 finished\" println(\"child 2 finished\") } } // 以下是可选部分，如果需要，可以取消注释 // 延迟 200 毫秒后取消 supervisor 作用域内的所有协程 // delay(200) // supervisor.cancel() // 等待 job1 和 job2 都完成 joinAll(job1, job2) } SupervisorScope 当作业自身执行失败的时候，所以子作业将会被全部取消 @Test fun `test supervisorScope`() = runBlocking { // 使用 supervisorScope 启动一个新的协程作用域 supervisorScope { // 在 supervisorScope 中启动一个子协程，返回一个 Job 对象 launch { // 延迟 100 毫秒以模拟一些工作 delay(100) // 输出 \"child 1\"，表示子协程已完成其任务 println(\"child 1\") // 在协程中抛出一个 IllegalArgumentException，以测试异常传播 throw IllegalArgumentException() } // 在 supervisorScope 中启动另一个协程 try { // 延迟一个非常长的时间，模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当 supervisorScope 被取消时（由于异常），最终会打印 \"child 2 finished.\" println(\"child 2 finished.\") } } } @Test fun `test supervisorScope2`() = runBlocking { // 使用 supervisorScope 来启动一个协程作用域 supervisorScope { // 在 supervisorScope 中启动一个子协程 val child = launch { try { // 输出 \"The child is sleeping\" 表示子协程进入睡眠状态 println(\"The child is sleeping\") // 延迟无限长的时间，模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当子协程被取消时，最终会打印 \"The child is cancelled\" println(\"The child is cancelled\") } } // 让出线程以确保子协程启动并进入延迟状态 yield() // 在 supervisorScope 中抛出一个异常 println(\"Throwing an exception from the scope\") throw AssertionError() // 抛出一个断言错误，用于测试作用域的异常处理 } } 异常的捕获 使用CoroutineExcepitonHandler对协程的异常进行捕获 以下的条件被满足时，异常就会被捕获： 时机：异常是被自动抛出异常的协程所抛出的（使用launch，而不是async时）； 位置：在CoroutineScope的CoroutineContext中或在一个根协程（CoroutineScope或者supervisorScope的直接子协程）中。 Android中全局异常处理 全局异常处理器可以获取到所有协程未处理的未捕获异常，不过它并不能对异常进行捕获，虽然不能阻止程序崩溃，全局异常处理器在程序调试和异常上报等场景中仍然有非常大的用处。 我们需要在classpath下面创建META-INF/services目录，并在其中创建一个名为kotlinx.coroutines.CoroutineExceptionHandler的文件，文件内容就是我们的全局异常处理器的全类名。 取消与异常 取消与异常紧密相关，协程内部使用CancellationExcepiton来进行取消，这个异常会被忽略。 当子协程被取消时，不会取消它的父协程 如果一个协程遇到了CancellationExcepiton以外的异常，它将使用该异常取消它的父协程。当父协程的所有子协程都结束后，异常才会被父协程处理。 @Test fun `test cancel and exception`() = runBlocking { // 启动一个协程作为父协程 val job = launch { // 在父协程中启动一个子协程 val child = launch { try { // 子协程尝试延迟执行，模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当子协程被取消时，执行此块 println(\"Child is cancelled\") } } // 让父协程暂时让出线程，给其他协程执行的机会 yield() println(\"Cancelling child\") // 取消子协程，并等待其执行完 finally 块 child.cancelAndJoin() // 再次让出线程 yield() println(\"Parent is not cancelled\") } // 等待父协程完成执行 job.join() } @Test fun `test cancel and exception2`() = runBlocking { // 定义一个 CoroutineExceptionHandler 来处理未捕获的异常 val handler = CoroutineExceptionHandler { _, exception -\u003e println(\"Caught: $exception\") } // 使用 GlobalScope 启动一个顶层协程，并应用异常处理器 val job = GlobalScope.launch(handler) { // 第一个子协程，模拟一个需要很长时间的任务 launch { try { // 使用一个很长的延迟来模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 确保在协程被取消时，执行以下代码 withContext(NonCancellable) { println(\"Children are cancelled, but exceptions are not handled\") delay(100) // 确保输出语句有机会执行 println(\"The first child finished its non cancellable block\") } } } // 第二个子协程，在短暂延迟后抛出一个异常 launch { delay(10) println(\"Second child throws an exception\") throw ArithmeticException() // 抛出一个异常来测试异常处理 } } // 等待父协程完成 job.join() } 异常聚合 当协程的多个子协程因为异常而失败时，一般情况下取第一个异常进行处理。在第一异常之后发生的所有其他异常，都将绑定到第一个异常之上。 @Test fun `test exception aggregation`() = runBlocking { // 定义一个 CoroutineExceptionHandler 来处理未捕获的异常 val handler = CoroutineExceptionHandler { _, exception -\u003e // 输出被捕获的主异常和抑制的异常（如果有） println(\"Caught: $exception, Suppressed: ${exception.suppressed.contentToString()}\") } // 使用 GlobalScope 启动一个顶层协程，并应用异常处理器 val job = GlobalScope.launch(handler) { // 第一个子协程 launch { try { // 模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 在取消时抛出 ArithmeticException throw ArithmeticException() } } // 第二个子协程 launch { try { // 进行短暂的延迟 delay(100) } finally { // 在取消时抛出 IOException throw IOException() } } // 第三个子协程 launch { try { // 进行更短暂的延迟 delay(10) } finally { // 在取消时抛出 IndexOutOfBoundsException throw IndexOutOfBoundsException() } } } // 等待父协程完成，确保所有子协程的异常都被处理 job.join() } Flow-异步流 // 定义一个名为 simpleFlow 的挂起函数，返回一个 Flow suspend fun simpleFlow() = flow { // 使用 for 循环遍历从 1 到 100 的整数 for (i in 1..100) { delay(1000) // 延迟 1 秒钟，模拟异步任务的延迟 emit(i) // 向下游发射当前整数 } } // 这是一个测试函数，演示了异步、非阻塞式的行为 @Test fun `test multiple values3`() = runBlocking { // 启动一个新的协程，不阻塞主线程 launch { // 使用 for 循环打印信息，展示主线程没有被阻塞 for (k in 1..3) { println(\"I am not blocked $k\") delay(1500) // 延迟 1.5 秒钟 } } // 收集 simpleFlow() 发射的值 simpleFlow().collect { value -\u003e println(value) // 打印每个收集到的值 } } 冷流 Flow是一种类似于序列的冷流，flow构建器中的代码直到流被收集的时候才运行 // 测试函数，演示 Flow 是冷流的概念 @Test fun `test flow is cold`() = runBlocking { // 创建一个新的 Flow 实例 val flow = simpleFlow2() // 首次调用 collect，开始收集 Flow 发射的值 println(\"Calling collect...\") flow.collect { value -\u003e println(value) // 打印每个收集到的值 } // 再次调用 collect，重新收集 Flow 发射的值 println(\"Calling collect again...\") flow.collect { value -\u003e println(value) // 打印每个收集到的值 } } 流的连续性 流的每次单独收集都是按顺序执行的，除非使用特殊操作符 从上游到下游每个过渡操作符都会处理每个发射出的值，然后再交给末端操作符。 // 测试函数，演示流的连续操作 @Test fun `test flow continuation`() = runBlocking { // 将 1 到 5 的整数转换成流 (1..5).asFlow() // 过滤流，只保留偶数 .filter { it % 2 == 0 } // 将每个整数转换为字符串 .map { \"String $it\" } // 收集流中的每个元素 .collect { value -\u003e println(\"Collect $value\") // 打印收集到的每个元素 } } 流构建器 flowOf构建器定义了一个发射固定值集的流。 @Test fun `test flow continuation`() = runBlocking { // 将 1 到 5 的整数转换成流 (1..5).asFlow() // 过滤流，只保留偶数 .filter { it % 2 == 0 } // 将每个整数转换为字符串 .map { \"String $it\" } // 收集流中的每个元素 .collect { value -\u003e println(\"Collect $value\") // 打印收集到的每个元素 } } 使用.asFlow()扩展函数，可以将各种集合与序列转换为流。 @Test fun `test flow builder2`() = runBlocking { // 创建一个包含三个字符串元素的 Flow：\"one\"、\"two\" 和 \"three\" flowOf(\"one\", \"two\", \"three\") // 对 Flow 中的每个元素，应用 1000 毫秒（1 秒）的延迟 .onEach { delay(1000) } // 收集 Flow 中的每个元素，并将其打印到控制台 .collect { v -\u003e println(v) } // 将整数范围从 1 到 3 转换为 Flow 并收集每个元素 (1..3).asFlow() .collect { println(it) // 将每个收集到的整数打印到控制台 } } 流的上下文 流的收集总是在调用协程的上下文中发生，流的该属性称为上下文保存 flow{...}构建器中的代码必须遵循上下文保存属性，并且不允许从其他上下文中发射（emit） flowOn操作符，该函数用于更改流发射的上下文。 // 定义一个简单的 Flow，返回 Int 类型的值 fun simpleFlow5() = flow { // 打印当前线程的名称，表明 Flow 开始执行 println(\"Flow started ${Thread.currentThread().name}\") // 生成从 1 到 3 的整数 for (i in 1..3) { // 延迟 1000 毫秒（1 秒）模拟耗时操作 delay(1000) // 发射（emit）当前整数 emit(i) } // 设置 Flow 在默认的调度器（Dispatcher）上运行 }.flowOn(Dispatchers.Default) // 测试函数，使用 JUnit 测试框架 @Test fun `test flow context3`() = runBlocking { // 收集 Flow 中发射的值 simpleFlow5().collect { v -\u003e // 打印当前线程的名称和收集到的值 println(\"Collected $v ${Thread.currentThread().name}\") } } 启动流 使用launchIn替换collect，可以在单独的协程中启动流的收集\n// 定义一个 Flow，产生整数 1 到 3 fun events() = (1..3) .asFlow() // 将整数范围转换为 Flow .onEach { delay(100) } // 对于每个元素，延迟 100 毫秒 .flowOn(Dispatchers.Default) // 在默认的调度器（Dispatcher）上执行上述操作 // 测试函数，使用 JUnit 测试框架 @Test fun `test flow launch`() = runBlocking { // 使用 `launchIn` 在新的协程中收集 Flow events() .onEach { event -\u003e // 打印当前收到的元素 println(event) } .launchIn(CoroutineScope(Dispatchers.IO)) // 在 IO 调度器上启动协程来收集 Flow .join() // 等待协程完成 } 流的取消 流采用与协程同样的协作取消。像往常一样，流的收集可以是当流在一个可取消的挂起函数（例如delay）中挂起的时候取消 fun simpleFlow6() = flow { // 生成从 1 到 3 的整数 for (i in 1..3) { delay(1000) // 延迟 1000 毫秒（1 秒），模拟耗时操作 emit(i) // 发射（emit）当前整数 println(\"Emitting $i\") // 打印当前发射的值，显示发射过程 } } // 测试函数，使用 JUnit 测试框架 @Test fun `test cancel flow`() = runBlocking { // 使用 withTimeoutOrNull 来取消协程，在超时后返回 null withTimeoutOrNull(2500) { // 收集 Flow 中发射的值 simpleFlow6().collect { v -\u003e println(v) // 打印收集到的值 } } // 打印 \"Done\" 表示协程已取消或正常完成 println(\"Done!\") } 流的取消检测 为方便起见，流构建器对每个发射值执行附加的ensureActive检测以进行取消，这意味着从flow{...}发出的繁忙循环是可以取消的。 出于性能原因，大多数其他流操作不会自动执行其他取消检测，在协程处于繁忙循环的情况下，必须明确检测是否取消。 通过cancellable操作符来执行此操作 fun simpleFlow7() = flow { for (i in 1..5) { emit(i) println(\"Emitting $i\") } } @Test fun `test cancel flow check`() = runBlocking { // 取消成功，因为emit会suspend函数，有ensureActive检测，所以cancel后会取消 simpleFlow7().collect { v -\u003e println(v) if (v == 3) { cancel() // 当值等于3时，取消收集过程 println(\"cancelled\") // 打印 \"cancelled\" 表示流已取消 } } // 取消失败，其他流没有取消检测 // (1..5).asFlow().collect { v -\u003e // println(v) // if (v == 3) { // cancel() // 当值等于3时，取消收集过程 // } // } // 取消成功，因为添加了.cancellable() // 使用 cancellable() 方法允许流在收集过程中被取消 (1..5) .asFlow() .cancellable() .collect { v -\u003e println(v) // 打印当前收集到的值 if (v == 3) { cancel() // 当值等于3时，取消收集过程 } } // simpleFlow7() // .cancellable() // .collect { v -\u003e // println(v) // 打印当前收集到的值 // if (v == 3) { // cancel() // 当值等于3时，取消收集过程 // println(\"cancelled\") // 打印 \"cancelled\" 表示流已取消 // } // } } 背压 buffer()，并发运行流中发射元素的代码。\nconflate()，合并发射项目，不对每个值进行处理\ncollectLatest()，取消并重新发射最后一个值\n当必须更改CoroutineDispatcher时，flowOn操作符使用了相同的缓冲机制，但是buffer函数显式地请求缓冲而不改变执行上下文。\n@Test fun `test flow back pressure`() = runBlocking { // 使用 measureTimeMillis 计算流的收集时间 val time = measureTimeMillis { simpleFlow8() // 调用定义的简单流 // .flowOn(Dispatchers.Default) // （可选）使用 Default 调度器在后台线程上执行流 // .buffer(100) // （可选）使用缓冲策略以在生产者和消费者之间提供 100 个值的缓冲区 // .conflate() // （可选）在下游繁忙时合并流的值，只处理最新的值 .collectLatest { v -\u003e // 使用 collectLatest 收集流的最新值 delay(300) // 模拟耗时操作，延迟 300 毫秒 println(\"Collected $v ${Thread.currentThread().name}\") // 打印收集到的值和线程名称 } } println(\"Collected in $time ms\") // 打印总共花费的时间 } 操作符 过渡流操作符 可以使用操作符转换符，就像使用集合与序列一样 过渡操作符应用于上游流，并返回下游流。 这些操作符也是冷操作符，就像流一样。这类操作符本身不是挂起函数。 它运行的速度很快，返回新的转换流的定义。 transform() // 定义一个挂起函数，模拟发送请求并返回响应 suspend fun performRequest(request: Int): String { delay(1000) // 模拟网络延迟，延迟 1000 毫秒（1 秒） return \"response $request\" // 返回一个响应字符串 } // 测试函数，使用 JUnit 测试框架 @Test fun `test transform flow operator`() = runBlocking { // 将整数范围转换为 Flow (1..3).asFlow() .transform { request -\u003e // 使用 transform 运算符转换流的元素 emit(\"Making request $request\") // 发射一个字符串，表示正在发送请求 emit(performRequest(request)) // 发射 performRequest 的返回值 } .collect { v -\u003e // 收集流的元素 println(v) // 打印收集到的元素 } } take() // 定义一个简单的 Flow，产生 Int 类型的值 fun numbers() = flow { try { emit(1) // 发射第一个整数 1 emit(2) // 发射第二个整数 2 println(\"This line will not execute\") // 这一行代码不会被执行，因为 collect 操作会提前中止 Flow emit(3) // 发射第三个整数 3（不会执行） } finally { // 在 Flow 被收集完成或取消时执行 println(\"Finally in numbers\") // 打印 \"Finally in numbers\"，表示 finally 块的执行 } } // 测试函数，使用 JUnit 测试框架 @Test fun `test limit length operator`() = runBlocking { // 调用 numbers 函数，限制收集的元素数量为 2 numbers() .take(2) // 使用 take 运算符，只收集前 2 个元素 .collect { v -\u003e // 收集 Flow 中的元素 println(v) // 打印每个收集到的元素 } } 末端操作符 末端操作符是在流上用于启动流收集的挂起函数。collect是最基础的末端操作符，但是还有另外一些更方便使用的末端操作符 转化为各种集合，例如toList和toSet 获取第一个（first）值与确保流发射单个（single）值的操作符 使用reduce与fold将流规约到单个值 组合多个流 就像Kotlin标准库中的Sequence.zip拓展函数一样，流拥有一个zip操作符用于组合两个流中的相关值 @Test fun `test zip2`() = runBlocking { // 创建一个整数流，发射 1 到 3 的数字，每个数字发射之间延迟 300 毫秒 val numbs = (1..3).asFlow().onEach { delay(300) // 模拟延迟 } // 创建一个字符串流，发射 \"one\"、\"two\" 和 \"three\" 的字符串，每个字符串发射之间延迟 400 毫秒 val strs = flowOf(\"one\", \"two\", \"three\").onEach { delay(400) // 模拟延迟 } // 记录测试开始时间 val startTime = System.currentTimeMillis() // 使用 zip 操作符将两个流的元素配对 numbs.zip(strs) { a, b -\u003e \"$a -\u003e $b\" } // 将 numbs 和 strs 的每对元素组合成字符串 .collect { v -\u003e // 收集配对后的元素 // 打印配对后的元素和从测试开始到当前时间的时间差 println(\"$v, consume time : ${System.currentTimeMillis() - startTime} ms \") } } 展平流 流表示异步接收的值序列，所以很容易遇到这样的情况：每个值都会触发对另一个值序列的请求，然而，由于流具有异步的性质，因此需要不同的展平模式，为此，存在一系列的流展平操作符： flatMapConcat 连接模式 flatMapMerge 合并模式 flatMapLatest 最新展平模式 // 使用 flatMapConcat 操作符的测试函数 @Test fun `test flatMapConcat`() = runBlocking { val startTime = System.currentTimeMillis() // 记录开始时间 // 创建一个流，包含数字 1 到 3 (1..3) .asFlow() // 将数字转换为流 .onEach { delay(100) } // 在每个元素上施加 100 毫秒的延迟 // 使用 flatMapConcat 将每个元素转换为新的流并串联 .flatMapConcat { requestFlow(it) } .collect { v -\u003e // 收集并打印每个元素的值以及从开始到现在的消耗时间 println(\"$v, consume time : ${System.currentTimeMillis() - startTime} ms \") } } // 使用 flatMapMerge 操作符的测试函数 @Test fun `test flatMapMerge`() = runBlocking { val startTime = System.currentTimeMillis() // 记录开始时间 // 创建一个流，包含数字 1 到 3 (1..3) .asFlow() // 将数字转换为流 .onEach { delay(100) } // 在每个元素上施加 100 毫秒的延迟 // 使用 flatMapMerge 将每个元素转换为新的流并并发执行 .flatMapMerge { requestFlow(it) } .collect { v -\u003e // 收集并打印每个元素的值以及从开始到现在的消耗时间 println(\"$v, consume time : ${System.currentTimeMillis() - startTime} ms \") } } // 使用 flatMapLatest 操作符的测试函数 @Test fun `test flatMapLatest`() = runBlocking { val startTime = System.currentTimeMillis() // 记录开始时间 // 创建一个流，包含数字 1 到 3 (1..3) .asFlow() // 将数字转换为流 .onEach { delay(100) } // 在每个元素上施加 100 毫秒的延迟 // 使用 flatMapLatest 将每个元素转换为新的流，仅保留最新流 .flatMapLatest { requestFlow(it) } .collect { v -\u003e // 收集并打印每个元素的值以及从开始到现在的消耗时间 println(\"$v, consume time : ${System.currentTimeMillis() - startTime} ms \") } } 流的异常处理 当运算符中的发射器或代码抛出异常时，有几种处理异常的方法： try/catch块 catch函数 /** * 测试用例 `test exception1`： * 使用 runBlocking 启动协程，收集 simpleFlow 的值。 * 如果值大于 1，则抛出异常并捕获。 */ @Test fun `test exception1`() = runBlocking { try { simpleFlow().collect { v -\u003e println(v) check(v \u003c= 1) { \"Collected $v\" } } } catch (e: Throwable) { println(\"Caught $e\") } } /** * 测试用例 `test exception2`： * 创建一个流，发射一个值后抛出异常。 * 使用 catch 操作符处理异常。 */ @Test fun `test exception2`() = runBlocking { flow { emit(1) throw ArithmeticException(\"Div 0\") } .catch { e: Throwable -\u003e println(\"Caught: $e\") } .flowOn(Dispatchers.IO) .collect { println(it) } } 流的完成 当流收集完成时（普通情况或异常情况），它可能需要执行一个动作 命令是finally块 onCompletion声明式处理 // 定义一个函数，返回1到3的值作为 Flow fun simpleFlow2() = (1..3).asFlow() @Test // 测试在 finally 块中完成流的处理 fun `test flow complete in finally`() = runBlocking { try { // 收集 simpleFlow2 流中的每个值 simpleFlow2().collect { println(it) } } finally { // 无论流的收集过程是否成功，这条消息都会在最后打印 println(\"Done!\") } } // 定义一个函数，返回一个 Flow 类型的流 fun simpleFlow3() = flow { // 发射（emit）第一个值 emit(1) // 发射一个异常来中断流 throw RuntimeException() } @Test // 测试使用 onCompletion 操作符处理流完成 fun `test flow complete in onCompletion`() = runBlocking { simpleFlow3() // 在流完成时调用的操作符 .onCompletion { exception -\u003e if (exception != null) { // 如果有异常，打印流以异常方式完成 println(\"Flow completed exceptionally\") } } // 捕获流中的异常 .catch { exception -\u003e println(\"Caught $exception\") } // 收集 simpleFlow3 流中的每个值 .collect { println(it) } } 通道-多路复用-并发安全 Channel Channel是一个并发安全的队列，它可以用来连接协程，实现不同协程的通信。 ",
+  "wordCount" : "11998",
   "inLanguage": "zh",
   "datePublished": "2024-08-06T22:30:13+08:00",
   "dateModified": "2024-08-06T22:20:13+08:00",
@@ -244,7 +244,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Kotlin(2) 协程
     </div>
-    <div class="post-meta"><span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5177 字&nbsp;·&nbsp;updated:&nbsp;2024-08-06&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;24 分钟&nbsp;·&nbsp;11998 字&nbsp;·&nbsp;updated:&nbsp;2024-08-06&nbsp;·&nbsp;ShowGuan
 
 </div>
 
@@ -345,7 +345,71 @@ document.addEventListener("DOMContentLoaded", function() {
                     <a href="#%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86%e7%9a%84%e5%bf%85%e8%a6%81%e6%80%a7-1" aria-label="异常处理的必要性">异常处理的必要性</a><ul>
                         
                 <li>
-                    <a href="#%e5%bc%82%e5%b8%b8%e7%9a%84%e4%bc%a0%e6%92%ad" aria-label="异常的传播">异常的传播</a>
+                    <a href="#%e5%bc%82%e5%b8%b8%e7%9a%84%e4%bc%a0%e6%92%ad" aria-label="异常的传播">异常的传播</a></li>
+                <li>
+                    <a href="#%e9%9d%9e%e6%a0%b9%e5%8d%8f%e7%a8%8b%e7%9a%84%e5%bc%82%e5%b8%b8" aria-label="非根协程的异常">非根协程的异常</a></li>
+                <li>
+                    <a href="#%e5%bc%82%e5%b8%b8%e7%9a%84%e4%bc%a0%e6%92%ad%e7%89%b9%e6%80%a7" aria-label="异常的传播特性">异常的传播特性</a><ul>
+                        
+                <li>
+                    <a href="#supervisorjob" aria-label="SupervisorJob">SupervisorJob</a></li>
+                <li>
+                    <a href="#supervisorscope" aria-label="SupervisorScope">SupervisorScope</a></li></ul>
+                </li></ul>
+                </li>
+                <li>
+                    <a href="#%e5%bc%82%e5%b8%b8%e7%9a%84%e6%8d%95%e8%8e%b7" aria-label="异常的捕获">异常的捕获</a></li>
+                <li>
+                    <a href="#android%e4%b8%ad%e5%85%a8%e5%b1%80%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86" aria-label="Android中全局异常处理">Android中全局异常处理</a></li>
+                <li>
+                    <a href="#%e5%8f%96%e6%b6%88%e4%b8%8e%e5%bc%82%e5%b8%b8" aria-label="取消与异常">取消与异常</a></li>
+                <li>
+                    <a href="#%e5%bc%82%e5%b8%b8%e8%81%9a%e5%90%88" aria-label="异常聚合">异常聚合</a></li>
+                <li>
+                    <a href="#flow-%e5%bc%82%e6%ad%a5%e6%b5%81" aria-label="Flow-异步流">Flow-异步流</a><ul>
+                        
+                <li>
+                    <a href="#%e5%86%b7%e6%b5%81" aria-label="冷流">冷流</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e7%9a%84%e8%bf%9e%e7%bb%ad%e6%80%a7" aria-label="流的连续性">流的连续性</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e6%9e%84%e5%bb%ba%e5%99%a8" aria-label="流构建器">流构建器</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e7%9a%84%e4%b8%8a%e4%b8%8b%e6%96%87" aria-label="流的上下文">流的上下文</a></li>
+                <li>
+                    <a href="#%e5%90%af%e5%8a%a8%e6%b5%81" aria-label="启动流">启动流</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e7%9a%84%e5%8f%96%e6%b6%88" aria-label="流的取消">流的取消</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e7%9a%84%e5%8f%96%e6%b6%88%e6%a3%80%e6%b5%8b" aria-label="流的取消检测">流的取消检测</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e8%83%8c%e5%8e%8b" aria-label="背压">背压</a></li>
+                <li>
+                    <a href="#%e6%93%8d%e4%bd%9c%e7%ac%a6" aria-label="操作符">操作符</a><ul>
+                        
+                <li>
+                    <a href="#%e8%bf%87%e6%b8%a1%e6%b5%81%e6%93%8d%e4%bd%9c%e7%ac%a6" aria-label="过渡流操作符">过渡流操作符</a></li>
+                <li>
+                    <a href="#transform" aria-label="transform()">transform()</a></li>
+                <li>
+                    <a href="#take" aria-label="take()">take()</a></li>
+                <li>
+                    <a href="#%e6%9c%ab%e7%ab%af%e6%93%8d%e4%bd%9c%e7%ac%a6" aria-label="末端操作符">末端操作符</a></li>
+                <li>
+                    <a href="#%e7%bb%84%e5%90%88%e5%a4%9a%e4%b8%aa%e6%b5%81" aria-label="组合多个流">组合多个流</a></li>
+                <li>
+                    <a href="#%e5%b1%95%e5%b9%b3%e6%b5%81" aria-label="展平流">展平流</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e7%9a%84%e5%bc%82%e5%b8%b8%e5%a4%84%e7%90%86" aria-label="流的异常处理">流的异常处理</a></li>
+                <li>
+                    <a href="#%e6%b5%81%e7%9a%84%e5%ae%8c%e6%88%90" aria-label="流的完成">流的完成</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e9%80%9a%e9%81%93-%e5%a4%9a%e8%b7%af%e5%a4%8d%e7%94%a8-%e5%b9%b6%e5%8f%91%e5%ae%89%e5%85%a8" aria-label="通道-多路复用-并发安全">通道-多路复用-并发安全</a><ul>
+                        
+                <li>
+                    <a href="#channel" aria-label="Channel">Channel</a>
                 </li>
             </ul>
             </li>
@@ -357,6 +421,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </div>
 
   <div class="post-content"><h1 id="kotlin2-协程">Kotlin(2) 协程<a hidden class="anchor" aria-hidden="true" href="#kotlin2-协程">#</a></h1>
+<p>看明白，讲清楚。</p>
 <p>协程处理的问题：</p>
 <ul>
 <li>处理耗时任务， 这种任务常常会阻塞主线程</li>
@@ -884,6 +949,827 @@ document.addEventListener("DOMContentLoaded", function() {
 <h3 id="异常的传播">异常的传播<a hidden class="anchor" aria-hidden="true" href="#异常的传播">#</a></h3>
 <ul>
 <li>协程构建器有两种形式：1、<strong>自动传播异常（launch与actor）<strong>2、<strong>向用户暴露异常（async与produce）</strong>， 当这些构建器用于创建一个</strong>根协程</strong>时（该协程不是另一个协程的子协程），前者这类构建器，异常会在它发生的第一时间被抛出，而后者则依赖用户来最终消费异常，例如通过await或receive。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 根协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@OptIn</span>(DelicateCoroutinesApi<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test exception propagation`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 GlobalScope 中启动一个新协程，返回一个 Job 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = <span style="color:#a6e22e">GlobalScope</span>.launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 在协程中抛出一个 IndexOutOfBoundsException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#66d9ef">throw</span> IndexOutOfBoundsException()
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">catch</span> (e: Exception) {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 捕获异常并打印一条消息，指示捕获了 IndexOutOfBoundsException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(<span style="color:#e6db74">&#34;IndexOutOfBoundsException&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 如果需要可以选择打印堆栈轨迹
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#75715e">// e.printStackTrace()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待协程完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.join()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 GlobalScope 中启动一个新协程，并返回一个 Deferred 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> deffer = <span style="color:#a6e22e">GlobalScope</span>.async {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在协程中抛出一个 ArithmeticException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">throw</span> ArithmeticException()
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 等待异步任务完成并获取结果，如果任务抛出异常，这里会重新抛出异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            deffer.await()
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (e: Exception) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 捕获异常并打印一条消息，指示捕获了 ArithmeticException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;ArithmeticException&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 如果需要可以选择打印堆栈轨迹
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#75715e">// e.printStackTrace()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="非根协程的异常">非根协程的异常<a hidden class="anchor" aria-hidden="true" href="#非根协程的异常">#</a></h3>
+<ul>
+<li>其他协程所创建的协程中，产生的异常总是会被传播</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">    非根协程，job是scope内的子协程，所以会直接消费掉异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test exception propagation2`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个新的 CoroutineScope，使用 Job 作为其上下文元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(Job())
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 scope 中启动一个新协程，返回一个 Job 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = scope.launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在协程中启动一个异步任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            async {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 在异步任务中抛出一个 IllegalArgumentException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#66d9ef">throw</span> IllegalArgumentException()
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待 launch 启动的协程完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.join()
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="异常的传播特性">异常的传播特性<a hidden class="anchor" aria-hidden="true" href="#异常的传播特性">#</a></h3>
+<ul>
+<li>当一个协程由于一个异常而运行失败时，它会传播这个异常并传递给它的父级。接下来，父级会进行下面几步操作：
+<ul>
+<li>取消它自己的子级</li>
+<li>取消它自己</li>
+<li>将异常传播并传递给它的父级</li>
+</ul>
+</li>
+</ul>
+<h4 id="supervisorjob">SupervisorJob<a hidden class="anchor" aria-hidden="true" href="#supervisorjob">#</a></h4>
+<ul>
+<li>使用<code>SupervisorJob</code>时，<strong>一个子协程的运行失败不会影响其他子协程</strong>，<code>SupervisorJob</code>不会传播异常给它的父级，它会让子协程自己处理异常。</li>
+<li><strong>需求</strong>：在作用域内定义作业的UI组件，如果任何一个UI的子作业执行失败了，它并不总是有必要取消整个UI组件，但是如果UI组件被销毁了，由于它的结果不再被需要了，它就有必要使所有的子作业执行失败。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test supervisorJob`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个新的 CoroutineScope，使用 SupervisorJob 作为其上下文元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> supervisor = CoroutineScope(SupervisorJob())
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 如果使用普通的 Job，注释掉上一行并启用以下行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// val supervisor = CoroutineScope(Job())
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 supervisor 作用域中启动第一个子协程，返回一个 Job 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job1 = supervisor.launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 延迟 100 毫秒以模拟一些工作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            delay(<span style="color:#ae81ff">100</span>)
+</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;child 1&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在第一个子协程中抛出一个 IllegalArgumentException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">throw</span> IllegalArgumentException()
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 supervisor 作用域中启动第二个子协程，返回一个 Job 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job2 = supervisor.launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 无限延迟以模拟长时间运行的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                delay(<span style="color:#a6e22e">Long</span>.MAX_VALUE)
+</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 当协程取消时，最终会打印 &#34;child 2 finished&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(<span style="color:#e6db74">&#34;child 2 finished&#34;</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 以下是可选部分，如果需要，可以取消注释
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 延迟 200 毫秒后取消 supervisor 作用域内的所有协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// delay(200)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// supervisor.cancel()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待 job1 和 job2 都完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        joinAll(job1, job2)
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h4 id="supervisorscope">SupervisorScope<a hidden class="anchor" aria-hidden="true" href="#supervisorscope">#</a></h4>
+<ul>
+<li>当作业自身执行失败的时候，所以子作业将会被全部取消</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test supervisorScope`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 supervisorScope 启动一个新的协程作用域
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    supervisorScope {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 supervisorScope 中启动一个子协程，返回一个 Job 对象
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 延迟 100 毫秒以模拟一些工作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            delay(<span style="color:#ae81ff">100</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 输出 &#34;child 1&#34;，表示子协程已完成其任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;child 1&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在协程中抛出一个 IllegalArgumentException，以测试异常传播
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">throw</span> IllegalArgumentException()
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 supervisorScope 中启动另一个协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 延迟一个非常长的时间，模拟长时间运行的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            delay(<span style="color:#a6e22e">Long</span>.MAX_VALUE)
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 当 supervisorScope 被取消时（由于异常），最终会打印 &#34;child 2 finished.&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;child 2 finished.&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test supervisorScope2`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 supervisorScope 来启动一个协程作用域
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        supervisorScope {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在 supervisorScope 中启动一个子协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">val</span> child = launch {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 输出 &#34;The child is sleeping&#34; 表示子协程进入睡眠状态
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;The child is sleeping&#34;</span>)
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 延迟无限长的时间，模拟长时间运行的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#a6e22e">Long</span>.MAX_VALUE)
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 当子协程被取消时，最终会打印 &#34;The child is cancelled&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;The child is cancelled&#34;</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 让出线程以确保子协程启动并进入延迟状态
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            yield()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在 supervisorScope 中抛出一个异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;Throwing an exception from the scope&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> AssertionError()  <span style="color:#75715e">// 抛出一个断言错误，用于测试作用域的异常处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="异常的捕获">异常的捕获<a hidden class="anchor" aria-hidden="true" href="#异常的捕获">#</a></h2>
+<ul>
+<li>使用<code>CoroutineExcepitonHandler</code>对协程的异常进行捕获</li>
+<li>以下的条件被满足时，异常就会被捕获：
+<ul>
+<li><strong>时机</strong>：异常是被自动抛出异常的协程所抛出的（使用launch，而不是async时）；</li>
+<li><strong>位置</strong>：在<code>CoroutineScope</code>的<code>CoroutineContext</code>中或在一个根协程（<code>CoroutineScope</code>或者<code>supervisorScope</code>的直接子协程）中。</li>
+</ul>
+</li>
+</ul>
+<h2 id="android中全局异常处理">Android中全局异常处理<a hidden class="anchor" aria-hidden="true" href="#android中全局异常处理">#</a></h2>
+<ul>
+<li>全局异常处理器可以获取到所有协程未处理的未捕获异常，不过它并不能对异常进行捕获，虽然不能阻止程序崩溃，全局异常处理器在程序调试和异常上报等场景中仍然有非常大的用处。</li>
+<li>我们需要在<code>classpath</code>下面创建META-INF/services目录，并在其中创建一个名为<code>kotlinx.coroutines.CoroutineExceptionHandler</code>的文件，文件内容就是我们的全局异常处理器的全类名。</li>
+</ul>
+<h2 id="取消与异常">取消与异常<a hidden class="anchor" aria-hidden="true" href="#取消与异常">#</a></h2>
+<ul>
+<li>取消与异常紧密相关，协程内部使用<code>CancellationExcepiton</code>来进行取消，这个异常会被忽略。</li>
+<li>当子协程被取消时，不会取消它的父协程</li>
+<li>如果一个协程遇到了<code>CancellationExcepiton</code>以外的异常，它将使用该异常取消它的父协程。当父协程的所有子协程都结束后，异常才会被父协程处理。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel and exception`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个协程作为父协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在父协程中启动一个子协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">val</span> child = launch {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 子协程尝试延迟执行，模拟长时间运行的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#a6e22e">Long</span>.MAX_VALUE)
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 当子协程被取消时，执行此块
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;Child is cancelled&#34;</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 让父协程暂时让出线程，给其他协程执行的机会
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            yield()
+</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;Cancelling child&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 取消子协程，并等待其执行完 finally 块
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            child.cancelAndJoin()
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 再次让出线程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            yield()
+</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;Parent is not cancelled&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待父协程完成执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.join()
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel and exception2`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 定义一个 CoroutineExceptionHandler 来处理未捕获的异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> handler = CoroutineExceptionHandler { _, exception <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;Caught: </span><span style="color:#e6db74">$exception</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 GlobalScope 启动一个顶层协程，并应用异常处理器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = <span style="color:#a6e22e">GlobalScope</span>.launch(handler) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 第一个子协程，模拟一个需要很长时间的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            launch {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 使用一个很长的延迟来模拟长时间运行的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#a6e22e">Long</span>.MAX_VALUE)
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 确保在协程被取消时，执行以下代码
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    withContext(NonCancellable) {
+</span></span><span style="display:flex;"><span>                        println(<span style="color:#e6db74">&#34;Children are cancelled, but exceptions are not handled&#34;</span>)
+</span></span><span style="display:flex;"><span>                        delay(<span style="color:#ae81ff">100</span>) <span style="color:#75715e">// 确保输出语句有机会执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                        println(<span style="color:#e6db74">&#34;The first child finished its non cancellable block&#34;</span>)
+</span></span><span style="display:flex;"><span>                    }
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 第二个子协程，在短暂延迟后抛出一个异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            launch {
+</span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Second child throws an exception&#34;</span>)
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">throw</span> ArithmeticException() <span style="color:#75715e">// 抛出一个异常来测试异常处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待父协程完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.join()
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="异常聚合">异常聚合<a hidden class="anchor" aria-hidden="true" href="#异常聚合">#</a></h2>
+<ul>
+<li>当协程的多个子协程因为异常而失败时，一般情况下取第一个异常进行处理。在第一异常之后发生的所有其他异常，都将绑定到第一个异常之上。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test exception aggregation`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 定义一个 CoroutineExceptionHandler 来处理未捕获的异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> handler = CoroutineExceptionHandler { _, exception <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 输出被捕获的主异常和抑制的异常（如果有）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;Caught: </span><span style="color:#e6db74">$exception</span><span style="color:#e6db74">, Suppressed: </span><span style="color:#e6db74">${exception.suppressed.contentToString()}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 GlobalScope 启动一个顶层协程，并应用异常处理器
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = <span style="color:#a6e22e">GlobalScope</span>.launch(handler) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 第一个子协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            launch {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 模拟长时间运行的任务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#a6e22e">Long</span>.MAX_VALUE)
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 在取消时抛出 ArithmeticException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">throw</span> ArithmeticException()
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 第二个子协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            launch {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 进行短暂的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#ae81ff">100</span>)
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 在取消时抛出 IOException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">throw</span> IOException()
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 第三个子协程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            launch {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 进行更短暂的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 在取消时抛出 IndexOutOfBoundsException
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    <span style="color:#66d9ef">throw</span> IndexOutOfBoundsException()
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 等待父协程完成，确保所有子协程的异常都被处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.join()
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="flow-异步流">Flow-异步流<a hidden class="anchor" aria-hidden="true" href="#flow-异步流">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个名为 simpleFlow 的挂起函数，返回一个 Flow&lt;Int&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">simpleFlow</span>() = flow&lt;Int&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 for 循环遍历从 1 到 100 的整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> (i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">100</span>) {
+</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>) <span style="color:#75715e">// 延迟 1 秒钟，模拟异步任务的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            emit(i)     <span style="color:#75715e">// 向下游发射当前整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 这是一个测试函数，演示了异步、非阻塞式的行为
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test multiple values3`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个新的协程，不阻塞主线程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        launch {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 使用 for 循环打印信息，展示主线程没有被阻塞
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">for</span> (k <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>) {
+</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;I am not blocked </span><span style="color:#e6db74">$k</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">1500</span>) <span style="color:#75715e">// 延迟 1.5 秒钟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 收集 simpleFlow() 发射的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        simpleFlow().collect { <span style="color:#66d9ef">value</span> <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            println(<span style="color:#66d9ef">value</span>) <span style="color:#75715e">// 打印每个收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="冷流">冷流<a hidden class="anchor" aria-hidden="true" href="#冷流">#</a></h3>
+<ul>
+<li>Flow是一种类似于序列的冷流，flow构建器中的代码直到流被收集的时候才运行</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 测试函数，演示 Flow 是冷流的概念
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow is cold`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个新的 Flow 实例
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> flow = simpleFlow2()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 首次调用 collect，开始收集 Flow 发射的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;Calling collect...&#34;</span>)
+</span></span><span style="display:flex;"><span>        flow.collect { <span style="color:#66d9ef">value</span> <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            println(<span style="color:#66d9ef">value</span>) <span style="color:#75715e">// 打印每个收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 再次调用 collect，重新收集 Flow 发射的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;Calling collect again...&#34;</span>)
+</span></span><span style="display:flex;"><span>        flow.collect { <span style="color:#66d9ef">value</span> <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            println(<span style="color:#66d9ef">value</span>) <span style="color:#75715e">// 打印每个收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="流的连续性">流的连续性<a hidden class="anchor" aria-hidden="true" href="#流的连续性">#</a></h3>
+<ul>
+<li>流的每次单独收集都是按顺序执行的，除非使用特殊操作符</li>
+<li>从上游到下游每个过渡操作符都会处理每个发射出的值，然后再交给末端操作符。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 测试函数，演示流的连续操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow continuation`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将 1 到 5 的整数转换成流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">5</span>).asFlow()
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 过滤流，只保留偶数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .filter {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">it</span> % <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 将每个整数转换为字符串
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .map {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;String </span><span style="color:#e6db74">$it</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集流中的每个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .collect { <span style="color:#66d9ef">value</span> <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Collect </span><span style="color:#e6db74">$value</span><span style="color:#e6db74">&#34;</span>) <span style="color:#75715e">// 打印收集到的每个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="流构建器">流构建器<a hidden class="anchor" aria-hidden="true" href="#流构建器">#</a></h3>
+<ul>
+<li><code>flowOf</code>构建器定义了一个发射固定值集的流。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow continuation`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将 1 到 5 的整数转换成流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">5</span>).asFlow()
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 过滤流，只保留偶数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .filter {
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">it</span> % <span style="color:#ae81ff">2</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 将每个整数转换为字符串
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .map {
+</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;String </span><span style="color:#e6db74">$it</span><span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集流中的每个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .collect { <span style="color:#66d9ef">value</span> <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Collect </span><span style="color:#e6db74">$value</span><span style="color:#e6db74">&#34;</span>) <span style="color:#75715e">// 打印收集到的每个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><ul>
+<li>使用<code>.asFlow()</code>扩展函数，可以将各种集合与序列转换为流。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow builder2`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个包含三个字符串元素的 Flow：&#34;one&#34;、&#34;two&#34; 和 &#34;three&#34;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        flowOf(<span style="color:#e6db74">&#34;one&#34;</span>, <span style="color:#e6db74">&#34;two&#34;</span>, <span style="color:#e6db74">&#34;three&#34;</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 对 Flow 中的每个元素，应用 1000 毫秒（1 秒）的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .onEach {
+</span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">1000</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集 Flow 中的每个元素，并将其打印到控制台
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(v)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将整数范围从 1 到 3 转换为 Flow 并收集每个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>).asFlow()
+</span></span><span style="display:flex;"><span>            .collect {
+</span></span><span style="display:flex;"><span>                println(<span style="color:#66d9ef">it</span>)  <span style="color:#75715e">// 将每个收集到的整数打印到控制台
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="流的上下文">流的上下文<a hidden class="anchor" aria-hidden="true" href="#流的上下文">#</a></h3>
+<ul>
+<li>流的收集总是在调用协程的上下文中发生，流的该属性称为<strong>上下文保存</strong></li>
+<li><code>flow{...}</code>构建器中的代码必须遵循上下文保存属性，并且不允许从其他上下文中发射（<code>emit</code>）</li>
+<li><code>flowOn</code>操作符，该函数用于更改流发射的上下文。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个简单的 Flow，返回 Int 类型的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">simpleFlow5</span>() = flow&lt;Int&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 打印当前线程的名称，表明 Flow 开始执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;Flow started </span><span style="color:#e6db74">${Thread.currentThread().name}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 生成从 1 到 3 的整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> (i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 延迟 1000 毫秒（1 秒）模拟耗时操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            delay(<span style="color:#ae81ff">1000</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 发射（emit）当前整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            emit(i)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置 Flow 在默认的调度器（Dispatcher）上运行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }.flowOn(<span style="color:#a6e22e">Dispatchers</span>.Default)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 测试函数，使用 JUnit 测试框架
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow context3`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 收集 Flow 中发射的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        simpleFlow5().collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 打印当前线程的名称和收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;Collected </span><span style="color:#e6db74">$v</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${Thread.currentThread().name}</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="启动流">启动流<a hidden class="anchor" aria-hidden="true" href="#启动流">#</a></h3>
+<p>使用<code>launchIn</code>替换<code>collect</code>，可以在单独的协程中启动流的收集</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个 Flow，产生整数 1 到 3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">events</span>() = (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>        .asFlow() <span style="color:#75715e">// 将整数范围转换为 Flow
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .onEach { delay(<span style="color:#ae81ff">100</span>) } <span style="color:#75715e">// 对于每个元素，延迟 100 毫秒
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .flowOn(<span style="color:#a6e22e">Dispatchers</span>.Default) <span style="color:#75715e">// 在默认的调度器（Dispatcher）上执行上述操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 测试函数，使用 JUnit 测试框架
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow launch`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 `launchIn` 在新的协程中收集 Flow
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        events()
+</span></span><span style="display:flex;"><span>            .onEach { event <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 打印当前收到的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(event)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            .launchIn(CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.IO)) <span style="color:#75715e">// 在 IO 调度器上启动协程来收集 Flow
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .join() <span style="color:#75715e">// 等待协程完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span></code></pre></div><h3 id="流的取消">流的取消<a hidden class="anchor" aria-hidden="true" href="#流的取消">#</a></h3>
+<ul>
+<li>流采用与协程同样的协作取消。像往常一样，流的收集可以是当流在一个可取消的挂起函数（例如delay）中挂起的时候取消</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">simpleFlow6</span>() = flow&lt;Int&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 生成从 1 到 3 的整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">for</span> (i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>) {
+</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>) <span style="color:#75715e">// 延迟 1000 毫秒（1 秒），模拟耗时操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            emit(i) <span style="color:#75715e">// 发射（emit）当前整数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;Emitting </span><span style="color:#e6db74">$i</span><span style="color:#e6db74">&#34;</span>) <span style="color:#75715e">// 打印当前发射的值，显示发射过程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 测试函数，使用 JUnit 测试框架
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel flow`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 withTimeoutOrNull 来取消协程，在超时后返回 null
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        withTimeoutOrNull(<span style="color:#ae81ff">2500</span>) {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集 Flow 中发射的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            simpleFlow6().collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(v) <span style="color:#75715e">// 打印收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 打印 &#34;Done&#34; 表示协程已取消或正常完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;Done!&#34;</span>)
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="流的取消检测">流的取消检测<a hidden class="anchor" aria-hidden="true" href="#流的取消检测">#</a></h3>
+<ul>
+<li>为方便起见，流构建器对每个发射值执行附加的<code>ensureActive</code>检测以进行取消，这意味着从<code>flow{...}</code>发出的繁忙循环是可以取消的。</li>
+<li>出于性能原因，大多数其他流操作不会自动执行其他取消检测，在协程处于繁忙循环的情况下，必须明确检测是否取消。</li>
+<li>通过<code>cancellable</code>操作符来执行此操作</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">simpleFlow7</span>() = flow&lt;Int&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (i <span style="color:#66d9ef">in</span> <span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">5</span>) {
+</span></span><span style="display:flex;"><span>            emit(i)
+</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;Emitting </span><span style="color:#e6db74">$i</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel flow check`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消成功，因为emit会suspend函数，有ensureActive检测，所以cancel后会取消
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        simpleFlow7().collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            println(v)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (v <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>) {
+</span></span><span style="display:flex;"><span>                cancel() <span style="color:#75715e">// 当值等于3时，取消收集过程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(<span style="color:#e6db74">&#34;cancelled&#34;</span>) <span style="color:#75715e">// 打印 &#34;cancelled&#34; 表示流已取消
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消失败，其他流没有取消检测
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//        (1..5).asFlow().collect { v -&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            println(v)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            if (v == 3) {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//                cancel() // 当值等于3时，取消收集过程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            }
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//        }
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消成功，因为添加了.cancellable()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 使用 cancellable() 方法允许流在收集过程中被取消
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">5</span>)
+</span></span><span style="display:flex;"><span>            .asFlow()
+</span></span><span style="display:flex;"><span>            .cancellable()
+</span></span><span style="display:flex;"><span>            .collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            println(v) <span style="color:#75715e">// 打印当前收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">if</span> (v <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span>) {
+</span></span><span style="display:flex;"><span>                cancel() <span style="color:#75715e">// 当值等于3时，取消收集过程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">//        simpleFlow7()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            .cancellable()
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            .collect { v -&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//                println(v) // 打印当前收集到的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//                if (v == 3) {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//                    cancel() // 当值等于3时，取消收集过程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//                    println(&#34;cancelled&#34;) // 打印 &#34;cancelled&#34; 表示流已取消
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//                }
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            }
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span></code></pre></div><h2 id="背压">背压<a hidden class="anchor" aria-hidden="true" href="#背压">#</a></h2>
+<ul>
+<li>
+<p><code>buffer()</code>，并发运行流中发射元素的代码。</p>
+</li>
+<li>
+<p><code>conflate()</code>，合并发射项目，不对每个值进行处理</p>
+</li>
+<li>
+<p><code>collectLatest()</code>，取消并重新发射最后一个值</p>
+</li>
+<li>
+<p>当必须更改<code>CoroutineDispatcher</code>时，<code>flowOn</code>操作符使用了相同的缓冲机制，但是<code>buffer</code>函数显式地请求缓冲而<strong>不改变执行上下文</strong>。</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow back pressure`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 measureTimeMillis 计算流的收集时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> time = measureTimeMillis {
+</span></span><span style="display:flex;"><span>            simpleFlow8() <span style="color:#75715e">// 调用定义的简单流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            .flowOn(Dispatchers.Default) // （可选）使用 Default 调度器在后台线程上执行流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            .buffer(100) // （可选）使用缓冲策略以在生产者和消费者之间提供 100 个值的缓冲区
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//            .conflate() // （可选）在下游繁忙时合并流的值，只处理最新的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                .collectLatest { v <span style="color:#f92672">-&gt;</span> <span style="color:#75715e">// 使用 collectLatest 收集流的最新值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#ae81ff">300</span>) <span style="color:#75715e">// 模拟耗时操作，延迟 300 毫秒
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;Collected </span><span style="color:#e6db74">$v</span><span style="color:#e6db74"> </span><span style="color:#e6db74">${Thread.currentThread().name}</span><span style="color:#e6db74">&#34;</span>) <span style="color:#75715e">// 打印收集到的值和线程名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                }
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;Collected in </span><span style="color:#e6db74">$time</span><span style="color:#e6db74"> ms&#34;</span>) <span style="color:#75715e">// 打印总共花费的时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span></code></pre></div><h2 id="操作符">操作符<a hidden class="anchor" aria-hidden="true" href="#操作符">#</a></h2>
+<h3 id="过渡流操作符">过渡流操作符<a hidden class="anchor" aria-hidden="true" href="#过渡流操作符">#</a></h3>
+<ul>
+<li>可以使用操作符转换符，就像使用集合与序列一样</li>
+<li>过渡操作符应用于上游流，并返回下游流。</li>
+<li>这些操作符也是冷操作符，就像流一样。这类操作符本身不是挂起函数。</li>
+<li>它运行的速度很快，返回新的转换流的定义。</li>
+</ul>
+<h3 id="transform">transform()<a hidden class="anchor" aria-hidden="true" href="#transform">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个挂起函数，模拟发送请求并返回响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">performRequest</span>(request: Int): String {
+</span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1000</span>) <span style="color:#75715e">// 模拟网络延迟，延迟 1000 毫秒（1 秒）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;response </span><span style="color:#e6db74">$request</span><span style="color:#e6db74">&#34;</span> <span style="color:#75715e">// 返回一个响应字符串
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 测试函数，使用 JUnit 测试框架
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test transform flow operator`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将整数范围转换为 Flow
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>).asFlow()
+</span></span><span style="display:flex;"><span>            .transform { request <span style="color:#f92672">-&gt;</span> <span style="color:#75715e">// 使用 transform 运算符转换流的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                emit(<span style="color:#e6db74">&#34;Making request </span><span style="color:#e6db74">$request</span><span style="color:#e6db74">&#34;</span>) <span style="color:#75715e">// 发射一个字符串，表示正在发送请求
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                emit(performRequest(request)) <span style="color:#75715e">// 发射 performRequest 的返回值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>            .collect { v <span style="color:#f92672">-&gt;</span> <span style="color:#75715e">// 收集流的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(v) <span style="color:#75715e">// 打印收集到的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="take">take()<a hidden class="anchor" aria-hidden="true" href="#take">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// 定义一个简单的 Flow，产生 Int 类型的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">numbers</span>() = flow&lt;Int&gt; {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>        emit(<span style="color:#ae81ff">1</span>) <span style="color:#75715e">// 发射第一个整数 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        emit(<span style="color:#ae81ff">2</span>) <span style="color:#75715e">// 发射第二个整数 2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;This line will not execute&#34;</span>) <span style="color:#75715e">// 这一行代码不会被执行，因为 collect 操作会提前中止 Flow
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        emit(<span style="color:#ae81ff">3</span>) <span style="color:#75715e">// 发射第三个整数 3（不会执行）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 在 Flow 被收集完成或取消时执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;Finally in numbers&#34;</span>) <span style="color:#75715e">// 打印 &#34;Finally in numbers&#34;，表示 finally 块的执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 测试函数，使用 JUnit 测试框架
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test limit length operator`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 调用 numbers 函数，限制收集的元素数量为 2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    numbers()
+</span></span><span style="display:flex;"><span>        .take(<span style="color:#ae81ff">2</span>) <span style="color:#75715e">// 使用 take 运算符，只收集前 2 个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .collect { v <span style="color:#f92672">-&gt;</span> <span style="color:#75715e">// 收集 Flow 中的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(v) <span style="color:#75715e">// 打印每个收集到的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="末端操作符">末端操作符<a hidden class="anchor" aria-hidden="true" href="#末端操作符">#</a></h3>
+<ul>
+<li>末端操作符是在流上用于启动流收集的挂起函数。collect是最基础的末端操作符，但是还有另外一些更方便使用的末端操作符
+<ul>
+<li>转化为各种集合，例如<code>toList</code>和<code>toSet</code></li>
+<li>获取第一个（first）值与确保流发射单个（single）值的操作符</li>
+<li>使用reduce与fold将流规约到单个值</li>
+</ul>
+</li>
+</ul>
+<h3 id="组合多个流">组合多个流<a hidden class="anchor" aria-hidden="true" href="#组合多个流">#</a></h3>
+<ul>
+<li>就像<code>Kotlin</code>标准库中的<code>Sequence.zip</code>拓展函数一样，流拥有一个zip操作符用于组合两个流中的相关值</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test zip2`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个整数流，发射 1 到 3 的数字，每个数字发射之间延迟 300 毫秒
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> numbs = (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>).asFlow().onEach {
+</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">300</span>) <span style="color:#75715e">// 模拟延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个字符串流，发射 &#34;one&#34;、&#34;two&#34; 和 &#34;three&#34; 的字符串，每个字符串发射之间延迟 400 毫秒
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> strs = flowOf(<span style="color:#e6db74">&#34;one&#34;</span>, <span style="color:#e6db74">&#34;two&#34;</span>, <span style="color:#e6db74">&#34;three&#34;</span>).onEach {
+</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">400</span>) <span style="color:#75715e">// 模拟延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 记录测试开始时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 zip 操作符将两个流的元素配对
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        numbs.zip(strs) { a, b <span style="color:#f92672">-&gt;</span> <span style="color:#e6db74">&#34;</span><span style="color:#e6db74">$a</span><span style="color:#e6db74"> -&gt; </span><span style="color:#e6db74">$b</span><span style="color:#e6db74">&#34;</span> } <span style="color:#75715e">// 将 numbs 和 strs 的每对元素组合成字符串
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .collect { v <span style="color:#f92672">-&gt;</span> <span style="color:#75715e">// 收集配对后的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#75715e">// 打印配对后的元素和从测试开始到当前时间的时间差
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">$v</span><span style="color:#e6db74">, consume time : </span><span style="color:#e6db74">${System.currentTimeMillis() - startTime}</span><span style="color:#e6db74"> ms &#34;</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="展平流">展平流<a hidden class="anchor" aria-hidden="true" href="#展平流">#</a></h3>
+<ul>
+<li>流表示异步接收的值序列，所以很容易遇到这样的情况：每个值都会触发对另一个值序列的请求，然而，由于流具有异步的性质，因此需要不同的展平模式，为此，存在一系列的流展平操作符：
+<ul>
+<li><code>flatMapConcat</code> 连接模式</li>
+<li><code>flatMapMerge</code> 合并模式</li>
+<li><code>flatMapLatest</code> 最新展平模式</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// 使用 flatMapConcat 操作符的测试函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flatMapConcat`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#75715e">// 记录开始时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建一个流，包含数字 1 到 3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>        .asFlow() <span style="color:#75715e">// 将数字转换为流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .onEach { delay(<span style="color:#ae81ff">100</span>) } <span style="color:#75715e">// 在每个元素上施加 100 毫秒的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 使用 flatMapConcat 将每个元素转换为新的流并串联
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .flatMapConcat { requestFlow(<span style="color:#66d9ef">it</span>) }
+</span></span><span style="display:flex;"><span>        .collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集并打印每个元素的值以及从开始到现在的消耗时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">$v</span><span style="color:#e6db74">, consume time : </span><span style="color:#e6db74">${System.currentTimeMillis() - startTime}</span><span style="color:#e6db74"> ms &#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 使用 flatMapMerge 操作符的测试函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flatMapMerge`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#75715e">// 记录开始时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建一个流，包含数字 1 到 3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>        .asFlow() <span style="color:#75715e">// 将数字转换为流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .onEach { delay(<span style="color:#ae81ff">100</span>) } <span style="color:#75715e">// 在每个元素上施加 100 毫秒的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 使用 flatMapMerge 将每个元素转换为新的流并并发执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .flatMapMerge { requestFlow(<span style="color:#66d9ef">it</span>) }
+</span></span><span style="display:flex;"><span>        .collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集并打印每个元素的值以及从开始到现在的消耗时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">$v</span><span style="color:#e6db74">, consume time : </span><span style="color:#e6db74">${System.currentTimeMillis() - startTime}</span><span style="color:#e6db74"> ms &#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 使用 flatMapLatest 操作符的测试函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flatMapLatest`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#75715e">// 记录开始时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建一个流，包含数字 1 到 3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>        .asFlow() <span style="color:#75715e">// 将数字转换为流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .onEach { delay(<span style="color:#ae81ff">100</span>) } <span style="color:#75715e">// 在每个元素上施加 100 毫秒的延迟
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 使用 flatMapLatest 将每个元素转换为新的流，仅保留最新流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .flatMapLatest { requestFlow(<span style="color:#66d9ef">it</span>) }
+</span></span><span style="display:flex;"><span>        .collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集并打印每个元素的值以及从开始到现在的消耗时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;</span><span style="color:#e6db74">$v</span><span style="color:#e6db74">, consume time : </span><span style="color:#e6db74">${System.currentTimeMillis() - startTime}</span><span style="color:#e6db74"> ms &#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="流的异常处理">流的异常处理<a hidden class="anchor" aria-hidden="true" href="#流的异常处理">#</a></h3>
+<ul>
+<li>当运算符中的发射器或代码抛出异常时，有几种处理异常的方法：
+<ul>
+<li>try/catch块</li>
+<li>catch函数</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 测试用例 `test exception1`：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 使用 runBlocking 启动协程，收集 simpleFlow 的值。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 如果值大于 1，则抛出异常并捕获。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test exception1`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            simpleFlow().collect { v <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(v)
+</span></span><span style="display:flex;"><span>                check(v <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">1</span>) { <span style="color:#e6db74">&#34;Collected </span><span style="color:#e6db74">$v</span><span style="color:#e6db74">&#34;</span> }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (e: Throwable) {
+</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;Caught </span><span style="color:#e6db74">$e</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 测试用例 `test exception2`：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 创建一个流，发射一个值后抛出异常。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 使用 catch 操作符处理异常。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test exception2`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style="display:flex;"><span>        flow {
+</span></span><span style="display:flex;"><span>            emit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> ArithmeticException(<span style="color:#e6db74">&#34;Div 0&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>            .<span style="color:#66d9ef">catch</span> { e: Throwable <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Caught: </span><span style="color:#e6db74">$e</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            .flowOn(<span style="color:#a6e22e">Dispatchers</span>.IO)
+</span></span><span style="display:flex;"><span>            .collect {
+</span></span><span style="display:flex;"><span>                println(<span style="color:#66d9ef">it</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h3 id="流的完成">流的完成<a hidden class="anchor" aria-hidden="true" href="#流的完成">#</a></h3>
+<ul>
+<li>当流收集完成时（普通情况或异常情况），它可能需要执行一个动作
+<ul>
+<li>命令是<code>finally</code>块</li>
+<li><code>onCompletion</code>声明式处理</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个函数，返回1到3的值作为 Flow
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">simpleFlow2</span>() = (<span style="color:#ae81ff">1.</span>.<span style="color:#ae81ff">3</span>).asFlow()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 测试在 finally 块中完成流的处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow complete in finally`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集 simpleFlow2 流中的每个值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            simpleFlow2().collect {
+</span></span><span style="display:flex;"><span>                println(<span style="color:#66d9ef">it</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">finally</span> {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 无论流的收集过程是否成功，这条消息都会在最后打印
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            println(<span style="color:#e6db74">&#34;Done!&#34;</span>)
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个函数，返回一个 Flow&lt;Int&gt; 类型的流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">simpleFlow3</span>() = flow&lt;Int&gt; {
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 发射（emit）第一个值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        emit(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 发射一个异常来中断流
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">throw</span> RuntimeException()
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 测试使用 onCompletion 操作符处理流完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test flow complete in onCompletion`</span>() = runBlocking {
+</span></span><span style="display:flex;"><span>        simpleFlow3()
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 在流完成时调用的操作符
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .onCompletion { exception <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (exception <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span>) {
+</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 如果有异常，打印流以异常方式完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;Flow completed exceptionally&#34;</span>)
+</span></span><span style="display:flex;"><span>                }
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 捕获流中的异常
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .<span style="color:#66d9ef">catch</span> { exception <span style="color:#f92672">-&gt;</span>
+</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Caught </span><span style="color:#e6db74">$exception</span><span style="color:#e6db74">&#34;</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 收集 simpleFlow3 流中的每个值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            .collect {
+</span></span><span style="display:flex;"><span>                println(<span style="color:#66d9ef">it</span>)
+</span></span><span style="display:flex;"><span>            }
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="通道-多路复用-并发安全">通道-多路复用-并发安全<a hidden class="anchor" aria-hidden="true" href="#通道-多路复用-并发安全">#</a></h2>
+<h3 id="channel">Channel<a hidden class="anchor" aria-hidden="true" href="#channel">#</a></h3>
+<ul>
+<li>Channel是一个并发安全的队列，它可以用来连接协程，实现不同协程的通信。</li>
 </ul>
 
 
