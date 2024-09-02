@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>MIT6.S081(3) | Kennem&#39;s Blog</title>
+<meta name="keywords" content="MIT6.S081(3)">
+<meta name="description" content="MIT6.S081(3)">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0813/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0813/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="MIT6.S081(3)" />
+<meta property="og:description" content="MIT6.S081(3)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0813/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-08-31T22:30:13+08:00" />
+<meta property="article:modified_time" content="2024-08-31T22:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MIT6.S081(3)"/>
+<meta name="twitter:description" content="MIT6.S081(3)"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "MIT6.S081(3)",
+      "item": "https://kennems.github.io/posts/tech/mit6.s0813/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MIT6.S081(3)",
+  "name": "MIT6.S081(3)",
+  "description": "MIT6.S081(3)",
+  "keywords": [
+    "MIT6.S081(3)"
+  ],
+  "articleBody": "MIT6.S081(3) Lab System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); ",
+  "wordCount" : "351",
+  "inLanguage": "zh",
+  "datePublished": "2024-08-31T22:30:13+08:00",
+  "dateModified": "2024-08-31T22:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/mit6.s0813/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      MIT6.S081(3)
+    </h1>
+    <div class="post-description">
+      MIT6.S081(3)
+    </div>
+    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;351 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#mit6s0813" aria-label="MIT6.S081(3)">MIT6.S081(3)</a><ul>
+                            
+                    <li>
+                        <a href="#labhttpspdoscsailmitedu6s0812020labssyscallhtml" aria-label="Lab"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab</a></a></li>
+                    <li>
+                        <a href="#system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="System call tracing (moderate)">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a><ul>
+                            
+                    <li>
+                        <a href="#hometopeetprojectxv6-labs-2020makefile" aria-label="/home/topeet/project/xv6-labs-2020/Makefile">/home/topeet/project/xv6-labs-2020/Makefile</a></li>
+                    <li>
+                        <a href="#hometopeetprojectxv6-labs-2020userusyspl" aria-label="/home/topeet/project/xv6-labs-2020/user/usys.pl">/home/topeet/project/xv6-labs-2020/user/usys.pl</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelprocc" aria-label="~/project/xv6-labs-2020/kernel/proc.c">~/project/xv6-labs-2020/kernel/proc.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelproch" aria-label="~/project/xv6-labs-2020/kernel/proc.h">~/project/xv6-labs-2020/kernel/proc.h</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelsyscallc" aria-label="~/project/xv6-labs-2020/kernel/syscall.c">~/project/xv6-labs-2020/kernel/syscall.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelsyscallh" aria-label="~/project/xv6-labs-2020/kernel/syscall.h">~/project/xv6-labs-2020/kernel/syscall.h</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelsysprocc" aria-label="~/project/xv6-labs-2020/kernel/sysproc.c">~/project/xv6-labs-2020/kernel/sysproc.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020useruserh" aria-label="~/project/xv6-labs-2020/user/user.h">~/project/xv6-labs-2020/user/user.h</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="mit6s0813">MIT6.S081(3)<a hidden class="anchor" aria-hidden="true" href="#mit6s0813">#</a></h1>
+<h2 id="labhttpspdoscsailmitedu6s0812020labssyscallhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab</a><a hidden class="anchor" aria-hidden="true" href="#labhttpspdoscsailmitedu6s0812020labssyscallhtml">#</a></h2>
+<h2 id="system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<h3 id="hometopeetprojectxv6-labs-2020makefile">/home/topeet/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020makefile">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>    $U/_wc<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    $U/_zombie<span style="color:#ae81ff">\
+</span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    $U/_trace<span style="color:#ae81ff">\
+</span></span></span></code></pre></div><h3 id="hometopeetprojectxv6-labs-2020userusyspl">/home/topeet/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020userusyspl">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-perl" data-lang="perl"><span style="display:flex;"><span>	entry(<span style="color:#e6db74">&#34;trace&#34;</span>);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelprocc">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc">#</a></h3>
+<p>在fork()函数内部添加如下代码：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">// copy saved user registers.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(np<span style="color:#f92672">-&gt;</span>trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe);
+</span></span><span style="display:flex;"><span>  np<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>tracemask;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Cause fork to return 0 in the child.
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  np<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelproch">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch">#</a></h3>
+<p>在结构体<code>proc</code>中添加<code>tracemask</code>属性</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> tracemask; <span style="color:#75715e">// Trace Mask
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallc">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc">#</a></h3>
+<p>处理系统调用（system call)的核心代码， 主要作用是实现系统调用的<strong>参数提取</strong>，<strong>处理</strong>和<strong>结果返回</strong>。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_mkdir] sys_mkdir,
+</span></span><span style="display:flex;"><span>    [SYS_close] sys_close,
+</span></span><span style="display:flex;"><span>    [SYS_trace] sys_trace};
+</span></span></code></pre></div><p>按照参数顺序保存每个系统调用的名称，便于调试和输出。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>sys_name[] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;fork&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exit&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;wait&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;pipe&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;read&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;kill&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exec&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;fstat&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;chdir&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;dup&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;getpid&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sbrk&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sleep&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;uptime&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;open&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;write&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mknod&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;unlink&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;link&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mkdir&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;trace&#34;</span>};
+</span></span></code></pre></div><p>在<code>syscall</code>函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (num <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> num <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">NELEM</span>(syscalls) <span style="color:#f92672">&amp;&amp;</span> syscalls[num])
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> syscalls[num]();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">&gt;&gt;</span> (num) <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">0x01</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d: syscall %s -&gt; %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p<span style="color:#f92672">-&gt;</span>pid, sys_name[num <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>], p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallh">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_mkdir 20
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close 21
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace 22
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsysprocc">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc">#</a></h3>
+<p>当命令行输入命令后执行此函数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>n);
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">=</span> n;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020useruserh">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">uptime</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span>);
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/mit6.s0813/">MIT6.S081(3)</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0811/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>MIT6.S081(1)</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B4/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>Kotlin协程(4)</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>
