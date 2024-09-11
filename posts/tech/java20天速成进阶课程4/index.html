@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://kennems.github.io/posts/tech/java20%E5%A4%A9%E9%80%9F%E6%88%90%E8%BF%9B%E9%98%B6%E8%AF%BE%E7%A8%8B4/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-04-20T22:30:13+08:00" />
-<meta property="article:modified_time" content="2024-04-20T22:20:13+08:00" />
+<meta property="article:modified_time" content="2024-09-11T22:20:13+08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content="Java20天速成——进阶课程(4)"/>
@@ -132,10 +132,10 @@ document.addEventListener("DOMContentLoaded", function() {
     "Java"
   ],
   "articleBody": "Java20天速成——进阶课程(4) 特殊文件 properties, xml\n为什么要用这些特殊文件？\n存储多个用户的：用户名， 密码， 家乡， 性别\n日志技术\n把程序运行的信息，记录到文件中，方便程序员定位bug， 并了解程序的执行情况等。\nProperties 是一个Map集合（键值对集合）， 但是一般不会当集合使用 核心作用：Properties是用来代表属性文件的，通过Properties可以读写属性文件里面的内容 public static void main(String[] args) throws IOException { // 创建一个Properties对象 Properties properties = new Properties(); // 输出初始的Properties对象，此时为空 System.out.println(properties); // 从文件加载Properties数据 properties.load(new FileReader(\"file-io-app\\\\properties-xml-log-app\\\\src\\\\users.properties\")); // 输出加载后的Properties对象，包含从文件中读取的键值对 System.out.println(properties); // 根据指定键取得对应的值 System.out.println(properties.get(\"ken\")); // 获取Properties对象中所有的键，并遍历输出每个键值对 Set\u003cString\u003e keys = properties.stringPropertyNames(); for (String key : keys) { String val = properties.getProperty(key); System.out.println(key + \"----\u003e\" + val); } } XML 本质是一种数据的格式，可以用来存储复杂的数据结构，和数据关系 XML特点\nXML中的\u003c标签名\u003e称为一个标签或一个元素，一般是成对出现的 xml解析(dom4j) public static void main(String[] args) throws DocumentException { // 创建SAXReader对象 SAXReader saxReader = new SAXReader(); // 使用SAXReader解析XML文件并生成Document对象 Document document = saxReader.read(\"file-io-app\\\\properties-xml-log-app\\\\src\\\\helloworld.xml\"); // 获取XML文档的根元素并输出其名称 Element root = document.getRootElement(); System.out.println(root.getName()); // 获取根元素下名为\"user\"的所有子元素并输出它们的名称 List\u003cElement\u003e elements = root.elements(\"user\"); for (Element element : elements) { System.out.println(element.getName()); } // 获取名为\"people\"的元素的文本内容并输出 Element people = root.element(\"people\"); System.out.println(people.getText()); // 获取名为\"user\"的元素下名为\"user\"的子元素的文本内容并输出 Element user = root.element(\"user\"); System.out.println(user.elementText(\"user\")); // 获取名为\"user\"的元素的名为\"id\"的属性值并输出 System.out.println(user.attributeValue(\"id\")); // 获取名为\"user\"的元素的名为\"id\"的属性，并输出属性名和属性值 Attribute id = user.attribute(\"id\"); System.out.println(id.getName()); System.out.println(id.getValue()); // 获取名为\"user\"的元素的所有属性，并输出它们的名和值 List\u003cAttribute\u003e attributes = user.attributes(); for (Attribute attribute : attributes) { System.out.println(attribute.getName() + attribute.getValue()); } // 输出名为\"user\"的元素下名为\"name\"、\"地址\"和\"password\"的子元素的文本内容 System.out.println(user.elementText(\"name\")); System.out.println(user.elementText(\"地址\")); System.out.println(user.elementText(\"password\")); // 获取名为\"user\"的元素下名为\"data\"的子元素的文本内容，并输出包括前后空格的文本和去除前后空格的文本 Element data = user.element(\"data\"); System.out.println(data.getText()); System.out.println(data.getTextTrim()); //去除前后空格 } 写入XML文件 使用程序把数据写出到xml中\n不建议使用dom4j， 推荐直接把程序里的数据拼接成xml格式\npublic static void main(String[] args) throws IOException { // 创建一个StringBuilder对象，用于构建XML内容 StringBuilder sb = new StringBuilder(); // 构建XML头部信息和根元素 sb.append(\"\u003c?xml version=\\\"1.0\\\" encoding=\\\"utf-8\\\" ?\u003e\"); sb.append(\"\\r\\n\"); // 添加书名、作者和价格信息作为子元素 sb.append(\"\").append(\"从入门到删库\").append(\"\\r\\n\"); sb.append(\"\").append(\"ai\").append(\"\\r\\n\"); sb.append(\"\").append(999.999).append(\"\\r\\n\"); // 关闭根元素 sb.append(\"\\r\\n\"); try ( // 使用try-with-resources语法创建BufferedWriter对象，将内容写入到文件中 BufferedWriter bw = new BufferedWriter(new FileWriter(\"file-io-app\\\\properties-xml-log-app\\\\src\\\\test.xml\")); ){ bw.write(sb.toString()); // 将StringBuilder对象中的内容写入到文件中 } catch (Exception e) { e.printStackTrace(); // 打印异常信息 } } 约束XML文件的书写 就是限制XML文件只能按照某种格式进行书写 约束文档：\n专门用来显示xml书写格式的文档，比如：限制标签，属性该怎么写 约束文档的分类\nDTD文档 Schema文档 XML文档结束-DTD的使用 需求：利用DTD约束文档，约束一个XML文件的编写。\nDTD(约束文档)\n\u003c!ELEMENT 书架 (书+)\u003e \u003c!ELEMENT 书 (书名,作者,售价)\u003e \u003c!ELEMENT 书名 (#PCDATA)\u003e \u003c!ELEMENT 作者 (#PCDATA)\u003e \u003c!ELEMENT 售价 (#PCDATA)\u003e XML文档\n\u003c?xml version=\"1.0\" encoding=\"UTF-8\" ?\u003e \u003c!DOCTYPE 书架 SYSTEM \"data.dtd\"\u003e \u003c书架\u003e \u003c书\u003e \u003c书名\u003e从删库到跑路\u003c/书名\u003e \u003c作者\u003eKenn\u003c/作者\u003e \u003c售价\u003e0.3\u003c/售价\u003e \u003c/书\u003e \u003c/书架\u003e XML文档结束-schema的使用 可以约束XML文件的编写、和数据类型 \u003c?xml version=\"1.0\" encoding=\"UTF-8\" ?\u003e ",
-  "wordCount" : "9337",
+  "wordCount" : "9840",
   "inLanguage": "zh",
   "datePublished": "2024-04-20T22:30:13+08:00",
-  "dateModified": "2024-04-20T22:20:13+08:00",
+  "dateModified": "2024-09-11T22:20:13+08:00",
   "author":{
     "@type": "Person",
     "name": "ShowGuan"
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Java学习笔记
     </div>
-    <div class="post-meta"><span title='2024-04-20 22:30:13 +0800 CST'>2024-04-20</span>&nbsp;·&nbsp;19 分钟&nbsp;·&nbsp;9337 字&nbsp;·&nbsp;updated:&nbsp;2024-04-20&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-20 22:30:13 +0800 CST'>2024-04-20</span>&nbsp;·&nbsp;20 分钟&nbsp;·&nbsp;9840 字&nbsp;·&nbsp;updated:&nbsp;2024-09-11&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -336,7 +336,15 @@ document.addEventListener("DOMContentLoaded", function() {
                         <a href="#%e6%89%a7%e8%a1%8ccallable%e4%bb%bb%e5%8a%a1" aria-label="执行Callable任务">执行Callable任务</a></li></ul>
                     </li>
                     <li>
-                        <a href="#executors" aria-label="Executors"><code>Executors</code></a></li></ul>
+                        <a href="#executors" aria-label="Executors"><code>Executors</code></a></li>
+                    <li>
+                        <a href="#volatile-%e5%85%b3%e9%94%ae%e5%ad%97" aria-label="volatile 关键字"><code>volatile</code> 关键字</a><ul>
+                            
+                    <li>
+                        <a href="#%e4%bd%9c%e7%94%a8" aria-label="作用:">作用:</a></li>
+                    <li>
+                        <a href="#%e6%b3%a8%e6%84%8f%e7%82%b9" aria-label="注意点：">注意点：</a></li></ul>
+                    </li></ul>
                     </li>
                     <li>
                         <a href="#%e5%b9%b6%e5%8f%91%e5%b9%b6%e8%a1%8c" aria-label="并发、并行">并发、并行</a><ul>
@@ -1018,7 +1026,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <p><strong>锁对象的使用规范</strong>：</p>
 <ul>
-<li>建议使用<strong>共享资源</strong>作为锁对象，对于<strong>实例方法</strong>建议使用**<code>this</code>**作为锁对象</li>
+<li>建议使用<strong>共享资源</strong>作为锁对象，对于<strong>实例方法</strong>建议使用<code>this</code>作为锁对象</li>
 <li>对于<strong>静态方法</strong>建议使用字节码（<code>类名.class</code>）对象作为锁对象</li>
 </ul>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">drawMoney</span>(<span style="color:#66d9ef">double</span> money) {
@@ -1339,6 +1347,17 @@ document.addEventListener("DOMContentLoaded", function() {
 允许的创建线程数量为 Integer.MAX_VALUE，可能会创建大量的线程，从而导致 OOM。</li>
 </ol>
 </blockquote>
+<h3 id="volatile-关键字"><code>volatile</code> 关键字<a hidden class="anchor" aria-hidden="true" href="#volatile-关键字">#</a></h3>
+<h4 id="作用">作用:<a hidden class="anchor" aria-hidden="true" href="#作用">#</a></h4>
+<ol>
+<li><strong>可见性保证</strong> ： 当多个线程访问同一个变量时，如果使用不同的同步机制，线程可能会缓存变量的值，并不会立即从主内存中读取或写回，使用<code>volatile</code>修饰的变量，能够保证对该变量的所有写操作都会<strong>立即</strong>被刷新到主内存中，所有对它的读取操作也会<strong>直接从主内存中读取</strong>，而不是从线程的本地缓存中读取。即一个线程对volatile变量所做的写操作，对其他线程来说是立即可见的。</li>
+<li><strong>防止指令重排</strong>：Java编译器，JVM，和CPU在执行代码时，可能会为了提高性能而对指令进行重排序，这回导致某些操作的执行顺序和代码中的顺序不一样。volatile保证在读取或写入变量时，之前的操作一定已经完成，之后的操作一定不会被重排序到它之前。</li>
+</ol>
+<h4 id="注意点">注意点：<a hidden class="anchor" aria-hidden="true" href="#注意点">#</a></h4>
+<ol>
+<li><strong>不能保证原子性</strong>：<code>volatile</code>仅仅保证了可见性和禁止指令重排，但它并不能保证<strong>操作的原子性</strong>。例如，对于<code>volatile int</code>变量进行自增操作 <code>count ++</code> , 并不是线程安全的，因为自增操作实际上分为三步（读取，加一，写回），这些步骤可能被多个线程同时执行而互相干扰。</li>
+<li><strong>适用场景</strong>：适用于哪些需要<strong>简单读写操作的共享变量</strong>，比如标志位，状态变量等。如果需要更复杂的操作，最好使用<code>synchronized</code>或其他锁机制。</li>
+</ol>
 <h2 id="并发并行">并发、并行<a hidden class="anchor" aria-hidden="true" href="#并发并行">#</a></h2>
 <p><strong>进程</strong></p>
 <ul>

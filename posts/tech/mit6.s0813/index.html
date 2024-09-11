@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081(3)"
   ],
-  "articleBody": "MIT6.S081(3) Lab System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); ",
-  "wordCount" : "351",
+  "articleBody": "MIT6.S081(3) Lab System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
+  "wordCount" : "475",
   "inLanguage": "zh",
   "datePublished": "2024-08-31T22:30:13+08:00",
   "dateModified": "2024-08-31T22:20:13+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(3)
     </div>
-    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;351 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;475 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -292,7 +292,31 @@ document.addEventListener("DOMContentLoaded", function() {
                     <li>
                         <a href="#projectxv6-labs-2020kernelsysprocc" aria-label="~/project/xv6-labs-2020/kernel/sysproc.c">~/project/xv6-labs-2020/kernel/sysproc.c</a></li>
                     <li>
-                        <a href="#projectxv6-labs-2020useruserh" aria-label="~/project/xv6-labs-2020/user/user.h">~/project/xv6-labs-2020/user/user.h</a>
+                        <a href="#projectxv6-labs-2020useruserh" aria-label="~/project/xv6-labs-2020/user/user.h">~/project/xv6-labs-2020/user/user.h</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Sysinfo (moderate)">Sysinfo (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a><ul>
+                            
+                    <li>
+                        <a href="#projectxv6-labs-2020makefile" aria-label="~/project/xv6-labs-2020/Makefile">~/project/xv6-labs-2020/Makefile</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kerneldefsh" aria-label="~/project/xv6-labs-2020/kernel/defs.h">~/project/xv6-labs-2020/kernel/defs.h</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelkallocc" aria-label="~/project/xv6-labs-2020/kernel/kalloc.c">~/project/xv6-labs-2020/kernel/kalloc.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelprocc-1" aria-label="~/project/xv6-labs-2020/kernel/proc.c">~/project/xv6-labs-2020/kernel/proc.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelproch-1" aria-label="~/project/xv6-labs-2020/kernel/proc.h">~/project/xv6-labs-2020/kernel/proc.h</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelsyscallc-1" aria-label="~/project/xv6-labs-2020/kernel/syscall.c">~/project/xv6-labs-2020/kernel/syscall.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelsyscallh-1" aria-label="~/project/xv6-labs-2020/kernel/syscall.h">~/project/xv6-labs-2020/kernel/syscall.h</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020kernelsysprocc-1" aria-label="~/project/xv6-labs-2020/kernel/sysproc.c">~/project/xv6-labs-2020/kernel/sysproc.c</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020useruserh-1" aria-label="~/project/xv6-labs-2020/user/user.h">~/project/xv6-labs-2020/user/user.h</a></li>
+                    <li>
+                        <a href="#projectxv6-labs-2020userusyspl" aria-label="~/project/xv6-labs-2020/user/usys.pl">~/project/xv6-labs-2020/user/usys.pl</a>
                     </li>
                 </ul>
                 </li>
@@ -442,6 +466,60 @@ document.addEventListener("DOMContentLoaded", function() {
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">uptime</span>(<span style="color:#66d9ef">void</span>);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span>);
+</span></span></code></pre></div><h2 id="sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Sysinfo (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>实现<code>sysinfo</code>，同时重构上面的 <code>trace</code></p>
+<h3 id="projectxv6-labs-2020makefile">~/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020makefile">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>	$U/_sysinfotest<span style="color:#ae81ff">\
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kerneldefsh">~/project/xv6-labs-2020/kernel/defs.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kerneldefsh">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// sysinfo.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">process_number</span>();
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">amount_free_memory</span>(<span style="color:#66d9ef">void</span>);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelkallocc">~/project/xv6-labs-2020/kernel/kalloc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelkallocc">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// get free memory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">amount_free_memory</span>(<span style="color:#66d9ef">void</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
+</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> kmem.freelist;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (; r; r <span style="color:#f92672">=</span> r<span style="color:#f92672">-&gt;</span>next) {
+</span></span><span style="display:flex;"><span>      cnt<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cnt<span style="color:#f92672">*</span>PGSIZE;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelprocc-1">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelproch-1">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> tracemask; <span style="color:#75715e">// Trace memory
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span> mask);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">gather_sysinfo</span>(<span style="color:#66d9ef">struct</span> sysinfo <span style="color:#f92672">*</span>info);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallc-1">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_trace] sys_trace,
+</span></span><span style="display:flex;"><span>    [SYS_sysinfo] sys_sysinfo
+</span></span><span style="display:flex;"><span>    };
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;trace&#34;</span>,
+</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sysinfo&#34;</span>
+</span></span><span style="display:flex;"><span>    };
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_uptime</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_sysinfo</span>(<span style="color:#66d9ef">void</span>);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallh-1">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close  21
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace  22
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_sysinfo 23
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsysprocc-1">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020useruserh-1">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> rtcdate;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo;
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020userusyspl">~/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020userusyspl">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;uptime&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;trace&#34;</span>);
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;sysinfo&#34;</span>);
 </span></span></code></pre></div>
 
   </div>
