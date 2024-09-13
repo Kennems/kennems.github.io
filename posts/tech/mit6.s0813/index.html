@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081(3)"
   ],
-  "articleBody": "MIT6.S081(3) Lab System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
-  "wordCount" : "475",
+  "articleBody": "MIT6.S081(3) Operating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
+  "wordCount" : "773",
   "inLanguage": "zh",
   "datePublished": "2024-08-31T22:30:13+08:00",
   "dateModified": "2024-08-31T22:20:13+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(3)
     </div>
-    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;475 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;773 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -272,6 +272,8 @@ document.addEventListener("DOMContentLoaded", function() {
                     <li>
                         <a href="#mit6s0813" aria-label="MIT6.S081(3)">MIT6.S081(3)</a><ul>
                             
+                    <li>
+                        <a href="#operating-system-organization" aria-label="Operating system organization">Operating system organization</a></li>
                     <li>
                         <a href="#labhttpspdoscsailmitedu6s0812020labssyscallhtml" aria-label="Lab"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab</a></a></li>
                     <li>
@@ -388,6 +390,125 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
   <div class="post-content"><h1 id="mit6s0813">MIT6.S081(3)<a hidden class="anchor" aria-hidden="true" href="#mit6s0813">#</a></h1>
+<h2 id="operating-system-organization">Operating system organization<a hidden class="anchor" aria-hidden="true" href="#operating-system-organization">#</a></h2>
+<table>
+<thead>
+<tr>
+<th>文件名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>bio.c</td>
+<td>文件系统的磁盘块缓存。</td>
+</tr>
+<tr>
+<td>console.c</td>
+<td>连接用户键盘和屏幕。</td>
+</tr>
+<tr>
+<td>entry.S</td>
+<td>最早的引导指令。</td>
+</tr>
+<tr>
+<td>exec.c</td>
+<td><code>exec()</code> 系统调用。</td>
+</tr>
+<tr>
+<td>file.c</td>
+<td>文件描述符支持。</td>
+</tr>
+<tr>
+<td>fs.c</td>
+<td>文件系统。</td>
+</tr>
+<tr>
+<td>kalloc.c</td>
+<td>物理页面分配器。</td>
+</tr>
+<tr>
+<td>kernelvec.S</td>
+<td>处理来自内核的陷阱和定时器中断。</td>
+</tr>
+<tr>
+<td>log.c</td>
+<td>文件系统日志和崩溃恢复。</td>
+</tr>
+<tr>
+<td>main.c</td>
+<td>控制启动时其他模块的初始化。</td>
+</tr>
+<tr>
+<td>pipe.c</td>
+<td>管道。</td>
+</tr>
+<tr>
+<td>plic.c</td>
+<td>RISC-V 中断控制器。</td>
+</tr>
+<tr>
+<td>printf.c</td>
+<td>格式化输出到控制台。</td>
+</tr>
+<tr>
+<td>proc.c</td>
+<td>进程和调度。</td>
+</tr>
+<tr>
+<td>sleeplock.c</td>
+<td>让出 CPU 的锁。</td>
+</tr>
+<tr>
+<td>spinlock.c</td>
+<td>不让出 CPU 的锁。</td>
+</tr>
+<tr>
+<td>start.c</td>
+<td>机器模式的早期引导代码。</td>
+</tr>
+<tr>
+<td>string.c</td>
+<td>C 字符串和字节数组库。</td>
+</tr>
+<tr>
+<td>swtch.S</td>
+<td>线程切换。</td>
+</tr>
+<tr>
+<td>syscall.c</td>
+<td>将系统调用分派给处理函数。</td>
+</tr>
+<tr>
+<td>sysfile.c</td>
+<td>与文件相关的系统调用。</td>
+</tr>
+<tr>
+<td>sysproc.c</td>
+<td>与进程相关的系统调用。</td>
+</tr>
+<tr>
+<td>trampoline.S</td>
+<td>用户和内核之间切换的汇编代码。</td>
+</tr>
+<tr>
+<td>trap.c</td>
+<td>处理并返回陷阱和中断的 C 代码。</td>
+</tr>
+<tr>
+<td>uart.c</td>
+<td>串行端口控制台设备驱动程序。</td>
+</tr>
+<tr>
+<td>virtio_disk.c</td>
+<td>磁盘设备驱动程序。</td>
+</tr>
+<tr>
+<td>vm.c</td>
+<td>管理页表和地址空间。</td>
+</tr>
+</tbody>
+</table>
 <h2 id="labhttpspdoscsailmitedu6s0812020labssyscallhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab</a><a hidden class="anchor" aria-hidden="true" href="#labhttpspdoscsailmitedu6s0812020labssyscallhtml">#</a></h2>
 <h2 id="system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
 <h3 id="hometopeetprojectxv6-labs-2020makefile">/home/topeet/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020makefile">#</a></h3>
