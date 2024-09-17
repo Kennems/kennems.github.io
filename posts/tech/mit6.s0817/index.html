@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081(7)"
   ],
-  "articleBody": "MIT6.S081(7) ",
-  "wordCount" : "1",
+  "articleBody": "MIT6.S081(7) Page faults Virtual Memory Benfits Isolation Level of Indirection Va -\u003e Pa\nInformation Needed the faulting va ( va -\u003e stval register) the type of page fault ( scause ) the va of instruction that cause the page fault (sepc, trapframe) Allocation : sbrk() sbrk() -\u003e eager allocation\napplcations tend to over ask.\nLazy allocation sbrk() do nothing\nonly grow p-\u003esz\nPgFault : va \u003c p-\u003esz \u003e stack\nallocate 1 page\nzero the page\nmap the page\nrestart instruction\nCopy-on-Write(Cow) - Fork Zero-fill-on-demand Demand paging Memory-mapped-files shared virtual memory Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Lazy allocation (moderate) Lazytests and Usertests (moderate) ",
+  "wordCount" : "107",
   "inLanguage": "zh",
   "datePublished": "2024-09-12T19:30:13+08:00",
   "dateModified": "2024-09-12T19:20:13+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(7)
     </div>
-    <div class="post-meta"><span title='2024-09-12 19:30:13 +0800 CST'>2024-09-12</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;1 字&nbsp;·&nbsp;updated:&nbsp;2024-09-12&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-09-12 19:30:13 +0800 CST'>2024-09-12</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;107 字&nbsp;·&nbsp;updated:&nbsp;2024-09-12&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -270,8 +270,45 @@ document.addEventListener("DOMContentLoaded", function() {
 
             <div class="inner"><ul>
                     <li>
-                        <a href="#mit6s0817" aria-label="MIT6.S081(7)">MIT6.S081(7)</a>
+                        <a href="#mit6s0817" aria-label="MIT6.S081(7)">MIT6.S081(7)</a><ul>
+                            
+                    <li>
+                        <a href="#page-faults" aria-label="Page faults">Page faults</a><ul>
+                            
+                    <li>
+                        <a href="#virtual-memory-benfits" aria-label="Virtual Memory Benfits">Virtual Memory Benfits</a></li>
+                    <li>
+                        <a href="#information-needed" aria-label="Information Needed">Information Needed</a></li>
+                    <li>
+                        <a href="#allocation--sbrk" aria-label="Allocation : sbrk()">Allocation : sbrk()</a></li>
+                    <li>
+                        <a href="#lazy-allocation" aria-label="Lazy allocation">Lazy allocation</a></li></ul>
                     </li>
+                    <li>
+                        <a href="#copy-on-writecow---fork" aria-label="Copy-on-Write(Cow) - Fork">Copy-on-Write(Cow) - Fork</a></li>
+                    <li>
+                        <a href="#zero-fill-on-demand" aria-label="Zero-fill-on-demand">Zero-fill-on-demand</a></li>
+                    <li>
+                        <a href="#demand-paging" aria-label="Demand paging">Demand paging</a><ul>
+                            
+                    <li>
+                        <a href="#memory-mapped-files" aria-label="Memory-mapped-files">Memory-mapped-files</a></li>
+                    <li>
+                        <a href="#shared-virtual-memory" aria-label="shared virtual memory">shared virtual memory</a></li></ul>
+                    </li></ul>
+                    </li>
+                    <li>
+                        <a href="#lab-xv6-lazy-page-allocationhttpspdoscsailmitedu6s0812020labslazyhtml" aria-label="Lab: xv6 lazy page allocation"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation</a></a><ul>
+                            
+                    <li>
+                        <a href="#eliminate-allocation-from-sbrk-easyhttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Eliminate allocation from sbrk() (easy)">Eliminate allocation from sbrk() (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)</a></li>
+                    <li>
+                        <a href="#lazy-allocation-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Lazy allocation (moderate)">Lazy allocation (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a></li>
+                    <li>
+                        <a href="#lazytests-and-usertests-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Lazytests and Usertests (moderate)">Lazytests and Usertests (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a>
+                    </li>
+                </ul>
+                </li>
                 </ul>
             </div>
         </details>
@@ -338,6 +375,120 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
   <div class="post-content"><h1 id="mit6s0817">MIT6.S081(7)<a hidden class="anchor" aria-hidden="true" href="#mit6s0817">#</a></h1>
+<h2 id="page-faults">Page faults<a hidden class="anchor" aria-hidden="true" href="#page-faults">#</a></h2>
+<h3 id="virtual-memory-benfits">Virtual Memory Benfits<a hidden class="anchor" aria-hidden="true" href="#virtual-memory-benfits">#</a></h3>
+<ol>
+<li>Isolation</li>
+<li>Level of Indirection</li>
+</ol>
+<p>Va <code>-&gt;</code> Pa</p>
+<h3 id="information-needed">Information Needed<a hidden class="anchor" aria-hidden="true" href="#information-needed">#</a></h3>
+<ol>
+<li>the faulting va ( va <code>-&gt;</code> stval register)</li>
+<li>the type of page fault ( scause )</li>
+<li>the va of instruction that cause the page fault (sepc, trapframe)</li>
+</ol>
+<h3 id="allocation--sbrk">Allocation : sbrk()<a hidden class="anchor" aria-hidden="true" href="#allocation--sbrk">#</a></h3>
+<p>sbrk() -&gt; eager allocation</p>
+<p>applcations tend to over ask.</p>
+<h3 id="lazy-allocation">Lazy allocation<a hidden class="anchor" aria-hidden="true" href="#lazy-allocation">#</a></h3>
+<p>sbrk() do nothing</p>
+<p>only grow p<code>-&gt;</code>sz</p>
+<p>PgFault : va &lt; p<code>-&gt;</code>sz  &gt; stack</p>
+<p>allocate 1 page</p>
+<p>zero the page</p>
+<p>map the page</p>
+<p>restart instruction</p>
+<h2 id="copy-on-writecow---fork">Copy-on-Write(Cow) - Fork<a hidden class="anchor" aria-hidden="true" href="#copy-on-writecow---fork">#</a></h2>
+<h2 id="zero-fill-on-demand">Zero-fill-on-demand<a hidden class="anchor" aria-hidden="true" href="#zero-fill-on-demand">#</a></h2>
+<h2 id="demand-paging">Demand paging<a hidden class="anchor" aria-hidden="true" href="#demand-paging">#</a></h2>
+<h3 id="memory-mapped-files">Memory-mapped-files<a hidden class="anchor" aria-hidden="true" href="#memory-mapped-files">#</a></h3>
+<h3 id="shared-virtual-memory">shared virtual memory<a hidden class="anchor" aria-hidden="true" href="#shared-virtual-memory">#</a></h3>
+<h1 id="lab-xv6-lazy-page-allocationhttpspdoscsailmitedu6s0812020labslazyhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation</a><a hidden class="anchor" aria-hidden="true" href="#lab-xv6-lazy-page-allocationhttpspdoscsailmitedu6s0812020labslazyhtml">#</a></h1>
+<h2 id="eliminate-allocation-from-sbrk-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">Eliminate allocation from sbrk() (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)<a hidden class="anchor" aria-hidden="true" href="#eliminate-allocation-from-sbrk-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917170736968.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917170736968.png" alt="image-20240917170736968"  />
+        </a>
+    </div>
+
+</p>
+<h2 id="lazy-allocation-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Lazy allocation (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#lazy-allocation-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171019615.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171019615.png" alt="image-20240917171019615"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171044276.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171044276.png" alt="image-20240917171044276"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171125065.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171125065.png" alt="image-20240917171125065"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171154524.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171154524.png" alt="image-20240917171154524"  />
+        </a>
+    </div>
+
+</p>
+<h2 id="lazytests-and-usertests-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Lazytests and Usertests (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#lazytests-and-usertests-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171215373.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171215373.png" alt="image-20240917171215373"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171241017.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171241017.png" alt="image-20240917171241017"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171300075.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171300075.png" alt="image-20240917171300075"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171314378.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171314378.png" alt="image-20240917171314378"  />
+        </a>
+    </div>
+
+</p>
 
 
   </div>
@@ -356,6 +507,11 @@ document.addEventListener("DOMContentLoaded", function() {
     
     
 <nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240915/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>LeetCode周赛415(250915)</span>
+  </a>
   <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0816/">
     <span class="title">下一页 »</span>
     <br>
