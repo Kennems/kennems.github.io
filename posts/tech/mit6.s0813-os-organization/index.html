@@ -8,10 +8,10 @@
 
 <meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
 <title>MIT6.S081(3) | Kennem&#39;s Blog</title>
-<meta name="keywords" content="MIT6.S081(3)">
+<meta name="keywords" content="MIT6.S081">
 <meta name="description" content="MIT6.S081(3)">
 <meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0813/">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
@@ -20,7 +20,7 @@
 <link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0813/">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/">
 <noscript>
     <style>
         #theme-toggle,
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <meta property="og:title" content="MIT6.S081(3)" />
 <meta property="og:description" content="MIT6.S081(3)" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0813/" /><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-08-31T22:30:13+08:00" />
 <meta property="article:modified_time" content="2024-08-31T22:20:13+08:00" />
 
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "@type": "ListItem",
       "position":  3 ,
       "name": "MIT6.S081(3)",
-      "item": "https://kennems.github.io/posts/tech/mit6.s0813/"
+      "item": "https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"
     }
   ]
 }
@@ -129,10 +129,10 @@ document.addEventListener("DOMContentLoaded", function() {
   "name": "MIT6.S081(3)",
   "description": "MIT6.S081(3)",
   "keywords": [
-    "MIT6.S081(3)"
+    "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(3) Operating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
-  "wordCount" : "773",
+  "articleBody": "MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6\nOS picture apps: sh, echo, … system call interface (open, close,…) OS\nGoal of OS run multiple applications isolate them multiplex them share\nStrawman design: No OS Application directly interacts with hardware CPU cores \u0026 registers DRAM chips Disk blocks … OS library perhaps abstracts some of it\nStrawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”\nStrawman design not conducive to memory isolation all apps share physical memory one app can overwrites another apps memory one app can overwrite OS library\nUnix interface conducive to OS goals abstracts the hardware in way that achieves goals processes (instead of cores): fork OS transparently allocates cores to processes Saves and restore registers Enforces that processes give them up Periodically re-allocates cores memory (instead of physical memory): exec Each process has its “own” memory OS can decide where to place app in memory OS can enforce isolation between memory of different apps OS allows storing image in file system files (instead of disk blocks) OS can provide convenient names OS can allow sharing of files between processes/users pipes (instead of shared physical mem) OS can stop sender/receiver\nOS must be defensive an application shouldn’t be able to crash OS an application shouldn’t be able to break out of its isolation =\u003e need strong isolation between apps and OS approach: hardware support\nuser/kernel mode virtual memory Processors provide user/kernel mode kernel mode: can execute “privileged” instructions e.g., setting kernel/user bit e.g., reprogramming timer chip user mode: cannot execute privileged instructions Run OS in kernel mode, applications in user mode [RISC-V has also an M mode, which we mostly ignore]\nProcessors provide virtual memory Hardware provides page tables that translate virtual address to physical Define what physical memory an application can access OS sets up page tables so that each application can access only its memory\nApps must be able to communicate with kernel Write to storage device, which is shared =\u003e must be protected =\u003e in kernel Exit app …\nSolution: add instruction to change mode in controlled way ecall enters kernel mode at a pre-agreed entry point\nModify OS picture user / kernel (redline) app -\u003e printf() -\u003e write() -\u003e SYSTEM CALL -\u003e sys_write() -\u003e … user-level libraries are app’s private business kernel internal functions are not callable by user\nother way of drawing picture: syscall 1 -\u003e system call stub -\u003e kernel entry -\u003e syscall -\u003e fs syscall 2 -\u003e proc\nsystem call stub executes special instruction to enter kernel hardware switches to kernel mode but only at an entry point specified by the kernel\nsyscall need some way to get at arguments of syscall\n[syscalls the topic of this week’s lab]\nKernel is the Trusted Computing Base (TCB) Kernel must be “correct” Bugs in kernel could allow user apps to circumvent kernel/user Happens often in practice, because kernels are complex See CVEs Kernel must treat user apps as suspect User app may trick kernel to do the wrong thing Kernel must check arguments carefully Setup user/kernel correctly Etc. Kernel in charge of separating applications too One app may try to read/write another app’s memory =\u003e Requires a security mindset Any bug in kernel may be a security exploit\nAside: can one have process isolation WITHOUT h/w-supported kernel/user mode and virtual memory? yes! use a strongly-typed programming language\nFor example, see Singularity O/S the compiler is then the trust computing base (TCB) but h/w user/kernel mode is the most popular plan Monolothic kernel OS runs in kernel space Xv6 does this. Linux etc. too. kernel interface == system call interface one big program with file system, drivers, \u0026c\ngood: easy for subsystems to cooperate one cache shared by file system and virtual memory bad: interactions are complex leads to bugs no isolation within Microkernel design many OS services run as ordinary user programs file system in a file server kernel implements minimal mechanism to run services in user space processes with memory inter-process communication (IPC) kernel interface != system call interface\ngood: more isolation bad: may be hard to get good performance both monolithic and microkernel designs widely used Xv6 case study Monolithic kernel Unix system calls == kernel interface Source code reflects OS organization (by convention) user/ apps in user mode kernel/ code in kernel mode Kernel has several parts kernel/defs.h proc fs .. Goal: read source code and understand it (without consulting book)\nUsing xv6 Makefile builds kernel program user programs mkfs $ make qemu runs xv6 on qemu emulates a RISC-V computer\nBuilding kernel\n.c -\u003e gcc -\u003e .s -\u003e .o \\\r.... ld -\u003e a.out\r.c -\u003e gcc -\u003e .s -\u003e .o / makefile keeps .asm file around for binary see for example, kernel/kernel.asm\nThe RISC-V computer A very simple board (e.g., no display)\nRISC-V processor with 4 cores RAM (128 MB) support for interrupts (PLIC, CLINT) support for UART allows xv6 to talk to console allows xv6 to read from keyboard support for e1000 network card (through PCIe) Development using Qemu More convenient than using the real hardware Qemu emulates several RISC-V computers\nwe use the “virt” one https://github.com/riscv/riscv-qemu/wiki close to the SiFive board (https://www.sifive.com/boards) but with virtio for disk What is “to emulate”? Qemu is a C program that faithfully implements a RISC-V processor\nfor (;;) {\rread next instructions\rdecode instruction\rexecute instruction (updating processor state)\r} [big idea: software = hardware]\nBoot xv6 (under gdb)\n$ make CPUS=1 qemu-gdb ​ runs xv6 under gdb (with 1 core) Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld) ​ set breakpoint at _entry ​ look at instruction ​ info reg ​ set breakpoint at main ​ Walk through main ​ single step into userinit ​ Walk through userinit ​ show proc.h ​ show allocproc() ​ show initcode.S/initcode.asm ​ break forkret() ​ walk to userret ​ break syscall ​ print num ​ syscalls[num] ​ exec “/init”\nOperating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab: system calls System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
+  "wordCount" : "1800",
   "inLanguage": "zh",
   "datePublished": "2024-08-31T22:30:13+08:00",
   "dateModified": "2024-08-31T22:20:13+08:00",
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function() {
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/mit6.s0813/"
+    "@id": "https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"
   },
   "publisher": {
     "@type": "Organization",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(3)
     </div>
-    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;773 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1800 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -270,12 +270,22 @@ document.addEventListener("DOMContentLoaded", function() {
 
             <div class="inner"><ul>
                     <li>
-                        <a href="#mit6s0813" aria-label="MIT6.S081(3)">MIT6.S081(3)</a><ul>
+                        <a href="#mit6s0813-os-organization" aria-label="MIT6.S081(3)-OS organization">MIT6.S081(3)-OS organization</a><ul>
                             
+                    <li>
+                        <a href="#lecture-topic" aria-label="Lecture Topic:">Lecture Topic:</a><ul>
+                            
+                    <li>
+                        <a href="#os-design" aria-label="OS design">OS design</a></li>
+                    <li>
+                        <a href="#os-picture" aria-label="OS picture">OS picture</a></li>
+                    <li>
+                        <a href="#goal-of-os" aria-label="Goal of OS">Goal of OS</a></li></ul>
+                    </li>
                     <li>
                         <a href="#operating-system-organization" aria-label="Operating system organization">Operating system organization</a></li>
                     <li>
-                        <a href="#labhttpspdoscsailmitedu6s0812020labssyscallhtml" aria-label="Lab"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab</a></a></li>
+                        <a href="#lab-system-callshttpspdoscsailmitedu6s0812020labssyscallhtml" aria-label="Lab: system calls"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab: system calls</a></a></li>
                     <li>
                         <a href="#system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="System call tracing (moderate)">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a><ul>
                             
@@ -389,7 +399,217 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 </script>
 
-  <div class="post-content"><h1 id="mit6s0813">MIT6.S081(3)<a hidden class="anchor" aria-hidden="true" href="#mit6s0813">#</a></h1>
+  <div class="post-content"><h1 id="mit6s0813-os-organization">MIT6.S081(3)-OS organization<a hidden class="anchor" aria-hidden="true" href="#mit6s0813-os-organization">#</a></h1>
+<h2 id="lecture-topic">Lecture Topic:<a hidden class="anchor" aria-hidden="true" href="#lecture-topic">#</a></h2>
+<h3 id="os-design">OS design<a hidden class="anchor" aria-hidden="true" href="#os-design">#</a></h3>
+<p>​    system calls
+​    micro/monolithic kernel
+First system call in xv6</p>
+<h3 id="os-picture">OS picture<a hidden class="anchor" aria-hidden="true" href="#os-picture">#</a></h3>
+<p>apps: sh, echo, &hellip;
+system call interface (open, close,&hellip;)
+OS</p>
+<h3 id="goal-of-os">Goal of OS<a hidden class="anchor" aria-hidden="true" href="#goal-of-os">#</a></h3>
+<p>run multiple applications
+isolate them
+multiplex them
+share</p>
+<p>Strawman design: No OS
+Application directly interacts with hardware
+CPU cores &amp; registers
+DRAM chips
+Disk blocks
+&hellip;
+OS library perhaps abstracts some of it</p>
+<p>Strawman design not conducive to multiplexing
+each app periodically must give up hardware
+BUT, weak isolation
+app forgets to give up, no other app runs
+apps has end-less loop, no other app runs
+you cannot even kill the badly app from another app
+but used by real-time OSes
+&ldquo;cooperative scheduling&rdquo;</p>
+<p>Strawman design not conducive to memory isolation
+all apps share physical memory
+one app can overwrites another apps memory
+one app can overwrite OS library</p>
+<p>Unix interface conducive to OS goals
+abstracts the hardware in way that achieves goals
+processes (instead of cores): fork
+OS transparently allocates cores to processes
+Saves and restore registers
+Enforces that processes give them up
+Periodically re-allocates cores  <br>
+memory (instead of physical memory): exec
+Each process has its &ldquo;own&rdquo; memory
+OS can decide where to place app in memory
+OS can enforce isolation between memory of different apps
+OS allows storing image in file system
+files (instead of disk blocks)
+OS can provide convenient names
+OS can allow sharing of files between processes/users
+pipes (instead of shared physical mem)
+OS can stop sender/receiver</p>
+<p>OS must be defensive
+an application shouldn&rsquo;t be able to crash OS
+an application shouldn&rsquo;t be able to break out of its isolation
+=&gt; need strong isolation between apps and OS
+approach: hardware support</p>
+<ul>
+<li>user/kernel mode</li>
+<li>virtual memory</li>
+</ul>
+<p>Processors provide user/kernel mode
+kernel mode: can execute &ldquo;privileged&rdquo; instructions
+e.g., setting kernel/user bit
+e.g., reprogramming timer chip
+user mode: cannot execute privileged instructions
+Run OS in kernel mode, applications in user mode
+[RISC-V has also an M mode, which we mostly ignore]</p>
+<p>Processors provide virtual memory
+Hardware provides page tables that translate virtual address to physical
+Define what physical memory an application can access
+OS sets up page tables so that each application can access only its memory</p>
+<p>Apps must be able to communicate with kernel
+Write to storage device, which is shared =&gt; must be protected =&gt; in kernel
+Exit app
+&hellip;</p>
+<p>Solution: add instruction to change mode in controlled way
+ecall <!-- raw HTML omitted -->
+enters kernel mode at a pre-agreed entry point</p>
+<p>Modify OS picture
+user / kernel (redline)
+app -&gt; printf() -&gt; write() -&gt; SYSTEM CALL -&gt; sys_write() -&gt; &hellip;
+user-level libraries are app&rsquo;s private business
+kernel internal functions are not callable by user</p>
+<p>other way of drawing picture:
+syscall 1  -&gt; system call stub -&gt; kernel entry -&gt; syscall -&gt; fs
+syscall 2                                                 -&gt; proc</p>
+<p>system call stub executes special instruction to enter kernel
+hardware switches to kernel mode
+but only at an entry point specified by the kernel</p>
+<p>syscall need some way to get at arguments of syscall</p>
+<p>[syscalls the topic of this week&rsquo;s lab]</p>
+<p>Kernel is the Trusted Computing Base (TCB)
+Kernel must be &ldquo;correct&rdquo;
+Bugs in kernel could allow user apps to circumvent kernel/user
+Happens often in practice, because kernels are complex
+See CVEs
+Kernel must treat user apps as suspect
+User app may trick kernel to do the wrong thing
+Kernel must check arguments carefully
+Setup user/kernel correctly
+Etc.
+Kernel in charge of separating applications too
+One app may try to read/write another app&rsquo;s memory
+=&gt; Requires a security mindset
+Any bug in kernel may be a security exploit</p>
+<p>Aside: can one have process isolation WITHOUT h/w-supported
+kernel/user mode and virtual memory?
+yes! use a strongly-typed programming language</p>
+<ul>
+<li>For example, see Singularity O/S
+the compiler is then the trust computing base (TCB)
+but h/w user/kernel mode is the most popular plan</li>
+</ul>
+<p>Monolothic kernel
+OS runs in kernel space
+Xv6 does this.  Linux etc. too.
+kernel interface == system call interface
+one big program with file system, drivers, &amp;c</p>
+<ul>
+<li>good: easy for subsystems to cooperate
+one cache shared by file system and virtual memory</li>
+<li>bad: interactions are complex
+leads to bugs
+no isolation within</li>
+</ul>
+<p>Microkernel design
+many OS services run as ordinary user programs
+file system in a file server
+kernel implements minimal mechanism to run services in user space
+processes with memory
+inter-process communication (IPC)
+kernel interface != system call interface</p>
+<ul>
+<li>good: more isolation</li>
+<li>bad: may be hard to get good performance
+both monolithic and microkernel designs widely used</li>
+</ul>
+<p>Xv6 case study
+Monolithic kernel
+Unix system calls == kernel interface
+Source code reflects OS organization (by convention)
+user/    apps in user mode
+kernel/  code in kernel mode
+Kernel has several parts
+kernel/defs.h
+proc
+fs
+..
+Goal: read source code and understand it (without consulting book)</p>
+<p>Using xv6
+Makefile builds
+kernel program
+user programs
+mkfs
+$ make qemu
+runs xv6 on qemu
+emulates a RISC-V computer</p>
+<p>Building kernel</p>
+<pre tabindex="0"><code>  .c -&gt; gcc -&gt; .s -&gt; .o  \
+  ....                     ld -&gt; a.out
+  .c -&gt; gcc -&gt; .s -&gt; .o  /
+</code></pre><p>makefile keeps .asm file around for binary
+see for example, kernel/kernel.asm</p>
+<p>The RISC-V computer
+A very simple board (e.g., no display)</p>
+<ul>
+<li>RISC-V processor with 4 cores</li>
+<li>RAM (128 MB)</li>
+<li>support for interrupts (PLIC, CLINT)</li>
+<li>support for UART
+allows xv6 to talk to console
+allows xv6 to read from keyboard</li>
+<li>support for e1000 network card (through PCIe)</li>
+</ul>
+<p>Development using Qemu
+More convenient than using the real hardware
+Qemu emulates several RISC-V computers</p>
+<ul>
+<li>we use the &ldquo;virt&rdquo; one
+<a href="https://github.com/riscv/riscv-qemu/wiki">https://github.com/riscv/riscv-qemu/wiki</a></li>
+<li>close to the SiFive board (<a href="https://www.sifive.com/boards">https://www.sifive.com/boards</a>)
+but with virtio for disk</li>
+</ul>
+<p>What is &ldquo;to emulate&rdquo;?
+Qemu is a C program that faithfully implements a RISC-V processor</p>
+<pre tabindex="0"><code>  for (;;) {
+    read next instructions
+    decode instruction
+    execute instruction (updating processor state)
+  }
+</code></pre><p>[big idea: software = hardware]</p>
+<p>Boot xv6 (under gdb)</p>
+<pre tabindex="0"><code>  $ make CPUS=1 qemu-gdb
+</code></pre><p>​    runs xv6 under gdb (with 1 core)
+Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
+​    set breakpoint at _entry
+​      look at instruction
+​      info reg
+​    set breakpoint at main
+​      Walk through main
+​    single step into userinit
+​      Walk through userinit
+​      show proc.h
+​      show allocproc()
+​      show initcode.S/initcode.asm
+​    break forkret()
+​      walk to userret
+​    break syscall
+​      print num
+​      syscalls[num]
+​      exec &ldquo;/init&rdquo;</p>
 <h2 id="operating-system-organization">Operating system organization<a hidden class="anchor" aria-hidden="true" href="#operating-system-organization">#</a></h2>
 <table>
 <thead>
@@ -509,7 +729,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </tr>
 </tbody>
 </table>
-<h2 id="labhttpspdoscsailmitedu6s0812020labssyscallhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab</a><a hidden class="anchor" aria-hidden="true" href="#labhttpspdoscsailmitedu6s0812020labssyscallhtml">#</a></h2>
+<h2 id="lab-system-callshttpspdoscsailmitedu6s0812020labssyscallhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab: system calls</a><a hidden class="anchor" aria-hidden="true" href="#lab-system-callshttpspdoscsailmitedu6s0812020labssyscallhtml">#</a></h2>
 <h2 id="system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
 <h3 id="hometopeetprojectxv6-labs-2020makefile">/home/topeet/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020makefile">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>    $U/_wc<span style="color:#ae81ff">\
@@ -647,7 +867,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/mit6.s0813/">MIT6.S081(3)</a></li>
+      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
     </ul>
         
     
@@ -659,15 +879,15 @@ document.addEventListener("DOMContentLoaded", function() {
     
     
 <nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/">
+  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0811/">
     <span class="title">« 上一页</span>
     <br>
-    <span>MIT6.S081(3)</span>
+    <span>MIT6.S081(1)</span>
   </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B4/">
+  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0813/">
     <span class="title">下一页 »</span>
     <br>
-    <span>Kotlin协程(4)</span>
+    <span>MIT6.S081(3)</span>
   </a>
 </nav>
 

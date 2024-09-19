@@ -8,10 +8,10 @@
 
 <meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
 <title>MIT6.S081(4) | Kennem&#39;s Blog</title>
-<meta name="keywords" content="MIT6.S081(4)">
+<meta name="keywords" content="MIT6.S081">
 <meta name="description" content="MIT6.S081(4)">
 <meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0814/">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/">
 <link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
@@ -20,7 +20,7 @@
 <link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0814/">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/">
 <noscript>
     <style>
         #theme-toggle,
@@ -86,7 +86,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <meta property="og:title" content="MIT6.S081(4)" />
 <meta property="og:description" content="MIT6.S081(4)" />
 <meta property="og:type" content="article" />
-<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0814/" /><meta property="article:section" content="posts" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-09-02T22:30:13+08:00" />
 <meta property="article:modified_time" content="2024-09-02T22:20:13+08:00" />
 
@@ -116,7 +116,7 @@ document.addEventListener("DOMContentLoaded", function() {
       "@type": "ListItem",
       "position":  3 ,
       "name": "MIT6.S081(4)",
-      "item": "https://kennems.github.io/posts/tech/mit6.s0814/"
+      "item": "https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/"
     }
   ]
 }
@@ -129,10 +129,10 @@ document.addEventListener("DOMContentLoaded", function() {
   "name": "MIT6.S081(4)",
   "description": "MIT6.S081(4)",
   "keywords": [
-    "MIT6.S081(4)"
+    "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(4) \u0026 (7) Lab pagetables Virtual address :\nPrint a page table (easy) void vmprint_rec(pagetable_t pagetable, int level) { for (int i = 0; i \u003c 512; i++) { pte_t pte = pagetable[i]; if (pte \u0026 PTE_V) { uint64 pa = PTE2PA(pte); for (int j = 0; j \u003c= level; j++) { if(j \u003e 0){ printf(\" \"); } printf(\"..\"); } printf(\"%d: pte %p pa %p\\n\", i, pte, pa); if ((pte \u0026 (PTE_R | PTE_W | PTE_X)) == 0) { // Recursively print next level page table vmprint_rec((pagetable_t)pa, level + 1); } } } } void vmprint(pagetable_t pagetable) { printf(\"page table %p\\n\", pagetable); vmprint_rec(pagetable, 0); } pid = 1代表init进程，即第一个启动的用户级进程，它负责派生其他进程并为系统提供基本服务。\nA kernel page table per process (hard) proc.h proc.c vm.c defs.h Simplify copyin/copyinstr (hard) defs.h vm.c Q \u0026 A ",
-  "wordCount" : "169",
+  "articleBody": "MIT6.S081(4)-Virtual Memory plan: address spaces paging hardware xv6 VM code Virtual memory overview today’s problem: [user/kernel diagram] [memory view: diagram with user processes and kernel in memory] suppose the shell has a bug: sometimes it writes to a random memory address how can we keep it from wrecking the kernel? and from wrecking other processes?\nwe want isolated address spaces each process has its own memory it can read and write its own memory it cannot read or write anything else challenge: how to multiplex several memories over one physical memory? while maintaining isolation between memories\nxv6 uses RISC-V’s paging hardware to implement AS’s ask questions! this material is important topic of next lab (and shows up in several other labs)\npaging provides a level of indirection for addressing CPU -\u003e MMU -\u003e RAM VA PA s/w can only ld/st to virtual addresses, not physical kernel tells MMU how to map each virtual address to a physical address MMU essentially has a table, indexed by va, yielding pa called a “page table” one page table per address space MMU can restrict what virtual addresses user code can use By programming the MMU, the kernel has complete control over va-\u003epa mapping Allows for many interesting OS features/tricks\nRISC-V maps 4-KB “pages” and aligned – start on 4 KB boundaries 4 KB = 12 bits the RISC-V used in xv6 has 64-bit for addresses thus page table index is top 64-12 = 52 bits of VA except that the top 25 of the top 52 are unused no RISC-V has that much memory now can grow in future so, index is 27 bits.\nMMU translation see Figure 3.1 of book use index bits of VA to find a page table entry (PTE) construct physical address using PPN from PTE + offset of VA\nwhat is in PTE? each PTE is 64 bits, but only 54 are used top 44 bits of PTE are top bits of physical address “physical page number” low 10 bits of PTE flags Present, Writeable, \u0026c note: size virtual addresses != size physical addresses\nwhere is the page table stored? in RAM – MMU loads (and stores) PTEs o/s can read/write PTEs read/write memory location corresponding to PTEs\nwould it be reasonable for page table to just be an array of PTEs? how big is it? 2^27 is roughly 134 million 64 bits per entry 134*8 MB for a full page table wasting roughly 1GB per page table one page table per address space one address space per application would waste lots of memory for small programs! you only need mappings for a few hundred pages so the rest of the million entries would be there but not needed\nRISC-V 64 uses a “three-level page table” to save space see figure 3.2 from book page directory page (PD) PD has 512 PTEs PTEs point to another PD or is a leaf so 512512512 PTEs in total PD entries can be invalid those PTE pages need not exist so a page table for a small address space can be small\nhow does the mmu know where the page table is located in RAM? satp holds phys address of top PD pages can be anywhere in RAM – need not be contiguous rewrite satp when switching to another address space/application\nhow does RISC-V paging hardware translate a va? need to find the right PTE satp register points to PA of top/L2 PD top 9 bits index L2 PD to get PA of L1 PD next 9 bits index L1 PD to get PA of L0 PD next 9 bits index L0 PD to get PA of PTE PPN from PTE + low-12 from VA\nflags in PTE V, R, W, X, U xv6 uses all of them\nwhat if V bit not set? or store and W bit not set? “page fault” forces transfer to kernel trap.c in xv6 source kernel can just produce error, kill process in xv6: “usertrap(): unexpected scause … pid=… sepc=… stval=…” or kernel can install a PTE, resume the process e.g. after loading the page of memory from disk\nindirection allows paging h/w to solve many problems e.g. phys memory doesn’t have to be contiguous avoids fragmentation e.g. lazy allocation (a lab) e.g. copy-on-write fork (another lab) many more techniques topic of next lecture\nQ: why use virtual memory in kernel? it is clearly good to have page tables for user processes but why have a page table for the kernel? could the kernel run with using only physical addresses? top-level answer: yes most standard kernels do use virtual addresses why do standard kernels do so? some reasons are lame, some are better, none are fundamental\nthe hardware makes it difficult to turn it off e.g. on entering a system call, one would have to disable VM the kernel itself can benefit from virtual addresses mark text pages X, but data not (helps tracking down bugs) unmap a page below kernel stack (helps tracking down bugs) map a page both in user and kernel (helps user/kernel transition) Virtual memory in xv6 kernel page table See figure 3.3 of book simple maping mostly map virtual to physical one-on-one note double-mapping of trampoline note permissions why map devices?\neach process has its own address space and its own page table see figure 3.4 of book note: trampoline and trapframe aren’t writable by user process kernel switches page tables (i.e. sets satp) when switching processes\nQ: why this address space arrangement? user virtual addresses start at zero of course user va 0 maps to different pa for each process 16,777,216 GB for user heap to grow contiguously but needn’t have contiguous phys mem – no fragmentation problem both kernel and user map trampoline and trapframe page eases transition user -\u003e kernel and back kernel doesn’t map user applications not easy for kernel to r/w user memory need translate user virtual address to kernel virtual address good for isolation (see spectre attacks) easy for kernel to r/w physical memory pa x mapped at va x\nQ: does the kernel have to map all of phys mem into its virtual address space?\nCode walk through setup of kernel address space kvmmap() Q: what is address 0x10000000 (256M) Q: how much address space does 1 L2 entry cover? (1G) Q: how much address space does 1 L1 entry cover? (2MB) Q: how much address space does 1 L0 entry cover? (4096) print kernel page table Q: what is size of address space? (512G) Q: how much memory is used to represent it after 1rst kvmmap()? (3 pages) Q: how many entries is CLINT? (16 pages) Q: how many entries is PLIC? (1024 pages, two level 1 PDs) Q: how many pages is kernel text (8 pages) Q: how many pages is kernel total (128M = 64 * 2MB) Q: Is trampoline mapped twice? (yes, last entry and direct-mapped, entry [2, 3, 7]) kvminithart(); Q: after executing w_satp() why will the next instruction be sfence_vma()?\nmappages() in vm.c arguments are top PD, va, size, pa, perm adds mappings from a range of va’s to corresponding pa’s rounds b/c some uses pass in non-page-aligned addresses for each page-aligned address in the range call walkpgdir to find address of PTE need the PTE’s address (not just content) b/c we want to modify put the desired pa into the PTE mark PTE as valid w/ PTE_P\nwalk() in vm.c mimics how the paging h/w finds the PTE for an address PX extracts the 9 bits at Level level \u0026pagetable[PX(level, va)] is the address of the relevant PTE if PTE_V the relevant page-table page already exists PTE2PA extracts the PPN from the PDE if not PTE_V alloc a page-table page fill in pte with PPN (using PA2PTE) now the PTE we want is in the page-table page\nprocinit() in proc.c alloc a page for each kernel stack with a guard page\nsetup user address space allocproc(): allocates empty top-level page table fork(): uvmcopy() exec(): replace proc’s page table with a new one uvmalloc loadseg print user page table for sh Q: what is entry 2?\na process calls sbrk(n) to ask for n more bytes of heap memory user/umalloc.c calls sbrk() to get memory for the allocator each process has a size kernel adds new memory at process’s end, increases size sbrk() allocates physical memory (RAM) maps it into the process’s page table returns the starting address of the new memory\ngrowproc() in proc.c proc-\u003esz is the process’s current size uvmalloc() does most of the work when switching to user space satp will be loaded with updated page table\nuvmalloc() in vm.c why PGROUNDUP? arguments to mappages()…\nLab: page tables pagetables Virtual address :\nPrint a page table (easy) void vmprint_rec(pagetable_t pagetable, int level) { for (int i = 0; i \u003c 512; i++) { pte_t pte = pagetable[i]; if (pte \u0026 PTE_V) { uint64 pa = PTE2PA(pte); for (int j = 0; j \u003c= level; j++) { if(j \u003e 0){ printf(\" \"); } printf(\"..\"); } printf(\"%d: pte %p pa %p\\n\", i, pte, pa); if ((pte \u0026 (PTE_R | PTE_W | PTE_X)) == 0) { // Recursively print next level page table vmprint_rec((pagetable_t)pa, level + 1); } } } } void vmprint(pagetable_t pagetable) { printf(\"page table %p\\n\", pagetable); vmprint_rec(pagetable, 0); } pid = 1代表init进程，即第一个启动的用户级进程，它负责派生其他进程并为系统提供基本服务。\nA kernel page table per process (hard) proc.h proc.c vm.c defs.h Simplify copyin/copyinstr (hard) defs.h vm.c Q \u0026 A ",
+  "wordCount" : "1609",
   "inLanguage": "zh",
   "datePublished": "2024-09-02T22:30:13+08:00",
   "dateModified": "2024-09-02T22:20:13+08:00",
@@ -142,7 +142,7 @@ document.addEventListener("DOMContentLoaded", function() {
   },
   "mainEntityOfPage": {
     "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/mit6.s0814/"
+    "@id": "https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/"
   },
   "publisher": {
     "@type": "Organization",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(4)
     </div>
-    <div class="post-meta"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;169 字&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1609 字&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -270,10 +270,16 @@ document.addEventListener("DOMContentLoaded", function() {
 
             <div class="inner"><ul>
                     <li>
-                        <a href="#mit6s0814--7" aria-label="MIT6.S081(4) &amp; (7)">MIT6.S081(4) &amp; (7)</a><ul>
+                        <a href="#mit6s0814-virtual-memory" aria-label="MIT6.S081(4)-Virtual Memory">MIT6.S081(4)-Virtual Memory</a><ul>
                             
                     <li>
-                        <a href="#labhttpspdoscsailmitedu6s0812020labspgtblhtml" aria-label="Lab"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab</a></a></li>
+                        <a href="#virtual-memory-overview" aria-label="Virtual memory overview">Virtual memory overview</a></li>
+                    <li>
+                        <a href="#virtual-memory-in-xv6" aria-label="Virtual memory in xv6">Virtual memory in xv6</a></li>
+                    <li>
+                        <a href="#code-walk-through" aria-label="Code walk through">Code walk through</a></li>
+                    <li>
+                        <a href="#lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml" aria-label="Lab: page tables"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab: page tables</a></a></li>
                     <li>
                         <a href="#pagetables" aria-label="pagetables">pagetables</a></li>
                     <li>
@@ -368,8 +374,282 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 </script>
 
-  <div class="post-content"><h1 id="mit6s0814--7">MIT6.S081(4) &amp; (7)<a hidden class="anchor" aria-hidden="true" href="#mit6s0814--7">#</a></h1>
-<h2 id="labhttpspdoscsailmitedu6s0812020labspgtblhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab</a><a hidden class="anchor" aria-hidden="true" href="#labhttpspdoscsailmitedu6s0812020labspgtblhtml">#</a></h2>
+  <div class="post-content"><h1 id="mit6s0814-virtual-memory">MIT6.S081(4)-Virtual Memory<a hidden class="anchor" aria-hidden="true" href="#mit6s0814-virtual-memory">#</a></h1>
+<ul>
+<li>plan:
+address spaces
+paging hardware
+xv6 VM code</li>
+</ul>
+<h2 id="virtual-memory-overview">Virtual memory overview<a hidden class="anchor" aria-hidden="true" href="#virtual-memory-overview">#</a></h2>
+<ul>
+<li>
+<p>today&rsquo;s problem:
+[user/kernel diagram]
+[memory view: diagram with user processes and kernel in memory]
+suppose the shell has a bug:
+sometimes it writes to a random memory address
+how can we keep it from wrecking the kernel?
+and from wrecking other processes?</p>
+</li>
+<li>
+<p>we want isolated address spaces
+each process has its own memory
+it can read and write its own memory
+it cannot read or write anything else
+challenge:
+how to multiplex several memories over one physical memory?
+while maintaining isolation between memories</p>
+</li>
+<li>
+<p>xv6 uses RISC-V&rsquo;s paging hardware to implement AS&rsquo;s
+ask questions! this material is important
+topic of next lab (and shows up in several other labs)</p>
+</li>
+<li>
+<p>paging provides a level of indirection for addressing
+CPU -&gt; MMU -&gt; RAM
+VA     PA
+s/w can only ld/st to virtual addresses, not physical
+kernel tells MMU how to map each virtual address to a physical address
+MMU essentially has a table, indexed by va, yielding pa
+called a &ldquo;page table&rdquo;
+one page table per address space
+MMU can restrict what virtual addresses user code can use
+By programming the MMU, the kernel has complete control over va-&gt;pa mapping
+Allows for many interesting OS features/tricks</p>
+</li>
+<li>
+<p>RISC-V maps 4-KB &ldquo;pages&rdquo;
+and aligned &ndash; start on 4 KB boundaries
+4 KB = 12 bits
+the RISC-V used in xv6 has 64-bit for addresses
+thus page table index is top 64-12 = 52 bits of VA
+except that the top 25 of the top 52 are unused
+no RISC-V has that much memory now
+can grow in future
+so, index is 27 bits.</p>
+</li>
+<li>
+<p>MMU translation
+see Figure 3.1 of book
+use index bits of VA to find a page table entry (PTE)
+construct physical address using PPN from PTE + offset of VA</p>
+</li>
+<li>
+<p>what is in PTE?
+each PTE is 64 bits, but only 54 are used
+top 44 bits of PTE are top bits of physical address
+&ldquo;physical page number&rdquo;
+low 10 bits of PTE flags
+Present, Writeable, &amp;c
+note: size virtual addresses != size physical addresses</p>
+</li>
+<li>
+<p>where is the page table stored?
+in RAM &ndash; MMU loads (and stores) PTEs
+o/s can read/write PTEs
+read/write memory location corresponding to PTEs</p>
+</li>
+<li>
+<p>would it be reasonable for page table to just be an array of PTEs?
+how big is it?
+2^27 is roughly 134 million
+64 bits per entry
+134*8 MB for a full page table
+wasting roughly 1GB per page table
+one page table per address space
+one address space per application
+would waste lots of memory for small programs!
+you only need mappings for a few hundred pages
+so the rest of the million entries would be there but not needed</p>
+</li>
+<li>
+<p>RISC-V 64 uses a &ldquo;three-level page table&rdquo; to save space
+see figure 3.2 from book
+page directory page (PD)
+PD has 512 PTEs
+PTEs point to another PD or is a leaf
+so 512<em>512</em>512 PTEs in total
+PD entries can be invalid
+those PTE pages need not exist
+so a page table for a small address space can be small</p>
+</li>
+<li>
+<p>how does the mmu know where the page table is located in RAM?
+satp holds phys address of top PD
+pages can be anywhere in RAM &ndash; need not be contiguous
+rewrite satp when switching to another address space/application</p>
+</li>
+<li>
+<p>how does RISC-V paging hardware translate a va?
+need to find the right PTE
+satp register points to PA of top/L2 PD
+top 9 bits index L2 PD to get PA of L1 PD
+next 9 bits index L1 PD to get PA of L0 PD
+next 9 bits index L0 PD to get PA of PTE
+PPN from PTE + low-12 from VA</p>
+</li>
+<li>
+<p>flags in PTE
+V, R, W, X, U
+xv6 uses all of them</p>
+</li>
+<li>
+<p>what if V bit not set? or store and W bit not set?
+&ldquo;page fault&rdquo;
+forces transfer to kernel
+trap.c in xv6 source
+kernel can just produce error, kill process
+in xv6: &ldquo;usertrap(): unexpected scause &hellip; pid=&hellip; sepc=&hellip; stval=&hellip;&rdquo;
+or kernel can install a PTE, resume the process
+e.g. after loading the page of memory from disk</p>
+</li>
+<li>
+<p>indirection allows paging h/w to solve many problems
+e.g. phys memory doesn&rsquo;t have to be contiguous
+avoids fragmentation
+e.g. lazy allocation (a lab)
+e.g. copy-on-write fork (another lab)
+many more techniques
+topic of next lecture</p>
+</li>
+<li>
+<p>Q: why use virtual memory in kernel?
+it is clearly good to have page tables for user processes
+but why have a page table for the kernel?
+could the kernel run with using only physical addresses?
+top-level answer: yes
+most standard kernels do use virtual addresses
+why do standard kernels do so?
+some reasons are lame, some are better, none are fundamental</p>
+<ul>
+<li>the hardware makes it difficult to turn it off
+e.g. on entering a system call, one would have to disable VM</li>
+<li>the kernel itself can benefit from virtual addresses
+mark text pages X, but data not (helps tracking down bugs)
+unmap a page below kernel stack (helps tracking down bugs)
+map a page both in user and kernel (helps user/kernel transition)</li>
+</ul>
+</li>
+</ul>
+<h2 id="virtual-memory-in-xv6">Virtual memory in xv6<a hidden class="anchor" aria-hidden="true" href="#virtual-memory-in-xv6">#</a></h2>
+<ul>
+<li>
+<p>kernel page table
+See figure 3.3 of book
+simple maping mostly
+map virtual to physical one-on-one
+note double-mapping of trampoline
+note permissions
+why map devices?</p>
+</li>
+<li>
+<p>each process has its own address space
+and its own page table
+see figure 3.4 of book
+note: trampoline and trapframe aren&rsquo;t writable by user process
+kernel switches page tables (i.e. sets satp) when switching processes</p>
+</li>
+<li>
+<p>Q: why this address space arrangement?
+user virtual addresses start at zero
+of course user va 0 maps to different pa for each process
+16,777,216 GB for user heap to grow contiguously
+but needn&rsquo;t have contiguous phys mem &ndash; no fragmentation problem
+both kernel and user map trampoline and trapframe page
+eases transition user -&gt; kernel and back
+kernel doesn&rsquo;t map user applications
+not easy for kernel to r/w user memory
+need translate user virtual address to kernel virtual address
+good for isolation (see spectre attacks)
+easy for kernel to r/w physical memory
+pa x mapped at va x</p>
+</li>
+<li>
+<p>Q: does the kernel have to map all of phys mem into its virtual address space?</p>
+</li>
+</ul>
+<h2 id="code-walk-through">Code walk through<a hidden class="anchor" aria-hidden="true" href="#code-walk-through">#</a></h2>
+<ul>
+<li>
+<p>setup of kernel address space
+kvmmap()
+Q: what is address 0x10000000 (256M)
+Q: how much address space does 1 L2 entry cover? (1G)
+Q: how much address space does 1 L1 entry cover? (2MB)
+Q: how much address space does 1 L0 entry cover? (4096)
+print kernel page table
+Q: what is size of address space? (512G)
+Q: how much memory is used to represent it after 1rst kvmmap()? (3 pages)
+Q: how many entries is CLINT? (16 pages)
+Q: how many entries is PLIC? (1024 pages, two level 1 PDs)
+Q: how many pages is kernel text (8 pages)
+Q: how many pages is kernel total (128M = 64 * 2MB)
+Q: Is trampoline mapped twice? (yes, last entry and direct-mapped, entry [2, 3, 7])
+kvminithart();
+Q: after executing w_satp() why will the next instruction be sfence_vma()?</p>
+</li>
+<li>
+<p>mappages() in vm.c
+arguments are top PD, va, size, pa, perm
+adds mappings from a range of va&rsquo;s to corresponding pa&rsquo;s
+rounds b/c some uses pass in non-page-aligned addresses
+for each page-aligned address in the range
+call walkpgdir to find address of PTE
+need the PTE&rsquo;s address (not just content) b/c we want to modify
+put the desired pa into the PTE
+mark PTE as valid w/ PTE_P</p>
+</li>
+<li>
+<p>walk() in vm.c
+mimics how the paging h/w finds the PTE for an address
+PX extracts the 9 bits at Level level
+&amp;pagetable[PX(level, va)] is the address of the relevant PTE
+if PTE_V
+the relevant page-table page already exists
+PTE2PA extracts the PPN from the PDE
+if not PTE_V
+alloc a page-table page
+fill in pte with PPN (using PA2PTE)
+now the PTE we want is in the page-table page</p>
+</li>
+<li>
+<p>procinit() in proc.c
+alloc a page for each kernel stack with a guard page</p>
+</li>
+<li>
+<p>setup user address space
+allocproc(): allocates empty top-level page table
+fork(): uvmcopy()
+exec(): replace proc&rsquo;s page table with a new one
+uvmalloc
+loadseg
+print user page table for sh
+Q: what is entry 2?</p>
+</li>
+<li>
+<p>a process calls sbrk(n) to ask for n more bytes of heap memory
+user/umalloc.c calls sbrk() to get memory for the allocator
+each process has a size
+kernel adds new memory at process&rsquo;s end, increases size
+sbrk() allocates physical memory (RAM)
+maps it into the process&rsquo;s page table
+returns the starting address of the new memory</p>
+</li>
+<li>
+<p>growproc() in proc.c
+proc-&gt;sz is the process&rsquo;s current size
+uvmalloc() does most of the work
+when switching to user space satp will be loaded with updated page table</p>
+</li>
+<li>
+<p>uvmalloc() in vm.c
+why PGROUNDUP?
+arguments to mappages()&hellip;</p>
+</li>
+</ul>
+<h2 id="lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab: page tables</a><a hidden class="anchor" aria-hidden="true" href="#lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml">#</a></h2>
 <h2 id="pagetables">pagetables<a hidden class="anchor" aria-hidden="true" href="#pagetables">#</a></h2>
 <p>Virtual address :</p>
 <h2 id="print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">Print a page table (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)<a hidden class="anchor" aria-hidden="true" href="#print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
@@ -579,7 +859,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
   <footer class="post-footer">
     <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/mit6.s0814/">MIT6.S081(4)</a></li>
+      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
     </ul>
         
     
@@ -591,15 +871,15 @@ document.addEventListener("DOMContentLoaded", function() {
     
     
 <nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/">
+  <a class="prev" href="https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/">
     <span class="title">« 上一页</span>
     <br>
-    <span>MIT6.S081(4)</span>
+    <span>C 语言指针</span>
   </a>
-  <a class="next" href="https://kennems.github.io/posts/read/%E8%82%A1%E7%A5%A8/">
+  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0814/">
     <span class="title">下一页 »</span>
     <br>
-    <span>股票</span>
+    <span>MIT6.S081(4)</span>
   </a>
 </nav>
 
