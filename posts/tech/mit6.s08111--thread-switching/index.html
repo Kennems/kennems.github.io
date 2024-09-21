@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>MIT6.S081(11)- Thread switching | Kennem&#39;s Blog</title>
+<meta name="keywords" content="MIT6.S081">
+<meta name="description" content="MIT6.S081(11)- Thread switching">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="MIT6.S081(11)- Thread switching" />
+<meta property="og:description" content="MIT6.S081(11)- Thread switching" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-09-21T19:30:13+08:00" />
+<meta property="article:modified_time" content="2024-09-21T19:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MIT6.S081(11)- Thread switching"/>
+<meta name="twitter:description" content="MIT6.S081(11)- Thread switching"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "MIT6.S081(11)- Thread switching",
+      "item": "https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MIT6.S081(11)- Thread switching",
+  "name": "MIT6.S081(11)- Thread switching",
+  "description": "MIT6.S081(11)- Thread switching",
+  "keywords": [
+    "MIT6.S081"
+  ],
+  "articleBody": "MIT6.S081(11)- Thread switching Topic: more “under the hood” with xv6 Previously: system calls, interrupts, page tables, locks Today: process/thread switching\nWhy support multiple tasks? Time-sharing: many users and/or many running programs. program structure: prime number sieve. parallel speedup on multi-core hardware.\nThreads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of multiple threads\nTwo main strategies: ​ multiple CPUs, each CPU runs a different thread ​ each CPU “switches” between threads, runs one at a time\nthreads can share memory, or not xv6 kernel threads: they share kernel memory (thus locks) xv6 user processes: one thread per process, so no sharing linux: supports multiple threads sharing a user process’s memory\nthere are other techniques for interleaving multiple tasks look up event-driven programming, or state machines threads are not the most efficient, but they are usually the most convenient\nThread design challenges How to interleave many threads on a few CPUs?\nHow to make interleaving transparent?\n“scheduling” = the process of choosing which thread to run next\nWhat to save while a thread isn’t running?\nHow to cope with compute-bound threads?\nHow to cope with compute-bound threads?\neach CPU has timer hardware, which interrupts periodically kernel uses timer interrupts to grab control from looping threads kernel saves thread state, switches, eventually resumes, restores that saved state for transparency\nRUNNING vs RUNNABLE\nthis is “pre-emptive” scheduling – a forced yield of unaware code as opposed to cooperative scheduling, in which code yields voluntarily\nWhat to do with a thread that isn’t running? we need to set aside its state: registers, stack, memory though no need to worry about memory, it won’t go anywhere so implementation provides each thread with a stack and register save area need to track status of each thread RUNNING vs RUNNABLE vs SLEEPING\nin xv6:\n[simple diagram: processes, user stack, trapframe, kernel stack]\neach process has two threads, one user, one kernel a process is either executing its user thread, or in a system call or interrupt in its kernel thread kernel threads share kernel memory / data structures thus the kernel is a parallel program we’ll use “process” and “kernel thread” and “thread” as synonyms\noverview of thread switching in xv6 (the point: switch among threads to interleave many threads on each CPU) [diagram: P1, TF1, STACK1, swtch(), CTX1; CTXs, swtch(), STACKs, scheduler(), \u0026c]\nTF = trapframe = saved user registers\rCTX = context = saved RISC-V registers getting from one process to another involves multiple transitions:\n​ user -\u003e kernel; saves user registers in trapframe ​ kernel thread -\u003e scheduler thread; saves kernel thread registers in context ​ scheduler thread -\u003e kernel thread; restores kernel thread registers from ctx ​ kernel -\u003e user; restores user registers from trapframe “context switch” – the switch from one thread to another\nscheduler threads there’s one per core; each has a stack and a struct context kernel threads (processes) always switch to the current core’s scheduler thread which switches to another kernel thread, if one is RUNNABLE there are never direct kernel thread to kernel thread switches the reason: the scheduler’s separate stack simplifies cases like switching away from an exiting process the scheduler thread keeps scanning the process table until it finds a RUNNABLE thread (there may not be one!) if there is not RUNNABLE thread, the scheduler is “idle”\nnote: each core is either running its scheduler thread, or some other thread a given core runs only one thread at a time each thread is either running on exactly one core, or its registers are saved in its context if a thread isn’t running, its saved context refers to a call to swtch()\nstruct proc in proc.h p-\u003etrapframe holds saved user thread’s registers p-\u003econtext holds saved kernel thread’s registers p-\u003ekstack points to the thread’s kernel stack p-\u003estate is RUNNING, RUNNABLE, SLEEPING, \u0026c p-\u003elock protects p-\u003estate (and other things…)\nCode pre-emptive switch demonstration user/spin.c – two CPU-bound processes my qemu has only one CPU let’s watch xv6 switch between them\nmake qemu-gdb gdb (gdb) c show user/spin.c spin\nyou can see that they alternate, despite running continuously. xv6 is switching its one CPU between the two processes. how does the switching work?\nI’m going to cause a break-point at the timer interrupt. (gdb) b trap.c:207 (gdb) c (gdb) finish (gdb) where\nwe’re in usertrap(), handling a device interrupt from the timer (timerinit() in kernel/start.c configures the RISC-V timer hardware).\nwhat was running when the timer interrupt happened?\n(gdb) print p-\u003ename (gdb) print p-\u003epid (gdb) print/x *(p-\u003etrapframe) (gdb) print/x p-\u003etrapframe-\u003eepc\nlet’s look for the saved epc in user/spin.asm timer interrupted user code in the increment loop, no surprise\n(gdb) step … into yield() in proc.c (gdb) next (gdb) print p-\u003estate\nchange p-\u003estate from RUNNING to RUNNABLE -\u003e give up CPU but want to run again. note: yield() acquires p-\u003elock since modifying p-\u003estate and to prevent another CPU from running this RUNNABLE thread!\n(gdb) next 2 (gdb) step (into sched())\nsched() makes some sanity checks, then calls swtch()\n(gdb) next 7\nthis is the context switch from a process’s kernel thread to the scheduler thread swtch will save the current RISC-V registers in first argument (p-\u003econtext) and restore previously-saved registers from 2nd argument (c-\u003econtext) let’s see what register values swtch() will restore\n(gdb) print/x cpus[0].context\nwhere is cpus[0].context.ra? i.e. where will swtch() return to? kernel.asm says it’s in the scheduler() function in proc.c\n(gdb) tbreak swtch (gdb) c\nwe’re in kernel/swtch.S a0 is the first argument, p-\u003econtext a1 is the second argument, cpus[0].context swtch() saves current registers in xx(a0) (p-\u003econtext) swtch() then restores registers from xx(a1) (cpus[0].context) then swtch returns\nQ: swtch() neither saves nor restores $pc (program counter)! so how does it know where to start executing in the target thread?\nQ: why does swtch() save only 14 registers (ra, sp, s0..s11)? the RISC-V has 32 registers – what about the other 18? zero, gp, tp t0-t6, a0-a7 note we’re talking about kernel thread registers all 32 user register have already been saved in the trapframe\nregisters at start of swtch: (gdb) print $pc – swtch (gdb) print $ra – sched (gdb) print $sp\nregisters at end of swtch: (gdb) stepi 28 – until ret (gdb) print $pc – swtch (gdb) print $ra – scheduler (gdb) print $sp – stack0+??? – entry.S set this up at boot (gdb) where (gdb) stepi\nwe’re in scheduler() now, in the “scheduler thread”, on the scheduler’s stack\nscheduler() just returned from a call to swtch() it made that call a while ago, to switch to our process’s kernel thread that previous call saved scheduler()’s registers our processes’s call to swtch() restored scheduler()’s saved registers p here refers to the interrupted process\n(gdb) print p-\u003ename (gdb) print p-\u003epid (gdb) print p-\u003estate\nremember yield() acquired the process’s lock now scheduler releases it the scheduler() code looks like an ordinary acquire/release pair but in fact scheduler acquires, yield releases then yield acquires, scheduler releases unusual: the lock is released by a different thread than acquired it!\nQ: why hold p-\u003elock across swtch()? yield() acquires scheduler() releases could we release p-\u003elock just before calling swtch()?\np-\u003elock protects a few things: makes these steps atomic: * p-\u003estate=RUNNABLE * save registers in p-\u003econtext * stop using p’s kernel stack so other CPU’s scheduler won’t start running p until all steps complete makes these steps atomic and uninterruptable: * p-\u003estate=RUNNING * move registers from context to RISC-V registers so an interrupt won’t yield() and save not-yet-initialized RISC-V registers in context.\nscheduler()’s loop looks at all processes, finds one that’s RUNNABLE keeps looping until it finds something – may be idle for a while in this demo, will find the other spin process let’s fast-forward to when scheduler() finds a RUNNABLE process\n(gdb) tbreak proc.c:474 (gdb) c\nscheduler() locked the new process, then set state to RUNNING now another CPUs’ scheduler won’t run it\nit’s the other “spin” process:\n(gdb) print p-\u003ename (gdb) print p-\u003epid (gdb) print p-\u003estate\nlet’s see where the new thread will start executing after swtch() by looking at $ra (return address) in its context\n(gdb) print/x p-\u003econtext (gdb) x/4i p-\u003econtext-\u003era\nnew thread will return into sched()\nlook at kernel/swtch.S (again)\n(gdb) tbreak swtch (gdb) c (gdb) stepi 28 – now just about to execute swtch()’s ret (gdb) print $ra (gdb) where\nnow we’re in a timer interrupt in the other spin process in the past it was interrupted, called yield() / sched() / swtch() but now it will resume, and return to user space\nnote: only swtch() writes contexts (except for initialization) only sched() and scheduler() call swtch() so for a kernel thread, context.ra always points into sched() and for a scheduler thread, context.ra always points into scheduler()\nnote: sched() calls swtch() – then swtch() returns to sched() but it’s typically a different thread returning\nsched() and scheduler() are “co-routines” each knows what it is swtch()ing to each knows where swtch() return is coming from e.g. yield() and scheduler() cooperate about p-\u003elock and p-\u003estate different from ordinary thread switching, where neither party typically knows which thread comes before/after\nQ: what is the “scheduling policy”? i.e. how does xv6 decide what to run next if multiple threads are RUNNABLE? is it a good policy?\nQ: is there pre-emptive scheduling of kernel threads? yes – timer interrupt and yield() can occur while in kernel. yield() called by kerneltrap() in kernel/trap.c where to save registers of interrupted kernel code? not in p-\u003etrapframe, since already has user registers. not in p-\u003econtext, since we’re about to call yield() and swtch() kernelvec.S pushes them on the kernel stack (since already in kernel). is pre-emption in the kernel useful? not critical in xv6. valuable if some system calls have lots of compute. or if we need a strict notion of thread priority.\nQ: why does scheduler() briefly enable interrupts, with intr_on()? There may be no RUNNABLE threads They may all be waiting for I/O, e.g. disk or console Enable interrupts so device has a chance to signal completion and thus wake up a thread Otherwise, system will freeze\nQ: why does sched() forbid locks from being held when yielding the CPU? (other than p-\u003elock) i.e. sched() checks that noff == 1 suppose process P1 holding lock L1, yields CPU process P2 runs, tries acquire(L1) P2’s acquire spins with interrupts turned off so timer interrupts won’t occur so P2 won’t yield the CPU so P1 can’t execute so P1 won’t release L1, ever\nQ: can we get rid of the separate per-cpu scheduler thread? could sched() directly swtch() to a new thread? so that sched() looks for next process to run? that would be faster – avoids one of the swtch() calls yes – but: scheduling loop would run on a thread’s kernel stack what if that thread is exiting? what if another cpu wants to run the thread? what if there are fewer threads than CPUs – i.e. too few stacks? can be dealt with – give it a try!\nSummary xv6 provides a convenient thread model for kernel code pre-emptive via timer interrupts transparent via switching registers and stack multi-core requires careful handling of stacks, locks next lecture: mechanisms for threads to wait for each other\n",
+  "wordCount" : "1871",
+  "inLanguage": "zh",
+  "datePublished": "2024-09-21T19:30:13+08:00",
+  "dateModified": "2024-09-21T19:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      MIT6.S081(11)- Thread switching
+    </h1>
+    <div class="post-description">
+      MIT6.S081(11)- Thread switching
+    </div>
+    <div class="post-meta"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1871 字&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#mit6s08111--thread-switching" aria-label="MIT6.S081(11)- Thread switching">MIT6.S081(11)- Thread switching</a><ul>
+                            
+                    <li>
+                        <a href="#why-support-multiple-tasks" aria-label="Why support multiple tasks?">Why support multiple tasks?</a><ul>
+                            
+                    <li>
+                        <a href="#two-main-strategies" aria-label="Two main strategies:">Two main strategies:</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#thread-design-challenges" aria-label="Thread design challenges">Thread design challenges</a><ul>
+                            
+                    <li>
+                        <a href="#what-to-do-with-a-thread-that-isnt-running" aria-label="What to do with a thread that isn&rsquo;t running?">What to do with a thread that isn&rsquo;t running?</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#scheduler-threads" aria-label="scheduler threads">scheduler threads</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#code" aria-label="Code">Code</a><ul>
+                            
+                    <li>
+                        <a href="#summary" aria-label="Summary">Summary</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="mit6s08111--thread-switching">MIT6.S081(11)- Thread switching<a hidden class="anchor" aria-hidden="true" href="#mit6s08111--thread-switching">#</a></h1>
+<p>Topic: more &ldquo;under the hood&rdquo; with xv6
+Previously: system calls, interrupts, page tables, locks
+Today: process/thread switching</p>
+<h2 id="why-support-multiple-tasks">Why support multiple tasks?<a hidden class="anchor" aria-hidden="true" href="#why-support-multiple-tasks">#</a></h2>
+<p><strong>Time-sharing</strong>: many users and/or many running programs.
+program structure: prime number sieve.
+parallel speedup on multi-core hardware.</p>
+<p>Threads are an abstraction to simplify programming when there are many tasks.
+thread = an independent serial execution &ndash; registers, pc, stack
+the threading system interleaves the execution of multiple threads</p>
+<h3 id="two-main-strategies">Two main strategies:<a hidden class="anchor" aria-hidden="true" href="#two-main-strategies">#</a></h3>
+<p>​    multiple CPUs, each CPU runs a different thread
+​    each CPU &ldquo;switches&rdquo; between threads, runs one at a time</p>
+<p>threads can share memory, or not
+xv6 kernel threads: they share kernel memory (thus locks)
+xv6 user processes: one thread per process, so no sharing
+linux: supports multiple threads sharing a user process&rsquo;s memory</p>
+<p>there are other techniques for interleaving multiple tasks
+look up event-driven programming, or state machines
+threads are not the most efficient, but they are usually the most convenient</p>
+<h2 id="thread-design-challenges">Thread design challenges<a hidden class="anchor" aria-hidden="true" href="#thread-design-challenges">#</a></h2>
+<ul>
+<li>
+<p>How to interleave many threads on a few CPUs?</p>
+</li>
+<li>
+<p>How to make interleaving transparent?</p>
+</li>
+</ul>
+<p><strong>&ldquo;scheduling&rdquo;</strong> = the process of choosing which thread to run next</p>
+<ul>
+<li>
+<p>What to save while a thread isn&rsquo;t running?</p>
+</li>
+<li>
+<p>How to cope with compute-bound threads?</p>
+</li>
+<li>
+<p>How to cope with compute-bound threads?</p>
+<p>each CPU has timer hardware, which interrupts periodically
+kernel uses <strong>timer interrupts</strong> to grab control from looping threads
+kernel saves thread state, switches, eventually resumes,
+restores that saved state for transparency</p>
+<p><strong>RUNNING</strong> vs <strong>RUNNABLE</strong></p>
+<p>this is &ldquo;<strong>pre-emptive</strong>&rdquo; scheduling &ndash; a forced yield of unaware code
+as opposed to cooperative scheduling, in which code yields voluntarily</p>
+</li>
+</ul>
+<h3 id="what-to-do-with-a-thread-that-isnt-running">What to do with a thread that isn&rsquo;t running?<a hidden class="anchor" aria-hidden="true" href="#what-to-do-with-a-thread-that-isnt-running">#</a></h3>
+<p>we need to set aside its state: registers, stack, memory
+though no need to worry about memory, it won&rsquo;t go anywhere
+so implementation provides each thread with a stack and register save area
+need to track status of each thread
+<strong>RUNNING</strong> vs <strong>RUNNABLE</strong> vs <strong>SLEEPING</strong></p>
+<p>in xv6:</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240921160329664.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240921160329664.png" alt="image-20240921160329664"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240921161823595.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240921161823595.png" alt="image-20240921161823595"  />
+        </a>
+    </div>
+
+</p>
+<p>[simple diagram: processes, user stack, trapframe, kernel stack]</p>
+<p>each process has two threads, one user, one kernel
+a process is <em>either</em> executing its user thread,
+<em>or</em> in a system call or interrupt in its kernel thread
+kernel threads share kernel memory / data structures
+thus the kernel is a parallel program
+we&rsquo;ll use &ldquo;process&rdquo; and &ldquo;kernel thread&rdquo; and &ldquo;thread&rdquo; as synonyms</p>
+<p>overview of thread switching in xv6
+(the point: switch among threads to interleave many threads on each CPU)
+[diagram: P1, TF1, STACK1, swtch(), CTX1;
+CTXs, swtch(), STACKs, scheduler(), &amp;c]</p>
+<pre tabindex="0"><code>  TF = trapframe = saved user registers
+  CTX = context = saved RISC-V registers
+</code></pre><p>getting from one process to another involves multiple transitions:</p>
+<ul>
+<li>​    user -&gt; kernel; saves user registers in trapframe</li>
+<li>​    kernel thread -&gt; scheduler thread; saves kernel thread registers in context</li>
+<li>​    scheduler thread -&gt; kernel thread; restores kernel thread registers from ctx</li>
+<li>​    kernel -&gt; user; restores user registers from trapframe</li>
+</ul>
+<p>&ldquo;context switch&rdquo; &ndash; the switch from one thread to another</p>
+<h2 id="scheduler-threads">scheduler threads<a hidden class="anchor" aria-hidden="true" href="#scheduler-threads">#</a></h2>
+<p>there&rsquo;s one per core; each has a stack and a struct context
+kernel threads (processes) always switch to the current core&rsquo;s scheduler thread
+which switches to another kernel thread, if one is RUNNABLE
+there are never direct kernel thread to kernel thread switches
+the reason: the scheduler&rsquo;s separate stack simplifies
+cases like switching away from an exiting process
+the scheduler thread keeps scanning the process table until
+it finds a RUNNABLE thread (there may not be one!)
+if there is not RUNNABLE thread, the scheduler is &ldquo;idle&rdquo;</p>
+<p>note:
+each core is either running its scheduler thread, or some other thread
+a given core runs only one thread at a time
+each thread is either running on exactly one core, or its registers
+are saved in its context
+if a thread isn&rsquo;t running, its saved context refers to a call
+to swtch()</p>
+<p>struct proc in proc.h
+p-&gt;trapframe holds saved user thread&rsquo;s registers
+p-&gt;context holds saved kernel thread&rsquo;s registers
+p-&gt;kstack points to the thread&rsquo;s kernel stack
+p-&gt;state is RUNNING, RUNNABLE, SLEEPING, &amp;c
+p-&gt;lock protects p-&gt;state (and other things&hellip;)</p>
+<h1 id="code">Code<a hidden class="anchor" aria-hidden="true" href="#code">#</a></h1>
+<p>pre-emptive switch demonstration
+user/spin.c &ndash; two CPU-bound processes
+my qemu has only one CPU
+let&rsquo;s watch xv6 switch between them</p>
+<p>make qemu-gdb
+gdb
+(gdb) c
+show user/spin.c
+spin</p>
+<p>you can see that they alternate, despite running continuously.
+xv6 is switching its one CPU between the two processes.
+how does the switching work?</p>
+<p>I&rsquo;m going to cause a break-point at the timer interrupt.
+(gdb) b trap.c:207
+(gdb) c
+(gdb) finish
+(gdb) where</p>
+<p>we&rsquo;re in usertrap(), handling a device interrupt from the timer
+(timerinit() in kernel/start.c configures the RISC-V timer hardware).</p>
+<p>what was running when the timer interrupt happened?</p>
+<p>(gdb) print p-&gt;name
+(gdb) print p-&gt;pid
+(gdb) print/x *(p-&gt;trapframe)
+(gdb) print/x p-&gt;trapframe-&gt;epc</p>
+<p>let&rsquo;s look for the saved epc in user/spin.asm
+timer interrupted user code in the increment loop, no surprise</p>
+<p>(gdb) step &hellip; into yield() in proc.c
+(gdb) next
+(gdb) print p-&gt;state</p>
+<p>change p-&gt;state from RUNNING to RUNNABLE -&gt; give up CPU but want to run again.
+note: yield() acquires p-&gt;lock
+since modifying p-&gt;state
+and to prevent another CPU from running this RUNNABLE thread!</p>
+<p>(gdb) next 2
+(gdb) step (into sched())</p>
+<p>sched() makes some sanity checks, then calls swtch()</p>
+<p>(gdb) next 7</p>
+<p>this is the context switch from a process&rsquo;s kernel thread to the scheduler thread
+swtch will save the current RISC-V registers in first argument (p-&gt;context)
+and restore previously-saved registers from 2nd argument (c-&gt;context)
+let&rsquo;s see what register values swtch() will restore</p>
+<p>(gdb) print/x cpus[0].context</p>
+<p>where is cpus[0].context.ra?
+i.e. where will swtch() return to?
+kernel.asm says it&rsquo;s in the scheduler() function in proc.c</p>
+<p>(gdb) tbreak swtch
+(gdb) c</p>
+<p>we&rsquo;re in kernel/swtch.S
+a0 is the first argument, p-&gt;context
+a1 is the second argument, cpus[0].context
+swtch() saves current registers in xx(a0) (p-&gt;context)
+swtch() then restores registers from xx(a1) (cpus[0].context)
+then swtch returns</p>
+<p>Q: swtch() neither saves nor restores $pc (program counter)!
+so how does it know where to start executing in the target thread?</p>
+<p>Q: why does swtch() save only 14 registers (ra, sp, s0..s11)?
+the RISC-V has 32 registers &ndash; what about the other 18?
+zero, gp, tp
+t0-t6, a0-a7
+note we&rsquo;re talking about kernel thread registers
+all 32 user register have already been saved in the trapframe</p>
+<p>registers at start of swtch:
+(gdb) print $pc  &ndash; swtch
+(gdb) print $ra  &ndash; sched
+(gdb) print $sp</p>
+<p>registers at end of swtch:
+(gdb) stepi 28   &ndash; until ret
+(gdb) print $pc  &ndash; swtch
+(gdb) print $ra  &ndash; scheduler
+(gdb) print $sp  &ndash; stack0+??? &ndash; entry.S set this up at boot
+(gdb) where
+(gdb) stepi</p>
+<p>we&rsquo;re in scheduler() now, in the &ldquo;scheduler thread&rdquo;,
+on the scheduler&rsquo;s stack</p>
+<p>scheduler() just returned from a call to swtch()
+it made that call a while ago, to switch to our process&rsquo;s kernel thread
+that previous call saved scheduler()&rsquo;s registers
+our processes&rsquo;s call to swtch() restored scheduler()&rsquo;s saved registers
+p here refers to the interrupted process</p>
+<p>(gdb) print p-&gt;name
+(gdb) print p-&gt;pid
+(gdb) print p-&gt;state</p>
+<p>remember yield() acquired the process&rsquo;s lock
+now scheduler releases it
+the scheduler() code <em>looks</em> like an ordinary acquire/release pair
+but in fact scheduler acquires, yield releases
+then yield acquires, scheduler releases
+unusual: the lock is released by a different thread than acquired it!</p>
+<p>Q: why hold p-&gt;lock across swtch()?
+yield() acquires
+scheduler() releases
+could we release p-&gt;lock just before calling swtch()?</p>
+<p>p-&gt;lock protects a few things:
+makes these steps atomic:
+* p-&gt;state=RUNNABLE
+* save registers in p-&gt;context
+* stop using p&rsquo;s kernel stack
+so other CPU&rsquo;s scheduler won&rsquo;t start running p until all steps complete
+makes these steps atomic and uninterruptable:
+* p-&gt;state=RUNNING
+* move registers from context to RISC-V registers
+so an interrupt won&rsquo;t yield() and save not-yet-initialized
+RISC-V registers in context.</p>
+<p>scheduler()&rsquo;s loop looks at all processes, finds one that&rsquo;s RUNNABLE
+keeps looping until it finds something &ndash; may be idle for a while
+in this demo, will find the other spin process
+let&rsquo;s fast-forward to when scheduler() finds a RUNNABLE process</p>
+<p>(gdb) tbreak proc.c:474
+(gdb) c</p>
+<p>scheduler() locked the new process, then set state to RUNNING
+now another CPUs&rsquo; scheduler won&rsquo;t run it</p>
+<p>it&rsquo;s the other &ldquo;spin&rdquo; process:</p>
+<p>(gdb) print p-&gt;name
+(gdb) print p-&gt;pid
+(gdb) print p-&gt;state</p>
+<p>let&rsquo;s see where the new thread will start executing after swtch()
+by looking at $ra (return address) in its context</p>
+<p>(gdb) print/x p-&gt;context
+(gdb) x/4i p-&gt;context-&gt;ra</p>
+<p>new thread will return into sched()</p>
+<p>look at kernel/swtch.S (again)</p>
+<p>(gdb) tbreak swtch
+(gdb) c
+(gdb) stepi 28 &ndash; now just about to execute swtch()&rsquo;s ret
+(gdb) print $ra
+(gdb) where</p>
+<p>now we&rsquo;re in a timer interrupt in the <em>other</em> spin process
+in the past it was interrupted, called yield() / sched() / swtch()
+but now it will resume, and return to user space</p>
+<p>note: only swtch() writes contexts (except for initialization)
+only sched() and scheduler() call swtch()
+so for a kernel thread, context.ra always points into sched()
+and for a scheduler thread, context.ra always points into scheduler()</p>
+<p>note: sched() calls swtch() &ndash; then swtch() returns to sched()
+but it&rsquo;s typically a <em>different</em> thread returning</p>
+<p>sched() and scheduler() are &ldquo;co-routines&rdquo;
+each knows what it is swtch()ing to
+each knows where swtch() return is coming from
+e.g. yield() and scheduler() cooperate about p-&gt;lock and p-&gt;state
+different from ordinary thread switching, where neither
+party typically knows which thread comes before/after</p>
+<p>Q: what is the &ldquo;scheduling policy&rdquo;?
+i.e. how does xv6 decide what to run next if multiple threads are RUNNABLE?
+is it a good policy?</p>
+<p>Q: is there pre-emptive scheduling of kernel threads?
+yes &ndash; timer interrupt and yield() can occur while in kernel.
+yield() called by kerneltrap() in kernel/trap.c
+where to save registers of interrupted kernel code?
+not in p-&gt;trapframe, since already has user registers.
+not in p-&gt;context, since we&rsquo;re about to call yield() and swtch()
+kernelvec.S pushes them on the kernel stack (since already in kernel).
+is pre-emption in the kernel useful?
+not critical in xv6.
+valuable if some system calls have lots of compute.
+or if we need a strict notion of thread priority.</p>
+<p>Q: why does scheduler() briefly enable interrupts, with intr_on()?
+There may be no RUNNABLE threads
+They may all be waiting for I/O, e.g. disk or console
+Enable interrupts so device has a chance to signal completion
+and thus wake up a thread
+Otherwise, system will freeze</p>
+<p>Q: why does sched() forbid locks from being held when yielding the CPU?
+(other than p-&gt;lock)
+i.e. sched() checks that noff == 1
+suppose process P1 holding lock L1, yields CPU
+process P2 runs, tries acquire(L1)
+P2&rsquo;s acquire spins with interrupts turned off
+so timer interrupts won&rsquo;t occur
+so P2 won&rsquo;t yield the CPU
+so P1 can&rsquo;t execute
+so P1 won&rsquo;t release L1, ever</p>
+<p>Q: can we get rid of the separate per-cpu scheduler thread?
+could sched() directly swtch() to a new thread?
+so that sched() looks for next process to run?
+that would be faster &ndash; avoids one of the swtch() calls
+yes &ndash; but:
+scheduling loop would run on a thread&rsquo;s kernel stack
+what if that thread is exiting?
+what if another cpu wants to run the thread?
+what if there are fewer threads than CPUs &ndash; i.e. too few stacks?
+can be dealt with &ndash; give it a try!</p>
+<h2 id="summary">Summary<a hidden class="anchor" aria-hidden="true" href="#summary">#</a></h2>
+<p>xv6 provides a convenient thread model for kernel code
+pre-emptive via timer interrupts
+transparent via switching registers and stack
+multi-core requires careful handling of stacks, locks
+next lecture: mechanisms for threads to wait for each other</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>MIT6.S081(10)-Locking</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2024 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>
