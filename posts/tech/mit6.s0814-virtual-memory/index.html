@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(4)-Virtual Memory plan: address spaces paging hardware xv6 VM code Virtual memory overview today’s problem: [user/kernel diagram] [memory view: diagram with user processes and kernel in memory] suppose the shell has a bug: sometimes it writes to a random memory address how can we keep it from wrecking the kernel? and from wrecking other processes?\nwe want isolated address spaces each process has its own memory it can read and write its own memory it cannot read or write anything else challenge: how to multiplex several memories over one physical memory? while maintaining isolation between memories\nxv6 uses RISC-V’s paging hardware to implement AS’s ask questions! this material is important topic of next lab (and shows up in several other labs)\npaging provides a level of indirection for addressing CPU -\u003e MMU -\u003e RAM VA PA s/w can only ld/st to virtual addresses, not physical kernel tells MMU how to map each virtual address to a physical address MMU essentially has a table, indexed by va, yielding pa called a “page table” one page table per address space MMU can restrict what virtual addresses user code can use By programming the MMU, the kernel has complete control over va-\u003epa mapping Allows for many interesting OS features/tricks\nRISC-V maps 4-KB “pages” and aligned – start on 4 KB boundaries 4 KB = 12 bits the RISC-V used in xv6 has 64-bit for addresses thus page table index is top 64-12 = 52 bits of VA except that the top 25 of the top 52 are unused no RISC-V has that much memory now can grow in future so, index is 27 bits.\nMMU translation see Figure 3.1 of book use index bits of VA to find a page table entry (PTE) construct physical address using PPN from PTE + offset of VA\nwhat is in PTE? each PTE is 64 bits, but only 54 are used top 44 bits of PTE are top bits of physical address “physical page number” low 10 bits of PTE flags Present, Writeable, \u0026c note: size virtual addresses != size physical addresses\nwhere is the page table stored? in RAM – MMU loads (and stores) PTEs o/s can read/write PTEs read/write memory location corresponding to PTEs\nwould it be reasonable for page table to just be an array of PTEs? how big is it? 2^27 is roughly 134 million 64 bits per entry 134*8 MB for a full page table wasting roughly 1GB per page table one page table per address space one address space per application would waste lots of memory for small programs! you only need mappings for a few hundred pages so the rest of the million entries would be there but not needed\nRISC-V 64 uses a “three-level page table” to save space see figure 3.2 from book page directory page (PD) PD has 512 PTEs PTEs point to another PD or is a leaf so 512512512 PTEs in total PD entries can be invalid those PTE pages need not exist so a page table for a small address space can be small\nhow does the mmu know where the page table is located in RAM? satp holds phys address of top PD pages can be anywhere in RAM – need not be contiguous rewrite satp when switching to another address space/application\nhow does RISC-V paging hardware translate a va? need to find the right PTE satp register points to PA of top/L2 PD top 9 bits index L2 PD to get PA of L1 PD next 9 bits index L1 PD to get PA of L0 PD next 9 bits index L0 PD to get PA of PTE PPN from PTE + low-12 from VA\nflags in PTE V, R, W, X, U xv6 uses all of them\nwhat if V bit not set? or store and W bit not set? “page fault” forces transfer to kernel trap.c in xv6 source kernel can just produce error, kill process in xv6: “usertrap(): unexpected scause … pid=… sepc=… stval=…” or kernel can install a PTE, resume the process e.g. after loading the page of memory from disk\nindirection allows paging h/w to solve many problems e.g. phys memory doesn’t have to be contiguous avoids fragmentation e.g. lazy allocation (a lab) e.g. copy-on-write fork (another lab) many more techniques topic of next lecture\nQ: why use virtual memory in kernel? it is clearly good to have page tables for user processes but why have a page table for the kernel? could the kernel run with using only physical addresses? top-level answer: yes most standard kernels do use virtual addresses why do standard kernels do so? some reasons are lame, some are better, none are fundamental\nthe hardware makes it difficult to turn it off e.g. on entering a system call, one would have to disable VM the kernel itself can benefit from virtual addresses mark text pages X, but data not (helps tracking down bugs) unmap a page below kernel stack (helps tracking down bugs) map a page both in user and kernel (helps user/kernel transition) Virtual memory in xv6 kernel page table See figure 3.3 of book simple maping mostly map virtual to physical one-on-one note double-mapping of trampoline note permissions why map devices?\neach process has its own address space and its own page table see figure 3.4 of book note: trampoline and trapframe aren’t writable by user process kernel switches page tables (i.e. sets satp) when switching processes\nQ: why this address space arrangement? user virtual addresses start at zero of course user va 0 maps to different pa for each process 16,777,216 GB for user heap to grow contiguously but needn’t have contiguous phys mem – no fragmentation problem both kernel and user map trampoline and trapframe page eases transition user -\u003e kernel and back kernel doesn’t map user applications not easy for kernel to r/w user memory need translate user virtual address to kernel virtual address good for isolation (see spectre attacks) easy for kernel to r/w physical memory pa x mapped at va x\nQ: does the kernel have to map all of phys mem into its virtual address space?\nCode walk through setup of kernel address space kvmmap() Q: what is address 0x10000000 (256M) Q: how much address space does 1 L2 entry cover? (1G) Q: how much address space does 1 L1 entry cover? (2MB) Q: how much address space does 1 L0 entry cover? (4096) print kernel page table Q: what is size of address space? (512G) Q: how much memory is used to represent it after 1rst kvmmap()? (3 pages) Q: how many entries is CLINT? (16 pages) Q: how many entries is PLIC? (1024 pages, two level 1 PDs) Q: how many pages is kernel text (8 pages) Q: how many pages is kernel total (128M = 64 * 2MB) Q: Is trampoline mapped twice? (yes, last entry and direct-mapped, entry [2, 3, 7]) kvminithart(); Q: after executing w_satp() why will the next instruction be sfence_vma()?\nmappages() in vm.c arguments are top PD, va, size, pa, perm adds mappings from a range of va’s to corresponding pa’s rounds b/c some uses pass in non-page-aligned addresses for each page-aligned address in the range call walkpgdir to find address of PTE need the PTE’s address (not just content) b/c we want to modify put the desired pa into the PTE mark PTE as valid w/ PTE_P\nwalk() in vm.c mimics how the paging h/w finds the PTE for an address PX extracts the 9 bits at Level level \u0026pagetable[PX(level, va)] is the address of the relevant PTE if PTE_V the relevant page-table page already exists PTE2PA extracts the PPN from the PDE if not PTE_V alloc a page-table page fill in pte with PPN (using PA2PTE) now the PTE we want is in the page-table page\nprocinit() in proc.c alloc a page for each kernel stack with a guard page\nsetup user address space allocproc(): allocates empty top-level page table fork(): uvmcopy() exec(): replace proc’s page table with a new one uvmalloc loadseg print user page table for sh Q: what is entry 2?\na process calls sbrk(n) to ask for n more bytes of heap memory user/umalloc.c calls sbrk() to get memory for the allocator each process has a size kernel adds new memory at process’s end, increases size sbrk() allocates physical memory (RAM) maps it into the process’s page table returns the starting address of the new memory\ngrowproc() in proc.c proc-\u003esz is the process’s current size uvmalloc() does most of the work when switching to user space satp will be loaded with updated page table\nuvmalloc() in vm.c why PGROUNDUP? arguments to mappages()…\nLab: page tables pagetables Virtual address :\nPrint a page table (easy) void vmprint_rec(pagetable_t pagetable, int level) { for (int i = 0; i \u003c 512; i++) { pte_t pte = pagetable[i]; if (pte \u0026 PTE_V) { uint64 pa = PTE2PA(pte); for (int j = 0; j \u003c= level; j++) { if(j \u003e 0){ printf(\" \"); } printf(\"..\"); } printf(\"%d: pte %p pa %p\\n\", i, pte, pa); if ((pte \u0026 (PTE_R | PTE_W | PTE_X)) == 0) { // Recursively print next level page table vmprint_rec((pagetable_t)pa, level + 1); } } } } void vmprint(pagetable_t pagetable) { printf(\"page table %p\\n\", pagetable); vmprint_rec(pagetable, 0); } pid = 1代表init进程，即第一个启动的用户级进程，它负责派生其他进程并为系统提供基本服务。\nA kernel page table per process (hard) proc.h proc.c vm.c defs.h Simplify copyin/copyinstr (hard) defs.h vm.c Q \u0026 A ",
-  "wordCount" : "1609",
+  "articleBody": "MIT6.S081(4)-Virtual Memory Plan: Address spaces Paging hardware xv6 VM code\nVirtual memory overview Today’s problem: [user/kernel diagram] [memory view: diagram with user processes and kernel in memory] Suppose the shell has a bug: sometimes it writes to a random memory address how can we keep it from wrecking the kernel? and from wrecking other processes?\nwe want isolated address spaces each process has its own memory it can read and write its own memory it cannot read or write anything else\nchallenge: How to multiplex several memories over one physical memory? while maintaining isolation between memories\nxv6 uses RISC-V’s paging hardware to implement AS’s ask questions! this material is important topic of next lab (and shows up in several other labs) paging provides a level of indirection for addressing\nCPU -\u003e MMU -\u003e RAM\rVA PA s/w can only ld/st to virtual addresses, not physical kernel tells MMU how to map each virtual address to a physical address MMU essentially has a table, indexed by va, yielding pa called a “page table” one page table per address space MMU can restrict what virtual addresses user code can use By programming the MMU, the kernel has complete control over va-\u003epa mapping Allows for many interesting OS features/tricks\nRISC-V maps 4-KB “pages” and aligned – start on 4 KB boundaries $4 KB = 12 bits$ the RISC-V used in xv6 has 64-bit for addresses thus page table index is top 64-12 = 52 bits of VA except that the top 25 of the top 52 are unused no RISC-V has that much memory now can grow in future so, index is 27 bits.\nMMU translation\nsee Figure 3.1 of book use index bits of VA to find a page table entry (PTE) construct physical address using PPN from PTE + offset of VA\nwhat is in PTE? each PTE is 64 bits, but only 54 are used top 44 bits of PTE are top bits of physical address “physical page number” low 10 bits of PTE flags Present, Writeable, \u0026c note: size virtual addresses != size physical addresses\nWhere is the page table stored? in RAM – MMU loads (and stores) PTEs o/s can read/write PTEs read/write memory location corresponding to PTEs\nWould it be reasonable for page table to just be an array of PTEs? how big is it? 2^27 is roughly 134 million 64 bits per entry 134*8 MB for a full page table wasting roughly 1GB per page table one page table per address space one address space per application would waste lots of memory for small programs! you only need mappings for a few hundred pages so the rest of the million entries would be there but not needed\nRISC-V 64 uses a “three-level page table” to save space see figure 3.2 from book page directory page (PD) PD has 512 PTEs PTEs point to another PD or is a leaf so 512512512 PTEs in total PD entries can be invalid those PTE pages need not exist so a page table for a small address space can be small\nhow does the mmu know where the page table is located in RAM? satp holds phys address of top PD pages can be anywhere in RAM – need not be contiguous rewrite satp when switching to another address space/application\nhow does RISC-V paging hardware translate a va? need to find the right PTE satp register points to PA of top/L2 PD top 9 bits index L2 PD to get PA of L1 PD next 9 bits index L1 PD to get PA of L0 PD next 9 bits index L0 PD to get PA of PTE PPN from PTE + low-12 from VA\nflags in PTE V, R, W, X, U xv6 uses all of them\nwhat if V bit not set? or store and W bit not set? “page fault” forces transfer to kernel trap.c in xv6 source kernel can just produce error, kill process in xv6: “usertrap(): unexpected scause … pid=… sepc=… stval=…” or kernel can install a PTE, resume the process e.g. after loading the page of memory from disk\nindirection allows paging h/w to solve many problems e.g. phys memory doesn’t have to be contiguous avoids fragmentation e.g. lazy allocation (a lab) e.g. copy-on-write fork (another lab) many more techniques topic of next lecture\nQ: why use virtual memory in kernel? it is clearly good to have page tables for user processes but why have a page table for the kernel? could the kernel run with using only physical addresses? top-level answer: yes most standard kernels do use virtual addresses why do standard kernels do so? some reasons are lame, some are better, none are fundamental\nthe hardware makes it difficult to turn it off e.g. on entering a system call, one would have to disable VM the kernel itself can benefit from virtual addresses mark text pages X, but data not (helps tracking down bugs) unmap a page below kernel stack (helps tracking down bugs) map a page both in user and kernel (helps user/kernel transition) Virtual memory in xv6 kernel page table See figure 3.3 of book simple maping mostly map virtual to physical one-on-one note double-mapping of trampoline note permissions why map devices? Trampoline 的作用 为内核和用户态之间的切换提供一个统一的入口。由于其在每个进程的页表都映射到相同的物理地址，内核和用户进程都能够在切换过程中使用这段代码，可以确保 ：\n上下文的保存和回复：保存当前的CPU状态（寄存器，堆栈等），并在返回用户态时恢复 地址空间切换 ： 在进程切换时，从用户地址空间切换到内核地址空间，并确保安全。 trampoline成为用户态和内核态之间安全且一致的桥梁。\nEach process has its own address space and its own page table\nsee figure 3.4 of book note: trampoline and trapframe aren’t writable by user process\nkernel switches page tables (i.e. sets satp) when switching processes\nQ: why this address space arrangement? user virtual addresses start at zero of course user va 0 maps to different pa for each process 16,777,216 GB for user heap to grow contiguously but needn’t have contiguous phys mem – no fragmentation problem both kernel and user map trampoline and trapframe page eases transition user -\u003e kernel and back kernel doesn’t map user applications not easy for kernel to r/w user memory need translate user virtual address to kernel virtual address good for isolation (see spectre attacks) easy for kernel to r/w physical memory pa x mapped at va x\nQ: does the kernel have to map all of phys mem into its virtual address space?\nCode walk through setup of kernel address space kvmmap()\n// 在内核页表中添加一个映射。 // 仅在启动时使用。 // 该函数不刷新 TLB 或启用分页。 void kvmmap(uint64 va, uint64 pa, uint64 sz, int perm) { // 调用 mappages 函数将虚拟地址 va 映射到物理地址 pa，映射大小为 sz，权限为 perm if(mappages(kernel_pagetable, va, sz, pa, perm) != 0) // 如果映射失败，则触发系统错误 panic(\"kvmmap\"); } Q: what is address 0x10000000 (256M)\n$ 0x10000000 = 256 MB$\nQ: how much address space does 1 L2 entry cover? (1G)\n$512×2 MB=1 GB$\nQ: how much address space does 1 L1 entry cover? (2MB)\n$512 × 4096B = 2MB$\nQ: how much address space does 1 L0 entry cover? (4096)\n每个 L0 条目指向一个 4KB 的页，因此每个 L0 条目覆盖 4096 字节的地址空间\nprint kernel page table\nQ: what is size of address space? (512G)\n每个L2覆盖 $1GB$, 共覆盖$512GB$\nQ: how much memory is used to represent it after 1rst kvmmap()?\n(3 pages)\nQ: how many entries is CLINT?\n(16 pages)\nQ: how many entries is PLIC?\n(1024 pages, two level 1 PDs)\nQ: how many pages is kernel text\n(8 pages)\nQ: how many pages is kernel total\n(128M = 64 * 2MB)\nQ: Is trampoline mapped twice?\n(yes, last entry and direct-mapped, entry [2, 3, 7])\nkvminithart(); Q: after executing w_satp() why will the next instruction be sfence_vma()?\nmappages() in vm.c // 为从 va 开始的虚拟地址创建 PTE（页表条目）， // 这些条目引用从 pa 开始的物理地址。 // va 和 size 可能不是页面对齐的。 // 成功返回 0，失败时返回 -1（如果 walk() 无法分配所需的页表页面）。 int mappages(pagetable_t pagetable, uint64 va, uint64 size, uint64 pa, int perm) { uint64 a, last; // 定义变量 a 和 last，用于跟踪当前地址 pte_t *pte; // 定义指针 pte，用于访问页表条目 // 将虚拟地址 va 向下对齐到页面边界 a = PGROUNDDOWN(va); // 将最后一个虚拟地址向下对齐到页面边界 last = PGROUNDDOWN(va + size - 1); // 循环创建页表条目 for(;;){ // 获取当前虚拟地址 a 对应的页表条目 if((pte = walk(pagetable, a, 1)) == 0) return -1; // 如果 walk 失败，返回 -1 // 检查当前页表条目是否已经有效 if(*pte \u0026 PTE_V) panic(\"remap\"); // 如果已经映射，触发错误 // 设置页表条目，映射物理地址 pa，并设置权限和有效位 *pte = PA2PTE(pa) | perm | PTE_V; // 如果当前地址 a 是最后一个地址，退出循环 if(a == last) break; // 继续到下一个页面 a += PGSIZE; // 移动到下一个虚拟地址 pa += PGSIZE; // 移动到下一个物理地址 } return 0; // 成功创建所有页表条目，返回 0 } arguments are top PD, va, size, pa, perm adds mappings from a range of va’s to corresponding pa’s rounds b/c some uses pass in non-page-aligned addresses for each page-aligned address in the range call walkpgdir to find address of PTE need the PTE’s address (not just content) b/c we want to modify put the desired pa into the PTE mark PTE as valid w/ PTE_P\nwalk() in vm.c pte_t * walk(pagetable_t pagetable, uint64 va, int alloc) { // 检查虚拟地址是否超过最大虚拟地址 if(va \u003e= MAXVA) panic(\"walk\"); // 从最高级别的页表开始，逐级向下查找 for(int level = 2; level \u003e 0; level--) { // 获取当前级别的页表条目指针 pte_t *pte = \u0026pagetable[PX(level, va)]; // 如果页表条目有效 if(*pte \u0026 PTE_V) { // 获取物理地址并进入下一层页表 pagetable = (pagetable_t)PTE2PA(*pte); } else { // 如果不分配，或者分配失败，返回0 if(!alloc || (pagetable = (pde_t*)kalloc()) == 0) return 0; // 初始化新的页表为0 memset(pagetable, 0, PGSIZE); // 设置页表条目为新分配的页表的物理地址，标记为有效 *pte = PA2PTE(pagetable) | PTE_V; } } // 返回最低级别页表中对应虚拟地址的页表条目 return \u0026pagetable[PX(0, va)]; } mimics how the paging h/w finds the PTE for an address PX extracts the 9 bits at Level level \u0026pagetable[PX(level, va)] is the address of the relevant PTE\nif PTE_V\rthe relevant page-table page already exists\rPTE2PA extracts the PPN from the PDE\rif not PTE_V\ralloc a page-table page\rfill in pte with PPN (using PA2PTE) now the PTE we want is in the page-table page\nprocinit() in proc.c // 在启动时初始化进程表。 void procinit(void) { struct proc *p; // 初始化进程 ID 锁，以确保对进程 ID 的安全访问。 initlock(\u0026pid_lock, \"nextpid\"); // 遍历进程表中的每个进程 for(p = proc; p \u003c \u0026proc[NPROC]; p++) { // 初始化每个进程的锁，以保护进程结构的并发访问。 initlock(\u0026p-\u003elock, \"proc\"); // 为进程的内核栈分配一页内存。 // 将其映射到高地址内存，并跟随一个无效的保护页。 char *pa = kalloc(); // 分配一页内存 if(pa == 0) panic(\"kalloc\"); // 如果分配失败，触发系统错误 // 计算该进程内核栈的虚拟地址 uint64 va = KSTACK((int) (p - proc)); // 在内核页表中映射虚拟地址 va 到物理地址 pa，大小为 PGSIZE，权限为可读和可写 kvmmap(va, (uint64)pa, PGSIZE, PTE_R | PTE_W); // 将计算出的虚拟地址保存到进程结构中 p-\u003ekstack = va; } // 初始化虚拟内存管理相关的硬件设置 kvminithart(); } alloc a page for each kernel stack with a guard page\nsetup user address space allocproc(): allocates empty top-level page table // 在进程表中查找一个 UNUSED 状态的进程。 // 如果找到，初始化所需的状态以在内核中运行，并返回时持有 p-\u003elock。 // 如果没有空闲的进程，或内存分配失败，返回 0。 static struct proc* allocproc(void) { struct proc *p; // 遍历进程表中的每个进程 for(p = proc; p \u003c \u0026proc[NPROC]; p++) { acquire(\u0026p-\u003elock); // 获取进程的锁以安全访问其状态 if(p-\u003estate == UNUSED) { // 检查进程状态是否为 UNUSED goto found; // 找到空闲进程，跳转到初始化部分 } else { release(\u0026p-\u003elock); // 如果不是 UNUSED，释放锁并继续下一个进程 } } // 如果没有找到空闲进程，返回 0 return 0; found: // 分配一个新的进程 ID p-\u003epid = allocpid(); // 为进程分配一个 trapframe 页面，用于处理系统调用和中断 if((p-\u003etrapframe = (struct trapframe *)kalloc()) == 0) { release(\u0026p-\u003elock); // 分配失败，释放锁 return 0; // 返回 0 表示失败 } // 创建一个空的用户页面表 p-\u003epagetable = proc_pagetable(p); if(p-\u003epagetable == 0) { // 检查页面表分配是否成功 freeproc(p); // 如果分配失败，释放进程资源 release(\u0026p-\u003elock); // 释放锁 return 0; // 返回 0 表示失败 } // 设置新的上下文，以在 forkret 处开始执行， // forkret 会返回到用户空间。 memset(\u0026p-\u003econtext, 0, sizeof(p-\u003econtext)); // 清零上下文结构 p-\u003econtext.ra = (uint64)forkret; // 设置返回地址为 forkret 函数 p-\u003econtext.sp = p-\u003ekstack + PGSIZE; // 设置堆栈指针到内核栈的顶部 return p; // 返回分配和初始化的进程 } fork(): uvmcopy()\n// 根据父进程的页表，将其内存复制到子进程的页表。 // 复制页表和物理内存。 // 成功返回 0，失败返回 -1。 // 在失败时释放已分配的页面。 int uvmcopy(pagetable_t old, pagetable_t new, uint64 sz) { pte_t *pte; // 页表条目的指针 uint64 pa, i; // 物理地址和循环变量 uint flags; // 页表条目的标志位 // 遍历从 0 到 sz 的所有页面 for(i = 0; i \u003c sz; i += PGSIZE){ // 获取旧页表中对应虚拟地址的页表条目 if((pte = walk(old, i, 0)) == 0) panic(\"uvmcopy: pte should exist\"); // 如果未找到页表条目，触发错误 // 检查页表条目是否有效 if((*pte \u0026 PTE_V) == 0) panic(\"uvmcopy: page not present\"); // 如果页面不存在，触发错误 // 获取物理地址 pa = PTE2PA(*pte); // 清除写权限标志，以便进行写时复制（Copy-On-Write） *pte \u0026= (~PTE_W); // 清除 PTE_W *pte |= (PTE_C); // 设置 PTE_C，标记此页面为 Copy-On-Write // 获取当前页表条目的其他标志 flags = PTE_FLAGS(*pte); // 在新页表中映射原来的物理地址 if (mappages(new, i, PGSIZE, pa, flags) != 0) { goto err; // 如果映射失败，跳转到错误处理 } // 增加物理页面的引用计数 kincre((void *)pa); } return 0; // 成功完成复制，返回 0 err: // 释放在新页表中已分配的页面 uvmunmap(new, 0, i / PGSIZE, 1); return -1; // 返回 -1 表示失败 } exec(): replace proc’s page table with a new one\n// 执行指定路径的程序，设置新的用户栈并准备参数。 // 成功返回程序的参数个数，失败返回 -1。 int exec(char *path, char **argv) { char *s, *last; // 字符串指针，用于处理路径 int i, off; // 循环变量和偏移量 uint64 argc, sz = 0, sp, ustack[MAXARG+1], stackbase; // 参数计数、内存大小、栈指针、用户栈数组和栈基地址 struct elfhdr elf; // ELF 头结构 struct inode *ip; // 文件节点指针 struct proghdr ph; // 程序头结构 pagetable_t pagetable = 0, oldpagetable; // 新旧页表 struct proc *p = myproc(); // 获取当前进程结构 begin_op(); // 开始文件操作 // 查找程序路径对应的 inode if((ip = namei(path)) == 0){ end_op(); // 结束文件操作 return -1; // 找不到文件，返回 -1 } ilock(ip); // 锁定 inode // 检查 ELF 头 if(readi(ip, 0, (uint64)\u0026elf, 0, sizeof(elf)) != sizeof(elf)) goto bad; // 读取 ELF 头失败，跳转到错误处理 if(elf.magic != ELF_MAGIC) goto bad; // 检查 ELF 魔法数，若不匹配则跳转到错误处理 // 获取当前进程的页表 if((pagetable = proc_pagetable(p)) == 0) goto bad; // 获取页表失败，跳转到错误处理 // 从 ELF 文件加载程序到内存 for(i = 0, off = elf.phoff; i \u003c elf.phnum; i++, off += sizeof(ph)){ // 读取程序头 if(readi(ip, 0, (uint64)\u0026ph, off, sizeof(ph)) != sizeof(ph)) goto bad; // 读取失败，跳转到错误处理 if(ph.type != ELF_PROG_LOAD) continue; // 仅处理加载类型的程序头 if(ph.memsz \u003c ph.filesz) goto bad; // 内存大小小于文件大小，跳转到错误处理 if(ph.vaddr + ph.memsz \u003c ph.vaddr) goto bad; // 地址溢出，跳转到错误处理 uint64 sz1; // 为加载的段分配内存 if((sz1 = uvmalloc(pagetable, sz, ph.vaddr + ph.memsz)) == 0) goto bad; // 内存分配失败，跳转到错误处理 sz = sz1; // 更新分配大小 // 检查段的虚拟地址是否对齐 if(ph.vaddr % PGSIZE != 0) goto bad; // 虚拟地址未对齐，跳转到错误处理 // 从文件中加载段到内存 if(loadseg(pagetable, ph.vaddr, ip, ph.off, ph.filesz) \u003c 0) goto bad; // 加载段失败，跳转到错误处理 } iunlockput(ip); // 解锁并释放 inode end_op(); // 结束文件操作 ip = 0; // 清空 inode 指针 p = myproc(); // 再次获取当前进程结构 uint64 oldsz = p-\u003esz; // 保存旧的程序大小 // 在下一个页边界分配两个页面 // 使用第二个页面作为用户栈 sz = PGROUNDUP(sz); // 将大小向上对齐到页边界 uint64 sz1; if((sz1 = uvmalloc(pagetable, sz, sz + 2*PGSIZE)) == 0) goto bad; // 内存分配失败，跳转到错误处理 sz = sz1; // 更新分配大小 uvmclear(pagetable, sz - 2 * PGSIZE); // 清除栈底的页面内容 sp = sz; // 设置栈指针 stackbase = sp - PGSIZE; // 设置栈基地址 // 将参数字符串推入栈，并准备栈的其他部分 for(argc = 0; argv[argc]; argc++) { if(argc \u003e= MAXARG) goto bad; // 超过最大参数数量，跳转到错误处理 sp -= strlen(argv[argc]) + 1; // 为参数字符串分配空间 sp -= sp % 16; // 确保栈指针是 16 字节对齐 if(sp \u003c stackbase) goto bad; // 栈指针超出栈基，跳转到错误处理 if(copyout(pagetable, sp, argv[argc], strlen(argv[argc]) + 1) \u003c 0) goto bad; // 将参数字符串复制到用户栈失败，跳转到错误处理 ustack[argc] = sp; // 保存参数字符串的地址 } ustack[argc] = 0; // 以 0 结束参数数组 // 将 argv[] 指针数组推入栈 sp -= (argc + 1) * sizeof(uint64); // 为 argv 指针数组分配空间 sp -= sp % 16; // 确保栈指针是 16 字节对齐 if(sp \u003c stackbase) goto bad; // 栈指针超出栈基，跳转到错误处理 if(copyout(pagetable, sp, (char *)ustack, (argc + 1) * sizeof(uint64)) \u003c 0) goto bad; // 复制 argv 指针数组失败，跳转到错误处理 // 准备用户主函数的参数 (argc, argv) // argc 将通过系统调用返回值放入 a0 中 p-\u003etrapframe-\u003ea1 = sp; // 将栈指针赋值给 trapframe // 保存程序名称以便调试 for(last = s = path; *s; s++) if(*s == '/') last = s + 1; // 找到路径中的最后一个斜杠 safestrcpy(p-\u003ename, last, sizeof(p-\u003ename)); // 复制程序名称 // 提交用户映像 oldpagetable = p-\u003epagetable; // 保存旧的页表 p-\u003epagetable = pagetable; // 更新当前进程的页表 p-\u003esz = sz; // 更新进程的内存大小 p-\u003etrapframe-\u003eepc = elf.entry; // 设置初始程序计数器为 ELF 入口点 p-\u003etrapframe-\u003esp = sp; // 设置初始栈指针 proc_freepagetable(oldpagetable, oldsz); // 释放旧的页表 return argc; // 返回参数个数，放入 a0，作为 main(argc, argv) 的第一个参数 bad: // 错误处理部分 if(pagetable) proc_freepagetable(pagetable, sz); // 释放已分配的页表 if(ip){ iunlockput(ip); // 解锁并释放 inode end_op(); // 结束文件操作 } return -1; // 返回 -1 表示失败 } uvmalloc loadseg print user page table for sh Q: what is entry 2?\na process calls sbrk(n) to ask for n more bytes of heap memory user/umalloc.c calls sbrk() to get memory for the allocator each process has a size kernel adds new memory at process’s end, increases size sbrk() allocates physical memory (RAM) maps it into the process’s page table returns the starting address of the new memory\ngrowproc() in proc.c // 增加或减少用户内存 n 字节。 // 成功时返回 0，失败时返回 -1。 int growproc(int n) { uint sz; // 当前进程的内存大小 struct proc *p = myproc(); // 获取当前进程结构 sz = p-\u003esz; // 获取当前进程的内存大小 if(n \u003e 0){ // 如果 n 为正，表示增加内存 // 尝试分配新的内存空间 if((sz = uvmalloc(p-\u003epagetable, sz, sz + n)) == 0) { // 如果内存分配失败，返回 -1 return -1; } } else if(n \u003c 0){ // 如果 n 为负，表示减少内存 // 尝试释放内存 sz = uvmdealloc(p-\u003epagetable, sz, sz + n); // 注意：此处没有检查 uvmdealloc 的返回值，假设其成功 } p-\u003esz = sz; // 更新当前进程的内存大小 return 0; // 返回 0 表示成功 } proc-\u003esz is the process’s current size uvmalloc() does most of the work when switching to user space satp will be loaded with updated page table\nuvmalloc() in vm.c // 为进程分配页表项和物理内存，将进程从 oldsz 扩展到 newsz。 // newsz 不需要页对齐。成功时返回新大小，失败时返回 0。 uint64 uvmalloc(pagetable_t pagetable, uint64 oldsz, uint64 newsz) { char *mem; // 用于存储分配的内存指针 uint64 a; // 循环变量，用于遍历分配的内存地址 // 如果新的大小小于旧的大小，直接返回旧的大小 if(newsz \u003c oldsz) return oldsz; // 将旧大小向上对齐到下一个页边界 oldsz = PGROUNDUP(oldsz); // 从旧大小开始，逐页分配内存直到新的大小 for(a = oldsz; a \u003c newsz; a += PGSIZE){ // 分配一页物理内存 mem = kalloc(); if(mem == 0){ // 如果内存分配失败，释放已经分配的内存并返回 0 uvmdealloc(pagetable, a, oldsz); return 0; } // 将分配的内存初始化为 0 memset(mem, 0, PGSIZE); // 将分配的物理内存映射到进程的虚拟地址空间 if(mappages(pagetable, a, PGSIZE, (uint64)mem, PTE_W|PTE_X|PTE_R|PTE_U) != 0){ // 如果映射失败，释放物理内存并释放已分配的内存 kfree(mem); uvmdealloc(pagetable, a, oldsz); return 0; } } // 如果所有的内存都成功分配和映射，返回新的大小 return newsz; } why PGROUNDUP? arguments to mappages()…\nLab: page tables pagetables\nVirtual address :\nPrint a page table (easy) Define a function called vmprint(). It should take a pagetable_t argument, and print that pagetable in the format described below. Insert if(p-\u003epid==1) vmprint(p-\u003epagetable) in exec.c just before the return argc, to print the first process’s page table. You receive full credit for this assignment if you pass the pte printout test of make grade.\nvoid vmprint_rec(pagetable_t pagetable, int level) { for (int i = 0; i \u003c 512; i++) { pte_t pte = pagetable[i]; if (pte \u0026 PTE_V) { uint64 pa = PTE2PA(pte); for (int j = 0; j \u003c= level; j++) { if(j \u003e 0){ printf(\" \"); } printf(\"..\"); } printf(\"%d: pte %p pa %p\\n\", i, pte, pa); if ((pte \u0026 (PTE_R | PTE_W | PTE_X)) == 0) { // Recursively print next level page table vmprint_rec((pagetable_t)pa, level + 1); } } } } void vmprint(pagetable_t pagetable) { printf(\"page table %p\\n\", pagetable); vmprint_rec(pagetable, 0); } pid = 1代表init进程，即第一个启动的用户级进程，它负责派生其他进程并为系统提供基本服务。\nA kernel page table per process (hard) proc.h proc.c vm.c defs.h Simplify copyin/copyinstr (hard) defs.h vm.c Q \u0026 A ",
+  "wordCount" : "5394",
   "inLanguage": "zh",
   "datePublished": "2024-09-02T22:30:13+08:00",
   "dateModified": "2024-09-02T22:20:13+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(4)
     </div>
-    <div class="post-meta"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1609 字&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5394 字&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -273,15 +273,32 @@ document.addEventListener("DOMContentLoaded", function() {
                         <a href="#mit6s0814-virtual-memory" aria-label="MIT6.S081(4)-Virtual Memory">MIT6.S081(4)-Virtual Memory</a><ul>
                             
                     <li>
-                        <a href="#virtual-memory-overview" aria-label="Virtual memory overview">Virtual memory overview</a></li>
+                        <a href="#plan" aria-label="Plan:">Plan:</a></li>
                     <li>
-                        <a href="#virtual-memory-in-xv6" aria-label="Virtual memory in xv6">Virtual memory in xv6</a></li>
+                        <a href="#virtual-memory-overview" aria-label="Virtual memory overview">Virtual memory overview</a><ul>
+                            
                     <li>
-                        <a href="#code-walk-through" aria-label="Code walk through">Code walk through</a></li>
+                        <a href="#todays-problem" aria-label="Today&rsquo;s problem:">Today&rsquo;s problem:</a></li>
                     <li>
-                        <a href="#lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml" aria-label="Lab: page tables"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab: page tables</a></a></li>
+                        <a href="#challenge" aria-label="challenge:">challenge:</a></li>
                     <li>
-                        <a href="#pagetables" aria-label="pagetables">pagetables</a></li>
+                        <a href="#risc-v-64-uses-a-three-level-page-table-to-save-space" aria-label="RISC-V 64 uses a &ldquo;three-level page table&rdquo; to save space">RISC-V 64 uses a &ldquo;three-level page table&rdquo; to save space</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#virtual-memory-in-xv6" aria-label="Virtual memory in xv6">Virtual memory in xv6</a><ul>
+                            
+                    <li>
+                        <a href="#trampoline-%e7%9a%84%e4%bd%9c%e7%94%a8" aria-label="Trampoline 的作用">Trampoline 的作用</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#code-walk-through" aria-label="Code walk through">Code walk through</a><ul>
+                            
+                    <li>
+                        <a href="#setup-user-address-space" aria-label="setup user address space">setup user address space</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml" aria-label="Lab: page tables"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab: page tables</a></a><ul>
+                            
                     <li>
                         <a href="#print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Print a page table (easy)">Print a page table (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)</a></li>
                     <li>
@@ -303,6 +320,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <a href="#defsh-1" aria-label="defs.h">defs.h</a></li>
                     <li>
                         <a href="#vmc-1" aria-label="vm.c">vm.c</a></li></ul>
+                    </li></ul>
                     </li>
                     <li>
                         <a href="#q--a" aria-label="Q &amp; A">Q &amp; A</a>
@@ -375,54 +393,46 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
   <div class="post-content"><h1 id="mit6s0814-virtual-memory">MIT6.S081(4)-Virtual Memory<a hidden class="anchor" aria-hidden="true" href="#mit6s0814-virtual-memory">#</a></h1>
-<ul>
-<li>plan:
-address spaces
-paging hardware
-xv6 VM code</li>
-</ul>
+<h2 id="plan">Plan:<a hidden class="anchor" aria-hidden="true" href="#plan">#</a></h2>
+<p>Address spaces
+Paging hardware
+xv6 VM code</p>
 <h2 id="virtual-memory-overview">Virtual memory overview<a hidden class="anchor" aria-hidden="true" href="#virtual-memory-overview">#</a></h2>
-<ul>
-<li>
-<p>today&rsquo;s problem:
-[user/kernel diagram]
+<h3 id="todays-problem">Today&rsquo;s problem:<a hidden class="anchor" aria-hidden="true" href="#todays-problem">#</a></h3>
+<p>[user/kernel diagram]
 [memory view: diagram with user processes and kernel in memory]
-suppose the shell has a bug:
+Suppose the shell has a bug:
 sometimes it writes to a random memory address
 how can we keep it from wrecking the kernel?
 and from wrecking other processes?</p>
-</li>
-<li>
 <p>we want isolated address spaces
 each process has its own memory
 it can read and write its own memory
-it cannot read or write anything else
-challenge:
-how to multiplex several memories over one physical memory?
+it cannot read or write anything else</p>
+<h3 id="challenge">challenge:<a hidden class="anchor" aria-hidden="true" href="#challenge">#</a></h3>
+<p>How to multiplex several memories over one physical memory?
 while maintaining isolation between memories</p>
-</li>
-<li>
-<p>xv6 uses RISC-V&rsquo;s paging hardware to implement AS&rsquo;s
+<ul>
+<li>xv6 uses RISC-V&rsquo;s paging hardware to implement AS&rsquo;s
 ask questions! this material is important
-topic of next lab (and shows up in several other labs)</p>
-</li>
-<li>
-<p>paging provides a level of indirection for addressing
-CPU -&gt; MMU -&gt; RAM
-VA     PA
-s/w can only ld/st to virtual addresses, not physical
+topic of next lab (and shows up in several other labs)</li>
+</ul>
+<p>paging provides a level of indirection for addressing</p>
+<pre tabindex="0"><code>CPU -&gt; MMU -&gt; RAM
+       VA     PA
+</code></pre><p>s/w can only ld/st to virtual addresses, not physical
 kernel tells MMU how to map each virtual address to a physical address
 MMU essentially has a table, indexed by va, yielding pa
 called a &ldquo;page table&rdquo;
 one page table per address space
 MMU can restrict what virtual addresses user code can use
-By programming the MMU, the kernel has complete control over va-&gt;pa mapping
+By programming the MMU, the kernel has complete control over <code>va-&gt;pa</code> mapping
 Allows for many interesting OS features/tricks</p>
-</li>
+<ul>
 <li>
 <p>RISC-V maps 4-KB &ldquo;pages&rdquo;
 and aligned &ndash; start on 4 KB boundaries
-4 KB = 12 bits
+$4 KB = 12 bits$
 the RISC-V used in xv6 has 64-bit for addresses
 thus page table index is top 64-12 = 52 bits of VA
 except that the top 25 of the top 52 are unused
@@ -431,28 +441,41 @@ can grow in future
 so, index is 27 bits.</p>
 </li>
 <li>
-<p>MMU translation
-see Figure 3.1 of book
-use index bits of VA to find a page table entry (PTE)
-construct physical address using PPN from PTE + offset of VA</p>
+<p>MMU translation</p>
+</li>
+</ul>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923104937296.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923104937296.png" alt="image-20240923104937296"  />
+        </a>
+    </div>
+
+</p>
+<ul>
+<li>
+<p>see Figure 3.1 of book
+use index bits of VA to find a <strong>page table entry (PTE)</strong>
+construct physical address using PPN from <strong>PTE + offset</strong> of VA</p>
 </li>
 <li>
 <p>what is in PTE?
 each PTE is 64 bits, but only 54 are used
 top 44 bits of PTE are top bits of physical address
-&ldquo;physical page number&rdquo;
+&ldquo;<strong>physical page number</strong>&rdquo;
 low 10 bits of PTE flags
 Present, Writeable, &amp;c
 note: size virtual addresses != size physical addresses</p>
 </li>
 <li>
-<p>where is the page table stored?
+<p>Where is the page table stored?
 in RAM &ndash; MMU loads (and stores) PTEs
 o/s can read/write PTEs
 read/write memory location corresponding to PTEs</p>
 </li>
 <li>
-<p>would it be reasonable for page table to just be an array of PTEs?
+<p>Would it be reasonable for page table to just be an array of PTEs?
 how big is it?
 2^27 is roughly 134 million
 64 bits per entry
@@ -464,9 +487,20 @@ would waste lots of memory for small programs!
 you only need mappings for a few hundred pages
 so the rest of the million entries would be there but not needed</p>
 </li>
+</ul>
+<h3 id="risc-v-64-uses-a-three-level-page-table-to-save-space">RISC-V 64 uses a &ldquo;three-level page table&rdquo; to save space<a hidden class="anchor" aria-hidden="true" href="#risc-v-64-uses-a-three-level-page-table-to-save-space">#</a></h3>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923111502163.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923111502163.png" alt="image-20240923111502163"  />
+        </a>
+    </div>
+
+</p>
+<ul>
 <li>
-<p>RISC-V 64 uses a &ldquo;three-level page table&rdquo; to save space
-see figure 3.2 from book
+<p>see figure 3.2 from book
 page directory page (PD)
 PD has 512 PTEs
 PTEs point to another PD or is a leaf
@@ -535,22 +569,47 @@ map a page both in user and kernel (helps user/kernel transition)</li>
 </ul>
 <h2 id="virtual-memory-in-xv6">Virtual memory in xv6<a hidden class="anchor" aria-hidden="true" href="#virtual-memory-in-xv6">#</a></h2>
 <ul>
-<li>
-<p>kernel page table
-See figure 3.3 of book
+<li>kernel page table</li>
+</ul>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923105202533.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923105202533.png" alt="image-20240923105202533"  />
+        </a>
+    </div>
+
+</p>
+<ul>
+<li>See figure 3.3 of book
 simple maping mostly
 map virtual to physical one-on-one
 note double-mapping of trampoline
 note permissions
-why map devices?</p>
-</li>
-<li>
-<p>each process has its own address space
-and its own page table
-see figure 3.4 of book
-note: trampoline and trapframe aren&rsquo;t writable by user process
-kernel switches page tables (i.e. sets satp) when switching processes</p>
-</li>
+why map devices?</li>
+</ul>
+<h3 id="trampoline-的作用">Trampoline 的作用<a hidden class="anchor" aria-hidden="true" href="#trampoline-的作用">#</a></h3>
+<p>为内核和用户态之间的切换提供一个统一的入口。由于其在每个进程的页表都映射到相同的物理地址，内核和用户进程都能够在切换过程中使用这段代码，可以确保 ：</p>
+<ul>
+<li><strong>上下文的保存和回复</strong>：保存当前的CPU状态（寄存器，堆栈等），并在返回用户态时恢复</li>
+<li><strong>地址空间切换</strong> ： 在进程切换时，从用户地址空间切换到内核地址空间，并确保安全。</li>
+</ul>
+<p><code>trampoline</code>成为用户态和内核态之间安全且一致的桥梁。</p>
+<p>Each process has its own address space
+and its own page table</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923105759997.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240923105759997.png" alt="image-20240923105759997"  />
+        </a>
+    </div>
+
+</p>
+<p>see figure 3.4 of book
+note: <code>trampoline</code> and <code>trapframe</code> aren&rsquo;t writable by user process</p>
+<p>kernel switches page tables (i.e. sets satp) when switching processes</p>
+<ul>
 <li>
 <p>Q: why this address space arrangement?
 user virtual addresses start at zero
@@ -571,28 +630,88 @@ pa x mapped at va x</p>
 </li>
 </ul>
 <h2 id="code-walk-through">Code walk through<a hidden class="anchor" aria-hidden="true" href="#code-walk-through">#</a></h2>
-<ul>
-<li>
 <p>setup of kernel address space
-kvmmap()
-Q: what is address 0x10000000 (256M)
-Q: how much address space does 1 L2 entry cover? (1G)
-Q: how much address space does 1 L1 entry cover? (2MB)
-Q: how much address space does 1 L0 entry cover? (4096)
-print kernel page table
-Q: what is size of address space? (512G)
-Q: how much memory is used to represent it after 1rst kvmmap()? (3 pages)
-Q: how many entries is CLINT? (16 pages)
-Q: how many entries is PLIC? (1024 pages, two level 1 PDs)
-Q: how many pages is kernel text (8 pages)
-Q: how many pages is kernel total (128M = 64 * 2MB)
-Q: Is trampoline mapped twice? (yes, last entry and direct-mapped, entry [2, 3, 7])
-kvminithart();
-Q: after executing w_satp() why will the next instruction be sfence_vma()?</p>
-</li>
-<li>
-<p>mappages() in vm.c
-arguments are top PD, va, size, pa, perm
+<code>kvmmap()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 在内核页表中添加一个映射。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 仅在启动时使用。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 该函数不刷新 TLB 或启用分页。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">kvmmap</span>(uint64 va, uint64 pa, uint64 sz, <span style="color:#66d9ef">int</span> perm)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 调用 mappages 函数将虚拟地址 va 映射到物理地址 pa，映射大小为 sz，权限为 perm
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(kernel_pagetable, va, sz, pa, perm) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 如果映射失败，则触发系统错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;kvmmap&#34;</span>);
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>Q: what is address 0x10000000 (256M)</p>
+<p>$ 0x10000000 = 256 MB$</p>
+<p>Q: how much address space does 1 L2 entry cover? (1G)</p>
+<p>$512×2 MB=1 GB$</p>
+<p>Q: how much address space does 1 L1 entry cover? (2MB)</p>
+<p>$512 × 4096B = 2MB$</p>
+<p>Q: how much address space does 1 L0 entry cover? (4096)</p>
+<p>每个 L0 条目指向一个 4KB 的页，因此每个 L0 条目覆盖 <strong>4096 字节</strong>的地址空间</p>
+<p>print kernel page table</p>
+<p>Q: what is size of address space? (512G)</p>
+<p>每个L2覆盖 $1GB$, 共覆盖$512GB$</p>
+<p>Q: how much memory is used to represent it after 1rst kvmmap()?</p>
+<p>(3 pages)</p>
+<p>Q: how many entries is CLINT?</p>
+<p>(16 pages)</p>
+<p>Q: how many entries is PLIC?</p>
+<p>(1024 pages, two level 1 PDs)</p>
+<p>Q: how many pages is kernel text</p>
+<p>(8 pages)</p>
+<p>Q: how many pages is kernel total</p>
+<p>(128M = 64 * 2MB)</p>
+<p>Q: Is trampoline mapped twice?</p>
+<p>(yes, last entry and direct-mapped, entry [2, 3, 7])</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">kvminithart</span>();
+</span></span></code></pre></div><p>Q: after executing <code>w_satp()</code> why will the next instruction be <code>sfence_vma()</code>?</p>
+<ul>
+<li><code>mappages()</code> in vm.c</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 为从 va 开始的虚拟地址创建 PTE（页表条目），
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 这些条目引用从 pa 开始的物理地址。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// va 和 size 可能不是页面对齐的。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 成功返回 0，失败时返回 -1（如果 walk() 无法分配所需的页表页面）。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">mappages</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va, uint64 size, uint64 pa, <span style="color:#66d9ef">int</span> perm)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  uint64 a, last;       <span style="color:#75715e">// 定义变量 a 和 last，用于跟踪当前地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;           <span style="color:#75715e">// 定义指针 pte，用于访问页表条目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将虚拟地址 va 向下对齐到页面边界
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  a <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDDOWN</span>(va);
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将最后一个虚拟地址向下对齐到页面边界
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  last <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDDOWN</span>(va <span style="color:#f92672">+</span> size <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 循环创建页表条目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(;;){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取当前虚拟地址 a 对应的页表条目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(pagetable, a, <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;  <span style="color:#75715e">// 如果 walk 失败，返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 检查当前页表条目是否已经有效
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V)
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;remap&#34;</span>);  <span style="color:#75715e">// 如果已经映射，触发错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 设置页表条目，映射物理地址 pa，并设置权限和有效位
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">PA2PTE</span>(pa) <span style="color:#f92672">|</span> perm <span style="color:#f92672">|</span> PTE_V;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 如果当前地址 a 是最后一个地址，退出循环
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(a <span style="color:#f92672">==</span> last)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">break</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 继续到下一个页面
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    a <span style="color:#f92672">+=</span> PGSIZE;  <span style="color:#75715e">// 移动到下一个虚拟地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    pa <span style="color:#f92672">+=</span> PGSIZE; <span style="color:#75715e">// 移动到下一个物理地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;  <span style="color:#75715e">// 成功创建所有页表条目，返回 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>arguments are top PD, va, size, pa, perm
 adds mappings from a range of va&rsquo;s to corresponding pa&rsquo;s
 rounds b/c some uses pass in non-page-aligned addresses
 for each page-aligned address in the range
@@ -600,59 +719,410 @@ call walkpgdir to find address of PTE
 need the PTE&rsquo;s address (not just content) b/c we want to modify
 put the desired pa into the PTE
 mark PTE as valid w/ PTE_P</p>
-</li>
-<li>
-<p>walk() in vm.c
-mimics how the paging h/w finds the PTE for an address
+<ul>
+<li><code>walk()</code> in vm.c</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">walk</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va, <span style="color:#66d9ef">int</span> alloc)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 检查虚拟地址是否超过最大虚拟地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(va <span style="color:#f92672">&gt;=</span> MAXVA)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;walk&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从最高级别的页表开始，逐级向下查找
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(<span style="color:#66d9ef">int</span> level <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>; level <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>; level<span style="color:#f92672">--</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取当前级别的页表条目指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>pagetable[<span style="color:#a6e22e">PX</span>(level, va)];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 如果页表条目有效
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) {
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 获取物理地址并进入下一层页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      pagetable <span style="color:#f92672">=</span> (<span style="color:#66d9ef">pagetable_t</span>)<span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 如果不分配，或者分配失败，返回0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span>alloc <span style="color:#f92672">||</span> (pagetable <span style="color:#f92672">=</span> (<span style="color:#66d9ef">pde_t</span><span style="color:#f92672">*</span>)<span style="color:#a6e22e">kalloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 初始化新的页表为0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">memset</span>(pagetable, <span style="color:#ae81ff">0</span>, PGSIZE);
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 设置页表条目为新分配的页表的物理地址，标记为有效
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">PA2PTE</span>(pagetable) <span style="color:#f92672">|</span> PTE_V;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 返回最低级别页表中对应虚拟地址的页表条目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span>pagetable[<span style="color:#a6e22e">PX</span>(<span style="color:#ae81ff">0</span>, va)];
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>mimics how the paging h/w finds the PTE for an address
 PX extracts the 9 bits at Level level
-&amp;pagetable[PX(level, va)] is the address of the relevant PTE
-if PTE_V
-the relevant page-table page already exists
-PTE2PA extracts the PPN from the PDE
+<code>&amp;pagetable[PX(level, va)]</code> is the address of the relevant PTE</p>
+<pre tabindex="0"><code>if PTE_V
+  the relevant page-table page already exists
+  PTE2PA extracts the PPN from the PDE
 if not PTE_V
-alloc a page-table page
-fill in pte with PPN (using PA2PTE)
-now the PTE we want is in the page-table page</p>
-</li>
-<li>
-<p>procinit() in proc.c
-alloc a page for each kernel stack with a guard page</p>
-</li>
-<li>
-<p>setup user address space
-allocproc(): allocates empty top-level page table
-fork(): uvmcopy()
-exec(): replace proc&rsquo;s page table with a new one
-uvmalloc
+  alloc a page-table page
+  fill in pte with PPN (using PA2PTE)
+</code></pre><p>now the PTE we want is in the page-table page</p>
+<ul>
+<li><code>procinit()</code> in <code>proc.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 在启动时初始化进程表。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">procinit</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p;
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 初始化进程 ID 锁，以确保对进程 ID 的安全访问。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>pid_lock, <span style="color:#e6db74">&#34;nextpid&#34;</span>);
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 遍历进程表中的每个进程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(p <span style="color:#f92672">=</span> proc; p <span style="color:#f92672">&lt;</span> <span style="color:#f92672">&amp;</span>proc[NPROC]; p<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 初始化每个进程的锁，以保护进程结构的并发访问。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock, <span style="color:#e6db74">&#34;proc&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 为进程的内核栈分配一页内存。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#75715e">// 将其映射到高地址内存，并跟随一个无效的保护页。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">kalloc</span>();  <span style="color:#75715e">// 分配一页内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">if</span>(pa <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;kalloc&#34;</span>);  <span style="color:#75715e">// 如果分配失败，触发系统错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 计算该进程内核栈的虚拟地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      uint64 va <span style="color:#f92672">=</span> <span style="color:#a6e22e">KSTACK</span>((<span style="color:#66d9ef">int</span>) (p <span style="color:#f92672">-</span> proc));
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 在内核页表中映射虚拟地址 va 到物理地址 pa，大小为 PGSIZE，权限为可读和可写
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">kvmmap</span>(va, (uint64)pa, PGSIZE, PTE_R <span style="color:#f92672">|</span> PTE_W);
+</span></span><span style="display:flex;"><span>      
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 将计算出的虚拟地址保存到进程结构中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      p<span style="color:#f92672">-&gt;</span>kstack <span style="color:#f92672">=</span> va;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 初始化虚拟内存管理相关的硬件设置
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">kvminithart</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>alloc a page for each kernel stack with a guard page</p>
+<h3 id="setup-user-address-space">setup user address space<a hidden class="anchor" aria-hidden="true" href="#setup-user-address-space">#</a></h3>
+<ul>
+<li><code>allocproc()</code>: allocates empty top-level page table</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 在进程表中查找一个 UNUSED 状态的进程。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 如果找到，初始化所需的状态以在内核中运行，并返回时持有 p-&gt;lock。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 如果没有空闲的进程，或内存分配失败，返回 0。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> proc<span style="color:#f92672">*</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">allocproc</span>(<span style="color:#66d9ef">void</span>)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 遍历进程表中的每个进程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(p <span style="color:#f92672">=</span> proc; p <span style="color:#f92672">&lt;</span> <span style="color:#f92672">&amp;</span>proc[NPROC]; p<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);  <span style="color:#75715e">// 获取进程的锁以安全访问其状态
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(p<span style="color:#f92672">-&gt;</span>state <span style="color:#f92672">==</span> UNUSED) {  <span style="color:#75715e">// 检查进程状态是否为 UNUSED
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">goto</span> found;  <span style="color:#75715e">// 找到空闲进程，跳转到初始化部分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);  <span style="color:#75715e">// 如果不是 UNUSED，释放锁并继续下一个进程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果没有找到空闲进程，返回 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>found:
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 分配一个新的进程 ID
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>pid <span style="color:#f92672">=</span> <span style="color:#a6e22e">allocpid</span>();
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 为进程分配一个 trapframe 页面，用于处理系统调用和中断
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>((p<span style="color:#f92672">-&gt;</span>trapframe <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> trapframe <span style="color:#f92672">*</span>)<span style="color:#a6e22e">kalloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);  <span style="color:#75715e">// 分配失败，释放锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;  <span style="color:#75715e">// 返回 0 表示失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 创建一个空的用户页面表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>pagetable <span style="color:#f92672">=</span> <span style="color:#a6e22e">proc_pagetable</span>(p);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(p<span style="color:#f92672">-&gt;</span>pagetable <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {  <span style="color:#75715e">// 检查页面表分配是否成功
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">freeproc</span>(p);  <span style="color:#75715e">// 如果分配失败，释放进程资源
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);  <span style="color:#75715e">// 释放锁
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;  <span style="color:#75715e">// 返回 0 表示失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置新的上下文，以在 forkret 处开始执行，
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// forkret 会返回到用户空间。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">memset</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>context, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(p<span style="color:#f92672">-&gt;</span>context));  <span style="color:#75715e">// 清零上下文结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>context.ra <span style="color:#f92672">=</span> (uint64)forkret;  <span style="color:#75715e">// 设置返回地址为 forkret 函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>context.sp <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>kstack <span style="color:#f92672">+</span> PGSIZE;  <span style="color:#75715e">// 设置堆栈指针到内核栈的顶部
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> p;  <span style="color:#75715e">// 返回分配和初始化的进程
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>fork(): <code>uvmcopy()</code></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 根据父进程的页表，将其内存复制到子进程的页表。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 复制页表和物理内存。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 成功返回 0，失败返回 -1。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 在失败时释放已分配的页面。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmcopy</span>(<span style="color:#66d9ef">pagetable_t</span> old, <span style="color:#66d9ef">pagetable_t</span> new, uint64 sz)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;            <span style="color:#75715e">// 页表条目的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 pa, i;          <span style="color:#75715e">// 物理地址和循环变量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint flags;            <span style="color:#75715e">// 页表条目的标志位
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 遍历从 0 到 sz 的所有页面
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> sz; i <span style="color:#f92672">+=</span> PGSIZE){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取旧页表中对应虚拟地址的页表条目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(old, i, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: pte should exist&#34;</span>);  <span style="color:#75715e">// 如果未找到页表条目，触发错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 检查页表条目是否有效
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;uvmcopy: page not present&#34;</span>);  <span style="color:#75715e">// 如果页面不存在，触发错误
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取物理地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 清除写权限标志，以便进行写时复制（Copy-On-Write）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;=</span> (<span style="color:#f92672">~</span>PTE_W); <span style="color:#75715e">// 清除 PTE_W
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pte <span style="color:#f92672">|=</span> (PTE_C);  <span style="color:#75715e">// 设置 PTE_C，标记此页面为 Copy-On-Write
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取当前页表条目的其他标志
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 在新页表中映射原来的物理地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">mappages</span>(new, i, PGSIZE, pa, flags) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> err;  <span style="color:#75715e">// 如果映射失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 增加物理页面的引用计数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">kincre</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)pa);
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;  <span style="color:#75715e">// 成功完成复制，返回 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span> err:
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 释放在新页表中已分配的页面
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">uvmunmap</span>(new, <span style="color:#ae81ff">0</span>, i <span style="color:#f92672">/</span> PGSIZE, <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;  <span style="color:#75715e">// 返回 -1 表示失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p><code>exec()</code>: replace proc&rsquo;s page table with a new one</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 执行指定路径的程序，设置新的用户栈并准备参数。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 成功返回程序的参数个数，失败返回 -1。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">exec</span>(<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>path, <span style="color:#66d9ef">char</span> <span style="color:#f92672">**</span>argv)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>s, <span style="color:#f92672">*</span>last;          <span style="color:#75715e">// 字符串指针，用于处理路径
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> i, off;              <span style="color:#75715e">// 循环变量和偏移量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 argc, sz <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, sp, ustack[MAXARG<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>], stackbase; <span style="color:#75715e">// 参数计数、内存大小、栈指针、用户栈数组和栈基地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> elfhdr elf;       <span style="color:#75715e">// ELF 头结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> inode <span style="color:#f92672">*</span>ip;        <span style="color:#75715e">// 文件节点指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> proghdr ph;       <span style="color:#75715e">// 程序头结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">pagetable_t</span> pagetable <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, oldpagetable; <span style="color:#75715e">// 新旧页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>(); <span style="color:#75715e">// 获取当前进程结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">begin_op</span>(); <span style="color:#75715e">// 开始文件操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 查找程序路径对应的 inode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>((ip <span style="color:#f92672">=</span> <span style="color:#a6e22e">namei</span>(path)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">end_op</span>(); <span style="color:#75715e">// 结束文件操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 找不到文件，返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">ilock</span>(ip); <span style="color:#75715e">// 锁定 inode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 检查 ELF 头
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">readi</span>(ip, <span style="color:#ae81ff">0</span>, (uint64)<span style="color:#f92672">&amp;</span>elf, <span style="color:#ae81ff">0</span>, <span style="color:#66d9ef">sizeof</span>(elf)) <span style="color:#f92672">!=</span> <span style="color:#66d9ef">sizeof</span>(elf))
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 读取 ELF 头失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(elf.magic <span style="color:#f92672">!=</span> ELF_MAGIC)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 检查 ELF 魔法数，若不匹配则跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取当前进程的页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>((pagetable <span style="color:#f92672">=</span> <span style="color:#a6e22e">proc_pagetable</span>(p)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 获取页表失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从 ELF 文件加载程序到内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, off <span style="color:#f92672">=</span> elf.phoff; i <span style="color:#f92672">&lt;</span> elf.phnum; i<span style="color:#f92672">++</span>, off <span style="color:#f92672">+=</span> <span style="color:#66d9ef">sizeof</span>(ph)){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 读取程序头
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">readi</span>(ip, <span style="color:#ae81ff">0</span>, (uint64)<span style="color:#f92672">&amp;</span>ph, off, <span style="color:#66d9ef">sizeof</span>(ph)) <span style="color:#f92672">!=</span> <span style="color:#66d9ef">sizeof</span>(ph))
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 读取失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(ph.type <span style="color:#f92672">!=</span> ELF_PROG_LOAD)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">continue</span>; <span style="color:#75715e">// 仅处理加载类型的程序头
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(ph.memsz <span style="color:#f92672">&lt;</span> ph.filesz)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 内存大小小于文件大小，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(ph.vaddr <span style="color:#f92672">+</span> ph.memsz <span style="color:#f92672">&lt;</span> ph.vaddr)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 地址溢出，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    uint64 sz1;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 为加载的段分配内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((sz1 <span style="color:#f92672">=</span> <span style="color:#a6e22e">uvmalloc</span>(pagetable, sz, ph.vaddr <span style="color:#f92672">+</span> ph.memsz)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 内存分配失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    sz <span style="color:#f92672">=</span> sz1; <span style="color:#75715e">// 更新分配大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 检查段的虚拟地址是否对齐
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(ph.vaddr <span style="color:#f92672">%</span> PGSIZE <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 虚拟地址未对齐，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 从文件中加载段到内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">loadseg</span>(pagetable, ph.vaddr, ip, ph.off, ph.filesz) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 加载段失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">iunlockput</span>(ip); <span style="color:#75715e">// 解锁并释放 inode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">end_op</span>(); <span style="color:#75715e">// 结束文件操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  ip <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 清空 inode 指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>(); <span style="color:#75715e">// 再次获取当前进程结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 oldsz <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>sz; <span style="color:#75715e">// 保存旧的程序大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 在下一个页边界分配两个页面
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// 使用第二个页面作为用户栈
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  sz <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDUP</span>(sz); <span style="color:#75715e">// 将大小向上对齐到页边界
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 sz1;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>((sz1 <span style="color:#f92672">=</span> <span style="color:#a6e22e">uvmalloc</span>(pagetable, sz, sz <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span><span style="color:#f92672">*</span>PGSIZE)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 内存分配失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  sz <span style="color:#f92672">=</span> sz1; <span style="color:#75715e">// 更新分配大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">uvmclear</span>(pagetable, sz <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> PGSIZE); <span style="color:#75715e">// 清除栈底的页面内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  sp <span style="color:#f92672">=</span> sz; <span style="color:#75715e">// 设置栈指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  stackbase <span style="color:#f92672">=</span> sp <span style="color:#f92672">-</span> PGSIZE; <span style="color:#75715e">// 设置栈基地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将参数字符串推入栈，并准备栈的其他部分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(argc <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; argv[argc]; argc<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(argc <span style="color:#f92672">&gt;=</span> MAXARG)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 超过最大参数数量，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    sp <span style="color:#f92672">-=</span> <span style="color:#a6e22e">strlen</span>(argv[argc]) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 为参数字符串分配空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    sp <span style="color:#f92672">-=</span> sp <span style="color:#f92672">%</span> <span style="color:#ae81ff">16</span>; <span style="color:#75715e">// 确保栈指针是 16 字节对齐
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(sp <span style="color:#f92672">&lt;</span> stackbase)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 栈指针超出栈基，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">copyout</span>(pagetable, sp, argv[argc], <span style="color:#a6e22e">strlen</span>(argv[argc]) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 将参数字符串复制到用户栈失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    ustack[argc] <span style="color:#f92672">=</span> sp; <span style="color:#75715e">// 保存参数字符串的地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>  ustack[argc] <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 以 0 结束参数数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将 argv[] 指针数组推入栈
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  sp <span style="color:#f92672">-=</span> (argc <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#66d9ef">sizeof</span>(uint64); <span style="color:#75715e">// 为 argv 指针数组分配空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  sp <span style="color:#f92672">-=</span> sp <span style="color:#f92672">%</span> <span style="color:#ae81ff">16</span>; <span style="color:#75715e">// 确保栈指针是 16 字节对齐
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(sp <span style="color:#f92672">&lt;</span> stackbase)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 栈指针超出栈基，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">copyout</span>(pagetable, sp, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)ustack, (argc <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">*</span> <span style="color:#66d9ef">sizeof</span>(uint64)) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> bad; <span style="color:#75715e">// 复制 argv 指针数组失败，跳转到错误处理
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 准备用户主函数的参数 (argc, argv)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// argc 将通过系统调用返回值放入 a0 中
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a1 <span style="color:#f92672">=</span> sp; <span style="color:#75715e">// 将栈指针赋值给 trapframe
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 保存程序名称以便调试
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(last <span style="color:#f92672">=</span> s <span style="color:#f92672">=</span> path; <span style="color:#f92672">*</span>s; s<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(<span style="color:#f92672">*</span>s <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;/&#39;</span>)
+</span></span><span style="display:flex;"><span>      last <span style="color:#f92672">=</span> s <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 找到路径中的最后一个斜杠
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">safestrcpy</span>(p<span style="color:#f92672">-&gt;</span>name, last, <span style="color:#66d9ef">sizeof</span>(p<span style="color:#f92672">-&gt;</span>name)); <span style="color:#75715e">// 复制程序名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 提交用户映像
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  oldpagetable <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>pagetable; <span style="color:#75715e">// 保存旧的页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>pagetable <span style="color:#f92672">=</span> pagetable; <span style="color:#75715e">// 更新当前进程的页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>sz <span style="color:#f92672">=</span> sz; <span style="color:#75715e">// 更新进程的内存大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>epc <span style="color:#f92672">=</span> elf.entry; <span style="color:#75715e">// 设置初始程序计数器为 ELF 入口点
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>sp <span style="color:#f92672">=</span> sp; <span style="color:#75715e">// 设置初始栈指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">proc_freepagetable</span>(oldpagetable, oldsz); <span style="color:#75715e">// 释放旧的页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> argc; <span style="color:#75715e">// 返回参数个数，放入 a0，作为 main(argc, argv) 的第一个参数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span> bad:
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 错误处理部分
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(pagetable)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">proc_freepagetable</span>(pagetable, sz); <span style="color:#75715e">// 释放已分配的页表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(ip){
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">iunlockput</span>(ip); <span style="color:#75715e">// 解锁并释放 inode
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">end_op</span>(); <span style="color:#75715e">// 结束文件操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 返回 -1 表示失败
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p>uvmalloc
 loadseg
 print user page table for sh
 Q: what is entry 2?</p>
-</li>
-<li>
-<p>a process calls sbrk(n) to ask for n more bytes of heap memory
-user/umalloc.c calls sbrk() to get memory for the allocator
+<p>a process calls <code>sbrk(n)</code> to ask for n more bytes of heap memory
+<code>user/umalloc.c</code> calls <code>sbrk()</code> to get memory for the allocator
 each process has a size
 kernel adds new memory at process&rsquo;s end, increases size
-sbrk() allocates physical memory (RAM)
+<code>sbrk()</code> allocates physical memory (RAM)
 maps it into the process&rsquo;s page table
 returns the starting address of the new memory</p>
-</li>
-<li>
-<p>growproc() in proc.c
-proc-&gt;sz is the process&rsquo;s current size
+<ul>
+<li><code>growproc()</code> in <code>proc.c</code></li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 增加或减少用户内存 n 字节。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 成功时返回 0，失败时返回 -1。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">growproc</span>(<span style="color:#66d9ef">int</span> n)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  uint sz; <span style="color:#75715e">// 当前进程的内存大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>(); <span style="color:#75715e">// 获取当前进程结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  sz <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>sz; <span style="color:#75715e">// 获取当前进程的内存大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span>){ <span style="color:#75715e">// 如果 n 为正，表示增加内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 尝试分配新的内存空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>((sz <span style="color:#f92672">=</span> <span style="color:#a6e22e">uvmalloc</span>(p<span style="color:#f92672">-&gt;</span>pagetable, sz, sz <span style="color:#f92672">+</span> n)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 如果内存分配失败，返回 -1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span>(n <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>){ <span style="color:#75715e">// 如果 n 为负，表示减少内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 尝试释放内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    sz <span style="color:#f92672">=</span> <span style="color:#a6e22e">uvmdealloc</span>(p<span style="color:#f92672">-&gt;</span>pagetable, sz, sz <span style="color:#f92672">+</span> n);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 注意：此处没有检查 uvmdealloc 的返回值，假设其成功
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>sz <span style="color:#f92672">=</span> sz; <span style="color:#75715e">// 更新当前进程的内存大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 返回 0 表示成功
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><p><code>proc-&gt;sz</code> is the process&rsquo;s current size
 uvmalloc() does most of the work
 when switching to user space satp will be loaded with updated page table</p>
-</li>
-<li>
-<p>uvmalloc() in vm.c
-why PGROUNDUP?
-arguments to mappages()&hellip;</p>
-</li>
+<ul>
+<li><code>uvmalloc()</code> in <code>vm.c</code></li>
 </ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 为进程分配页表项和物理内存，将进程从 oldsz 扩展到 newsz。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// newsz 不需要页对齐。成功时返回新大小，失败时返回 0。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>uint64
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">uvmalloc</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 oldsz, uint64 newsz)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem; <span style="color:#75715e">// 用于存储分配的内存指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint64 a;  <span style="color:#75715e">// 循环变量，用于遍历分配的内存地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果新的大小小于旧的大小，直接返回旧的大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span>(newsz <span style="color:#f92672">&lt;</span> oldsz)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> oldsz;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将旧大小向上对齐到下一个页边界
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  oldsz <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDUP</span>(oldsz);
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从旧大小开始，逐页分配内存直到新的大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(a <span style="color:#f92672">=</span> oldsz; a <span style="color:#f92672">&lt;</span> newsz; a <span style="color:#f92672">+=</span> PGSIZE){
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 分配一页物理内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    mem <span style="color:#f92672">=</span> <span style="color:#a6e22e">kalloc</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(mem <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 如果内存分配失败，释放已经分配的内存并返回 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">uvmdealloc</span>(pagetable, a, oldsz);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将分配的内存初始化为 0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">memset</span>(mem, <span style="color:#ae81ff">0</span>, PGSIZE);
+</span></span><span style="display:flex;"><span>    
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将分配的物理内存映射到进程的虚拟地址空间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span>(<span style="color:#a6e22e">mappages</span>(pagetable, a, PGSIZE, (uint64)mem, PTE_W<span style="color:#f92672">|</span>PTE_X<span style="color:#f92672">|</span>PTE_R<span style="color:#f92672">|</span>PTE_U) <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>){
+</span></span><span style="display:flex;"><span>      <span style="color:#75715e">// 如果映射失败，释放物理内存并释放已分配的内存
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#a6e22e">kfree</span>(mem);
+</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">uvmdealloc</span>(pagetable, a, oldsz);
+</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果所有的内存都成功分配和映射，返回新的大小
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> newsz;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>why PGROUNDUP?
+arguments to <code>mappages()</code>&hellip;</p>
 <h2 id="lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/pgtbl.html">Lab: page tables</a><a hidden class="anchor" aria-hidden="true" href="#lab-page-tableshttpspdoscsailmitedu6s0812020labspgtblhtml">#</a></h2>
-<h2 id="pagetables">pagetables<a hidden class="anchor" aria-hidden="true" href="#pagetables">#</a></h2>
+<p>pagetables</p>
 <p>Virtual address :</p>
-<h2 id="print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">Print a page table (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)<a hidden class="anchor" aria-hidden="true" href="#print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<h3 id="print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">Print a page table (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)<a hidden class="anchor" aria-hidden="true" href="#print-a-page-table-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h3>
+<p>Define a function called <code>vmprint()</code>. It should take a <code>pagetable_t</code> argument, and print that pagetable in the format described below. Insert <code>if(p-&gt;pid==1) vmprint(p-&gt;pagetable)</code> in exec.c just before the <code>return argc</code>, to print the first process&rsquo;s page table. You receive full credit for this assignment if you pass the <code>pte printout</code> test of <code>make grade</code>.</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">vmprint_rec</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, <span style="color:#66d9ef">int</span> level)
 </span></span><span style="display:flex;"><span>{
@@ -700,8 +1170,8 @@ arguments to mappages()&hellip;</p>
     </div>
 
 </p>
-<h2 id="a-kernel-page-table-per-process-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">A kernel page table per process (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#a-kernel-page-table-per-process-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
-<h3 id="proch">proc.h<a hidden class="anchor" aria-hidden="true" href="#proch">#</a></h3>
+<h3 id="a-kernel-page-table-per-process-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">A kernel page table per process (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#a-kernel-page-table-per-process-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h3>
+<h4 id="proch">proc.h<a hidden class="anchor" aria-hidden="true" href="#proch">#</a></h4>
 <p>
 
     <div class="post-img-view">
@@ -711,7 +1181,7 @@ arguments to mappages()&hellip;</p>
     </div>
 
 </p>
-<h3 id="procc">proc.c<a hidden class="anchor" aria-hidden="true" href="#procc">#</a></h3>
+<h4 id="procc">proc.c<a hidden class="anchor" aria-hidden="true" href="#procc">#</a></h4>
 <p>
 
     <div class="post-img-view">
@@ -802,7 +1272,7 @@ arguments to mappages()&hellip;</p>
     </div>
 
 </p>
-<h3 id="vmc">vm.c<a hidden class="anchor" aria-hidden="true" href="#vmc">#</a></h3>
+<h4 id="vmc">vm.c<a hidden class="anchor" aria-hidden="true" href="#vmc">#</a></h4>
 <p>
 
     <div class="post-img-view">
@@ -812,7 +1282,7 @@ arguments to mappages()&hellip;</p>
     </div>
 
 </p>
-<h3 id="defsh">defs.h<a hidden class="anchor" aria-hidden="true" href="#defsh">#</a></h3>
+<h4 id="defsh">defs.h<a hidden class="anchor" aria-hidden="true" href="#defsh">#</a></h4>
 <p>
 
     <div class="post-img-view">
@@ -822,8 +1292,8 @@ arguments to mappages()&hellip;</p>
     </div>
 
 </p>
-<h2 id="simplify-copyincopyinstr-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">Simplify <code>copyin/copyinstr</code> (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#simplify-copyincopyinstr-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
-<h3 id="defsh-1">defs.h<a hidden class="anchor" aria-hidden="true" href="#defsh-1">#</a></h3>
+<h3 id="simplify-copyincopyinstr-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">Simplify <code>copyin/copyinstr</code> (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#simplify-copyincopyinstr-hardhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h3>
+<h4 id="defsh-1">defs.h<a hidden class="anchor" aria-hidden="true" href="#defsh-1">#</a></h4>
 <p>
 
     <div class="post-img-view">
@@ -833,7 +1303,7 @@ arguments to mappages()&hellip;</p>
     </div>
 
 </p>
-<h3 id="vmc-1">vm.c<a hidden class="anchor" aria-hidden="true" href="#vmc-1">#</a></h3>
+<h4 id="vmc-1">vm.c<a hidden class="anchor" aria-hidden="true" href="#vmc-1">#</a></h4>
 <p>
 
     <div class="post-img-view">

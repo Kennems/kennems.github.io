@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(11)- Thread switching Topic: more “under the hood” with xv6 Previously: system calls, interrupts, page tables, locks Today: process/thread switching\nWhy support multiple tasks? Time-sharing: many users and/or many running programs. program structure: prime number sieve. parallel speedup on multi-core hardware.\nThreads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of multiple threads\nTwo main strategies: ​ multiple CPUs, each CPU runs a different thread ​ each CPU “switches” between threads, runs one at a time\nthreads can share memory, or not xv6 kernel threads: they share kernel memory (thus locks) xv6 user processes: one thread per process, so no sharing linux: supports multiple threads sharing a user process’s memory\nthere are other techniques for interleaving multiple tasks look up event-driven programming, or state machines threads are not the most efficient, but they are usually the most convenient\nThread design challenges How to interleave many threads on a few CPUs?\nHow to make interleaving transparent?\n“scheduling” = the process of choosing which thread to run next\nWhat to save while a thread isn’t running?\nHow to cope with compute-bound threads?\nHow to cope with compute-bound threads?\neach CPU has timer hardware, which interrupts periodically kernel uses timer interrupts to grab control from looping threads kernel saves thread state, switches, eventually resumes, restores that saved state for transparency\nRUNNING vs RUNNABLE\nthis is “pre-emptive” scheduling – a forced yield of unaware code as opposed to cooperative scheduling, in which code yields voluntarily\nWhat to do with a thread that isn’t running? we need to set aside its state: registers, stack, memory though no need to worry about memory, it won’t go anywhere so implementation provides each thread with a stack and register save area need to track status of each thread RUNNING vs RUNNABLE vs SLEEPING\nin xv6:\n[simple diagram: processes, user stack, trapframe, kernel stack]\neach process has two threads, one user, one kernel a process is either executing its user thread, or in a system call or interrupt in its kernel thread kernel threads share kernel memory / data structures thus the kernel is a parallel program we’ll use “process” and “kernel thread” and “thread” as synonyms\noverview of thread switching in xv6 (the point: switch among threads to interleave many threads on each CPU) [diagram: P1, TF1, STACK1, swtch(), CTX1; CTXs, swtch(), STACKs, scheduler(), \u0026c]\nTF = trapframe = saved user registers\rCTX = context = saved RISC-V registers getting from one process to another involves multiple transitions:\n​ user -\u003e kernel; saves user registers in trapframe ​ kernel thread -\u003e scheduler thread; saves kernel thread registers in context ​ scheduler thread -\u003e kernel thread; restores kernel thread registers from ctx ​ kernel -\u003e user; restores user registers from trapframe “context switch” – the switch from one thread to another\nscheduler threads there’s one per core; each has a stack and a struct context kernel threads (processes) always switch to the current core’s scheduler thread which switches to another kernel thread, if one is RUNNABLE there are never direct kernel thread to kernel thread switches the reason: the scheduler’s separate stack simplifies cases like switching away from an exiting process the scheduler thread keeps scanning the process table until it finds a RUNNABLE thread (there may not be one!) if there is not RUNNABLE thread, the scheduler is “idle”\nnote: each core is either running its scheduler thread, or some other thread a given core runs only one thread at a time each thread is either running on exactly one core, or its registers are saved in its context if a thread isn’t running, its saved context refers to a call to swtch()\nstruct proc in proc.h p-\u003etrapframe holds saved user thread’s registers p-\u003econtext holds saved kernel thread’s registers p-\u003ekstack points to the thread’s kernel stack p-\u003estate is RUNNING, RUNNABLE, SLEEPING, \u0026c p-\u003elock protects p-\u003estate (and other things…)\nCode pre-emptive switch demonstration user/spin.c – two CPU-bound processes my qemu has only one CPU let’s watch xv6 switch between them\nmake qemu-gdb gdb (gdb) c show user/spin.c spin\nyou can see that they alternate, despite running continuously. xv6 is switching its one CPU between the two processes. how does the switching work?\nI’m going to cause a break-point at the timer interrupt. (gdb) b trap.c:207 (gdb) c (gdb) finish (gdb) where\nwe’re in usertrap(), handling a device interrupt from the timer (timerinit() in kernel/start.c configures the RISC-V timer hardware).\nwhat was running when the timer interrupt happened?\n(gdb) print p-\u003ename (gdb) print p-\u003epid (gdb) print/x *(p-\u003etrapframe) (gdb) print/x p-\u003etrapframe-\u003eepc\nlet’s look for the saved epc in user/spin.asm timer interrupted user code in the increment loop, no surprise\n(gdb) step … into yield() in proc.c (gdb) next (gdb) print p-\u003estate\nchange p-\u003estate from RUNNING to RUNNABLE -\u003e give up CPU but want to run again. note: yield() acquires p-\u003elock since modifying p-\u003estate and to prevent another CPU from running this RUNNABLE thread!\n(gdb) next 2 (gdb) step (into sched())\nsched() makes some sanity checks, then calls swtch()\n(gdb) next 7\nthis is the context switch from a process’s kernel thread to the scheduler thread swtch will save the current RISC-V registers in first argument (p-\u003econtext) and restore previously-saved registers from 2nd argument (c-\u003econtext) let’s see what register values swtch() will restore\n(gdb) print/x cpus[0].context\nwhere is cpus[0].context.ra? i.e. where will swtch() return to? kernel.asm says it’s in the scheduler() function in proc.c\n(gdb) tbreak swtch (gdb) c\nwe’re in kernel/swtch.S a0 is the first argument, p-\u003econtext a1 is the second argument, cpus[0].context swtch() saves current registers in xx(a0) (p-\u003econtext) swtch() then restores registers from xx(a1) (cpus[0].context) then swtch returns\nQ: swtch() neither saves nor restores $pc (program counter)! so how does it know where to start executing in the target thread?\nQ: why does swtch() save only 14 registers (ra, sp, s0..s11)? the RISC-V has 32 registers – what about the other 18? zero, gp, tp t0-t6, a0-a7 note we’re talking about kernel thread registers all 32 user register have already been saved in the trapframe\nregisters at start of swtch: (gdb) print $pc – swtch (gdb) print $ra – sched (gdb) print $sp\nregisters at end of swtch: (gdb) stepi 28 – until ret (gdb) print $pc – swtch (gdb) print $ra – scheduler (gdb) print $sp – stack0+??? – entry.S set this up at boot (gdb) where (gdb) stepi\nwe’re in scheduler() now, in the “scheduler thread”, on the scheduler’s stack\nscheduler() just returned from a call to swtch() it made that call a while ago, to switch to our process’s kernel thread that previous call saved scheduler()’s registers our processes’s call to swtch() restored scheduler()’s saved registers p here refers to the interrupted process\n(gdb) print p-\u003ename (gdb) print p-\u003epid (gdb) print p-\u003estate\nremember yield() acquired the process’s lock now scheduler releases it the scheduler() code looks like an ordinary acquire/release pair but in fact scheduler acquires, yield releases then yield acquires, scheduler releases unusual: the lock is released by a different thread than acquired it!\nQ: why hold p-\u003elock across swtch()? yield() acquires scheduler() releases could we release p-\u003elock just before calling swtch()?\np-\u003elock protects a few things: makes these steps atomic: * p-\u003estate=RUNNABLE * save registers in p-\u003econtext * stop using p’s kernel stack so other CPU’s scheduler won’t start running p until all steps complete makes these steps atomic and uninterruptable: * p-\u003estate=RUNNING * move registers from context to RISC-V registers so an interrupt won’t yield() and save not-yet-initialized RISC-V registers in context.\nscheduler()’s loop looks at all processes, finds one that’s RUNNABLE keeps looping until it finds something – may be idle for a while in this demo, will find the other spin process let’s fast-forward to when scheduler() finds a RUNNABLE process\n(gdb) tbreak proc.c:474 (gdb) c\nscheduler() locked the new process, then set state to RUNNING now another CPUs’ scheduler won’t run it\nit’s the other “spin” process:\n(gdb) print p-\u003ename (gdb) print p-\u003epid (gdb) print p-\u003estate\nlet’s see where the new thread will start executing after swtch() by looking at $ra (return address) in its context\n(gdb) print/x p-\u003econtext (gdb) x/4i p-\u003econtext-\u003era\nnew thread will return into sched()\nlook at kernel/swtch.S (again)\n(gdb) tbreak swtch (gdb) c (gdb) stepi 28 – now just about to execute swtch()’s ret (gdb) print $ra (gdb) where\nnow we’re in a timer interrupt in the other spin process in the past it was interrupted, called yield() / sched() / swtch() but now it will resume, and return to user space\nnote: only swtch() writes contexts (except for initialization) only sched() and scheduler() call swtch() so for a kernel thread, context.ra always points into sched() and for a scheduler thread, context.ra always points into scheduler()\nnote: sched() calls swtch() – then swtch() returns to sched() but it’s typically a different thread returning\nsched() and scheduler() are “co-routines” each knows what it is swtch()ing to each knows where swtch() return is coming from e.g. yield() and scheduler() cooperate about p-\u003elock and p-\u003estate different from ordinary thread switching, where neither party typically knows which thread comes before/after\nQ: what is the “scheduling policy”? i.e. how does xv6 decide what to run next if multiple threads are RUNNABLE? is it a good policy?\nQ: is there pre-emptive scheduling of kernel threads? yes – timer interrupt and yield() can occur while in kernel. yield() called by kerneltrap() in kernel/trap.c where to save registers of interrupted kernel code? not in p-\u003etrapframe, since already has user registers. not in p-\u003econtext, since we’re about to call yield() and swtch() kernelvec.S pushes them on the kernel stack (since already in kernel). is pre-emption in the kernel useful? not critical in xv6. valuable if some system calls have lots of compute. or if we need a strict notion of thread priority.\nQ: why does scheduler() briefly enable interrupts, with intr_on()? There may be no RUNNABLE threads They may all be waiting for I/O, e.g. disk or console Enable interrupts so device has a chance to signal completion and thus wake up a thread Otherwise, system will freeze\nQ: why does sched() forbid locks from being held when yielding the CPU? (other than p-\u003elock) i.e. sched() checks that noff == 1 suppose process P1 holding lock L1, yields CPU process P2 runs, tries acquire(L1) P2’s acquire spins with interrupts turned off so timer interrupts won’t occur so P2 won’t yield the CPU so P1 can’t execute so P1 won’t release L1, ever\nQ: can we get rid of the separate per-cpu scheduler thread? could sched() directly swtch() to a new thread? so that sched() looks for next process to run? that would be faster – avoids one of the swtch() calls yes – but: scheduling loop would run on a thread’s kernel stack what if that thread is exiting? what if another cpu wants to run the thread? what if there are fewer threads than CPUs – i.e. too few stacks? can be dealt with – give it a try!\nSummary xv6 provides a convenient thread model for kernel code pre-emptive via timer interrupts transparent via switching registers and stack multi-core requires careful handling of stacks, locks next lecture: mechanisms for threads to wait for each other\n",
-  "wordCount" : "1871",
+  "articleBody": "MIT6.S081(11)- Thread switching Topic: more “under the hood” with xv6 Previously: system calls, interrupts, page tables, locks Today: process/thread switching\nWhy support multiple tasks? Time-sharing: many users and/or many running programs. program structure: prime number sieve. parallel speedup on multi-core hardware.\nThreads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of multiple threads\nTwo main strategies: ​ multiple CPUs, each CPU runs a different thread ​ each CPU “switches” between threads, runs one at a time\nthreads can share memory, or not xv6 kernel threads: they share kernel memory (thus locks) xv6 user processes: one thread per process, so no sharing linux: supports multiple threads sharing a user process’s memory\nthere are other techniques for interleaving multiple tasks look up event-driven programming, or state machines threads are not the most efficient, but they are usually the most convenient\nThread design challenges How to interleave many threads on a few CPUs?\nHow to make interleaving transparent?\n“scheduling” = the process of choosing which thread to run next\nWhat to save while a thread isn’t running?\nHow to cope with compute-bound threads?\nHow to cope with compute-bound threads?\neach CPU has timer hardware, which interrupts periodically kernel uses timer interrupts to grab control from looping threads kernel saves thread state, switches, eventually resumes, restores that saved state for transparency\nRUNNING vs RUNNABLE\nthis is “pre-emptive” scheduling – a forced yield of unaware code as opposed to cooperative scheduling, in which code yields voluntarily\nWhat to do with a thread that isn’t running? we need to set aside its state: registers, stack, memory though no need to worry about memory, it won’t go anywhere so implementation provides each thread with a stack and register save area need to track status of each thread RUNNING vs RUNNABLE vs SLEEPING\nin xv6:\n[simple diagram: processes, user stack, trapframe, kernel stack]\neach process has two threads, one user, one kernel a process is either executing its user thread, or in a system call or interrupt in its kernel thread kernel threads share kernel memory / data structures thus the kernel is a parallel program we’ll use “process” and “kernel thread” and “thread” as synonyms\noverview of thread switching in xv6 (the point: switch among threads to interleave many threads on each CPU) [diagram: P1, TF1, STACK1, swtch(), CTX1; CTXs, swtch(), STACKs, scheduler(), \u0026c]\nTF = trapframe = saved user registers\rCTX = context = saved RISC-V registers getting from one process to another involves multiple transitions:\n​ user -\u003e kernel; saves user registers in trapframe ​ kernel thread -\u003e scheduler thread; saves kernel thread registers in context ​ scheduler thread -\u003e kernel thread; restores kernel thread registers from ctx ​ kernel -\u003e user; restores user registers from trapframe “context switch” – the switch from one thread to another\nscheduler threads there’s one per core; each has a stack and a struct context kernel threads (processes) always switch to the current core’s scheduler thread which switches to another kernel thread, if one is RUNNABLE there are never direct kernel thread to kernel thread switches the reason: the scheduler’s separate stack simplifies cases like switching away from an exiting process the scheduler thread keeps scanning the process table until it finds a RUNNABLE thread (there may not be one!) if there is not RUNNABLE thread, the scheduler is “idle”\nnote: each core is either running its scheduler thread, or some other thread a given core runs only one thread at a time each thread is either running on exactly one core, or its registers are saved in its context if a thread isn’t running, its saved context refers to a call to swtch()\nstruct proc in proc.h p-\u003etrapframe holds saved user thread’s registers p-\u003econtext holds saved kernel thread’s registers p-\u003ekstack points to the thread’s kernel stack p-\u003estate is RUNNING, RUNNABLE, SLEEPING, \u0026c p-\u003elock protects p-\u003estate (and other things…)\nCode pre-emptive switch demonstration user/spin.c – two CPU-bound processes my qemu has only one CPU let’s watch xv6 switch between them\nmake qemu-gdb\rgdb\r(gdb) c\rshow user/spin.c\rspin you can see that they alternate, despite running continuously. xv6 is switching its one CPU between the two processes. how does the switching work?\nI’m going to cause a break-point at the timer interrupt.\n(gdb) b trap.c:207\r(gdb) c\r(gdb) finish\r(gdb) where we’re in usertrap(), handling a device interrupt from the timer (timerinit() in kernel/start.c configures the RISC-V timer hardware).\nwhat was running when the timer interrupt happened?\n(gdb) print p-\u003ename\r(gdb) print p-\u003epid\r(gdb) print/x *(p-\u003etrapframe)\r(gdb) print/x p-\u003etrapframe-\u003eepc let’s look for the saved epc in user/spin.asm timer interrupted user code in the increment loop, no surprise\n(gdb) step ... into yield() in proc.c\r(gdb) next\r(gdb) print p-\u003estate change p-\u003estate from RUNNING to RUNNABLE -\u003e give up CPU but want to run again. note: yield() acquires p-\u003elock since modifying p-\u003estate and to prevent another CPU from running this RUNNABLE thread!\n(gdb) next 2\r(gdb) step (into sched()) sched() makes some sanity checks, then calls swtch()\n(gdb) next 7 this is the context switch from a process’s kernel thread to the scheduler thread swtch will save the current RISC-V registers in first argument (p-\u003econtext) and restore previously-saved registers from 2nd argument (c-\u003econtext) let’s see what register values swtch() will restore\n(gdb) print/x cpus[0].context where is cpus[0].context.ra? i.e. where will swtch() return to? kernel.asm says it’s in the scheduler() function in proc.c\n(gdb) tbreak swtch\r(gdb) c we’re in kernel/swtch.S a0 is the first argument, p-\u003econtext a1 is the second argument, cpus[0].context swtch() saves current registers in xx(a0) (p-\u003econtext) swtch() then restores registers from xx(a1) (cpus[0].context) then swtch returns\nQ: swtch() neither saves nor restores $pc (program counter)! so how does it know where to start executing in the target thread?\nQ: why does swtch() save only 14 registers (ra, sp, s0..s11)? the RISC-V has 32 registers – what about the other 18? zero, gp, tp t0-t6, a0-a7 note we’re talking about kernel thread registers all 32 user register have already been saved in the trapframe\nregisters at start of swtch:\n(gdb) print $pc -- swtch\r(gdb) print $ra -- sched\r(gdb) print $sp registers at end of swtch:\n(gdb) stepi 28 -- until ret\r(gdb) print $pc -- swtch\r(gdb) print $ra -- scheduler\r(gdb) print $sp -- stack0+??? -- entry.S set this up at boot\r(gdb) where\r(gdb) stepi we’re in scheduler() now, in the “scheduler thread”, on the scheduler’s stack\nscheduler() just returned from a call to swtch() it made that call a while ago, to switch to our process’s kernel thread that previous call saved scheduler()’s registers our processes’s call to swtch() restored scheduler()’s saved registers p here refers to the interrupted process\n(gdb) print p-\u003ename\r(gdb) print p-\u003epid\r(gdb) print p-\u003estate remember yield() acquired the process’s lock now scheduler releases it the scheduler() code looks like an ordinary acquire/release pair but in fact scheduler acquires, yield releases then yield acquires, scheduler releases unusual: the lock is released by a different thread than acquired it!\nQ: why hold p-\u003elock across swtch()? yield() acquires scheduler() releases could we release p-\u003elock just before calling swtch()?\np-\u003elock protects a few things: makes these steps atomic: * p-\u003estate=RUNNABLE * save registers in p-\u003econtext * stop using p’s kernel stack so other CPU’s scheduler won’t start running p until all steps complete makes these steps atomic and uninterruptable: * p-\u003estate=RUNNING * move registers from context to RISC-V registers so an interrupt won’t yield() and save not-yet-initialized RISC-V registers in context.\nscheduler()’s loop looks at all processes, finds one that’s RUNNABLE keeps looping until it finds something – may be idle for a while in this demo, will find the other spin process let’s fast-forward to when scheduler() finds a RUNNABLE process\n(gdb) tbreak proc.c:474\r(gdb) c scheduler() locked the new process, then set state to RUNNING now another CPUs’ scheduler won’t run it\nit’s the other “spin” process:\n(gdb) print p-\u003ename\r(gdb) print p-\u003epid\r(gdb) print p-\u003estate let’s see where the new thread will start executing after swtch() by looking at $ra (return address) in its context\n(gdb) print/x p-\u003econtext\r(gdb) x/4i p-\u003econtext-\u003era new thread will return into sched()\nlook at kernel/swtch.S (again)\n(gdb) tbreak swtch\r(gdb) c\r(gdb) stepi 28 -- now just about to execute swtch()'s ret\r(gdb) print $ra\r(gdb) where now we’re in a timer interrupt in the other spin process in the past it was interrupted, called yield() / sched() / swtch() but now it will resume, and return to user space\nnote: only swtch() writes contexts (except for initialization) only sched() and scheduler() call swtch() so for a kernel thread, context.ra always points into sched() and for a scheduler thread, context.ra always points into scheduler()\nnote: sched() calls swtch() – then swtch() returns to sched() but it’s typically a different thread returning\nsched() and scheduler() are “co-routines” each knows what it is swtch()ing to each knows where swtch() return is coming from e.g. yield() and scheduler() cooperate about p-\u003elock and p-\u003estate different from ordinary thread switching, where neither party typically knows which thread comes before/after\nQ: what is the “scheduling policy”? i.e. how does xv6 decide what to run next if multiple threads are RUNNABLE? is it a good policy?\nQ: is there pre-emptive scheduling of kernel threads? yes – timer interrupt and yield() can occur while in kernel. yield() called by kerneltrap() in kernel/trap.c where to save registers of interrupted kernel code? not in p-\u003etrapframe, since already has user registers. not in p-\u003econtext, since we’re about to call yield() and swtch() kernelvec.S pushes them on the kernel stack (since already in kernel). is pre-emption in the kernel useful? not critical in xv6. valuable if some system calls have lots of compute. or if we need a strict notion of thread priority.\nQ: why does scheduler() briefly enable interrupts, with intr_on()? There may be no RUNNABLE threads They may all be waiting for I/O, e.g. disk or console Enable interrupts so device has a chance to signal completion and thus wake up a thread Otherwise, system will freeze\nQ: why does sched() forbid locks from being held when yielding the CPU? (other than p-\u003elock) i.e. sched() checks that noff == 1 suppose process P1 holding lock L1, yields CPU process P2 runs, tries acquire(L1) P2’s acquire spins with interrupts turned off so timer interrupts won’t occur so P2 won’t yield the CPU so P1 can’t execute so P1 won’t release L1, ever\nQ: can we get rid of the separate per-cpu scheduler thread? could sched() directly swtch() to a new thread? so that sched() looks for next process to run? that would be faster – avoids one of the swtch() calls yes – but: scheduling loop would run on a thread’s kernel stack what if that thread is exiting? what if another cpu wants to run the thread? what if there are fewer threads than CPUs – i.e. too few stacks? can be dealt with – give it a try!\nSummary xv6 provides a convenient thread model for kernel code pre-emptive via timer interrupts transparent via switching registers and stack multi-core requires careful handling of stacks, locks next lecture: mechanisms for threads to wait for each other\nLab: Multithreading Uthread: switching between threads (moderate) Using threads (moderate) Barrier(moderate) ",
+  "wordCount" : "1882",
   "inLanguage": "zh",
   "datePublished": "2024-09-21T19:30:13+08:00",
   "dateModified": "2024-09-21T19:20:13+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(11)- Thread switching
     </div>
-    <div class="post-meta"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1871 字&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1882 字&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -291,7 +291,15 @@ document.addEventListener("DOMContentLoaded", function() {
                         <a href="#code" aria-label="Code">Code</a><ul>
                             
                     <li>
-                        <a href="#summary" aria-label="Summary">Summary</a>
+                        <a href="#summary" aria-label="Summary">Summary</a></li>
+                    <li>
+                        <a href="#lab-multithreadinghttpspdoscsailmitedu6s0812020labsthreadhtml" aria-label="Lab: Multithreading"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/thread.html">Lab: Multithreading</a></a></li>
+                    <li>
+                        <a href="#uthread-switching-between-threads-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Uthread: switching between threads (moderate)">Uthread: switching between threads (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a></li>
+                    <li>
+                        <a href="#using-threads-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Using threads (moderate)">Using threads (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a></li>
+                    <li>
+                        <a href="#barriermoderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Barrier(moderate)">Barrier(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a>
                     </li>
                 </ul>
                 </li>
@@ -483,50 +491,50 @@ p-&gt;lock protects p-&gt;state (and other things&hellip;)</p>
 user/spin.c &ndash; two CPU-bound processes
 my qemu has only one CPU
 let&rsquo;s watch xv6 switch between them</p>
-<p>make qemu-gdb
+<pre tabindex="0"><code>make qemu-gdb
 gdb
 (gdb) c
 show user/spin.c
-spin</p>
-<p>you can see that they alternate, despite running continuously.
+spin
+</code></pre><p>you can see that they alternate, despite running continuously.
 xv6 is switching its one CPU between the two processes.
 how does the switching work?</p>
-<p>I&rsquo;m going to cause a break-point at the timer interrupt.
-(gdb) b trap.c:207
+<p>I&rsquo;m going to cause a break-point at the timer interrupt.</p>
+<pre tabindex="0"><code>(gdb) b trap.c:207
 (gdb) c
 (gdb) finish
-(gdb) where</p>
-<p>we&rsquo;re in usertrap(), handling a device interrupt from the timer
+(gdb) where
+</code></pre><p>we&rsquo;re in usertrap(), handling a device interrupt from the timer
 (timerinit() in kernel/start.c configures the RISC-V timer hardware).</p>
 <p>what was running when the timer interrupt happened?</p>
-<p>(gdb) print p-&gt;name
+<pre tabindex="0"><code>(gdb) print p-&gt;name
 (gdb) print p-&gt;pid
 (gdb) print/x *(p-&gt;trapframe)
-(gdb) print/x p-&gt;trapframe-&gt;epc</p>
-<p>let&rsquo;s look for the saved epc in user/spin.asm
+(gdb) print/x p-&gt;trapframe-&gt;epc
+</code></pre><p>let&rsquo;s look for the saved epc in user/spin.asm
 timer interrupted user code in the increment loop, no surprise</p>
-<p>(gdb) step &hellip; into yield() in proc.c
+<pre tabindex="0"><code>(gdb) step ... into yield() in proc.c
 (gdb) next
-(gdb) print p-&gt;state</p>
-<p>change p-&gt;state from RUNNING to RUNNABLE -&gt; give up CPU but want to run again.
+(gdb) print p-&gt;state
+</code></pre><p>change p-&gt;state from RUNNING to RUNNABLE -&gt; give up CPU but want to run again.
 note: yield() acquires p-&gt;lock
 since modifying p-&gt;state
 and to prevent another CPU from running this RUNNABLE thread!</p>
-<p>(gdb) next 2
-(gdb) step (into sched())</p>
-<p>sched() makes some sanity checks, then calls swtch()</p>
-<p>(gdb) next 7</p>
-<p>this is the context switch from a process&rsquo;s kernel thread to the scheduler thread
+<pre tabindex="0"><code>(gdb) next 2
+(gdb) step (into sched())
+</code></pre><p>sched() makes some sanity checks, then calls swtch()</p>
+<pre tabindex="0"><code>(gdb) next 7
+</code></pre><p>this is the context switch from a process&rsquo;s kernel thread to the scheduler thread
 swtch will save the current RISC-V registers in first argument (p-&gt;context)
 and restore previously-saved registers from 2nd argument (c-&gt;context)
 let&rsquo;s see what register values swtch() will restore</p>
-<p>(gdb) print/x cpus[0].context</p>
-<p>where is cpus[0].context.ra?
+<pre tabindex="0"><code>(gdb) print/x cpus[0].context
+</code></pre><p>where is cpus[0].context.ra?
 i.e. where will swtch() return to?
-kernel.asm says it&rsquo;s in the scheduler() function in proc.c</p>
-<p>(gdb) tbreak swtch
-(gdb) c</p>
-<p>we&rsquo;re in kernel/swtch.S
+kernel.asm says it&rsquo;s in the <code>scheduler()</code> function in proc.c</p>
+<pre tabindex="0"><code>(gdb) tbreak swtch
+(gdb) c
+</code></pre><p>we&rsquo;re in kernel/swtch.S
 a0 is the first argument, p-&gt;context
 a1 is the second argument, cpus[0].context
 swtch() saves current registers in xx(a0) (p-&gt;context)
@@ -540,28 +548,28 @@ zero, gp, tp
 t0-t6, a0-a7
 note we&rsquo;re talking about kernel thread registers
 all 32 user register have already been saved in the trapframe</p>
-<p>registers at start of swtch:
-(gdb) print $pc  &ndash; swtch
-(gdb) print $ra  &ndash; sched
-(gdb) print $sp</p>
-<p>registers at end of swtch:
-(gdb) stepi 28   &ndash; until ret
-(gdb) print $pc  &ndash; swtch
-(gdb) print $ra  &ndash; scheduler
-(gdb) print $sp  &ndash; stack0+??? &ndash; entry.S set this up at boot
+<p>registers at start of swtch:</p>
+<pre tabindex="0"><code>(gdb) print $pc  -- swtch
+(gdb) print $ra  -- sched
+(gdb) print $sp
+</code></pre><p>registers at end of swtch:</p>
+<pre tabindex="0"><code>(gdb) stepi 28   -- until ret
+(gdb) print $pc  -- swtch
+(gdb) print $ra  -- scheduler
+(gdb) print $sp  -- stack0+??? -- entry.S set this up at boot
 (gdb) where
-(gdb) stepi</p>
-<p>we&rsquo;re in scheduler() now, in the &ldquo;scheduler thread&rdquo;,
+(gdb) stepi
+</code></pre><p>we&rsquo;re in scheduler() now, in the &ldquo;scheduler thread&rdquo;,
 on the scheduler&rsquo;s stack</p>
 <p>scheduler() just returned from a call to swtch()
 it made that call a while ago, to switch to our process&rsquo;s kernel thread
 that previous call saved scheduler()&rsquo;s registers
 our processes&rsquo;s call to swtch() restored scheduler()&rsquo;s saved registers
 p here refers to the interrupted process</p>
-<p>(gdb) print p-&gt;name
+<pre tabindex="0"><code>(gdb) print p-&gt;name
 (gdb) print p-&gt;pid
-(gdb) print p-&gt;state</p>
-<p>remember yield() acquired the process&rsquo;s lock
+(gdb) print p-&gt;state
+</code></pre><p>remember yield() acquired the process&rsquo;s lock
 now scheduler releases it
 the scheduler() code <em>looks</em> like an ordinary acquire/release pair
 but in fact scheduler acquires, yield releases
@@ -586,38 +594,38 @@ RISC-V registers in context.</p>
 keeps looping until it finds something &ndash; may be idle for a while
 in this demo, will find the other spin process
 let&rsquo;s fast-forward to when scheduler() finds a RUNNABLE process</p>
-<p>(gdb) tbreak proc.c:474
-(gdb) c</p>
-<p>scheduler() locked the new process, then set state to RUNNING
+<pre tabindex="0"><code>(gdb) tbreak proc.c:474
+(gdb) c
+</code></pre><p>scheduler() locked the new process, then set state to RUNNING
 now another CPUs&rsquo; scheduler won&rsquo;t run it</p>
 <p>it&rsquo;s the other &ldquo;spin&rdquo; process:</p>
-<p>(gdb) print p-&gt;name
+<pre tabindex="0"><code>(gdb) print p-&gt;name
 (gdb) print p-&gt;pid
-(gdb) print p-&gt;state</p>
-<p>let&rsquo;s see where the new thread will start executing after swtch()
+(gdb) print p-&gt;state
+</code></pre><p>let&rsquo;s see where the new thread will start executing after swtch()
 by looking at $ra (return address) in its context</p>
-<p>(gdb) print/x p-&gt;context
-(gdb) x/4i p-&gt;context-&gt;ra</p>
-<p>new thread will return into sched()</p>
+<pre tabindex="0"><code>(gdb) print/x p-&gt;context
+(gdb) x/4i p-&gt;context-&gt;ra
+</code></pre><p>new thread will return into <code>sched()</code></p>
 <p>look at kernel/swtch.S (again)</p>
-<p>(gdb) tbreak swtch
+<pre tabindex="0"><code>(gdb) tbreak swtch
 (gdb) c
-(gdb) stepi 28 &ndash; now just about to execute swtch()&rsquo;s ret
+(gdb) stepi 28 -- now just about to execute swtch()&#39;s ret
 (gdb) print $ra
-(gdb) where</p>
-<p>now we&rsquo;re in a timer interrupt in the <em>other</em> spin process
-in the past it was interrupted, called yield() / sched() / swtch()
+(gdb) where
+</code></pre><p>now we&rsquo;re in a timer interrupt in the <em>other</em> spin process
+in the past it was interrupted, called <code>yield()</code> / <code>sched()</code> / <code>swtch()</code>
 but now it will resume, and return to user space</p>
 <p>note: only swtch() writes contexts (except for initialization)
-only sched() and scheduler() call swtch()
-so for a kernel thread, context.ra always points into sched()
+only sched() and <code>scheduler()</code> call <code>swtch()</code>
+so for a kernel thread, context.ra always points into <code>sched()</code>
 and for a scheduler thread, context.ra always points into scheduler()</p>
-<p>note: sched() calls swtch() &ndash; then swtch() returns to sched()
+<p>note: <code>sched()</code> calls <code>swtch()</code> &ndash; then <code>swtch()</code> returns to <code>sched()</code>
 but it&rsquo;s typically a <em>different</em> thread returning</p>
-<p>sched() and scheduler() are &ldquo;co-routines&rdquo;
+<p><code>sched()</code> and <code>scheduler()</code> are &ldquo;co-routines&rdquo;
 each knows what it is swtch()ing to
 each knows where swtch() return is coming from
-e.g. yield() and scheduler() cooperate about p-&gt;lock and p-&gt;state
+e.g. <code>yield()</code> and scheduler() cooperate about p-&gt;lock and p-&gt;state
 different from ordinary thread switching, where neither
 party typically knows which thread comes before/after</p>
 <p>Q: what is the &ldquo;scheduling policy&rdquo;?
@@ -625,7 +633,7 @@ i.e. how does xv6 decide what to run next if multiple threads are RUNNABLE?
 is it a good policy?</p>
 <p>Q: is there pre-emptive scheduling of kernel threads?
 yes &ndash; timer interrupt and yield() can occur while in kernel.
-yield() called by kerneltrap() in kernel/trap.c
+<code>yield()</code> called by kerneltrap() in kernel/trap.c
 where to save registers of interrupted kernel code?
 not in p-&gt;trapframe, since already has user registers.
 not in p-&gt;context, since we&rsquo;re about to call yield() and swtch()
@@ -634,7 +642,7 @@ is pre-emption in the kernel useful?
 not critical in xv6.
 valuable if some system calls have lots of compute.
 or if we need a strict notion of thread priority.</p>
-<p>Q: why does scheduler() briefly enable interrupts, with intr_on()?
+<p>Q: why does <code>scheduler()</code> briefly enable interrupts, with intr_on()?
 There may be no RUNNABLE threads
 They may all be waiting for I/O, e.g. disk or console
 Enable interrupts so device has a chance to signal completion
@@ -651,8 +659,8 @@ so P2 won&rsquo;t yield the CPU
 so P1 can&rsquo;t execute
 so P1 won&rsquo;t release L1, ever</p>
 <p>Q: can we get rid of the separate per-cpu scheduler thread?
-could sched() directly swtch() to a new thread?
-so that sched() looks for next process to run?
+could <code>sched()</code> directly <code>swtch()</code> to a new thread?
+so that <code>sched()</code> looks for next process to run?
 that would be faster &ndash; avoids one of the swtch() calls
 yes &ndash; but:
 scheduling loop would run on a thread&rsquo;s kernel stack
@@ -666,6 +674,10 @@ pre-emptive via timer interrupts
 transparent via switching registers and stack
 multi-core requires careful handling of stacks, locks
 next lecture: mechanisms for threads to wait for each other</p>
+<h2 id="lab-multithreadinghttpspdoscsailmitedu6s0812020labsthreadhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/thread.html">Lab: Multithreading</a><a hidden class="anchor" aria-hidden="true" href="#lab-multithreadinghttpspdoscsailmitedu6s0812020labsthreadhtml">#</a></h2>
+<h2 id="uthread-switching-between-threads-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Uthread: switching between threads (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#uthread-switching-between-threads-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<h2 id="using-threads-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Using threads (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#using-threads-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<h2 id="barriermoderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Barrier(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#barriermoderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
 
 
   </div>
