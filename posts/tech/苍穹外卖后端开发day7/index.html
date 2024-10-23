@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "JavaWeb项目-苍穹外卖"
   ],
-  "articleBody": "苍穹外卖后端开发(Day7) 缓存菜品 用户端小程序展示的菜品数据都是通过查询数据库获得，如果用户端访问量比较大，数据库访问的压力随之增大。\n实现思路 通过Redis来缓存菜品数据，减少数据库查询操作。\n缓存逻辑分析：\n每个分类下的菜品保存一份缓存数据 数据库中菜品数据有变更时清理缓存数据 /** * 根据分类id查询菜品 * * @param categoryId * @return */ @GetMapping(\"/list\") @ApiOperation(\"根据分类id查询菜品\") public Result\u003cList\u003cDishVO\u003e\u003e list(Long categoryId) { // 构造redis中的 key, 规则：dish_分类id String key = \"dish_\" + categoryId; // 查询redis中是否存在菜品数据 List\u003cDishVO\u003e list = (List\u003cDishVO\u003e) redisTemplate.opsForValue().get(key); if (list != null \u0026\u0026 list.size()\u003e 0) { // 如果存在，直接返回，无须查询数据库 return Result.success(list); } Dish dish = new Dish(); dish.setCategoryId(categoryId); dish.setStatus(StatusConstant.ENABLE);//查询起售中的菜品 // 如果不存在，查询数据库，将查询到的数据放入redis中 list = dishService.listWithFlavor(dish); redisTemplate.opsForValue().set(key, list); return Result.success(list); } Spring Cache Spring Cache 是一个框架，实现了基于注解的缓存功能，只需要简单地加一个注解，就能实现缓存功能\nSpring Cache 提供了一层抽象，底层可以切换不同的缓存实现，例如：\nEHCache org.springframework.boot spring-boot-starter-cache 2.7.3 Caffeine Redis 常用注解 注解 说明 @EnableCaching 开启缓存注解功能，通常加在启动类上 @Cacheable 在方法执行前先查询缓存中是否有数据，如果有数据，则直接返回缓存数据；如果没有缓存数据，调用方法并将方法返回值放到缓存中。 @CachePut 将方法的返回值放到缓存中 @CacheEvict 将一条或多条数据从缓存中删除 ",
-  "wordCount" : "561",
+  "articleBody": "苍穹外卖后端开发(Day7) 缓存菜品 用户端小程序展示的菜品数据都是通过查询数据库获得，如果用户端访问量比较大，数据库访问的压力随之增大。\n实现思路 通过Redis来缓存菜品数据，减少数据库查询操作。\n缓存逻辑分析：\n每个分类下的菜品保存一份缓存数据 数据库中菜品数据有变更时清理缓存数据 /** * 根据分类id查询菜品 * * @param categoryId * @return */ @GetMapping(\"/list\") @ApiOperation(\"根据分类id查询菜品\") public Result\u003cList\u003cDishVO\u003e\u003e list(Long categoryId) { // 构造redis中的 key, 规则：dish_分类id String key = \"dish_\" + categoryId; // 查询redis中是否存在菜品数据 List\u003cDishVO\u003e list = (List\u003cDishVO\u003e) redisTemplate.opsForValue().get(key); if (list != null \u0026\u0026 list.size()\u003e 0) { // 如果存在，直接返回，无须查询数据库 return Result.success(list); } Dish dish = new Dish(); dish.setCategoryId(categoryId); dish.setStatus(StatusConstant.ENABLE);//查询起售中的菜品 // 如果不存在，查询数据库，将查询到的数据放入redis中 list = dishService.listWithFlavor(dish); redisTemplate.opsForValue().set(key, list); return Result.success(list); } Spring Cache Spring Cache 是一个框架，实现了基于注解的缓存功能，只需要简单地加一个注解，就能实现缓存功能\nSpring Cache 提供了一层抽象，底层可以切换不同的缓存实现，例如：\nEHCache org.springframework.boot spring-boot-starter-cache 2.7.3 Caffeine Redis 常用注解 注解 说明 @EnableCaching 开启缓存注解功能，通常加在启动类上 @Cacheable 在方法执行前先查询缓存中是否有数据，如果有数据，则直接返回缓存数据；如果没有缓存数据，调用方法并将方法返回值放到缓存中。 @CachePut 将方法的返回值放到缓存中 @CacheEvict 将一条或多条数据从缓存中删除 缓存套餐 添加购物车 /** * 添加购物车 * @param shoppingCartDTO * @return */ @PostMapping(\"/add\") @ApiOperation(\"添加购物车\") public Result add(@RequestBody ShoppingCartDTO shoppingCartDTO){ log.info(\"添加购物车，商品信息为：{}\",shoppingCartDTO); shoppingCartService.addShoppingCart(shoppingCartDTO); return Result.success(); } 查看购物车 @GetMapping(\"/list\") @ApiOperation(\"查看购物车\") public Result\u003cList\u003cShoppingCart\u003e\u003e list(){ List\u003cShoppingCart\u003e list = shoppingCartService.showShoppingCart(); return Result.success(list); } 清空购物车 导入地址簿功能 用户下单 需求分析和设计\n用户下单业务说明：\n再电商系统中，用户是通过下单的方式通知商家，用户已经购买了商品，需要商家进行备货和发货。\n数据库设计 订单表 orders 订单明细表 order_detail 订单支付 内网穿透 Cpolar cpolar.exe http 80 将对应的端口号进行内网穿透\n",
+  "wordCount" : "836",
   "inLanguage": "zh",
   "datePublished": "2024-10-18T22:30:13+08:00",
   "dateModified": "2024-10-18T22:20:13+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       苍穹外卖后端开发(Day7)
     </div>
-    <div class="post-meta"><span title='2024-10-18 22:30:13 +0800 CST'>2024-10-18</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;561 字&nbsp;·&nbsp;updated:&nbsp;2024-10-18&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-10-18 22:30:13 +0800 CST'>2024-10-18</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;836 字&nbsp;·&nbsp;updated:&nbsp;2024-10-18&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -282,10 +282,29 @@ document.addEventListener("DOMContentLoaded", function() {
                     <li>
                         <a href="#spring-cache" aria-label="Spring Cache">Spring Cache</a></li>
                     <li>
-                        <a href="#%e5%b8%b8%e7%94%a8%e6%b3%a8%e8%a7%a3" aria-label="常用注解">常用注解</a>
+                        <a href="#%e5%b8%b8%e7%94%a8%e6%b3%a8%e8%a7%a3" aria-label="常用注解">常用注解</a></li></ul>
                     </li>
-                </ul>
-                </li>
+                    <li>
+                        <a href="#%e7%bc%93%e5%ad%98%e5%a5%97%e9%a4%90" aria-label="缓存套餐">缓存套餐</a></li>
+                    <li>
+                        <a href="#%e6%b7%bb%e5%8a%a0%e8%b4%ad%e7%89%a9%e8%bd%a6" aria-label="添加购物车">添加购物车</a></li>
+                    <li>
+                        <a href="#%e6%9f%a5%e7%9c%8b%e8%b4%ad%e7%89%a9%e8%bd%a6" aria-label="查看购物车">查看购物车</a></li>
+                    <li>
+                        <a href="#%e6%b8%85%e7%a9%ba%e8%b4%ad%e7%89%a9%e8%bd%a6" aria-label="清空购物车">清空购物车</a></li>
+                    <li>
+                        <a href="#%e5%af%bc%e5%85%a5%e5%9c%b0%e5%9d%80%e7%b0%bf%e5%8a%9f%e8%83%bd" aria-label="导入地址簿功能">导入地址簿功能</a></li>
+                    <li>
+                        <a href="#%e7%94%a8%e6%88%b7%e4%b8%8b%e5%8d%95" aria-label="用户下单">用户下单</a><ul>
+                            
+                    <li>
+                        <a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e8%ae%be%e8%ae%a1" aria-label="数据库设计">数据库设计</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e8%ae%a2%e5%8d%95%e6%94%af%e4%bb%98" aria-label="订单支付">订单支付</a></li>
+                    <li>
+                        <a href="#%e5%86%85%e7%bd%91%e7%a9%bf%e9%80%8f-cpolar" aria-label="内网穿透 Cpolar">内网穿透 Cpolar</a>
+                    </li>
                 </ul>
                 </li>
                 </ul>
@@ -435,6 +454,43 @@ document.addEventListener("DOMContentLoaded", function() {
 </tr>
 </tbody>
 </table>
+<h2 id="缓存套餐">缓存套餐<a hidden class="anchor" aria-hidden="true" href="#缓存套餐">#</a></h2>
+<h2 id="添加购物车">添加购物车<a hidden class="anchor" aria-hidden="true" href="#添加购物车">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 添加购物车
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @param shoppingCartDTO
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @return
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@PostMapping</span>(<span style="color:#e6db74">&#34;/add&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ApiOperation</span>(<span style="color:#e6db74">&#34;添加购物车&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Result <span style="color:#a6e22e">add</span>(<span style="color:#a6e22e">@RequestBody</span> ShoppingCartDTO shoppingCartDTO){
+</span></span><span style="display:flex;"><span>    log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;添加购物车，商品信息为：{}&#34;</span>,shoppingCartDTO);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    shoppingCartService.<span style="color:#a6e22e">addShoppingCart</span>(shoppingCartDTO);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>();
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="查看购物车">查看购物车<a hidden class="anchor" aria-hidden="true" href="#查看购物车">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/list&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ApiOperation</span>(<span style="color:#e6db74">&#34;查看购物车&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Result<span style="color:#f92672">&lt;</span>List<span style="color:#f92672">&lt;</span>ShoppingCart<span style="color:#f92672">&gt;&gt;</span> <span style="color:#a6e22e">list</span>(){
+</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>ShoppingCart<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> shoppingCartService.<span style="color:#a6e22e">showShoppingCart</span>();
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>(list);
+</span></span><span style="display:flex;"><span>    }
+</span></span></code></pre></div><h2 id="清空购物车">清空购物车<a hidden class="anchor" aria-hidden="true" href="#清空购物车">#</a></h2>
+<pre tabindex="0"><code></code></pre><h2 id="导入地址簿功能">导入地址簿功能<a hidden class="anchor" aria-hidden="true" href="#导入地址簿功能">#</a></h2>
+<h2 id="用户下单">用户下单<a hidden class="anchor" aria-hidden="true" href="#用户下单">#</a></h2>
+<p>需求分析和设计</p>
+<p>用户下单业务说明：</p>
+<p>再电商系统中，用户是通过下单的方式通知商家，用户已经购买了商品，需要商家进行备货和发货。</p>
+<h3 id="数据库设计">数据库设计<a hidden class="anchor" aria-hidden="true" href="#数据库设计">#</a></h3>
+<ul>
+<li>订单表 orders</li>
+<li>订单明细表 order_detail</li>
+</ul>
+<h2 id="订单支付">订单支付<a hidden class="anchor" aria-hidden="true" href="#订单支付">#</a></h2>
+<h2 id="内网穿透-cpolar">内网穿透 Cpolar<a hidden class="anchor" aria-hidden="true" href="#内网穿透-cpolar">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>cpolar.exe http <span style="color:#ae81ff">80</span>
+</span></span></code></pre></div><p>将对应的端口号进行内网穿透</p>
 
 
   </div>
@@ -453,6 +509,11 @@ document.addEventListener("DOMContentLoaded", function() {
     
     
 <nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day10/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>苍穹外卖后端开发(Day10)</span>
+  </a>
   <a class="next" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day6/">
     <span class="title">下一页 »</span>
     <br>
