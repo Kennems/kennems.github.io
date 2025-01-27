@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>Go 并发与依赖管理 | Kennem&#39;s Blog</title>
+<meta name="keywords" content="GoLang">
+<meta name="description" content="Go 并发与依赖管理">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/go-2/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/go-2/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="Go 并发与依赖管理" />
+<meta property="og:description" content="Go 并发与依赖管理" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/go-2/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2025-01-25T15:37:01+08:00" />
+<meta property="article:modified_time" content="2025-01-25T15:37:01+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="Go 并发与依赖管理"/>
+<meta name="twitter:description" content="Go 并发与依赖管理"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Go 并发与依赖管理",
+      "item": "https://kennems.github.io/posts/tech/go-2/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Go 并发与依赖管理",
+  "name": "Go 并发与依赖管理",
+  "description": "Go 并发与依赖管理",
+  "keywords": [
+    "GoLang"
+  ],
+  "articleBody": "Go 并发与依赖管理 本文深入探讨 Go 语言的并发编程和依赖管理，结合具体示例，帮助你快速掌握核心知识点，提升开发效率。\n01 并发与并行 Go 语言通过 Goroutine 和 Channel 实现高效的并发编程，充分发挥多核 CPU 的优势。\n1.1 Goroutine Goroutine 是 Go 的轻量级线程，由 Go 运行时管理，栈大小仅为 KB 级别，创建成本低。\n示例：创建 Goroutine\npackage main import ( \"fmt\" \"time\" ) func printNumbers() { for i := 1; i \u003c= 5; i++ { fmt.Println(i) time.Sleep(500 * time.Millisecond) } } func main() { go printNumbers() // 创建 Goroutine time.Sleep(3 * time.Second) // 等待 Goroutine 执行完成 fmt.Println(\"Main function finished\") } 输出：\n1\r2\r3\r4\r5\rMain function finished 1.2 CSP 模型 Go 提倡通过通信共享内存，而不是通过共享内存实现通信。Channel 是 Goroutine 之间的通信机制。\n示例：使用 Channel 通信\npackage main import ( \"fmt\" \"time\" ) func sendData(ch chan\u003c- string) { ch \u003c- \"Hello\" ch \u003c- \"World\" close(ch) } func main() { ch := make(chan string) go sendData(ch) for msg := range ch { fmt.Println(msg) } } 输出：\nHello\rWorld 1.3 Channel 类型 无缓冲 Channel：make(chan int)，发送和接收操作会阻塞，直到另一方准备好。 有缓冲 Channel：make(chan int, 2)，缓冲区满时发送操作阻塞，缓冲区空时接收操作阻塞。 示例：有缓冲 Channel\npackage main import \"fmt\" func main() { ch := make(chan int, 2) ch \u003c- 1 ch \u003c- 2 fmt.Println(\u003c-ch) fmt.Println(\u003c-ch) } 输出：\n1\r2 1.4 并发安全与锁 并发操作可能导致数据竞争，需使用锁（如 sync.Mutex）确保安全。\n示例：使用 Mutex 保证并发安全\npackage main import ( \"fmt\" \"sync\" ) var ( counter int mu sync.Mutex ) func increment(wg *sync.WaitGroup) { defer wg.Done() mu.Lock() counter++ mu.Unlock() } func main() { var wg sync.WaitGroup for i := 0; i \u003c 1000; i++ { wg.Add(1) go increment(\u0026wg) } wg.Wait() fmt.Println(\"Counter:\", counter) } 输出：\nCounter: 1000 1.5 WaitGroup sync.WaitGroup 用于等待一组 Goroutine 完成。\n示例：使用 WaitGroup 同步 Goroutine\npackage main import ( \"fmt\" \"sync\" \"time\" ) func worker(id int, wg *sync.WaitGroup) { defer wg.Done() fmt.Printf(\"Worker %d starting\\n\", id) time.Sleep(time.Second) fmt.Printf(\"Worker %d done\\n\", id) } func main() { var wg sync.WaitGroup for i := 1; i \u003c= 3; i++ { wg.Add(1) go worker(i, \u0026wg) } wg.Wait() fmt.Println(\"All workers done\") } 输出：\nWorker 1 starting\rWorker 2 starting\rWorker 3 starting\rWorker 1 done\rWorker 2 done\rWorker 3 done\rAll workers done 02 依赖管理 Go 的依赖管理经历了从 GOPATH 到 Go Module 的演进，Go Module 是目前的标准方式。\n2.1 Go Module Go Module 通过 go.mod 文件管理依赖，支持版本控制和依赖隔离。\n示例：初始化 Go Module\ngo mod init myproject 生成的 go.mod 文件：\nmodule myproject go 1.20 2.2 添加依赖 使用 go get 添加依赖，Go 会自动更新 go.mod 和 go.sum 文件。\n示例：添加依赖\ngo get github.com/gin-gonic/gin go.mod 文件更新：\nmodule myproject go 1.20 require github.com/gin-gonic/gin v1.9.0 2.3 依赖版本控制 语义化版本：v1.2.3，格式为 主版本.次版本.修订号。 伪版本：v0.0.0-20230101000000-abcdef123456，基于 commit 的版本。 示例：指定依赖版本\ngo get github.com/gin-gonic/gin@v1.8.1 2.4 清理无用依赖 使用 go mod tidy 清理未使用的依赖。\n示例：清理依赖\ngo mod tidy 03 测试 Go 内置测试框架，支持单元测试、基准测试和 Mock 测试。\n3.1 单元测试 测试文件以 _test.go 结尾，测试函数以 Test 开头。\n示例：单元测试\npackage main import \"testing\" func Add(a, b int) int { return a + b } func TestAdd(t *testing.T) { result := Add(2, 3) if result != 5 { t.Errorf(\"Expected 5, got %d\", result) } } 运行测试：\ngo test 3.2 基准测试 基准测试用于评估代码性能。\n示例：基准测试\npackage main import \"testing\" func BenchmarkAdd(b *testing.B) { for i := 0; i \u003c b.N; i++ { Add(2, 3) } } 运行基准测试：\ngo test -bench=. 3.3 Mock 测试 使用 Mock 模拟外部依赖。\n示例：Mock 测试\npackage main import ( \"testing\" \"github.com/stretchr/testify/mock\" ) type DB interface { Get(key string) (string, error) } type MockDB struct { mock.Mock } func (m *MockDB) Get(key string) (string, error) { args := m.Called(key) return args.String(0), args.Error(1) } func TestGetFromDB(t *testing.T) { mockDB := new(MockDB) mockDB.On(\"Get\", \"key\").Return(\"value\", nil) value, err := mockDB.Get(\"key\") if err != nil { t.Errorf(\"Unexpected error: %v\", err) } if value != \"value\" { t.Errorf(\"Expected 'value', got '%s'\", value) } } 04 项目实践 4.1 需求描述 假设我们需要开发一个简单的 HTTP 服务，提供以下功能：\n用户注册：用户可以通过 API 注册账号。 用户登录：用户可以通过 API 登录并获取 token。 获取用户信息：用户可以通过 token 获取自己的信息。 4.2 项目拆解 将需求拆解为以下模块：\n路由处理：定义 API 路由，处理 HTTP 请求。 数据库交互：存储和查询用户数据。 日志记录：记录请求日志和错误信息。 认证与授权：实现用户登录和 token 验证。 4.3 代码设计 4.3.1 使用 Gin 框架处理 HTTP 请求 Gin 是一个高性能的 HTTP 框架，适合快速开发 API。\n示例：初始化 Gin 并定义路由\npackage main import ( \"github.com/gin-gonic/gin\" \"net/http\" ) func main() { r := gin.Default() // 用户注册 r.POST(\"/register\", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{\"message\": \"User registered\"}) }) // 用户登录 r.POST(\"/login\", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{\"message\": \"User logged in\"}) }) // 获取用户信息 r.GET(\"/user\", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{\"message\": \"User info\"}) }) r.Run(\":8080\") // 启动服务 } 4.3.2 使用 GORM 进行数据库操作 GORM 是一个强大的 ORM 库，支持多种数据库。\n示例：定义用户模型并初始化数据库\npackage main import ( \"gorm.io/driver/sqlite\" \"gorm.io/gorm\" ) type User struct { gorm.Model Username string `json:\"username\"` Password string `json:\"password\"` } func initDB() *gorm.DB { db, err := gorm.Open(sqlite.Open(\"test.db\"), \u0026gorm.Config{}) if err != nil { panic(\"Failed to connect to database\") } db.AutoMigrate(\u0026User{}) // 自动迁移表结构 return db } func main() { db := initDB() // 将 db 实例传递给路由处理函数 } 4.3.3 使用 Zap 记录日志 Zap 是一个高性能的日志库，适合记录结构化日志。\n示例：初始化 Zap 日志\npackage main import ( \"go.uber.org/zap\" ) func initLogger() *zap.Logger { logger, err := zap.NewProduction() if err != nil { panic(\"Failed to initialize logger\") } return logger } func main() { logger := initLogger() defer logger.Sync() // 刷新日志缓冲区 logger.Info(\"Logger initialized\") } 4.3.4 实现认证与授权 使用 JWT（JSON Web Token）实现用户认证。\n示例：生成和验证 JWT\npackage main import ( \"github.com/dgrijalva/jwt-go\" \"time\" ) var jwtKey = []byte(\"my_secret_key\") type Claims struct { Username string `json:\"username\"` jwt.StandardClaims } func generateToken(username string) (string, error) { expirationTime := time.Now().Add(24 * time.Hour) claims := \u0026Claims{ Username: username, StandardClaims: jwt.StandardClaims{ ExpiresAt: expirationTime.Unix(), }, } token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims) return token.SignedString(jwtKey) } func validateToken(tokenString string) (*Claims, error) { claims := \u0026Claims{} token, err := jwt.ParseWithClaims(tokenString, claims, func(token *jwt.Token) (interface{}, error) { return jwtKey, nil }) if err != nil { return nil, err } if !token.Valid { return nil, jwt.ErrSignatureInvalid } return claims, nil } 4.4 测试运行 4.4.1 单元测试 为每个模块编写单元测试，确保功能正确。\n示例：测试用户注册\npackage main import ( \"net/http\" \"net/http/httptest\" \"strings\" \"testing\" \"github.com/gin-gonic/gin\" \"github.com/stretchr/testify/assert\" ) func TestRegister(t *testing.T) { // 初始化 Gin r := gin.Default() r.POST(\"/register\", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{\"message\": \"User registered\"}) }) // 模拟请求 reqBody := `{\"username\": \"test\", \"password\": \"123456\"}` req, _ := http.NewRequest(\"POST\", \"/register\", strings.NewReader(reqBody)) req.Header.Set(\"Content-Type\", \"application/json\") // 记录响应 w := httptest.NewRecorder() r.ServeHTTP(w, req) // 验证响应 assert.Equal(t, http.StatusOK, w.Code) assert.Contains(t, w.Body.String(), \"User registered\") } 4.4.2 集成测试 测试多个模块的协同工作。\n示例：测试用户登录并获取信息\npackage main import ( \"net/http\" \"net/http/httptest\" \"strings\" \"testing\" \"github.com/gin-gonic/gin\" \"github.com/stretchr/testify/assert\" ) func TestLoginAndGetUserInfo(t *testing.T) { // 初始化 Gin r := gin.Default() r.POST(\"/login\", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{\"token\": \"fake_token\"}) }) r.GET(\"/user\", func(c *gin.Context) { c.JSON(http.StatusOK, gin.H{\"username\": \"test\"}) }) // 模拟登录请求 loginBody := `{\"username\": \"test\", \"password\": \"123456\"}` loginReq, _ := http.NewRequest(\"POST\", \"/login\", strings.NewReader(loginBody)) loginReq.Header.Set(\"Content-Type\", \"application/json\") // 记录登录响应 loginW := httptest.NewRecorder() r.ServeHTTP(loginW, loginReq) // 验证登录响应 assert.Equal(t, http.StatusOK, loginW.Code) assert.Contains(t, loginW.Body.String(), \"fake_token\") // 模拟获取用户信息请求 userReq, _ := http.NewRequest(\"GET\", \"/user\", nil) userReq.Header.Set(\"Authorization\", \"Bearer fake_token\") // 记录用户信息响应 userW := httptest.NewRecorder() r.ServeHTTP(userW, userReq) // 验证用户信息响应 assert.Equal(t, http.StatusOK, userW.Code) assert.Contains(t, userW.Body.String(), \"test\") } ",
+  "wordCount" : "2039",
+  "inLanguage": "zh",
+  "datePublished": "2025-01-25T15:37:01+08:00",
+  "dateModified": "2025-01-25T15:37:01+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/go-2/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Go 并发与依赖管理
+    </h1>
+    <div class="post-description">
+      Go 并发与依赖管理
+    </div>
+    <div class="post-meta"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2039 字&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#go-%e5%b9%b6%e5%8f%91%e4%b8%8e%e4%be%9d%e8%b5%96%e7%ae%a1%e7%90%86" aria-label="Go 并发与依赖管理">Go 并发与依赖管理</a><ul>
+                            
+                    <li>
+                        <a href="#01-%e5%b9%b6%e5%8f%91%e4%b8%8e%e5%b9%b6%e8%a1%8c" aria-label="01 并发与并行">01 并发与并行</a><ul>
+                            
+                    <li>
+                        <a href="#11-goroutine" aria-label="1.1 Goroutine">1.1 Goroutine</a></li>
+                    <li>
+                        <a href="#12-csp-%e6%a8%a1%e5%9e%8b" aria-label="1.2 CSP 模型">1.2 CSP 模型</a></li>
+                    <li>
+                        <a href="#13-channel-%e7%b1%bb%e5%9e%8b" aria-label="1.3 Channel 类型">1.3 Channel 类型</a></li>
+                    <li>
+                        <a href="#14-%e5%b9%b6%e5%8f%91%e5%ae%89%e5%85%a8%e4%b8%8e%e9%94%81" aria-label="1.4 并发安全与锁">1.4 并发安全与锁</a></li>
+                    <li>
+                        <a href="#15-waitgroup" aria-label="1.5 WaitGroup">1.5 WaitGroup</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#02-%e4%be%9d%e8%b5%96%e7%ae%a1%e7%90%86" aria-label="02 依赖管理">02 依赖管理</a><ul>
+                            
+                    <li>
+                        <a href="#21-go-module" aria-label="2.1 Go Module">2.1 Go Module</a></li>
+                    <li>
+                        <a href="#22-%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96" aria-label="2.2 添加依赖">2.2 添加依赖</a></li>
+                    <li>
+                        <a href="#23-%e4%be%9d%e8%b5%96%e7%89%88%e6%9c%ac%e6%8e%a7%e5%88%b6" aria-label="2.3 依赖版本控制">2.3 依赖版本控制</a></li>
+                    <li>
+                        <a href="#24-%e6%b8%85%e7%90%86%e6%97%a0%e7%94%a8%e4%be%9d%e8%b5%96" aria-label="2.4 清理无用依赖">2.4 清理无用依赖</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#03-%e6%b5%8b%e8%af%95" aria-label="03 测试">03 测试</a><ul>
+                            
+                    <li>
+                        <a href="#31-%e5%8d%95%e5%85%83%e6%b5%8b%e8%af%95" aria-label="3.1 单元测试">3.1 单元测试</a></li>
+                    <li>
+                        <a href="#32-%e5%9f%ba%e5%87%86%e6%b5%8b%e8%af%95" aria-label="3.2 基准测试">3.2 基准测试</a></li>
+                    <li>
+                        <a href="#33-mock-%e6%b5%8b%e8%af%95" aria-label="3.3 Mock 测试">3.3 Mock 测试</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#04-%e9%a1%b9%e7%9b%ae%e5%ae%9e%e8%b7%b5" aria-label="04 项目实践">04 项目实践</a><ul>
+                            
+                    <li>
+                        <a href="#41-%e9%9c%80%e6%b1%82%e6%8f%8f%e8%bf%b0" aria-label="4.1 需求描述">4.1 需求描述</a></li>
+                    <li>
+                        <a href="#42-%e9%a1%b9%e7%9b%ae%e6%8b%86%e8%a7%a3" aria-label="4.2 项目拆解">4.2 项目拆解</a></li>
+                    <li>
+                        <a href="#43-%e4%bb%a3%e7%a0%81%e8%ae%be%e8%ae%a1" aria-label="4.3 代码设计">4.3 代码设计</a><ul>
+                            
+                    <li>
+                        <a href="#431-%e4%bd%bf%e7%94%a8-gin-%e6%a1%86%e6%9e%b6%e5%a4%84%e7%90%86-http-%e8%af%b7%e6%b1%82" aria-label="4.3.1 使用 Gin 框架处理 HTTP 请求">4.3.1 使用 Gin 框架处理 HTTP 请求</a></li>
+                    <li>
+                        <a href="#432-%e4%bd%bf%e7%94%a8-gorm-%e8%bf%9b%e8%a1%8c%e6%95%b0%e6%8d%ae%e5%ba%93%e6%93%8d%e4%bd%9c" aria-label="4.3.2 使用 GORM 进行数据库操作">4.3.2 使用 GORM 进行数据库操作</a></li>
+                    <li>
+                        <a href="#433-%e4%bd%bf%e7%94%a8-zap-%e8%ae%b0%e5%bd%95%e6%97%a5%e5%bf%97" aria-label="4.3.3 使用 Zap 记录日志">4.3.3 使用 Zap 记录日志</a></li>
+                    <li>
+                        <a href="#434-%e5%ae%9e%e7%8e%b0%e8%ae%a4%e8%af%81%e4%b8%8e%e6%8e%88%e6%9d%83" aria-label="4.3.4 实现认证与授权">4.3.4 实现认证与授权</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#44-%e6%b5%8b%e8%af%95%e8%bf%90%e8%a1%8c" aria-label="4.4 测试运行">4.4 测试运行</a><ul>
+                            
+                    <li>
+                        <a href="#441-%e5%8d%95%e5%85%83%e6%b5%8b%e8%af%95" aria-label="4.4.1 单元测试">4.4.1 单元测试</a></li>
+                    <li>
+                        <a href="#442-%e9%9b%86%e6%88%90%e6%b5%8b%e8%af%95" aria-label="4.4.2 集成测试">4.4.2 集成测试</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="go-并发与依赖管理">Go 并发与依赖管理<a hidden class="anchor" aria-hidden="true" href="#go-并发与依赖管理">#</a></h1>
+<p>本文深入探讨 Go 语言的并发编程和依赖管理，结合具体示例，帮助你快速掌握核心知识点，提升开发效率。</p>
+<hr>
+<h2 id="01-并发与并行">01 并发与并行<a hidden class="anchor" aria-hidden="true" href="#01-并发与并行">#</a></h2>
+<p>Go 语言通过 Goroutine 和 Channel 实现高效的并发编程，充分发挥多核 CPU 的优势。</p>
+<h3 id="11-goroutine">1.1 Goroutine<a hidden class="anchor" aria-hidden="true" href="#11-goroutine">#</a></h3>
+<p>Goroutine 是 Go 的轻量级线程，由 Go 运行时管理，栈大小仅为 KB 级别，创建成本低。</p>
+<p><strong>示例：创建 Goroutine</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">printNumbers</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">5</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">i</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">500</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Millisecond</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">printNumbers</span>() <span style="color:#75715e">// 创建 Goroutine
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#ae81ff">3</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>) <span style="color:#75715e">// 等待 Goroutine 执行完成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Main function finished&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>输出：</strong></p>
+<pre tabindex="0"><code>1
+2
+3
+4
+5
+Main function finished
+</code></pre><h3 id="12-csp-模型">1.2 CSP 模型<a hidden class="anchor" aria-hidden="true" href="#12-csp-模型">#</a></h3>
+<p>Go 提倡通过通信共享内存，而不是通过共享内存实现通信。Channel 是 Goroutine 之间的通信机制。</p>
+<p><strong>示例：使用 Channel 通信</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">sendData</span>(<span style="color:#a6e22e">ch</span> <span style="color:#66d9ef">chan</span><span style="color:#f92672">&lt;-</span> <span style="color:#66d9ef">string</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">&lt;-</span> <span style="color:#e6db74">&#34;Hello&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">&lt;-</span> <span style="color:#e6db74">&#34;World&#34;</span>
+</span></span><span style="display:flex;"><span>	close(<span style="color:#a6e22e">ch</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">string</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">sendData</span>(<span style="color:#a6e22e">ch</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">msg</span> <span style="color:#f92672">:=</span> <span style="color:#66d9ef">range</span> <span style="color:#a6e22e">ch</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">msg</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>输出：</strong></p>
+<pre tabindex="0"><code>Hello
+World
+</code></pre><h3 id="13-channel-类型">1.3 Channel 类型<a hidden class="anchor" aria-hidden="true" href="#13-channel-类型">#</a></h3>
+<ul>
+<li><strong>无缓冲 Channel</strong>：<code>make(chan int)</code>，发送和接收操作会阻塞，直到另一方准备好。</li>
+<li><strong>有缓冲 Channel</strong>：<code>make(chan int, 2)</code>，缓冲区满时发送操作阻塞，缓冲区空时接收操作阻塞。</li>
+</ul>
+<p><strong>示例：有缓冲 Channel</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">:=</span> make(<span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">int</span>, <span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">1</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">ch</span> <span style="color:#f92672">&lt;-</span> <span style="color:#ae81ff">2</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ch</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#f92672">&lt;-</span><span style="color:#a6e22e">ch</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>输出：</strong></p>
+<pre tabindex="0"><code>1
+2
+</code></pre><h3 id="14-并发安全与锁">1.4 并发安全与锁<a hidden class="anchor" aria-hidden="true" href="#14-并发安全与锁">#</a></h3>
+<p>并发操作可能导致数据竞争，需使用锁（如 <code>sync.Mutex</code>）确保安全。</p>
+<p><strong>示例：使用 Mutex 保证并发安全</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;sync&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">counter</span> <span style="color:#66d9ef">int</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mu</span>      <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Mutex</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">increment</span>(<span style="color:#a6e22e">wg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Lock</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">counter</span><span style="color:#f92672">++</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mu</span>.<span style="color:#a6e22e">Unlock</span>()
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#ae81ff">1000</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">increment</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">wg</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;Counter:&#34;</span>, <span style="color:#a6e22e">counter</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>输出：</strong></p>
+<pre tabindex="0"><code>Counter: 1000
+</code></pre><h3 id="15-waitgroup">1.5 WaitGroup<a hidden class="anchor" aria-hidden="true" href="#15-waitgroup">#</a></h3>
+<p><code>sync.WaitGroup</code> 用于等待一组 Goroutine 完成。</p>
+<p><strong>示例：使用 WaitGroup 同步 Goroutine</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;fmt&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;sync&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">worker</span>(<span style="color:#a6e22e">id</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">wg</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Done</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Worker %d starting\n&#34;</span>, <span style="color:#a6e22e">id</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Sleep</span>(<span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Second</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Printf</span>(<span style="color:#e6db74">&#34;Worker %d done\n&#34;</span>, <span style="color:#a6e22e">id</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span>; <span style="color:#a6e22e">i</span> <span style="color:#f92672">&lt;=</span> <span style="color:#ae81ff">3</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">go</span> <span style="color:#a6e22e">worker</span>(<span style="color:#a6e22e">i</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">wg</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#e6db74">&#34;All workers done&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>输出：</strong></p>
+<pre tabindex="0"><code>Worker 1 starting
+Worker 2 starting
+Worker 3 starting
+Worker 1 done
+Worker 2 done
+Worker 3 done
+All workers done
+</code></pre><hr>
+<h2 id="02-依赖管理">02 依赖管理<a hidden class="anchor" aria-hidden="true" href="#02-依赖管理">#</a></h2>
+<p>Go 的依赖管理经历了从 GOPATH 到 Go Module 的演进，Go Module 是目前的标准方式。</p>
+<h3 id="21-go-module">2.1 Go Module<a hidden class="anchor" aria-hidden="true" href="#21-go-module">#</a></h3>
+<p>Go Module 通过 <code>go.mod</code> 文件管理依赖，支持版本控制和依赖隔离。</p>
+<p><strong>示例：初始化 Go Module</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go mod init myproject
+</span></span></code></pre></div><p>生成的 <code>go.mod</code> 文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">module</span> <span style="color:#a6e22e">myproject</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#ae81ff">1.20</span>
+</span></span></code></pre></div><h3 id="22-添加依赖">2.2 添加依赖<a hidden class="anchor" aria-hidden="true" href="#22-添加依赖">#</a></h3>
+<p>使用 <code>go get</code> 添加依赖，Go 会自动更新 <code>go.mod</code> 和 <code>go.sum</code> 文件。</p>
+<p><strong>示例：添加依赖</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go get github.com/gin-gonic/gin
+</span></span></code></pre></div><p><code>go.mod</code> 文件更新：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#a6e22e">module</span> <span style="color:#a6e22e">myproject</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">go</span> <span style="color:#ae81ff">1.20</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">require</span> <span style="color:#a6e22e">github</span>.<span style="color:#a6e22e">com</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gin</span><span style="color:#f92672">-</span><span style="color:#a6e22e">gonic</span><span style="color:#f92672">/</span><span style="color:#a6e22e">gin</span> <span style="color:#a6e22e">v1</span><span style="color:#ae81ff">.9.0</span>
+</span></span></code></pre></div><h3 id="23-依赖版本控制">2.3 依赖版本控制<a hidden class="anchor" aria-hidden="true" href="#23-依赖版本控制">#</a></h3>
+<ul>
+<li><strong>语义化版本</strong>：<code>v1.2.3</code>，格式为 <code>主版本.次版本.修订号</code>。</li>
+<li><strong>伪版本</strong>：<code>v0.0.0-20230101000000-abcdef123456</code>，基于 commit 的版本。</li>
+</ul>
+<p><strong>示例：指定依赖版本</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go get github.com/gin-gonic/gin@v1.8.1
+</span></span></code></pre></div><h3 id="24-清理无用依赖">2.4 清理无用依赖<a hidden class="anchor" aria-hidden="true" href="#24-清理无用依赖">#</a></h3>
+<p>使用 <code>go mod tidy</code> 清理未使用的依赖。</p>
+<p><strong>示例：清理依赖</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go mod tidy
+</span></span></code></pre></div><hr>
+<h2 id="03-测试">03 测试<a hidden class="anchor" aria-hidden="true" href="#03-测试">#</a></h2>
+<p>Go 内置测试框架，支持单元测试、基准测试和 Mock 测试。</p>
+<h3 id="31-单元测试">3.1 单元测试<a hidden class="anchor" aria-hidden="true" href="#31-单元测试">#</a></h3>
+<p>测试文件以 <code>_test.go</code> 结尾，测试函数以 <code>Test</code> 开头。</p>
+<p><strong>示例：单元测试</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">Add</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestAdd</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">result</span> <span style="color:#f92672">!=</span> <span style="color:#ae81ff">5</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected 5, got %d&#34;</span>, <span style="color:#a6e22e">result</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>运行测试：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go test
+</span></span></code></pre></div><h3 id="32-基准测试">3.2 基准测试<a hidden class="anchor" aria-hidden="true" href="#32-基准测试">#</a></h3>
+<p>基准测试用于评估代码性能。</p>
+<p><strong>示例：基准测试</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> <span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">BenchmarkAdd</span>(<span style="color:#a6e22e">b</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">B</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">b</span>.<span style="color:#a6e22e">N</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>运行基准测试：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>go test -bench<span style="color:#f92672">=</span>.
+</span></span></code></pre></div><h3 id="33-mock-测试">3.3 Mock 测试<a hidden class="anchor" aria-hidden="true" href="#33-mock-测试">#</a></h3>
+<p>使用 Mock 模拟外部依赖。</p>
+<p><strong>示例：Mock 测试</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/stretchr/testify/mock&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">DB</span> <span style="color:#66d9ef">interface</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">MockDB</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mock</span>.<span style="color:#a6e22e">Mock</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> (<span style="color:#a6e22e">m</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">MockDB</span>) <span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">key</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">args</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">m</span>.<span style="color:#a6e22e">Called</span>(<span style="color:#a6e22e">key</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">args</span>.<span style="color:#a6e22e">String</span>(<span style="color:#ae81ff">0</span>), <span style="color:#a6e22e">args</span>.<span style="color:#a6e22e">Error</span>(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestGetFromDB</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mockDB</span> <span style="color:#f92672">:=</span> new(<span style="color:#a6e22e">MockDB</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">mockDB</span>.<span style="color:#a6e22e">On</span>(<span style="color:#e6db74">&#34;Get&#34;</span>, <span style="color:#e6db74">&#34;key&#34;</span>).<span style="color:#a6e22e">Return</span>(<span style="color:#e6db74">&#34;value&#34;</span>, <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">value</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">mockDB</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#e6db74">&#34;key&#34;</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Unexpected error: %v&#34;</span>, <span style="color:#a6e22e">err</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">value</span> <span style="color:#f92672">!=</span> <span style="color:#e6db74">&#34;value&#34;</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">t</span>.<span style="color:#a6e22e">Errorf</span>(<span style="color:#e6db74">&#34;Expected &#39;value&#39;, got &#39;%s&#39;&#34;</span>, <span style="color:#a6e22e">value</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<h2 id="04-项目实践">04 项目实践<a hidden class="anchor" aria-hidden="true" href="#04-项目实践">#</a></h2>
+<h3 id="41-需求描述">4.1 需求描述<a hidden class="anchor" aria-hidden="true" href="#41-需求描述">#</a></h3>
+<p>假设我们需要开发一个简单的 HTTP 服务，提供以下功能：</p>
+<ol>
+<li><strong>用户注册</strong>：用户可以通过 API 注册账号。</li>
+<li><strong>用户登录</strong>：用户可以通过 API 登录并获取 token。</li>
+<li><strong>获取用户信息</strong>：用户可以通过 token 获取自己的信息。</li>
+</ol>
+<hr>
+<h3 id="42-项目拆解">4.2 项目拆解<a hidden class="anchor" aria-hidden="true" href="#42-项目拆解">#</a></h3>
+<p>将需求拆解为以下模块：</p>
+<ol>
+<li><strong>路由处理</strong>：定义 API 路由，处理 HTTP 请求。</li>
+<li><strong>数据库交互</strong>：存储和查询用户数据。</li>
+<li><strong>日志记录</strong>：记录请求日志和错误信息。</li>
+<li><strong>认证与授权</strong>：实现用户登录和 token 验证。</li>
+</ol>
+<hr>
+<h3 id="43-代码设计">4.3 代码设计<a hidden class="anchor" aria-hidden="true" href="#43-代码设计">#</a></h3>
+<h4 id="431-使用-gin-框架处理-http-请求">4.3.1 使用 Gin 框架处理 HTTP 请求<a hidden class="anchor" aria-hidden="true" href="#431-使用-gin-框架处理-http-请求">#</a></h4>
+<p>Gin 是一个高性能的 HTTP 框架，适合快速开发 API。</p>
+<p><strong>示例：初始化 Gin 并定义路由</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 用户注册
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/register&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;User registered&#34;</span>})
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 用户登录
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/login&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;User logged in&#34;</span>})
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 获取用户信息
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/user&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;User info&#34;</span>})
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">Run</span>(<span style="color:#e6db74">&#34;:8080&#34;</span>) <span style="color:#75715e">// 启动服务
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h4 id="432-使用-gorm-进行数据库操作">4.3.2 使用 GORM 进行数据库操作<a hidden class="anchor" aria-hidden="true" href="#432-使用-gorm-进行数据库操作">#</a></h4>
+<p>GORM 是一个强大的 ORM 库，支持多种数据库。</p>
+<p><strong>示例：定义用户模型并初始化数据库</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;gorm.io/driver/sqlite&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;gorm.io/gorm&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">User</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">Model</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Username</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;username&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Password</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;password&#34;`</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">initDB</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">DB</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">db</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#a6e22e">sqlite</span>.<span style="color:#a6e22e">Open</span>(<span style="color:#e6db74">&#34;test.db&#34;</span>), <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">gorm</span>.<span style="color:#a6e22e">Config</span>{})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;Failed to connect to database&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">AutoMigrate</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">User</span>{}) <span style="color:#75715e">// 自动迁移表结构
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">db</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">db</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">initDB</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 将 db 实例传递给路由处理函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h4 id="433-使用-zap-记录日志">4.3.3 使用 Zap 记录日志<a hidden class="anchor" aria-hidden="true" href="#433-使用-zap-记录日志">#</a></h4>
+<p>Zap 是一个高性能的日志库，适合记录结构化日志。</p>
+<p><strong>示例：初始化 Zap 日志</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;go.uber.org/zap&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">initLogger</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">Logger</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">zap</span>.<span style="color:#a6e22e">NewProduction</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		panic(<span style="color:#e6db74">&#34;Failed to initialize logger&#34;</span>)
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">logger</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">logger</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">initLogger</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">defer</span> <span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Sync</span>() <span style="color:#75715e">// 刷新日志缓冲区
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">logger</span>.<span style="color:#a6e22e">Info</span>(<span style="color:#e6db74">&#34;Logger initialized&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="434-实现认证与授权">4.3.4 实现认证与授权<a hidden class="anchor" aria-hidden="true" href="#434-实现认证与授权">#</a></h4>
+<p>使用 JWT（JSON Web Token）实现用户认证。</p>
+<p><strong>示例：生成和验证 JWT</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/dgrijalva/jwt-go&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;time&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">jwtKey</span> = []byte(<span style="color:#e6db74">&#34;my_secret_key&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Claims</span> <span style="color:#66d9ef">struct</span> {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">Username</span> <span style="color:#66d9ef">string</span> <span style="color:#e6db74">`json:&#34;username&#34;`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">generateToken</span>(<span style="color:#a6e22e">username</span> <span style="color:#66d9ef">string</span>) (<span style="color:#66d9ef">string</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">expirationTime</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Now</span>().<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">24</span> <span style="color:#f92672">*</span> <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">claims</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Claims</span>{
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">Username</span>: <span style="color:#a6e22e">username</span>,
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">StandardClaims</span>: <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">StandardClaims</span>{
+</span></span><span style="display:flex;"><span>			<span style="color:#a6e22e">ExpiresAt</span>: <span style="color:#a6e22e">expirationTime</span>.<span style="color:#a6e22e">Unix</span>(),
+</span></span><span style="display:flex;"><span>		},
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">token</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">NewWithClaims</span>(<span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">SigningMethodHS256</span>, <span style="color:#a6e22e">claims</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">token</span>.<span style="color:#a6e22e">SignedString</span>(<span style="color:#a6e22e">jwtKey</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">validateToken</span>(<span style="color:#a6e22e">tokenString</span> <span style="color:#66d9ef">string</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">Claims</span>, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">claims</span> <span style="color:#f92672">:=</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Claims</span>{}
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">token</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">ParseWithClaims</span>(<span style="color:#a6e22e">tokenString</span>, <span style="color:#a6e22e">claims</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">token</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">Token</span>) (<span style="color:#66d9ef">interface</span>{}, <span style="color:#66d9ef">error</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">jwtKey</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">if</span> !<span style="color:#a6e22e">token</span>.<span style="color:#a6e22e">Valid</span> {
+</span></span><span style="display:flex;"><span>		<span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">jwt</span>.<span style="color:#a6e22e">ErrSignatureInvalid</span>
+</span></span><span style="display:flex;"><span>	}
+</span></span><span style="display:flex;"><span>	<span style="color:#66d9ef">return</span> <span style="color:#a6e22e">claims</span>, <span style="color:#66d9ef">nil</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<h3 id="44-测试运行">4.4 测试运行<a hidden class="anchor" aria-hidden="true" href="#44-测试运行">#</a></h3>
+<h4 id="441-单元测试">4.4.1 单元测试<a hidden class="anchor" aria-hidden="true" href="#441-单元测试">#</a></h4>
+<p>为每个模块编写单元测试，确保功能正确。</p>
+<p><strong>示例：测试用户注册</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http/httptest&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strings&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/stretchr/testify/assert&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestRegister</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 初始化 Gin
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/register&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;message&#34;</span>: <span style="color:#e6db74">&#34;User registered&#34;</span>})
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 模拟请求
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">reqBody</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">`{&#34;username&#34;: &#34;test&#34;, &#34;password&#34;: &#34;123456&#34;}`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">req</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#e6db74">&#34;POST&#34;</span>, <span style="color:#e6db74">&#34;/register&#34;</span>, <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">reqBody</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">req</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Type&#34;</span>, <span style="color:#e6db74">&#34;application/json&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 记录响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">w</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRecorder</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">w</span>, <span style="color:#a6e22e">req</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 验证响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Code</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Contains</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">w</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">String</span>(), <span style="color:#e6db74">&#34;User registered&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="442-集成测试">4.4.2 集成测试<a hidden class="anchor" aria-hidden="true" href="#442-集成测试">#</a></h4>
+<p>测试多个模块的协同工作。</p>
+<p><strong>示例：测试用户登录并获取信息</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#f92672">package</span> <span style="color:#a6e22e">main</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> (
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;net/http/httptest&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;strings&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;testing&#34;</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/gin-gonic/gin&#34;</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#e6db74">&#34;github.com/stretchr/testify/assert&#34;</span>
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">TestLoginAndGetUserInfo</span>(<span style="color:#a6e22e">t</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">testing</span>.<span style="color:#a6e22e">T</span>) {
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 初始化 Gin
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">r</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Default</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">POST</span>(<span style="color:#e6db74">&#34;/login&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;token&#34;</span>: <span style="color:#e6db74">&#34;fake_token&#34;</span>})
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">GET</span>(<span style="color:#e6db74">&#34;/user&#34;</span>, <span style="color:#66d9ef">func</span>(<span style="color:#a6e22e">c</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">Context</span>) {
+</span></span><span style="display:flex;"><span>		<span style="color:#a6e22e">c</span>.<span style="color:#a6e22e">JSON</span>(<span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">gin</span>.<span style="color:#a6e22e">H</span>{<span style="color:#e6db74">&#34;username&#34;</span>: <span style="color:#e6db74">&#34;test&#34;</span>})
+</span></span><span style="display:flex;"><span>	})
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 模拟登录请求
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">loginBody</span> <span style="color:#f92672">:=</span> <span style="color:#e6db74">`{&#34;username&#34;: &#34;test&#34;, &#34;password&#34;: &#34;123456&#34;}`</span>
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">loginReq</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#e6db74">&#34;POST&#34;</span>, <span style="color:#e6db74">&#34;/login&#34;</span>, <span style="color:#a6e22e">strings</span>.<span style="color:#a6e22e">NewReader</span>(<span style="color:#a6e22e">loginBody</span>))
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">loginReq</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Content-Type&#34;</span>, <span style="color:#e6db74">&#34;application/json&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 记录登录响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">loginW</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRecorder</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">loginW</span>, <span style="color:#a6e22e">loginReq</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 验证登录响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">loginW</span>.<span style="color:#a6e22e">Code</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Contains</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">loginW</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">String</span>(), <span style="color:#e6db74">&#34;fake_token&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 模拟获取用户信息请求
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">userReq</span>, <span style="color:#a6e22e">_</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">NewRequest</span>(<span style="color:#e6db74">&#34;GET&#34;</span>, <span style="color:#e6db74">&#34;/user&#34;</span>, <span style="color:#66d9ef">nil</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">userReq</span>.<span style="color:#a6e22e">Header</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#e6db74">&#34;Authorization&#34;</span>, <span style="color:#e6db74">&#34;Bearer fake_token&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 记录用户信息响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">userW</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">httptest</span>.<span style="color:#a6e22e">NewRecorder</span>()
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">r</span>.<span style="color:#a6e22e">ServeHTTP</span>(<span style="color:#a6e22e">userW</span>, <span style="color:#a6e22e">userReq</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// 验证用户信息响应
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>	<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Equal</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">http</span>.<span style="color:#a6e22e">StatusOK</span>, <span style="color:#a6e22e">userW</span>.<span style="color:#a6e22e">Code</span>)
+</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">assert</span>.<span style="color:#a6e22e">Contains</span>(<span style="color:#a6e22e">t</span>, <span style="color:#a6e22e">userW</span>.<span style="color:#a6e22e">Body</span>.<span style="color:#a6e22e">String</span>(), <span style="color:#e6db74">&#34;test&#34;</span>)
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/golang/">GoLang</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/go">Go</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/read/english-words/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>English Words</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/go-3/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>Go 高质量编程与性能调优</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>
