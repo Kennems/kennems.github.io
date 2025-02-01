@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>MIT6.S081(8)-Page faults | Kennem&#39;s Blog</title>
+<meta name="keywords" content="MIT6.S081">
+<meta name="description" content="MIT6.S081(8)">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0818-page-faults/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0818-page-faults/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="MIT6.S081(8)-Page faults" />
+<meta property="og:description" content="MIT6.S081(8)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0818-page-faults/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-09-17T19:30:13+08:00" />
+<meta property="article:modified_time" content="2024-09-17T19:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MIT6.S081(8)-Page faults"/>
+<meta name="twitter:description" content="MIT6.S081(8)"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "MIT6.S081(8)-Page faults",
+      "item": "https://kennems.github.io/posts/tech/mit6.s0818-page-faults/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MIT6.S081(8)-Page faults",
+  "name": "MIT6.S081(8)-Page faults",
+  "description": "MIT6.S081(8)",
+  "keywords": [
+    "MIT6.S081"
+  ],
+  "articleBody": "MIT6.S081(8)-Page faults plan: cool things you can do with vm\nBetter performance/efficiency e.g., one zero-filled page e.g., copy-on-write fork New features e.g., memory-mapped files virtual memory: several views\nprimary purpose: isolation each process has its own address space Virtual memory provides a level-of-indirection provides kernel with opportunity to do cool stuff already some examples: shared trampoline page guard page but more possible… Key idea: change page tables on page fault Page fault is a form of a trap (like a system call) Xv6 panics on page fault But you don’t have to panic! Instead: update page table instead of panic restart instruction (see userret() from traps lecture) Combination of page faults and updating page table is powerful!\nRISC-V page faults 3 of 16 exceptions are related to paging Exceptions cause controlled transfers to kernel See traps lecture\nInformation we might need at page fault to do something interesting:\nThe virtual address that caused the fault See stval register; page faults set it to the fault address The type of violation that caused the fault See scause register value (instruction, load, and Store page fault) The instruction and mode where the fault occurred User IP: tf-\u003eepc U/K mode: implicit in usertrap/kerneltrap lazy/on-demand page allocation\nsbrk() is old fashioned; applications often ask for memory they need for example, the allocate for the largest possible input but an application will typically use less if they ask for much, sbrk() could be expensive for example, if all memory is in use, have to wait until kernel has evicted some pages to free up memory sbrk allocates memory that may never be used. moderns OSes allocate memory lazily plan: allocate physical memory when application needs it adjust p-\u003esz on sbrk, but don’t allocate when application uses that memory, it will result in page fault on pagefault allocate memory resume at the fault instruction may use less memory if not used, no fault, no allocation spreads the cost of allocation over the page faults instead of upfront in sbrk() demo modify sysproc.c modify trap.c modify vm.c one zero-filled page (zero fill on demand)\napplications often have large part of memory that must zero global arrays, etc. the “block starting symbol” (bbs) segment thus, kernel must often fill a page with zeros idea: memset one page with zeros map that page copy-on-write when kernel needs zero-filled page on write make copy of page and map it read/write in app address space copy-on-write fork\nobservation: xv6 fork copies all pages from parent (see fork()) but fork is often immediately followed by exec idea: share address space between parent and child modify fork() to map pages copy-on-write use extra available system bits (RSW) in PTEs on page fault, make copy of page and map it read/write demand paging\nobservation: exec loads the complete file into memory (see exec.c) expensive: takes time to do so (e.g., file is stored on a slow disk) unnecessary: maybe not the whole file will be used idea: load pages from the file on demand allocate page table entries, but mark them on-demand on fault, read the page in from the file and update page table entry need to keep some meta information about where a page is located on disk this information is typically in structure called virtual memory area (VMA) challenge: file larger than physical memory (see next idea) use virtual memory larger than physical memory\nobservation: application may need more memory than there is physical memory idea: store less-frequently used parts of the address space on disk page-in and page-out pages of the address address space transparently works when working sets fits in physical memory most popular replacement strategy: least-recently used (LRU) the A(cess) bit in the PTE helps the kernel implementing LRU demo: run top and vmstat on laptop and dialup.athena.mit.edu see VIRT RES MEM SHR columns memory-mapped files\nidea: allow access to files using load and store can easily read and writes part of a file e.g., don’t have to change offset using lseek system call Unix systems a new system call for m-mapped files: void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset); kernel page-in pages of a file on demand when memory is full, page-out pages of a file that are not frequently used shared virtual memory\nidea: allow processes on different machines to share virtual memory gives the illusion of physical shared memory, across a network replicate pages that are only read invalidate copies on write TLB management CPUs caches paging translation for speed xv6 flushes entire TLB during user/kernel transitions why? RISC-V allows more sophisticated plans\nPTE_G: global TLB bits what page could use this? ASID numbers TLB entries are tagged with ASID, so kernel can flush selectively SATP takes an ASID number sfence.vma also takes an ASID number Large pages 2MB and 1GB Virtual memory is still evolving Recent changes in Linux PKTI to handle meltdown side-channel (https://en.wikipedia.org/wiki/Kernel_page-table_isolation) xv6 basically implements KPTI Somewhat recent changes Support for 5-level page tables (57 address bits!) Support for ASIDs Less recent changes Support for large pages NX (No eXecute) PTE_X flag\n— COW in Linux\nhttps://lwn.net/Articles/849876/\nPage faults Virtual Memory Benefits Isolation Level of Indirection Va -\u003e Pa\nInformation Needed the faulting va ( va -\u003e stval register) the type of page fault ( scause ) the va of instruction that cause the page fault (sepc, trapframe) Allocation : sbrk() sbrk() -\u003e eager allocation\napplcations tend to over ask.\nLazy allocation sbrk() do nothing\nonly grow p-\u003esz\nPgFault : va \u003c p-\u003esz \u003e stack\nallocate 1 page\nzero the page\nmap the page\nrestart instruction\nCopy-on-Write(Cow) - Fork Zero-fill-on-demand Demand paging Memory-mapped-files shared virtual memory Lab: xv6 lazy page allocation Eliminate allocation from sbrk() (easy) Lazy allocation (moderate) Lazytests and Usertests (moderate) ",
+  "wordCount" : "958",
+  "inLanguage": "zh",
+  "datePublished": "2024-09-17T19:30:13+08:00",
+  "dateModified": "2024-09-17T19:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/mit6.s0818-page-faults/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      MIT6.S081(8)-Page faults
+    </h1>
+    <div class="post-description">
+      MIT6.S081(8)
+    </div>
+    <div class="post-meta"><span title='2024-09-17 19:30:13 +0800 CST'>2024-09-17</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;958 字&nbsp;·&nbsp;updated:&nbsp;2024-09-17&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#mit6s0818-page-faults" aria-label="MIT6.S081(8)-Page faults">MIT6.S081(8)-Page faults</a><ul>
+                            
+                    <li>
+                        <a href="#page-faults" aria-label="Page faults">Page faults</a><ul>
+                            
+                    <li>
+                        <a href="#virtual-memory-benefits" aria-label="Virtual Memory Benefits">Virtual Memory Benefits</a></li>
+                    <li>
+                        <a href="#information-needed" aria-label="Information Needed">Information Needed</a></li>
+                    <li>
+                        <a href="#allocation--sbrk" aria-label="Allocation : sbrk()">Allocation : sbrk()</a></li>
+                    <li>
+                        <a href="#lazy-allocation" aria-label="Lazy allocation">Lazy allocation</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#copy-on-writecow---fork" aria-label="Copy-on-Write(Cow) - Fork">Copy-on-Write(Cow) - Fork</a></li>
+                    <li>
+                        <a href="#zero-fill-on-demand" aria-label="Zero-fill-on-demand">Zero-fill-on-demand</a></li>
+                    <li>
+                        <a href="#demand-paging" aria-label="Demand paging">Demand paging</a><ul>
+                            
+                    <li>
+                        <a href="#memory-mapped-files" aria-label="Memory-mapped-files">Memory-mapped-files</a></li>
+                    <li>
+                        <a href="#shared-virtual-memory" aria-label="shared virtual memory">shared virtual memory</a></li></ul>
+                    </li></ul>
+                    </li>
+                    <li>
+                        <a href="#lab-xv6-lazy-page-allocationhttpspdoscsailmitedu6s0812020labslazyhtml" aria-label="Lab: xv6 lazy page allocation"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation</a></a><ul>
+                            
+                    <li>
+                        <a href="#eliminate-allocation-from-sbrk-easyhttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Eliminate allocation from sbrk() (easy)">Eliminate allocation from sbrk() (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)</a></li>
+                    <li>
+                        <a href="#lazy-allocation-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Lazy allocation (moderate)">Lazy allocation (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a></li>
+                    <li>
+                        <a href="#lazytests-and-usertests-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Lazytests and Usertests (moderate)">Lazytests and Usertests (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="mit6s0818-page-faults">MIT6.S081(8)-Page faults<a hidden class="anchor" aria-hidden="true" href="#mit6s0818-page-faults">#</a></h1>
+<ul>
+<li>
+<p>plan: cool things you can do with vm</p>
+<ul>
+<li>Better performance/efficiency
+e.g., one zero-filled page
+e.g., copy-on-write fork</li>
+<li>New features
+e.g., memory-mapped files</li>
+</ul>
+</li>
+<li>
+<p>virtual memory: several views</p>
+<ul>
+<li>primary purpose: isolation
+each process has its own address space</li>
+<li>Virtual memory provides a level-of-indirection
+provides kernel with opportunity to do cool stuff
+already some examples:
+<ul>
+<li>shared trampoline page</li>
+<li>guard page
+but more possible&hellip;</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p>Key idea: change page tables on page fault
+Page fault is a form of a trap (like a system call)
+Xv6 panics on page fault
+But you don&rsquo;t have to panic!
+Instead:
+update page table instead of panic
+restart instruction (see userret() from traps lecture)
+Combination of page faults and updating page table is powerful!</p>
+</li>
+<li>
+<p>RISC-V page faults
+3 of 16 exceptions are related to paging
+Exceptions cause controlled transfers to kernel
+See traps lecture</p>
+</li>
+<li>
+<p>Information we might need at page fault to do something interesting:</p>
+<ol>
+<li>The virtual address that caused the fault
+See stval register; page faults set it to the fault address</li>
+<li>The type of violation that caused the fault
+See scause register value (instruction, load, and Store page fault)</li>
+<li>The instruction and mode where the fault occurred
+User IP: tf-&gt;epc
+U/K mode: implicit in usertrap/kerneltrap</li>
+</ol>
+</li>
+<li>
+<p>lazy/on-demand page allocation</p>
+<ul>
+<li>sbrk() is old fashioned;
+applications often ask for memory they need
+<ul>
+<li>for example, the allocate for the largest possible input but
+an application will typically use less
+if they ask for much, sbrk() could be expensive</li>
+<li>for example, if all memory is in use, have to wait until
+kernel has evicted some pages to free up memory
+sbrk allocates memory that may never be used.</li>
+</ul>
+</li>
+<li>moderns OSes allocate memory lazily
+plan:
+allocate physical memory when application needs it
+adjust p-&gt;sz on sbrk, but don&rsquo;t allocate
+when application uses that memory, it will result in page fault
+on pagefault allocate memory
+resume at the fault instruction
+may use less memory
+if not used, no fault, no allocation
+spreads the cost of allocation over the page faults instead
+of upfront in sbrk()</li>
+<li>demo
+modify sysproc.c
+modify trap.c
+modify vm.c</li>
+</ul>
+</li>
+<li>
+<p>one zero-filled page (zero fill on demand)</p>
+<ul>
+<li>applications often have large part of memory that must zero
+global arrays, etc.
+the &ldquo;block starting symbol&rdquo; (bbs) segment</li>
+<li>thus, kernel must often fill a page with zeros</li>
+<li>idea: memset <em>one</em> page with zeros
+map that page copy-on-write when kernel needs zero-filled page
+on write make copy of page and map it read/write in app address space</li>
+</ul>
+</li>
+<li>
+<p>copy-on-write fork</p>
+<ul>
+<li>observation:
+xv6 fork copies all pages from parent (see fork())
+but fork is often immediately followed by exec</li>
+<li>idea: share address space between parent and child
+modify fork() to map pages copy-on-write
+use extra available system bits (RSW) in PTEs
+on page fault, make copy of page and map it read/write</li>
+</ul>
+</li>
+<li>
+<p>demand paging</p>
+<ul>
+<li>observation: exec loads the complete file into memory (see exec.c)
+expensive: takes time to do so (e.g., file is stored on a slow disk)
+unnecessary: maybe not the whole file will be used</li>
+<li>idea: load pages from the file on demand
+allocate page table entries, but mark them on-demand
+on fault, read the page in from the file and update page table entry
+need to keep some meta information about where a page is located on disk
+this information is typically in structure called virtual memory area (VMA)</li>
+<li>challenge: file larger than physical memory (see next idea)</li>
+</ul>
+</li>
+<li>
+<p>use virtual memory larger than physical memory</p>
+<ul>
+<li>observation: application may need more memory than there is physical memory</li>
+<li>idea: store less-frequently used parts of the address space on disk
+page-in and page-out pages of the address address space transparently</li>
+<li>works when working sets fits in physical memory
+most popular replacement strategy: least-recently used (LRU)
+the A(cess) bit in the PTE helps the kernel implementing LRU</li>
+<li>demo: run top and vmstat
+on laptop and dialup.athena.mit.edu
+see VIRT RES MEM SHR columns</li>
+</ul>
+</li>
+<li>
+<p>memory-mapped files</p>
+<ul>
+<li>idea: allow access to files using load and store
+can easily read and writes part of a file
+e.g., don&rsquo;t have to change offset using lseek system call</li>
+<li>Unix systems a new system call for m-mapped files:
+void *mmap(void *addr, size_t length, int prot, int flags, int fd, off_t offset);</li>
+<li>kernel page-in pages of a file on demand
+when memory is full, page-out pages of a file that are not frequently used</li>
+</ul>
+</li>
+<li>
+<p>shared virtual memory</p>
+<ul>
+<li>idea: allow processes on different machines to share virtual memory
+gives the illusion of physical shared memory, across a network</li>
+<li>replicate pages that are only read</li>
+<li>invalidate copies on write</li>
+</ul>
+</li>
+<li>
+<p>TLB management
+CPUs caches paging translation for speed
+xv6 flushes entire TLB during user/kernel transitions
+why?
+RISC-V allows more sophisticated plans</p>
+<ul>
+<li>PTE_G: global TLB bits
+what page could use this?</li>
+<li>ASID numbers
+TLB entries are tagged with ASID, so kernel can flush selectively
+SATP takes an ASID number
+sfence.vma also takes an ASID number</li>
+<li>Large pages
+2MB and 1GB</li>
+</ul>
+</li>
+<li>
+<p>Virtual memory is still evolving
+Recent changes in Linux
+PKTI to handle meltdown side-channel
+(<a href="https://en.wikipedia.org/wiki/Kernel_page-table_isolation">https://en.wikipedia.org/wiki/Kernel_page-table_isolation</a>)
+xv6 basically implements KPTI
+Somewhat recent changes
+Support for 5-level page tables (57 address bits!)
+Support for ASIDs
+Less recent changes
+Support for large pages
+NX (No eXecute) PTE_X flag</p>
+</li>
+</ul>
+<p>&mdash; COW in Linux</p>
+<p><a href="https://lwn.net/Articles/849876/">https://lwn.net/Articles/849876/</a></p>
+<h2 id="page-faults">Page faults<a hidden class="anchor" aria-hidden="true" href="#page-faults">#</a></h2>
+<h3 id="virtual-memory-benefits">Virtual Memory Benefits<a hidden class="anchor" aria-hidden="true" href="#virtual-memory-benefits">#</a></h3>
+<ol>
+<li>Isolation</li>
+<li>Level of Indirection</li>
+</ol>
+<p>Va <code>-&gt;</code> Pa</p>
+<h3 id="information-needed">Information Needed<a hidden class="anchor" aria-hidden="true" href="#information-needed">#</a></h3>
+<ol>
+<li>the faulting va ( va <code>-&gt;</code> stval register)</li>
+<li>the type of page fault ( scause )</li>
+<li>the va of instruction that cause the page fault (sepc, trapframe)</li>
+</ol>
+<h3 id="allocation--sbrk">Allocation : sbrk()<a hidden class="anchor" aria-hidden="true" href="#allocation--sbrk">#</a></h3>
+<p>sbrk() -&gt; eager allocation</p>
+<p>applcations tend to over ask.</p>
+<h3 id="lazy-allocation">Lazy allocation<a hidden class="anchor" aria-hidden="true" href="#lazy-allocation">#</a></h3>
+<p>sbrk() do nothing</p>
+<p>only grow p<code>-&gt;</code>sz</p>
+<p>PgFault : va &lt; p<code>-&gt;</code>sz  &gt; stack</p>
+<p>allocate 1 page</p>
+<p>zero the page</p>
+<p>map the page</p>
+<p>restart instruction</p>
+<h2 id="copy-on-writecow---fork">Copy-on-Write(Cow) - Fork<a hidden class="anchor" aria-hidden="true" href="#copy-on-writecow---fork">#</a></h2>
+<h2 id="zero-fill-on-demand">Zero-fill-on-demand<a hidden class="anchor" aria-hidden="true" href="#zero-fill-on-demand">#</a></h2>
+<h2 id="demand-paging">Demand paging<a hidden class="anchor" aria-hidden="true" href="#demand-paging">#</a></h2>
+<h3 id="memory-mapped-files">Memory-mapped-files<a hidden class="anchor" aria-hidden="true" href="#memory-mapped-files">#</a></h3>
+<h3 id="shared-virtual-memory">shared virtual memory<a hidden class="anchor" aria-hidden="true" href="#shared-virtual-memory">#</a></h3>
+<h1 id="lab-xv6-lazy-page-allocationhttpspdoscsailmitedu6s0812020labslazyhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/lazy.html">Lab: xv6 lazy page allocation</a><a hidden class="anchor" aria-hidden="true" href="#lab-xv6-lazy-page-allocationhttpspdoscsailmitedu6s0812020labslazyhtml">#</a></h1>
+<h2 id="eliminate-allocation-from-sbrk-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">Eliminate allocation from sbrk() (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)<a hidden class="anchor" aria-hidden="true" href="#eliminate-allocation-from-sbrk-easyhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917170736968.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917170736968.png" alt="image-20240917170736968"  />
+        </a>
+    </div>
+
+</p>
+<h2 id="lazy-allocation-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Lazy allocation (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#lazy-allocation-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171019615.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171019615.png" alt="image-20240917171019615"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171044276.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171044276.png" alt="image-20240917171044276"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171125065.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171125065.png" alt="image-20240917171125065"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171154524.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171154524.png" alt="image-20240917171154524"  />
+        </a>
+    </div>
+
+</p>
+<h2 id="lazytests-and-usertests-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Lazytests and Usertests (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#lazytests-and-usertests-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171215373.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171215373.png" alt="image-20240917171215373"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171241017.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171241017.png" alt="image-20240917171241017"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171300075.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171300075.png" alt="image-20240917171300075"  />
+        </a>
+    </div>
+
+</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171314378.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240917171314378.png" alt="image-20240917171314378"  />
+        </a>
+    </div>
+
+</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0819-interrupts/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>MIT6.S081(9)-Interrupts</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240915/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>LeetCode周赛415(250915)</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>

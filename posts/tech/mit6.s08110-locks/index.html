@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>MIT6.S081(10)-Locking | Kennem&#39;s Blog</title>
+<meta name="keywords" content="MIT6.S081">
+<meta name="description" content="MIT6.S081(10)-Locks">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="MIT6.S081(10)-Locking" />
+<meta property="og:description" content="MIT6.S081(10)-Locks" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s08110-locks/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-09-19T19:30:13+08:00" />
+<meta property="article:modified_time" content="2024-09-19T19:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MIT6.S081(10)-Locking"/>
+<meta name="twitter:description" content="MIT6.S081(10)-Locks"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "MIT6.S081(10)-Locking",
+      "item": "https://kennems.github.io/posts/tech/mit6.s08110-locks/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MIT6.S081(10)-Locking",
+  "name": "MIT6.S081(10)-Locking",
+  "description": "MIT6.S081(10)-Locks",
+  "keywords": [
+    "MIT6.S081"
+  ],
+  "articleBody": "MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but loose performance (kfree is serialized)\nThe lock abstraction:\nlock l\racquire(l)\rx = x + 1 -- \"critical section\"\rrelease(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\nrename(\"d1/x\", \"d2/y\"):\rlock d1, erase x, unlock d1\rlock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\nlock d1 ; lock d2\rerase x, add y\runlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\ncore A core B\rrename(d1/x, d2/y) rename(d2/a, d1/b)\rlock d1 lock d2\rlock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\nwhy not:\rstruct lock { int locked; }\racquire(l) {\rwhile(1){\rif(l-\u003elocked == 0){ // A\rl-\u003elocked = 1; // B\rreturn;\r}\r}\r} oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\na5 = 1\rs1 = \u0026lk-\u003elocked\ramoswap.w.aq a5, a5, (s1) does this in hardware:\nlock addr globally (other cores cannot use it)\rtemp = *s5\r*addr = a5\ra5 = temp\runlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swamp to run one at a time, not interleaved\nLook at xv6 spinlock implementation\nacquire(l){\rwhile(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0)\r} if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\nCore A: Core B:\rlocked = 1\rx = x + 1 while(locked == 1)\rlocked = 0 ...\rlocked = 1\rx = x + 1\rlocked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\nlocked = 1\rlocked = 0\rx = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) ",
+  "wordCount" : "1303",
+  "inLanguage": "zh",
+  "datePublished": "2024-09-19T19:30:13+08:00",
+  "dateModified": "2024-09-19T19:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/mit6.s08110-locks/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      MIT6.S081(10)-Locking
+    </h1>
+    <div class="post-description">
+      MIT6.S081(10)-Locks
+    </div>
+    <div class="post-meta"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1303 字&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#mit6s08110-locking" aria-label="MIT6.S081(10)-Locking">MIT6.S081(10)-Locking</a><ul>
+                            
+                    <li>
+                        <a href="#why-talk-about-locking" aria-label="Why talk about locking?">Why talk about locking?</a></li>
+                    <li>
+                        <a href="#when-to-lock-" aria-label="When to Lock ?">When to Lock ?</a></li>
+                    <li>
+                        <a href="#could-locking-be-automatic" aria-label="Could locking be automatic?">Could locking be automatic?</a></li>
+                    <li>
+                        <a href="#problem-deadlock" aria-label="Problem: deadlock">Problem: deadlock</a><ul>
+                            
+                    <li>
+                        <a href="#solution" aria-label="solution:">solution:</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#locks-versus-modularity" aria-label="Locks versus modularity">Locks versus modularity</a></li>
+                    <li>
+                        <a href="#locks-and-parallelism" aria-label="Locks and parallelism">Locks and parallelism</a><ul>
+                            
+                    <li>
+                        <a href="#lock-granularity-advice" aria-label="Lock granularity advice">Lock granularity advice</a></li></ul>
+                    </li></ul>
+                    </li>
+                    <li>
+                        <a href="#lab-copy-on-write-fork-for-xv6httpspdoscsailmitedu6s0812020labscowhtml" aria-label="Lab: Copy-on-Write Fork for xv6"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a></a><ul>
+                            
+                    <li>
+                        <a href="#implement-copy-on-writehardhttpspdoscsailmitedu6s0812020labsguidancehtml" aria-label="Implement copy-on write(hard)">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="mit6s08110-locking">MIT6.S081(10)-Locking<a hidden class="anchor" aria-hidden="true" href="#mit6s08110-locking">#</a></h1>
+<h2 id="why-talk-about-locking">Why talk about locking?<a hidden class="anchor" aria-hidden="true" href="#why-talk-about-locking">#</a></h2>
+<p>apps want to use multi-core processors for parallel speed-up
+so kernel must deal with parallel system calls
+and thus parallel access to kernel data (<code>buffer</code> <code>cache</code>, <code>processes</code>, &amp;c)
+<strong>locks help with correct sharing of data</strong>
+<strong>locks can limit parallel speedup</strong></p>
+<p>What goes wrong if we don&rsquo;t have locks
+Case study: delete acquire/release in <code>kalloc.c</code>
+Boot
+kernel works!
+Run usertests
+all tests pass!
+except we lose some pages
+Why do we lose pages?
+picture of shared-memory multiprocessor
+race between two cores calling <code>kfree()</code>
+BUMMER:
+we need locks for correctness
+but loose performance (kfree is serialized)</p>
+<p><strong>The lock abstraction:</strong></p>
+<pre tabindex="0"><code>  lock l
+  acquire(l)
+    x = x + 1 -- &#34;critical section&#34;
+  release(l)
+</code></pre><p>a lock is itself an object
+if multiple threads call acquire(l)
+only one will return right away
+the others will wait for release() &ndash; &ldquo;block&rdquo;
+a program typically has lots of data, lots of locks
+if different threads use different data,
+then they likely hold different locks,
+so they can execute in parallel &ndash; get more work done.
+note that lock l is not specifically tied to data x
+the programmer has a plan for the correspondence</p>
+<h2 id="when-to-lock-">When to Lock ?<a hidden class="anchor" aria-hidden="true" href="#when-to-lock-">#</a></h2>
+<p>A conservative rule to decide when you need to lock:
+any time two threads use a memory location, and at least one is a write
+don&rsquo;t touch shared data unless you hold the right lock!</p>
+<ul>
+<li>
+<p>(too strict: program logic may sometimes rule out sharing; lock-free)</p>
+</li>
+<li>
+<p>(too loose: <code>printf()</code>; not always simple lock/data correspondence)</p>
+</li>
+</ul>
+<h2 id="could-locking-be-automatic">Could locking be automatic?<a hidden class="anchor" aria-hidden="true" href="#could-locking-be-automatic">#</a></h2>
+<p>perhaps the language could associate a lock with every data object
+compiler adds acquire/release around every use
+less room for programmer to forget!
+that idea is often too rigid:</p>
+<pre tabindex="0"><code>    rename(&#34;d1/x&#34;, &#34;d2/y&#34;):
+      lock d1, erase x, unlock d1
+      lock d2, add y, unlock d2
+</code></pre><p>​    problem: the file didn&rsquo;t exist for a while!
+​      <code>rename()</code> should be atomic
+​        other system calls should see before, or after, not in between
+​      otherwise too hard to write programs
+​    we need:</p>
+<pre tabindex="0"><code>      lock d1 ; lock d2
+      erase x, add y
+      unlock d2; unlock d1
+</code></pre><p>that is, programmer often needs explicit control over
+the region of code during which a lock is held
+in order to hide awkward intermediate states</p>
+<p>Ways to think about what locks achieve
+locks help avoid lost updates
+locks help you create atomic multi-step operations &ndash; hide intermediate states
+locks help operations maintain invariants on a data structure
+assume the invariants are true at start of operation
+operation uses locks to hide temporary violation of invariants
+operation restores invariants before releasing locks</p>
+<h2 id="problem-deadlock">Problem: deadlock<a hidden class="anchor" aria-hidden="true" href="#problem-deadlock">#</a></h2>
+<p>notice <code>rename()</code> held two locks
+what if:</p>
+<pre tabindex="0"><code>    core A              core B
+    rename(d1/x, d2/y)  rename(d2/a, d1/b)
+      lock d1             lock d2
+      lock d2 ...         lock d1 ...
+</code></pre><h3 id="solution">solution:<a hidden class="anchor" aria-hidden="true" href="#solution">#</a></h3>
+<p>​    programmer works out an order for all locks
+​    all code must acquire locks in that order
+​    i.e. predict locks, sort, acquire &ndash; complex!</p>
+<h2 id="locks-versus-modularity">Locks versus modularity<a hidden class="anchor" aria-hidden="true" href="#locks-versus-modularity">#</a></h2>
+<p>locks make it hard to hide details inside modules
+to avoid deadlock, I need to know locks acquired by functions I call
+and I may need to acquire them before calling, even if I don&rsquo;t use them
+i.e. locks are often not the private business of individual modules</p>
+<h2 id="locks-and-parallelism">Locks and parallelism<a hidden class="anchor" aria-hidden="true" href="#locks-and-parallelism">#</a></h2>
+<p>locks <em>prevent</em> parallel execution
+to get parallelism, you often need to split up data and locks
+in a way that lets each core use different data and different locks
+&ldquo;fine grained locks&rdquo;
+choosing best split of data/locks is a design challenge
+whole FS; directory/file; disk block
+whole kernel; each subsystem; each object
+you may need to re-design code to make it work well in parallel
+example: break single free memory list into per-core free lists
+helps if threads were waiting a lot on lock for single free list
+such re-writes can require a lot of work!</p>
+<h3 id="lock-granularity-advice">Lock granularity advice<a hidden class="anchor" aria-hidden="true" href="#lock-granularity-advice">#</a></h3>
+<p>start with big locks, e.g. one lock protecting entire module
+less deadlock since less opportunity to hold two locks
+less reasoning about invariants/atomicity required
+measure to see if there&rsquo;s a problem
+big locks are often enough &ndash; maybe little time spent in that module
+re-design for fine-grained locking only if you have to</p>
+<p>Let&rsquo;s look at locking in xv6.</p>
+<p>A typical use of locks: uart.c
+typical of many O/S&rsquo;s device driver arrangements
+diagram:
+user processes, kernel, UART, uartputc, remove from uart_tx_buf,
+uartintr()
+sources of concurrency: processes, interrupt
+only one lock in uart.c: uart_tx_lock &ndash; fairly coarse-grained
+uartputc() &ndash; what does uart_tx_lock protect?
+1. no races in uart_tx_buf operations
+2. if queue not empty, UART h/w is executing head of queue
+3. no concurrent access to UART write registers
+uartintr() &ndash; interrupt handler
+acquires lock &ndash; might have to wait at interrupt level!
+removes character from uart_tx_buf
+hands next queued char to UART h/w (2)
+touches UART h/w registers (3)</p>
+<p>How to implement locks?</p>
+<pre tabindex="0"><code>  why not:
+    struct lock { int locked; }
+    acquire(l) {
+      while(1){
+        if(l-&gt;locked == 0){ // A
+          l-&gt;locked = 1;    // B
+          return;
+        }
+      }
+    }
+</code></pre><p>oops: race between lines A and B
+how can we do A and B atomically?</p>
+<p>Atomic swap instruction:</p>
+<pre tabindex="0"><code>  a5 = 1
+  s1 = &amp;lk-&gt;locked
+  amoswap.w.aq a5, a5, (s1)
+</code></pre><p>does this in hardware:</p>
+<pre tabindex="0"><code>    lock addr globally (other cores cannot use it)
+    temp = *s5
+    *addr = a5
+    a5 = temp
+    unlock addr
+</code></pre><p>RISC-V h/w provides a notion of locking a memory location
+different CPUs have had different implementations
+diagram: cores, bus, RAM, lock thing
+so we are really pushing the problem down to the hardware
+h/w implements at granularity of cache-line or entire bus
+memory lock forces concurrent swamp to run one at a time, not interleaved</p>
+<p>Look at xv6 spinlock implementation</p>
+<pre tabindex="0"><code>  acquire(l){
+    while(__sync_lock_test_and_set(&amp;lk-&gt;locked, 1) != 0)
+  }
+</code></pre><p>if l-&gt;locked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1,
+and the loop continues to spin
+if l-&gt;locked was 0, at most one lock_test_and_set will see the 0; it will set
+it to 1 and return 0; other test_an_set will return 1
+this is a &ldquo;spin lock&rdquo;, since waiting cores &ldquo;spin&rdquo; in acquire loop</p>
+<p>what is the push_off() about?
+why disable interrupts?
+release():
+sets lk-&gt;locked = 0
+and re-enables interrupts</p>
+<p>Detail: memory read/write ordering
+suppose two cores use a lock to guard a counter, x
+and we have a naive lock implementation</p>
+<pre tabindex="0"><code>  Core A:          Core B:
+    locked = 1
+    x = x + 1      while(locked == 1)
+    locked = 0       ...
+                   locked = 1
+                   x = x + 1
+                   locked = 0
+</code></pre><p>the compiler AND the CPU re-order memory accesses
+i.e. they do not obey the source program&rsquo;s order of memory references
+e.g. the compiler might generate this code for core A:</p>
+<pre tabindex="0"><code>      locked = 1
+      locked = 0
+      x = x + 1
+</code></pre><p>​      i.e. move the increment outside the critical section!
+​    the legal behaviors are called the &ldquo;memory model&rdquo;
+release()&rsquo;s call to __sync_synchronize() prevents re-order
+​    compiler won&rsquo;t move a memory reference past a __sync_synchronize()
+​    and (may) issue &ldquo;memory barrier&rdquo; instruction to tell the CPU
+acquire()&rsquo;s call to __sync_synchronize() has a similar effect:
+if you use locks, you don&rsquo;t need to understand the memory ordering rules
+​    you need them if you want to write exotic &ldquo;lock-free&rdquo; code</p>
+<p>Why spin locks?
+don&rsquo;t they waste CPU while waiting?
+why not give up the CPU and switch to another process, let it run?
+what if holding thread needs to run; shouldn&rsquo;t waiting thread yield CPU?
+spin lock guidelines:
+hold spin locks for very short times
+don&rsquo;t yield CPU while holding a spin lock
+systems provide &ldquo;blocking&rdquo; locks for longer critical sections
+waiting threads yield the CPU
+but overheads are typically higher
+you&rsquo;ll see some xv6 blocking schemes later</p>
+<p>Advice:
+don&rsquo;t share if you don&rsquo;t have to
+start with a few coarse-grained locks
+instrument your code &ndash; which locks are preventing parallelism?
+use fine-grained locks only as needed for parallel performance
+use an automated race detector</p>
+<h1 id="lab-copy-on-write-fork-for-xv6httpspdoscsailmitedu6s0812020labscowhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a><a hidden class="anchor" aria-hidden="true" href="#lab-copy-on-write-fork-for-xv6httpspdoscsailmitedu6s0812020labscowhtml">#</a></h1>
+<h2 id="implement-copy-on-writehardhttpspdoscsailmitedu6s0812020labsguidancehtml">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#implement-copy-on-writehardhttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>MIT6.S081(11)- Thread switching</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0819-interrupts/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>MIT6.S081(9)-Interrupts</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>

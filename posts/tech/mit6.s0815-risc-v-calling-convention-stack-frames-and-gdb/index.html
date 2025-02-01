@@ -1,0 +1,850 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb | Kennem&#39;s Blog</title>
+<meta name="keywords" content="MIT6.S081">
+<meta name="description" content="MIT6.S081(5)">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb" />
+<meta property="og:description" content="MIT6.S081(5)" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-09-04T19:30:13+08:00" />
+<meta property="article:modified_time" content="2024-09-04T19:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb"/>
+<meta name="twitter:description" content="MIT6.S081(5)"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb",
+      "item": "https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb",
+  "name": "MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb",
+  "description": "MIT6.S081(5)",
+  "keywords": [
+    "MIT6.S081"
+  ],
+  "articleBody": "MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb C code is compiled to machine instructions. How does the machine work at a lower level? How does this translation work? How to interact between C and asm Why this matters: sometimes need to write code not expressible in C And you need this for the syscall lab!\nRISC-V abstract machine No C-like control flow, no concept of variables, types … Base ISA: Program counter, 32 general-purpose registers (x0–x31)\nreg | name | saver | description ——-+——-+——–+———— x0 | zero | | hardwired zero x1 | ra | caller | return address x2 | sp | callee | stack pointer x3 | gp | | global pointer x4 | tp | | thread pointer x5-7 | t0-2 | caller | temporary registers x8 | s0/fp | callee | saved register / frame pointer x9 | s1 | callee | saved register x10-11 | a0-1 | caller | function arguments / return values x12-17 | a2-7 | caller | function arguments x18-27 | s2-11 | callee | saved registers x28-31 | t3-6 | caller | temporary registers pc | | | program counter\nRunning example: sum_to(n)\nint sum_to(int n) {\rint acc = 0;\rfor (int i = 0; i \u003c= n; i++) {\racc += i;\r}\rreturn acc;\r} What does this look like in assembly code?\nsum_to(n) expects argument in a0 returns result in a0 sum_to:\rmv t0, a0 # t0 \u003c- a0\rli a0, 0 # a0 \u003c- 0\rloop:\radd a0, a0, t0 # a0 \u003c- a0 + t0\raddi t0, t0, -1 # t0 \u003c- t0 - 1\rbnez t0, loop # if t0 != 0: pc \u003c- loop\rret Limited abstractions No typed, positional arguments No local variables Only registers\nMachine doesn’t even see assembly code Sees binary encoding of machine instructions Each instruction: 16 bits or 32 bits E.g. mv t0, a0 is encoded as 0x82aa Not quite 1-to-1 encoding from asm, but close\nHow would another function call sum_to?\nmain: li a0, 10 # a0 \u003c- 10 call sum_to\nWhat are the semantics of call?\ncall label := ra \u003c- pc + 4 ; ra \u003c- address of next instruction pc \u003c- label ; jump to label\nMachine doesn’t understand labels Translated to either pc-relative or absolute jumps\nWhat are the semantics of return?\nret := pc \u003c- ra\nLet’s try it out: demo1.S\n(gdb) file user/_demo1 (gdb) break main (gdb) continue Why does it stop before running demo1?\n(gdb) layout split (gdb) stepi (gdb) info registers (gdb) p $a0 (gdb) advance 18 (gdb) si (gdb) p $a0 What if we wanted a function calling another function?\nsum_then_double(n) expects argument in a0 returns result in a0 sum_then_double: call sum_to li t0, 2 # t0 \u003c- 2 mul a0, a0, t0 # a0 \u003c- a0 * t0 ret\nmain: li a0, 10 call sum_then_double\nLet’s try it out: demo2.S We get stuck in an infinite loop Why: overwrote return address (ra)\nHow to fix: save ra somewhere In another register? Won’t work, just defers problem. Solution: save on stack\nsum_then_double: addi sp, sp, 16 # function prologue: sd ra, 0(sp) # make space on stack, save registers call sum_to li t0, 2 mul a0, a0, t0 ld ra, 0(sp) # function epilogue: addi sp, sp, -16 # restore registers, restore stack pointer ret\nLet’s try it out: demo3.S (gdb) … (gdb) nexti\nSo far, our functions coordinated with each other This worked because we were writing all the code involved Could have written it any other way E.g. passing arguments in t2, getting return value in t3\nConventions surrounding this: “calling convention” How are arguments passed? a0, a1, …, a7, rest on stack How are values returned? a0, a1 Who saves registers? Designated as caller or callee saved Could ra be a callee-saved register? Our assembly code should follow this convention C code generated by GCC follows this convention This means that everyone’s code can interop, incl C/asm interop Read: demo4.c / demo4.asm Can see function prologue, body, epilogue Why doesn’t it save ra? Leaf function, not needed What is going on with s0/fp? We compiled with -fno-omit-frame-pointer\nStack . . +-\u003e . | +—————–+ | | | return address | | | | previous fp ——+ | | saved registers | | | local variables | | | … | \u003c-+ | +—————–+ | | | return address | | +—— previous fp | | | saved registers | | | local variables | | +-\u003e | … | | | +—————–+ | | | return address | | | | previous fp ——+ | | saved registers | | | local variables | | | … | \u003c-+ | +—————–+ | | | return address | | +—— previous fp | | | saved registers | | | local variables | | $fp –\u003e | … | | +—————–+ | | return address | | | previous fp ——+ | saved registers | $sp –\u003e | local variables | +—————–+\nDemo program: demo5.c (gdb) break g (gdb) si (gdb) si (gdb) si (gdb) si (gdb) p $sp (gdb) p $fp (gdb) x/g $fp-16 (gdb) x/g 0x0000000000002fd0-16\nStack diagram:\n0x2fe0 |\r0x2fd8 | \\\r0x2fd0 | / stack frame for main\r0x2fc8 | ra into main \\\r$fp –\u003e 0x2fc0 | 0x0000000000002fe0 / stack frame for f 0x2fb8 | ra into f $sp –\u003e 0x2fb0 | 0x0000000000002fd0 / stack frame for g\nGDB can automate this reasoning for us Plus, it can use debug info to reason about leaf functions, etc. (gdb) backtrace (gdb) info frame (gdb) frame 1 (gdb) info frame (gdb) frame 2 (gdb) info frame\nCalling C from asm / calling asm from C Follow calling convention and everything will work out Write function prototype so C knows how to call assembly Demo: demo6.c / demo6_asm.S Why do we use s0/s1 instead of e.g. t0/t1? (gdb) b sum_squares_to (gdb) si … (gdb) x/4g $sp (gdb) si …\nInline assembly\nStructs C struct layout rules Why: misaligned load/store can be slow or unsupported (platform-dependent) attribute((packed)) How to access and manipulate C structs from assembly? Generally passed by reference Need to know struct layout Demo: demo7.c / demo7_asm.S\nDebugging examine: inspect memory contents x/nfu addr n: count f: format u: unit size step/next/finish step: next line of C code next: next line of C code, skipping over function calls finish: continue executing until end of current function call stepi/nexti stepi: next assembly instruction nexti: next assembly instruction, skipping over function calls layout next steps through layouts conditional breakpoints break, only when a condition holds (e.g. variable has a certain value) watchpoints break when a memory location changes value GDB is a very powerful tool Read the manual for more! But you probably don’t need all the fancy features for this class\nReferences RISC-V ISA specification: https://riscv.org/specifications/ Contains detailed information RISC-V ISA Reference: https://rv8.io/isa Overview of instructions RISC-V assembly language reference: https://rv8.io/asm Overview of directives, pseudo-instructions, and more\nGDB 单步执行 当程序运行到断点时，可以使用以下命令单步调试：\nnext (或 n)：执行下一行代码，但不会进入函数内部。 step (或 s)：执行下一行代码，如果是函数调用则进入函数内部。 continue (或 c)：继续执行程序，直到下一个断点或程序结束。 finish：继续运行直到当前函数返回。 info b delete 删除breakpoint 查看变量 在程序中，可以查看变量的值：\n(gdb) print x # 打印变量 x 的值 (gdb) print *p # 打印指针 p 指向的值 修改变量值 可以在调试过程中修改变量的值：\n(gdb) set variable x = 10 # 将变量 x 的值设置为 10 查看调用栈 当程序暂停时，可以查看当前的调用栈（即函数调用的层级）：\n(gdb) backtrace # 显示调用栈信息 切换栈帧 可以通过 frame 命令切换到特定的栈帧，查看不同层级的函数状态：\n(gdb) frame 2 # 切换到调用栈中的第 2 层 跳过某行代码 通过 jump 命令可以直接跳到特定行：\n(gdb) jump 42 # 跳到第 42 行 Traps and system calls traps: ecall : 在RISC-V架构中，ecall是一个用于出发环境调用（Environment Call），从用户态转换成更高级别请求系统服务，当程序 exception interrupt 重要的寄存器及含义 stvec (Supervisor Trap Vector Base Address Register) 存储内核的陷阱处理程序的地址。当发生陷阱（trap）时，RISC-V会跳转到stvec指定的地址来处理该陷阱 sepc (Supervisor Exception Program Counter) 用于保存发生陷阱时的程序计数器（PC）的值。当陷阱发生时，PC的值会被保存到sepc中，而PC会被重置为stvec中的地址。之后内核可以使用sret（返回陷阱指令）将sepc的值恢复到PC，从而返回到正确的执行位置。 scause (Supervisor Cause Register) scause寄存器记录了导致陷阱发生的原因。它包含一个数值，表示出发陷阱的时间类型，例如设备中断，系统调用和非法指令。 sscratch (Supervisor Scratch Register) 是一个临时寄存器，内核可以在陷阱处理程序开始时用它来保存重要值，方便处理器处理陷阱的初始阶段。 sstatus(Supervisor Status Register) 用于控制和反映当前处理器的状态，其包含若干控制位： SIE（Supervisor Interrupt Enable）：控制设备中断是否启用。如果内核清除SIE位，RISC-V会推迟处理设备中断，直到内核重新设置该位。 SPP（Supervisor Previous Privilege）：指示陷阱来自用户模式（User Mode）还是监督模式（Supervisor Mode），并控制sret指令返回的模式。 ",
+  "wordCount" : "2064",
+  "inLanguage": "zh",
+  "datePublished": "2024-09-04T19:30:13+08:00",
+  "dateModified": "2024-09-04T19:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb
+    </h1>
+    <div class="post-description">
+      MIT6.S081(5)
+    </div>
+    <div class="post-meta"><span title='2024-09-04 19:30:13 +0800 CST'>2024-09-04</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2064 字&nbsp;·&nbsp;updated:&nbsp;2024-09-04&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#mit6s0815-risc-v-calling-convention-stack-frames-and-gdb" aria-label="MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb">MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb</a></li>
+                    <li>
+                        <a href="#sum_ton" aria-label="sum_to(n)">sum_to(n)</a></li>
+                    <li>
+                        <a href="#expects-argument-in-a0" aria-label="expects argument in a0">expects argument in a0</a></li>
+                    <li>
+                        <a href="#returns-result-in-a0" aria-label="returns result in a0">returns result in a0</a></li>
+                    <li>
+                        <a href="#sum_then_doublen" aria-label="sum_then_double(n)">sum_then_double(n)</a></li>
+                    <li>
+                        <a href="#expects-argument-in-a0-1" aria-label="expects argument in a0">expects argument in a0</a></li>
+                    <li>
+                        <a href="#returns-result-in-a0-1" aria-label="returns result in a0">returns result in a0</a><ul>
+                            
+                    <li>
+                        <a href="#gdb" aria-label="GDB">GDB</a><ul>
+                            
+                    <li>
+                        <a href="#%e5%8d%95%e6%ad%a5%e6%89%a7%e8%a1%8c" aria-label="单步执行">单步执行</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e6%9f%a5%e7%9c%8b%e5%8f%98%e9%87%8f" aria-label="查看变量">查看变量</a><ul>
+                            
+                    <li>
+                        <a href="#%e4%bf%ae%e6%94%b9%e5%8f%98%e9%87%8f%e5%80%bc" aria-label="修改变量值">修改变量值</a></li>
+                    <li>
+                        <a href="#%e6%9f%a5%e7%9c%8b%e8%b0%83%e7%94%a8%e6%a0%88" aria-label="查看调用栈">查看调用栈</a></li>
+                    <li>
+                        <a href="#%e5%88%87%e6%8d%a2%e6%a0%88%e5%b8%a7" aria-label="切换栈帧">切换栈帧</a></li>
+                    <li>
+                        <a href="#%e8%b7%b3%e8%bf%87%e6%9f%90%e8%a1%8c%e4%bb%a3%e7%a0%81" aria-label="跳过某行代码">跳过某行代码</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#traps-and-system-calls" aria-label="Traps and system calls">Traps and system calls</a><ul>
+                            
+                    <li>
+                        <a href="#traps" aria-label="traps:">traps:</a></li>
+                    <li>
+                        <a href="#%e9%87%8d%e8%a6%81%e7%9a%84%e5%af%84%e5%ad%98%e5%99%a8%e5%8f%8a%e5%90%ab%e4%b9%89" aria-label="重要的寄存器及含义">重要的寄存器及含义</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="mit6s0815-risc-v-calling-convention-stack-frames-and-gdb">MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb<a hidden class="anchor" aria-hidden="true" href="#mit6s0815-risc-v-calling-convention-stack-frames-and-gdb">#</a></h1>
+<p>C code is compiled to machine instructions.
+How does the machine work at a lower level?
+How does this translation work?
+How to interact between C and asm
+Why this matters: sometimes need to write code not expressible in C
+And you need this for the syscall lab!</p>
+<p>RISC-V abstract machine
+No C-like control flow, no concept of variables, types &hellip;
+Base ISA: Program counter, 32 general-purpose registers (x0&ndash;x31)</p>
+<p>reg    | name  | saver  | description
+&mdash;&mdash;-+&mdash;&mdash;-+&mdash;&mdash;&ndash;+&mdash;&mdash;&mdash;&mdash;
+x0     | zero  |        | hardwired zero
+x1     | ra    | caller | return address
+x2     | sp    | callee | stack pointer
+x3     | gp    |        | global pointer
+x4     | tp    |        | thread pointer
+x5-7   | t0-2  | caller | temporary registers
+x8     | s0/fp | callee | saved register / frame pointer
+x9     | s1    | callee | saved register
+x10-11 | a0-1  | caller | function arguments / return values
+x12-17 | a2-7  | caller | function arguments
+x18-27 | s2-11 | callee | saved registers
+x28-31 | t3-6  | caller | temporary registers
+pc     |       |        | program counter</p>
+<p>Running example: sum_to(n)</p>
+<pre tabindex="0"><code>  int sum_to(int n) {
+    int acc = 0;
+    for (int i = 0; i &lt;= n; i++) {
+      acc += i;
+    }
+    return acc;
+  }
+</code></pre><p>What does this look like in assembly code?</p>
+<h1 id="sum_ton">sum_to(n)<a hidden class="anchor" aria-hidden="true" href="#sum_ton">#</a></h1>
+<h1 id="expects-argument-in-a0">expects argument in a0<a hidden class="anchor" aria-hidden="true" href="#expects-argument-in-a0">#</a></h1>
+<h1 id="returns-result-in-a0">returns result in a0<a hidden class="anchor" aria-hidden="true" href="#returns-result-in-a0">#</a></h1>
+<pre tabindex="0"><code>  sum_to:
+    mv t0, a0          # t0 &lt;- a0
+    li a0, 0           # a0 &lt;- 0
+  loop:
+    add a0, a0, t0     # a0 &lt;- a0 + t0
+    addi t0, t0, -1    # t0 &lt;- t0 - 1
+    bnez t0, loop      # if t0 != 0: pc &lt;- loop
+    ret
+</code></pre><p>Limited abstractions
+No typed, positional arguments
+No local variables
+Only registers</p>
+<p>Machine doesn&rsquo;t even see assembly code
+Sees binary encoding of machine instructions
+Each instruction: 16 bits or 32 bits
+E.g. <code>mv t0, a0</code> is encoded as 0x82aa
+Not quite 1-to-1 encoding from asm, but close</p>
+<p>How would another function call sum_to?</p>
+<p>main:
+li a0, 10          # a0 &lt;- 10
+call sum_to</p>
+<p>What are the semantics of call?</p>
+<p>call label :=
+ra &lt;- pc + 4       ; ra &lt;- address of next instruction
+pc &lt;- label        ; jump to label</p>
+<p>Machine doesn&rsquo;t understand labels
+Translated to either pc-relative or absolute jumps</p>
+<p>What are the semantics of return?</p>
+<p>ret :=
+pc &lt;- ra</p>
+<p>Let&rsquo;s try it out: demo1.S</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> file user/_demo1
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> break main
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> <span style="color:#66d9ef">continue</span>
+</span></span></code></pre></div><p>Why does it stop before running demo1?</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> layout split
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> stepi
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> info registers
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $a0
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> advance <span style="color:#ae81ff">18</span>
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> si
+</span></span><span style="display:flex;"><span>  <span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> p $a0
+</span></span></code></pre></div><p>What if we wanted a function calling another function?</p>
+<h1 id="sum_then_doublen">sum_then_double(n)<a hidden class="anchor" aria-hidden="true" href="#sum_then_doublen">#</a></h1>
+<h1 id="expects-argument-in-a0-1">expects argument in a0<a hidden class="anchor" aria-hidden="true" href="#expects-argument-in-a0-1">#</a></h1>
+<h1 id="returns-result-in-a0-1">returns result in a0<a hidden class="anchor" aria-hidden="true" href="#returns-result-in-a0-1">#</a></h1>
+<p>sum_then_double:
+call sum_to
+li t0, 2           # t0 &lt;- 2
+mul a0, a0, t0     # a0 &lt;- a0 * t0
+ret</p>
+<p>main:
+li a0, 10
+call sum_then_double</p>
+<p>Let&rsquo;s try it out: demo2.S
+We get stuck in an infinite loop
+Why: overwrote return address (ra)</p>
+<p>How to fix: save ra somewhere
+In another register? Won&rsquo;t work, just defers problem.
+Solution: save on stack</p>
+<p>sum_then_double:
+addi sp, sp, 16    # function prologue:
+sd ra, 0(sp)       # make space on stack, save registers
+call sum_to
+li t0, 2
+mul a0, a0, t0
+ld ra, 0(sp)       # function epilogue:
+addi sp, sp, -16   # restore registers, restore stack pointer
+ret</p>
+<p>Let&rsquo;s try it out: demo3.S
+(gdb) &hellip;
+(gdb) nexti</p>
+<p>So far, our functions coordinated with each other
+This worked because we were writing all the code involved
+Could have written it any other way
+E.g. passing arguments in t2, getting return value in t3</p>
+<p>Conventions surrounding this: &ldquo;calling convention&rdquo;
+How are arguments passed?
+a0, a1, &hellip;, a7, rest on stack
+How are values returned?
+a0, a1
+Who saves registers?
+Designated as caller or callee saved
+Could ra be a callee-saved register?
+Our assembly code should follow this convention
+C code generated by GCC follows this convention
+This means that everyone&rsquo;s code can interop, incl C/asm interop
+Read: demo4.c / demo4.asm
+Can see function prologue, body, epilogue
+Why doesn&rsquo;t it save ra? Leaf function, not needed
+What is going on with s0/fp?
+We compiled with -fno-omit-frame-pointer</p>
+<p>Stack
+.
+.
++-&gt;          .
+|   +&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+   |
+|   | return address  |   |
+|   |   previous fp &mdash;&mdash;+
+|   | saved registers |
+|   | local variables |
+|   |       &hellip;       | &lt;-+
+|   +&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+   |
+|   | return address  |   |
++&mdash;&mdash; previous fp   |   |
+| saved registers |   |
+| local variables |   |
++-&gt; |       &hellip;       |   |
+|   +&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+   |
+|   | return address  |   |
+|   |   previous fp &mdash;&mdash;+
+|   | saved registers |
+|   | local variables |
+|   |       &hellip;       | &lt;-+
+|   +&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+   |
+|   | return address  |   |
++&mdash;&mdash; previous fp   |   |
+| saved registers |   |
+| local variables |   |
+$fp &ndash;&gt; |       &hellip;       |   |
++&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+   |
+| return address  |   |
+|   previous fp &mdash;&mdash;+
+| saved registers |
+$sp &ndash;&gt; | local variables |
++&mdash;&mdash;&mdash;&mdash;&mdash;&ndash;+</p>
+<p>Demo program: demo5.c
+(gdb) break g
+(gdb) si
+(gdb) si
+(gdb) si
+(gdb) si
+(gdb) p $sp
+(gdb) p $fp
+(gdb) x/g $fp-16
+(gdb) x/g 0x0000000000002fd0-16</p>
+<p>Stack diagram:</p>
+<pre><code>      0x2fe0 |
+      0x2fd8 | &lt;garbage ra&gt;       \
+      0x2fd0 | &lt;garbage fp&gt;       / stack frame for main
+      0x2fc8 | ra into main       \
+</code></pre>
+<p>$fp &ndash;&gt; 0x2fc0 | 0x0000000000002fe0 / stack frame for f
+0x2fb8 | ra into f          <br>
+$sp &ndash;&gt; 0x2fb0 | 0x0000000000002fd0 / stack frame for g</p>
+<p>GDB can automate this reasoning for us
+Plus, it can use debug info to reason about leaf functions, etc.
+(gdb) backtrace
+(gdb) info frame
+(gdb) frame 1
+(gdb) info frame
+(gdb) frame 2
+(gdb) info frame</p>
+<p>Calling C from asm / calling asm from C
+Follow calling convention and everything will work out
+Write function prototype so C knows how to call assembly
+Demo: demo6.c / demo6_asm.S
+Why do we use s0/s1 instead of e.g. t0/t1?
+(gdb) b sum_squares_to
+(gdb) si &hellip;
+(gdb) x/4g $sp
+(gdb) si &hellip;</p>
+<p>Inline assembly</p>
+<p>Structs
+C struct layout rules
+Why: misaligned load/store can be slow or unsupported (platform-dependent)
+<strong>attribute</strong>((packed))
+How to access and manipulate C structs from assembly?
+Generally passed by reference
+Need to know struct layout
+Demo: demo7.c / demo7_asm.S</p>
+<p>Debugging
+examine: inspect memory contents
+x/nfu addr
+n: count
+f: format
+u: unit size
+step/next/finish
+step: next line of C code
+next: next line of C code, skipping over function calls
+finish: continue executing until end of current function call
+stepi/nexti
+stepi: next assembly instruction
+nexti: next assembly instruction, skipping over function calls
+layout next
+steps through layouts
+conditional breakpoints
+break, only when a condition holds (e.g. variable has a certain value)
+watchpoints
+break when a memory location changes value
+GDB is a very powerful tool
+Read the manual for more!
+But you probably don&rsquo;t need all the fancy features for this class</p>
+<p>References
+RISC-V ISA specification: <a href="https://riscv.org/specifications/">https://riscv.org/specifications/</a>
+Contains detailed information
+RISC-V ISA Reference: <a href="https://rv8.io/isa">https://rv8.io/isa</a>
+Overview of instructions
+RISC-V assembly language reference: <a href="https://rv8.io/asm">https://rv8.io/asm</a>
+Overview of directives, pseudo-instructions, and more</p>
+<h2 id="gdb">GDB<a hidden class="anchor" aria-hidden="true" href="#gdb">#</a></h2>
+<h3 id="单步执行">单步执行<a hidden class="anchor" aria-hidden="true" href="#单步执行">#</a></h3>
+<p>当程序运行到断点时，可以使用以下命令单步调试：</p>
+<ul>
+<li><code>next</code> (或 <code>n</code>)：执行下一行代码，但不会进入函数内部。</li>
+<li><code>step</code> (或 <code>s</code>)：执行下一行代码，如果是函数调用则进入函数内部。</li>
+<li><code>continue</code> (或 <code>c</code>)：继续执行程序，直到下一个断点或程序结束。</li>
+<li><code>finish</code>：继续运行直到当前函数返回。</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>info b
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>delete 删除breakpoint
+</span></span></code></pre></div><h2 id="查看变量">查看变量<a hidden class="anchor" aria-hidden="true" href="#查看变量">#</a></h2>
+<p>在程序中，可以查看变量的值：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print x            <span style="color:#75715e"># 打印变量 x 的值</span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print *p           <span style="color:#75715e"># 打印指针 p 指向的值</span>
+</span></span></code></pre></div><h3 id="修改变量值">修改变量值<a hidden class="anchor" aria-hidden="true" href="#修改变量值">#</a></h3>
+<p>可以在调试过程中修改变量的值：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> set variable x <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>   <span style="color:#75715e"># 将变量 x 的值设置为 10</span>
+</span></span></code></pre></div><h3 id="查看调用栈">查看调用栈<a hidden class="anchor" aria-hidden="true" href="#查看调用栈">#</a></h3>
+<p>当程序暂停时，可以查看当前的调用栈（即函数调用的层级）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> backtrace            <span style="color:#75715e"># 显示调用栈信息</span>
+</span></span></code></pre></div><h3 id="切换栈帧">切换栈帧<a hidden class="anchor" aria-hidden="true" href="#切换栈帧">#</a></h3>
+<p>可以通过 <code>frame</code> 命令切换到特定的栈帧，查看不同层级的函数状态：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> frame <span style="color:#ae81ff">2</span>              <span style="color:#75715e"># 切换到调用栈中的第 2 层</span>
+</span></span></code></pre></div><h3 id="跳过某行代码">跳过某行代码<a hidden class="anchor" aria-hidden="true" href="#跳过某行代码">#</a></h3>
+<p>通过 <code>jump</code> 命令可以直接跳到特定行：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> jump <span style="color:#ae81ff">42</span>              <span style="color:#75715e"># 跳到第 42 行</span>
+</span></span></code></pre></div><h2 id="traps-and-system-calls">Traps and system calls<a hidden class="anchor" aria-hidden="true" href="#traps-and-system-calls">#</a></h2>
+<h3 id="traps">traps:<a hidden class="anchor" aria-hidden="true" href="#traps">#</a></h3>
+<ul>
+<li><code>ecall</code> : 在RISC-V架构中，<code>ecall</code>是一个用于出发环境调用（Environment Call），从用户态转换成更高级别请求系统服务，当程序</li>
+<li>exception</li>
+<li>interrupt</li>
+</ul>
+<h3 id="重要的寄存器及含义">重要的寄存器及含义<a hidden class="anchor" aria-hidden="true" href="#重要的寄存器及含义">#</a></h3>
+<ol>
+<li><code>stvec</code> (Supervisor Trap Vector Base Address Register)
+<ul>
+<li>存储内核的陷阱处理程序的地址。当发生陷阱（trap）时，RISC-V会跳转到<code>stvec</code>指定的地址来处理该陷阱</li>
+</ul>
+</li>
+<li><code>sepc</code> (Supervisor Exception Program Counter)
+<ul>
+<li>用于保存发生陷阱时的程序计数器（PC）的值。当陷阱发生时，PC的值会被保存到<code>sepc</code>中，而PC会被重置为<code>stvec</code>中的地址。之后内核可以使用<code>sret（返回陷阱指令）</code>将<code>sepc</code>的值恢复到PC，从而返回到正确的执行位置。</li>
+</ul>
+</li>
+<li><code>scause</code> (Supervisor Cause Register)
+<ul>
+<li><code>scause</code>寄存器记录了导致陷阱发生的原因。它包含一个数值，表示出发陷阱的时间类型，例如<strong>设备中断</strong>，<strong>系统调用</strong>和<strong>非法指令</strong>。</li>
+</ul>
+</li>
+<li><code>sscratch</code> (Supervisor Scratch Register)
+<ul>
+<li>是一个临时寄存器，内核可以在陷阱处理程序开始时用它来保存重要值，方便处理器处理陷阱的初始阶段。</li>
+</ul>
+</li>
+<li><code>sstatus</code>(Supervisor Status Register)
+<ul>
+<li>用于控制和反映当前处理器的状态，其包含若干控制位：
+<ul>
+<li><strong>SIE</strong>（Supervisor Interrupt Enable）：控制设备中断是否启用。如果内核清除SIE位，RISC-V会推迟处理设备中断，直到内核重新设置该位。</li>
+<li><strong>SPP</strong>（Supervisor Previous Privilege）：指示陷阱来自用户模式（User Mode）还是监督模式（Supervisor Mode），并控制<code>sret</code>指令返回的模式。</li>
+</ul>
+</li>
+</ul>
+</li>
+</ol>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>MIT6.S081(6)-System Call Entry/Exit</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>C 语言指针</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>

@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>C 语言指针 | Kennem&#39;s Blog</title>
+<meta name="keywords" content="C">
+<meta name="description" content="C 语言指针">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.b0b75e963d4643f817dc4da6eda116517a285285a07b77f8da8234e4fa6e6f57.css" integrity="sha256-sLdelj1GQ/gX3E2m7aEWUXooUoWge3f42oI05Ppub1c=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link href="https://fonts.cdnfonts.com/css/code-new-roman" rel="stylesheet">
+                
+  
+
+<meta property="og:title" content="C 语言指针" />
+<meta property="og:description" content="C 语言指针" />
+<meta property="og:type" content="article" />
+<meta property="og:url" content="https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/" /><meta property="article:section" content="posts" />
+<meta property="article:published_time" content="2024-09-03T22:30:13+08:00" />
+<meta property="article:modified_time" content="2024-09-03T22:20:13+08:00" />
+
+<meta name="twitter:card" content="summary"/>
+<meta name="twitter:title" content="C 语言指针"/>
+<meta name="twitter:description" content="C 语言指针"/>
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "C 语言指针",
+      "item": "https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "C 语言指针",
+  "name": "C 语言指针",
+  "description": "C 语言指针",
+  "keywords": [
+    "C"
+  ],
+  "articleBody": "C 语言指针 C语言中的内存 静态内存（Static Memory)\nGlobal variables, accessible throughout the whole program. Defined with static keywork, as well as variables defined in global scope. 栈内存（Stack Memory)\nLocal variables with functions. Destroyed after function exits. 堆内存（Heap Memory）\nYou control creation and destruction of these variables: malloc(), free() Can lead to memory leaks, use-after-free issues. 指针 （变量）= 内存地址\n定义指针的 * ： 标记\n定义格式 ：\n数据类型 * 变量名 int a = 10; int *p1 = \u0026a; double b = 10; double *p2 = \u0026b; 指针的作用 指针是一个 64 位整数，其值为内存中的地址。\n查询数据 * ： 解引用运算符\nint a = 10; int *p1 = \u0026a; printf(\"%d\\n\", *p1); // 10 指针变量的数据类型要和指向变量的类型保持一致\n指针变量占用的大小，跟数据类型无关，跟编译器有关（32位 ： 4字节；64位：8字节）\n给指针变量赋值的时候，不能把一个数赋值给指针变量\nint a = 10; int *p1 = \u0026a; // int *p1 = 100; 错误，将100看成内存地址 printf(\"%d\\n\", *p1); // 10 *p1 = 20; printf(\"%d\\n\", *p1); // 20 操作其他函数中的变量 #include #include void swap(int *p1, int *p2) { int tmp = *p1; *p1 = *p2; *p2 = tmp; } int main(int argc, char const *argv[]) { int a = 10, b = 20; printf(\"%d, %d\\n\", a, b); swap(\u0026a, \u0026b); printf(\"%d, %d\\n\", a, b); return 0; } 函数返回多个值 #include void getMaxAndMin(int arr[], int len, int *max, int *min) { *max = arr[0]; *min = arr[0]; for (int i = 1; i \u003c len; i++) { if (arr[i] \u003e *max) { *max = arr[i]; } } for (int i = 1; i \u003c len; i++) { if (arr[i] \u003c *min) { *min = arr[i]; } } } int main(int argc, char const *argv[]) { int arr[] = {1, 2, 3, 100, 4, 5, 6, 7, 8}; int len = sizeof(arr) / sizeof(arr[0]); int max = arr[0]; int min = arr[0]; getMaxAndMin(arr, len, \u0026max, \u0026min); printf(\"Max: %d\\n\", max); printf(\"Min: %d\\n\", min); return 0; } 函数的结果和计算状态分开 #include int getRemainder(int num1, int num2, int *remainder) { if (num2 == 0) { return 1; } *remainder = num1 % num2; return 0; } int main(int argc, char const *argv[]) { int a = 10; int b = 2; int res = 0; int flag = getRemainder(a, b, \u0026res); if (!flag) { printf(\"Quotient: %d\\n\", res); } return 0; } 方便的操作数组和函数 #include int main(int argc, char const *argv[]) { /* 指针运算 步长：指针移动一次，走的字节数目 char : 1 short : 2 int : 4 long : 4 long long : 8 加法/减法 */ int a = 10; int *p = \u0026a; printf(\"p = %p, *p = %d\\n\", p, *p); printf(\"%p\\n\", p + 1); printf(\"%p\\n\", p - 1); printf(\"%p\\n\", p + 2); long x = 10; int x = 10; return 0; } #include int main(int argc, char const *argv[]) { /* 指针运算 步长：指针移动一次，走的字节数目 char : 1 short : 2 int : 4 long : 4 long long : 8 加法/减法 */ int arr[] = {1, 2, 3, 4, 5, 6, 7, 8, 9}; int *p1 = \u0026arr[0]; printf(\"p1 指向的元素: %d\\n\", *p1); printf(\"p1 + 1 指向的元素: %d\\n\", *(p1 + 1)); int *p2 = \u0026arr[5]; printf(\"%d\\n\", p1); printf(\"%d\\n\", p2); printf(\"%d\\n\", p2 - p1); return 0; } 指向不明的指针 野指针：指针指向的空间未分配\n悬空指针：指针指向的空间已经分配，但是被释放了\n#include int *method() { int num = 13; int *p = \u0026num; return p; } int main(int argc, char const *argv[]) { int a = 10; int *p1 = \u0026a; printf(\"%p\\n\", p1); printf(\"%d\\n\", *p1); // p2 野指针 int *p2 = p1 + 10; printf(\"%p\\n\", p2); printf(\"%d\\n\", *p2); // 悬空指针：指针指向的内存已分配，但是被释放了 int *p3 = method(); printf(\"delay some time\\n\"); printf(\"%p\\n\", p3); printf(\"%d\\n\", *p3); return 0; } 没有类型的指针 特点：无法获取数据，无法计算，但是可以接受任意地址\n#include // swap 函数用于交换两个内存区域的内容 // p1 和 p2 是指向要交换的内存地址的指针，len 是要交换的字节数 void swap(void *p1, void *p2, int len) { // 将 void 指针转换为 char 指针，便于字节级别的操作 char *pc1 = p1; char *pc2 = p2; char temp = 0; // 临时变量，用于存储字节内容 // 循环 len 次，逐字节交换内容 for (int i = 0; i \u003c len; i++) { temp = *pc1; // 保存 pc1 指向的字节 *pc1 = *pc2; // 将 pc2 指向的字节赋值给 pc1 *pc2 = temp; // 将原 pc1 指向的字节赋值给 pc2 pc1++; // 移动到下一个字节 pc2++; // 移动到下一个字节 } } int main(int argc, char const *argv[]) { int a = 10; // 整数变量 a short b = 20; // 短整型变量 b int *p1 = \u0026a; // 指向 a 的指针 short *p2 = \u0026b; // 指向 b 的指针 // 打印变量 a 和 b 的值 printf(\"a = %d, b = %d\\n\", a, b); printf(\"*p1 = %d, *p2 = %d\\n\", *p1, *p2); // 不同类型的指针之间不能直接赋值 // void 指针可以接受任何类型的指针 char *p3 = (char *)p1; // 将整型指针 p1 转换为字符型指针 // printf(\"%c\\n\", *p3); // 不建议解引用，因为 p3 可能指向非字符数据 void *p4 = p1; // 使用 void 指针 p4 存储 p1 的地址 printf(\"%p\\n\", p4); // 打印 p4 的地址 printf(\"%p\\n\", p4 + 1); // 虽然可以进行指针算术运算，但这里的结果不安全 void *p5 = p2; // 使用 void 指针 p5 存储 p2 的地址 // printf(\"%d\\n\", *p5); // 不建议解引用，因为 p5 是 void 指针 // 使用 swap 函数交换两个 long long int 类型的值 long long int c = 100; // 声明 long long int 变量 c long long int d = 200; // 声明 long long int 变量 d printf(\"%lld,%lld\\n\", c, d); // 打印 c 和 d 的值 swap(\u0026c, \u0026d, sizeof(long long int)); // 调用 swap 函数进行交换 printf(\"%lld,%lld\\n\", c, d); // 打印交换后的 c 和 d 的值 return 0; } 二级指针和多级指针 指针数据类型：跟指向空间中，数据的类型是保持一致的。\n作用：二级指针可以操作一级指针记录的地址\n#include int main(int argc, char const *argv[]) { int a = 10; int b = 20; int *p = \u0026a; int **pp = \u0026p; // 作用一：利用二级指针修改一级指针里面记录的内存地址 *pp = \u0026b; printf(\"%p\\n\", \u0026a); printf(\"%p\\n\", \u0026b); printf(\"%p\\n\", p); // 作用二：利用二级指针获取变量中记录的数据 printf(\"%d\\n\", **pp); return 0; } 数组指针的基本用法 概念：指向数组的指针，叫做数组指针\n#include int main(int argc, char const *argv[]) { int arr[] = {10, 20, 30, 40, 50}; int len = sizeof(arr) / sizeof(int); int *p1 = arr; int *p2 = \u0026arr[0]; printf(\"%p\\n\", p1); printf(\"%p\\n\", p2); printf(\"%d\\n\", *p1); printf(\"%d\\n\", *(p1 + 1)); printf(\"%d\\n\", *(p1 + 2)); printf(\"%d\\n\", *(p1 + 3)); for (int i = 0; i \u003c len; i++) { printf(\"%d\\n\", *p1++); } return 0; } arr参与计算的时候，会退化为第一个元素的指针 特殊情况： sizeof 运算的时候，不会退化，arr还是整体 \u0026arr获取地址的时候，不会退化 #include int main(int argc, char const *argv[]) { int arr[] = {10, 20, 30, 40, 50}; int len = sizeof(arr) / sizeof(int); // sizeof 运算的时候，arr还是整体 printf(\"%zu\\n\", sizeof(arr)); printf(\"%p\\n\", arr); // \u0026arr 时， arr还是整体 printf(\"%p\\n\", \u0026arr); printf(\"%p\\n\", arr + 1); printf(\"%p\\n\", \u0026arr + 1); return 0; } 通过指针便利数组 #include int main(int argc, char const *argv[]) { /* 二维数组的定义和遍历方式 定义格式方式一: int arr[行数][列数] = { {元素1, 元素2, ...}, {元素1, 元素2, ...}, ... }; */ // 定义一个 3x5 的二维数组并初始化 int arr[3][5] = { {1, 2, 3, 4, 5}, // 第一行 {1, 2, 3, 4, 5}, // 第二行 {1, 2, 3, 4, 5} // 第三行 }; // 定义一个指向包含 5 个整数的数组的指针，指向 arr int(*p)[5] = arr; // 遍历二维数组 for (int i = 0; i \u003c 3; i++) // 外层循环遍历行 { for (int j = 0; j \u003c 5; j++) // 内层循环遍历列 { // 使用指针解引用和偏移来访问数组元素 printf(\"%d \", *(*p + j)); // 打印当前行的元素 } printf(\"\\n\"); // 换行以分隔不同的行 p += 1; // 移动指针到下一行 } return 0; // 返回 0 表示程序正常结束 } #include int main(int argc, char const *argv[]) { /* 二维数组的定义和遍历方式 定义格式方式二: 通过一维数组的指针数组来实现二维数组的效果。 */ // 定义三个一维数组 int arr1[3] = {1, 2, 3}; // 第一个数组，包含 3 个元素 int arr2[5] = {1, 2, 3, 4, 5}; // 第二个数组，包含 5 个元素 int arr3[9] = {1, 2, 3, 4, 5, 6, 7, 8, 9}; // 第三个数组，包含 9 个元素 // 计算每个数组的长度 int len1 = sizeof(arr1) / sizeof(int); // arr1 的长度 int len2 = sizeof(arr2) / sizeof(int); // arr2 的长度 int len3 = sizeof(arr3) / sizeof(int); // arr3 的长度 // 将数组长度存入一个一维数组 int len[3] = {len1, len2, len3}; // 存储各数组的长度 // 定义一个指针数组，指向三个一维数组 int *arr[3] = {arr1, arr2, arr3}; // arr 数组中的每个元素都是指向整型的指针 // 定义一个指向指针数组的指针 int **p = arr; // p 是指向指向整型的指针的指针 // 遍历指针数组 for (int i = 0; i \u003c 3; i++) // 外层循环遍历指针数组的行 { for (int j = 0; j \u003c len[i]; j++) // 内层循环遍历当前数组的列 { // 使用指针解引用，打印当前数组的元素 printf(\"%d \", *(*p + j)); // 打印当前行的第 j 个元素 } printf(\"\\n\"); // 换行以分隔不同的数组 p += 1; // 移动指针到下一个数组 } return 0; // 返回 0 表示程序正常结束 } 数组指针和指针数组 数组指针：指向数组的指针\n作用：方便的操作数组中的各种数据\n举例：int* p = arr; （步长为：int 4个字节）\n举例：int (*p)[5] = \u0026arr; （步长为 ：int 乘5 20个字节）\n指针数组：存放指针的数组\n作用：用来存放指针\n举例：int *p[5]， 这个数组里面存放着int类型的指针\n函数和指针 格式：返回值类型（*指针名）（形参列表）\n作用：利用函数指针，可以动态的调用函数\n#include // 定义一个无参数无返回值的函数 void method1() { printf(\"method1\\n\"); // 打印函数名 } // 定义一个接受两个整数并返回整数的函数 int method2(int num1, int num2) { printf(\"method2\\n\"); // 打印函数名 return num1 + num2; // 返回两个参数的和 } int main(int argc, char const *argv[]) { // 声明一个指向无参数无返回值函数的指针 void (*p1)() = method1; // p1 指向 method1 函数 // 声明一个指向接受两个整数并返回整数的函数的指针 int (*p2)(int, int) = method2; // p2 指向 method2 函数 // 调用无参数函数 p1(); // 通过指针调用 method1 // 调用有参数的函数，并存储返回值 int num = p2(1, 2); // 通过指针调用 method2，传递参数 1 和 2 printf(\"%d\\n\", num); // 打印 method2 的返回值 return 0; // 返回 0 表示程序正常结束 } 函数指针 #include // 定义加法函数 int add(int num1, int num2) { return num1 + num2; // 返回两个数的和 } // 定义减法函数 int subtract(int num1, int num2) { return num1 - num2; // 返回第一个数减去第二个数的结果 } // 定义乘法函数 int multiply(int num1, int num2) { return num1 * num2; // 返回两个数的积 } // 定义除法函数 int divide(int num1, int num2) { return num1 / num2; // 返回第一个数除以第二个数的结果 } int main(int argc, char const *argv[]) { int a = 10; // 示例变量 a int b = 20; // 示例变量 b // 创建一个函数指针数组，存储四个基本运算函数 int (*arr[4])(int, int) = {add, subtract, multiply, divide}; // 提示用户输入两个数字 printf(\"please input two number to calculate\\n\"); int num1, num2; scanf(\"%d%d\", \u0026num1, \u0026num2); // 读取用户输入的两个数字 printf(\"%d\\n\", num1); // 打印第一个数字 printf(\"%d\\n\", num2); // 打印第二个数字 // 提示用户选择运算 int choose; printf(\"please input one number to specify the operation you need\\n\"); scanf(\"%d\", \u0026choose); // 读取用户输入的选择 // 调用相应的运算函数并存储结果 int res = (arr[choose - 1])(num1, num2); // 根据选择调用函数 printf(\"%d\\n\", res); // 打印运算结果 return 0; // 返回 0 表示程序正常结束 } ",
+  "wordCount" : "3219",
+  "inLanguage": "zh",
+  "datePublished": "2024-09-03T22:30:13+08:00",
+  "dateModified": "2024-09-03T22:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      C 语言指针
+    </h1>
+    <div class="post-description">
+      C 语言指针
+    </div>
+    <div class="post-meta"><span title='2024-09-03 22:30:13 +0800 CST'>2024-09-03</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3219 字&nbsp;·&nbsp;updated:&nbsp;2024-09-03&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#c-%e8%af%ad%e8%a8%80%e6%8c%87%e9%92%88" aria-label="C 语言指针">C 语言指针</a><ul>
+                            
+                    <li>
+                        <a href="#c%e8%af%ad%e8%a8%80%e4%b8%ad%e7%9a%84%e5%86%85%e5%ad%98" aria-label="C语言中的内存">C语言中的内存</a></li>
+                    <li>
+                        <a href="#%e6%8c%87%e9%92%88%e7%9a%84%e4%bd%9c%e7%94%a8" aria-label="指针的作用">指针的作用</a><ul>
+                            
+                    <li>
+                        <a href="#%e6%9f%a5%e8%af%a2%e6%95%b0%e6%8d%ae" aria-label="查询数据">查询数据</a></li>
+                    <li>
+                        <a href="#%e6%93%8d%e4%bd%9c%e5%85%b6%e4%bb%96%e5%87%bd%e6%95%b0%e4%b8%ad%e7%9a%84%e5%8f%98%e9%87%8f" aria-label="操作其他函数中的变量">操作其他函数中的变量</a></li>
+                    <li>
+                        <a href="#%e5%87%bd%e6%95%b0%e8%bf%94%e5%9b%9e%e5%a4%9a%e4%b8%aa%e5%80%bc" aria-label="函数返回多个值">函数返回多个值</a></li>
+                    <li>
+                        <a href="#%e5%87%bd%e6%95%b0%e7%9a%84%e7%bb%93%e6%9e%9c%e5%92%8c%e8%ae%a1%e7%ae%97%e7%8a%b6%e6%80%81%e5%88%86%e5%bc%80" aria-label="函数的结果和计算状态分开">函数的结果和计算状态分开</a></li>
+                    <li>
+                        <a href="#%e6%96%b9%e4%be%bf%e7%9a%84%e6%93%8d%e4%bd%9c%e6%95%b0%e7%bb%84%e5%92%8c%e5%87%bd%e6%95%b0" aria-label="方便的操作数组和函数">方便的操作数组和函数</a></li>
+                    <li>
+                        <a href="#%e6%8c%87%e5%90%91%e4%b8%8d%e6%98%8e%e7%9a%84%e6%8c%87%e9%92%88" aria-label="指向不明的指针">指向不明的指针</a></li>
+                    <li>
+                        <a href="#%e6%b2%a1%e6%9c%89%e7%b1%bb%e5%9e%8b%e7%9a%84%e6%8c%87%e9%92%88" aria-label="没有类型的指针">没有类型的指针</a></li>
+                    <li>
+                        <a href="#%e4%ba%8c%e7%ba%a7%e6%8c%87%e9%92%88%e5%92%8c%e5%a4%9a%e7%ba%a7%e6%8c%87%e9%92%88" aria-label="二级指针和多级指针">二级指针和多级指针</a></li>
+                    <li>
+                        <a href="#%e6%95%b0%e7%bb%84%e6%8c%87%e9%92%88%e7%9a%84%e5%9f%ba%e6%9c%ac%e7%94%a8%e6%b3%95" aria-label="数组指针的基本用法">数组指针的基本用法</a></li>
+                    <li>
+                        <a href="#%e9%80%9a%e8%bf%87%e6%8c%87%e9%92%88%e4%be%bf%e5%88%a9%e6%95%b0%e7%bb%84" aria-label="通过指针便利数组">通过指针便利数组</a></li>
+                    <li>
+                        <a href="#%e6%95%b0%e7%bb%84%e6%8c%87%e9%92%88%e5%92%8c%e6%8c%87%e9%92%88%e6%95%b0%e7%bb%84" aria-label="数组指针和指针数组">数组指针和指针数组</a></li>
+                    <li>
+                        <a href="#%e5%87%bd%e6%95%b0%e5%92%8c%e6%8c%87%e9%92%88" aria-label="函数和指针">函数和指针</a></li>
+                    <li>
+                        <a href="#%e5%87%bd%e6%95%b0%e6%8c%87%e9%92%88" aria-label="函数指针">函数指针</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="c-语言指针">C 语言指针<a hidden class="anchor" aria-hidden="true" href="#c-语言指针">#</a></h1>
+<h2 id="c语言中的内存">C语言中的内存<a hidden class="anchor" aria-hidden="true" href="#c语言中的内存">#</a></h2>
+<p><strong>静态内存（Static Memory)</strong></p>
+<ul>
+<li>Global variables, accessible throughout the whole program.</li>
+<li>Defined with static keywork, as well as variables defined in global scope.</li>
+</ul>
+<p><strong>栈内存（Stack Memory)</strong></p>
+<ul>
+<li>Local variables with functions. Destroyed after function exits.</li>
+</ul>
+<p><strong>堆内存（Heap Memory）</strong></p>
+<ul>
+<li>You control creation and destruction of these variables: <em>malloc()</em>, <em>free()</em></li>
+<li>Can lead to memory leaks, use-after-free issues.</li>
+</ul>
+<p>指针 （变量）= 内存地址</p>
+<p>定义指针的 <code>*</code> ： 标记</p>
+<p>定义格式 ：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>	<span style="color:#960050;background-color:#1e0010">数据类型</span> <span style="color:#f92672">*</span> <span style="color:#960050;background-color:#1e0010">变量名</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">double</span> b <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">double</span> <span style="color:#f92672">*</span>p2 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>b;
+</span></span></code></pre></div><h2 id="指针的作用">指针的作用<a hidden class="anchor" aria-hidden="true" href="#指针的作用">#</a></h2>
+<p>指针是一个 64 位整数，其值为内存中的地址。</p>
+<h3 id="查询数据">查询数据<a hidden class="anchor" aria-hidden="true" href="#查询数据">#</a></h3>
+<p><code>*</code> ： 解引用运算符</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1); <span style="color:#75715e">// 10
+</span></span></span></code></pre></div><ul>
+<li>
+<p>指针变量的数据类型要和指向变量的类型保持一致</p>
+</li>
+<li>
+<p>指针变量占用的大小，跟数据类型无关，跟编译器有关（32位 ： 4字节；64位：8字节）</p>
+</li>
+<li>
+<p>给指针变量赋值的时候，不能把一个数赋值给指针变量</p>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a;
+</span></span><span style="display:flex;"><span>	<span style="color:#75715e">// int *p1 = 100; 错误，将100看成内存地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1); <span style="color:#75715e">// 10
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1); <span style="color:#75715e">// 20
+</span></span></span></code></pre></div><h3 id="操作其他函数中的变量">操作其他函数中的变量<a hidden class="anchor" aria-hidden="true" href="#操作其他函数中的变量">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdlib.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">swap</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p2)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> tmp <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>p1;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>p2;
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>p2 <span style="color:#f92672">=</span> tmp;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>, b <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d, %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, a, b);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">swap</span>(<span style="color:#f92672">&amp;</span>a, <span style="color:#f92672">&amp;</span>b);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d, %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, a, b);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="函数返回多个值">函数返回多个值<a hidden class="anchor" aria-hidden="true" href="#函数返回多个值">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">getMaxAndMin</span>(<span style="color:#66d9ef">int</span> arr[], <span style="color:#66d9ef">int</span> len, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>max, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>min)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>max <span style="color:#f92672">=</span> arr[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>min <span style="color:#f92672">=</span> arr[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (arr[i] <span style="color:#f92672">&gt;</span> <span style="color:#f92672">*</span>max)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">*</span>max <span style="color:#f92672">=</span> arr[i];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (arr[i] <span style="color:#f92672">&lt;</span> <span style="color:#f92672">*</span>min)
+</span></span><span style="display:flex;"><span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#f92672">*</span>min <span style="color:#f92672">=</span> arr[i];
+</span></span><span style="display:flex;"><span>        }
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> arr[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">100</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(arr) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(arr[<span style="color:#ae81ff">0</span>]);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> max <span style="color:#f92672">=</span> arr[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> min <span style="color:#f92672">=</span> arr[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">getMaxAndMin</span>(arr, len, <span style="color:#f92672">&amp;</span>max, <span style="color:#f92672">&amp;</span>min);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Max: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, max);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Min: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, min);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="函数的结果和计算状态分开">函数的结果和计算状态分开<a hidden class="anchor" aria-hidden="true" href="#函数的结果和计算状态分开">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">getRemainder</span>(<span style="color:#66d9ef">int</span> num1, <span style="color:#66d9ef">int</span> num2, <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>remainder)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (num2 <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#f92672">*</span>remainder <span style="color:#f92672">=</span> num1 <span style="color:#f92672">%</span> num2;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> b <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> res <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> flag <span style="color:#f92672">=</span> <span style="color:#a6e22e">getRemainder</span>(a, b, <span style="color:#f92672">&amp;</span>res);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>flag)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;Quotient: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, res);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="方便的操作数组和函数">方便的操作数组和函数<a hidden class="anchor" aria-hidden="true" href="#方便的操作数组和函数">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        指针运算
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">            步长：指针移动一次，走的字节数目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                char : 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                short : 2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                int : 4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                long : 4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                long long : 8
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                加法/减法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;p = %p, *p = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p, <span style="color:#f92672">*</span>p);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">long</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        指针运算
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">            步长：指针移动一次，走的字节数目
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                char : 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                short : 2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                int : 4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                long : 4
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                long long : 8
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">                加法/减法
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> arr[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>arr[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;p1 指向的元素: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;p1 + 1 指向的元素: %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>(p1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p2 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>arr[<span style="color:#ae81ff">5</span>];
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p1);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p2);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p2 <span style="color:#f92672">-</span> p1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="指向不明的指针">指向不明的指针<a hidden class="anchor" aria-hidden="true" href="#指向不明的指针">#</a></h3>
+<p><strong>野指针</strong>：指针指向的空间未分配</p>
+<p><strong>悬空指针</strong>：指针指向的空间已经分配，但是被释放了</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">method</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> num <span style="color:#f92672">=</span> <span style="color:#ae81ff">13</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>num;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> p;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p1);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// p2 野指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p2 <span style="color:#f92672">=</span> p1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p2);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p2);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 悬空指针：指针指向的内存已分配，但是被释放了
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p3 <span style="color:#f92672">=</span> <span style="color:#a6e22e">method</span>();
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;delay some time</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p3);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p3);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="没有类型的指针">没有类型的指针<a hidden class="anchor" aria-hidden="true" href="#没有类型的指针">#</a></h3>
+<p><strong>特点</strong>：无法获取数据，无法计算，但是可以接受任意地址</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// swap 函数用于交换两个内存区域的内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// p1 和 p2 是指向要交换的内存地址的指针，len 是要交换的字节数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">swap</span>(<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>p1, <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>p2, <span style="color:#66d9ef">int</span> len)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将 void 指针转换为 char 指针，便于字节级别的操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pc1 <span style="color:#f92672">=</span> p1;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>pc2 <span style="color:#f92672">=</span> p2;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> temp <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 临时变量，用于存储字节内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 循环 len 次，逐字节交换内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        temp <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>pc1;   <span style="color:#75715e">// 保存 pc1 指向的字节
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#f92672">*</span>pc1 <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>pc2;   <span style="color:#75715e">// 将 pc2 指向的字节赋值给 pc1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#f92672">*</span>pc2 <span style="color:#f92672">=</span> temp;   <span style="color:#75715e">// 将原 pc1 指向的字节赋值给 pc2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>        pc1<span style="color:#f92672">++</span>; <span style="color:#75715e">// 移动到下一个字节
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        pc2<span style="color:#f92672">++</span>; <span style="color:#75715e">// 移动到下一个字节
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>; <span style="color:#75715e">// 整数变量 a
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">short</span> b <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>; <span style="color:#75715e">// 短整型变量 b
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a; <span style="color:#75715e">// 指向 a 的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">short</span> <span style="color:#f92672">*</span>p2 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>b; <span style="color:#75715e">// 指向 b 的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 打印变量 a 和 b 的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;a = %d, b = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, a, b);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;*p1 = %d, *p2 = %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1, <span style="color:#f92672">*</span>p2);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 不同类型的指针之间不能直接赋值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// void 指针可以接受任何类型的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>p3 <span style="color:#f92672">=</span> (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)p1; <span style="color:#75715e">// 将整型指针 p1 转换为字符型指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// printf(&#34;%c\n&#34;, *p3); // 不建议解引用，因为 p3 可能指向非字符数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>p4 <span style="color:#f92672">=</span> p1; <span style="color:#75715e">// 使用 void 指针 p4 存储 p1 的地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p4); <span style="color:#75715e">// 打印 p4 的地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p4 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>); <span style="color:#75715e">// 虽然可以进行指针算术运算，但这里的结果不安全
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>p5 <span style="color:#f92672">=</span> p2; <span style="color:#75715e">// 使用 void 指针 p5 存储 p2 的地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// printf(&#34;%d\n&#34;, *p5); // 不建议解引用，因为 p5 是 void 指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 swap 函数交换两个 long long int 类型的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> <span style="color:#ae81ff">100</span>; <span style="color:#75715e">// 声明 long long int 变量 c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">int</span> d <span style="color:#f92672">=</span> <span style="color:#ae81ff">200</span>; <span style="color:#75715e">// 声明 long long int 变量 d
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%lld,%lld</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, c, d); <span style="color:#75715e">// 打印 c 和 d 的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">swap</span>(<span style="color:#f92672">&amp;</span>c, <span style="color:#f92672">&amp;</span>d, <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span> <span style="color:#66d9ef">int</span>)); <span style="color:#75715e">// 调用 swap 函数进行交换
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%lld,%lld</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, c, d); <span style="color:#75715e">// 打印交换后的 c 和 d 的值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="二级指针和多级指针">二级指针和多级指针<a hidden class="anchor" aria-hidden="true" href="#二级指针和多级指针">#</a></h3>
+<p>指针数据类型：跟指向空间中，数据的类型是保持一致的。</p>
+<p>作用：二级指针可以操作一级指针记录的地址</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> b <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>a;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">**</span>pp <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>p;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 作用一：利用二级指针修改一级指针里面记录的内存地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#f92672">*</span>pp <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>b;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">&amp;</span>a);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">&amp;</span>b);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 作用二：利用二级指针获取变量中记录的数据
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">**</span>pp);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="数组指针的基本用法">数组指针的基本用法<a hidden class="anchor" aria-hidden="true" href="#数组指针的基本用法">#</a></h3>
+<p>概念：指向数组的指针，叫做数组指针</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> arr[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">30</span>, <span style="color:#ae81ff">40</span>, <span style="color:#ae81ff">50</span>};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(arr) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p1 <span style="color:#f92672">=</span> arr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>p2 <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>arr[<span style="color:#ae81ff">0</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p1);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p2);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>(p1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>));
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>(p1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>));
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>(p1 <span style="color:#f92672">+</span> <span style="color:#ae81ff">3</span>));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">*</span>p1<span style="color:#f92672">++</span>);
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><ul>
+<li>arr参与计算的时候，会退化为第一个元素的指针
+<ul>
+<li>特殊情况：
+<ul>
+<li>sizeof 运算的时候，不会退化，arr还是整体</li>
+<li>&amp;arr获取地址的时候，不会退化</li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> arr[] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">30</span>, <span style="color:#ae81ff">40</span>, <span style="color:#ae81ff">50</span>};
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(arr) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// sizeof 运算的时候，arr还是整体
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%zu</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#66d9ef">sizeof</span>(arr));
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, arr);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// &amp;arr 时， arr还是整体
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">&amp;</span>arr);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, arr <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#f92672">&amp;</span>arr <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="通过指针便利数组">通过指针便利数组<a hidden class="anchor" aria-hidden="true" href="#通过指针便利数组">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        二维数组的定义和遍历方式
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        定义格式方式一:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        int arr[行数][列数] = {
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">            {元素1, 元素2, ...},
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">            {元素1, 元素2, ...},
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">            ...
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        };
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">    */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个 3x5 的二维数组并初始化
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> arr[<span style="color:#ae81ff">3</span>][<span style="color:#ae81ff">5</span>] <span style="color:#f92672">=</span> {
+</span></span><span style="display:flex;"><span>        {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>}, <span style="color:#75715e">// 第一行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>}, <span style="color:#75715e">// 第二行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>}  <span style="color:#75715e">// 第三行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个指向包含 5 个整数的数组的指针，指向 arr
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span>(<span style="color:#f92672">*</span>p)[<span style="color:#ae81ff">5</span>] <span style="color:#f92672">=</span> arr;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 遍历二维数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">3</span>; i<span style="color:#f92672">++</span>) <span style="color:#75715e">// 外层循环遍历行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">5</span>; j<span style="color:#f92672">++</span>) <span style="color:#75715e">// 内层循环遍历列
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 使用指针解引用和偏移来访问数组元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d &#34;</span>, <span style="color:#f92672">*</span>(<span style="color:#f92672">*</span>p <span style="color:#f92672">+</span> j)); <span style="color:#75715e">// 打印当前行的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>); <span style="color:#75715e">// 换行以分隔不同的行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        p <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;       <span style="color:#75715e">// 移动指针到下一行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 返回 0 表示程序正常结束
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/*
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        二维数组的定义和遍历方式
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        定义格式方式二:
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        通过一维数组的指针数组来实现二维数组的效果。
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">    */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 定义三个一维数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> arr1[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>};                   <span style="color:#75715e">// 第一个数组，包含 3 个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> arr2[<span style="color:#ae81ff">5</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>};             <span style="color:#75715e">// 第二个数组，包含 5 个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> arr3[<span style="color:#ae81ff">9</span>] <span style="color:#f92672">=</span> {<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>, <span style="color:#ae81ff">4</span>, <span style="color:#ae81ff">5</span>, <span style="color:#ae81ff">6</span>, <span style="color:#ae81ff">7</span>, <span style="color:#ae81ff">8</span>, <span style="color:#ae81ff">9</span>}; <span style="color:#75715e">// 第三个数组，包含 9 个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 计算每个数组的长度
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> len1 <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(arr1) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>); <span style="color:#75715e">// arr1 的长度
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> len2 <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(arr2) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>); <span style="color:#75715e">// arr2 的长度
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> len3 <span style="color:#f92672">=</span> <span style="color:#66d9ef">sizeof</span>(arr3) <span style="color:#f92672">/</span> <span style="color:#66d9ef">sizeof</span>(<span style="color:#66d9ef">int</span>); <span style="color:#75715e">// arr3 的长度
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将数组长度存入一个一维数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> len[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">=</span> {len1, len2, len3}; <span style="color:#75715e">// 存储各数组的长度
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个指针数组，指向三个一维数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>arr[<span style="color:#ae81ff">3</span>] <span style="color:#f92672">=</span> {arr1, arr2, arr3}; <span style="color:#75715e">// arr 数组中的每个元素都是指向整型的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 定义一个指向指针数组的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">**</span>p <span style="color:#f92672">=</span> arr; <span style="color:#75715e">// p 是指向指向整型的指针的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 遍历指针数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">3</span>; i<span style="color:#f92672">++</span>) <span style="color:#75715e">// 外层循环遍历指针数组的行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; j <span style="color:#f92672">&lt;</span> len[i]; j<span style="color:#f92672">++</span>) <span style="color:#75715e">// 内层循环遍历当前数组的列
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        {
+</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 使用指针解引用，打印当前数组的元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d &#34;</span>, <span style="color:#f92672">*</span>(<span style="color:#f92672">*</span>p <span style="color:#f92672">+</span> j)); <span style="color:#75715e">// 打印当前行的第 j 个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>); <span style="color:#75715e">// 换行以分隔不同的数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        p <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>;       <span style="color:#75715e">// 移动指针到下一个数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 返回 0 表示程序正常结束
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h3 id="数组指针和指针数组">数组指针和指针数组<a hidden class="anchor" aria-hidden="true" href="#数组指针和指针数组">#</a></h3>
+<p><strong>数组指针</strong>：指向数组的指针</p>
+<p>作用：方便的操作数组中的各种数据</p>
+<p>举例：<code>int* p = arr</code>; （步长为：int 4个字节）</p>
+<p>举例：<code>int (*p)[5] = &amp;arr</code>; （步长为 ：int 乘5 20个字节）</p>
+<p><strong>指针数组</strong>：存放指针的数组</p>
+<p>作用：用来存放指针</p>
+<p>举例：<code>int *p[5]</code>， 这个数组里面存放着int类型的指针</p>
+<h3 id="函数和指针">函数和指针<a hidden class="anchor" aria-hidden="true" href="#函数和指针">#</a></h3>
+<p>格式：返回值类型（*指针名）（形参列表）</p>
+<p>作用：利用函数指针，可以动态的调用函数</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 定义一个无参数无返回值的函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">method1</span>()
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;method1</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>); <span style="color:#75715e">// 打印函数名
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 定义一个接受两个整数并返回整数的函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">method2</span>(<span style="color:#66d9ef">int</span> num1, <span style="color:#66d9ef">int</span> num2)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;method2</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>); <span style="color:#75715e">// 打印函数名
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> num1 <span style="color:#f92672">+</span> num2;  <span style="color:#75715e">// 返回两个参数的和
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个指向无参数无返回值函数的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>p1)() <span style="color:#f92672">=</span> method1; <span style="color:#75715e">// p1 指向 method1 函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个指向接受两个整数并返回整数的函数的指针
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>p2)(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">int</span>) <span style="color:#f92672">=</span> method2; <span style="color:#75715e">// p2 指向 method2 函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 调用无参数函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">p1</span>(); <span style="color:#75715e">// 通过指针调用 method1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 调用有参数的函数，并存储返回值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> num <span style="color:#f92672">=</span> <span style="color:#a6e22e">p2</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>);  <span style="color:#75715e">// 通过指针调用 method2，传递参数 1 和 2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, num); <span style="color:#75715e">// 打印 method2 的返回值
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 返回 0 表示程序正常结束
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h3 id="函数指针">函数指针<a hidden class="anchor" aria-hidden="true" href="#函数指针">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;stdio.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 定义加法函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">add</span>(<span style="color:#66d9ef">int</span> num1, <span style="color:#66d9ef">int</span> num2)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> num1 <span style="color:#f92672">+</span> num2; <span style="color:#75715e">// 返回两个数的和
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 定义减法函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">subtract</span>(<span style="color:#66d9ef">int</span> num1, <span style="color:#66d9ef">int</span> num2)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> num1 <span style="color:#f92672">-</span> num2; <span style="color:#75715e">// 返回第一个数减去第二个数的结果
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 定义乘法函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">multiply</span>(<span style="color:#66d9ef">int</span> num1, <span style="color:#66d9ef">int</span> num2)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> num1 <span style="color:#f92672">*</span> num2; <span style="color:#75715e">// 返回两个数的积
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 定义除法函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">divide</span>(<span style="color:#66d9ef">int</span> num1, <span style="color:#66d9ef">int</span> num2)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> num1 <span style="color:#f92672">/</span> num2; <span style="color:#75715e">// 返回第一个数除以第二个数的结果
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">main</span>(<span style="color:#66d9ef">int</span> argc, <span style="color:#66d9ef">char</span> <span style="color:#66d9ef">const</span> <span style="color:#f92672">*</span>argv[])
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> a <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>; <span style="color:#75715e">// 示例变量 a
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> b <span style="color:#f92672">=</span> <span style="color:#ae81ff">20</span>; <span style="color:#75715e">// 示例变量 b
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建一个函数指针数组，存储四个基本运算函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> (<span style="color:#f92672">*</span>arr[<span style="color:#ae81ff">4</span>])(<span style="color:#66d9ef">int</span>, <span style="color:#66d9ef">int</span>) <span style="color:#f92672">=</span> {add, subtract, multiply, divide};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 提示用户输入两个数字
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;please input two number to calculate</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> num1, num2;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">scanf</span>(<span style="color:#e6db74">&#34;%d%d&#34;</span>, <span style="color:#f92672">&amp;</span>num1, <span style="color:#f92672">&amp;</span>num2); <span style="color:#75715e">// 读取用户输入的两个数字
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, num1);        <span style="color:#75715e">// 打印第一个数字
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, num2);        <span style="color:#75715e">// 打印第二个数字
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 提示用户选择运算
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> choose;
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;please input one number to specify the operation you need</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">scanf</span>(<span style="color:#e6db74">&#34;%d&#34;</span>, <span style="color:#f92672">&amp;</span>choose); <span style="color:#75715e">// 读取用户输入的选择
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 调用相应的运算函数并存储结果
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> res <span style="color:#f92672">=</span> (arr[choose <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>])(num1, num2); <span style="color:#75715e">// 根据选择调用函数
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, res);                     <span style="color:#75715e">// 打印运算结果
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>; <span style="color:#75715e">// 返回 0 表示程序正常结束
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>}
+</span></span></code></pre></div><h2 id="heading"><a hidden class="anchor" aria-hidden="true" href="#heading">#</a></h2>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/c/">C</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>MIT6.S081(4)-Virtual Memory</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+    <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>

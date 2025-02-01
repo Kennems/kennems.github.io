@@ -88,7 +88,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <meta property="og:type" content="article" />
 <meta property="og:url" content="https://kennems.github.io/posts/tech/leetcode%E7%AC%94%E8%AE%B0/" /><meta property="article:section" content="posts" />
 <meta property="article:published_time" content="2024-04-17T15:37:01+08:00" />
-<meta property="article:modified_time" content="2024-04-22T15:37:01+08:00" />
+<meta property="article:modified_time" content="2024-10-06T15:37:01+08:00" />
 
 <meta name="twitter:card" content="summary"/>
 <meta name="twitter:title" content=" LeetCode笔记"/>
@@ -132,10 +132,10 @@ document.addEventListener("DOMContentLoaded", function() {
     "LeetCode笔记"
   ],
   "articleBody": "LeetCode笔记 目标：2500分\nHOT100 301. 删除无效的括号 题目大意：\n给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字符串有效。\n返回所有可能的结果。答案可以按 任意顺序 返回。\n回溯 实现思路：\n统计无效括号数量：\n首先遍历字符串s，统计左括号和右括号的数量l和r，其中l表示未匹配的左括号数量，r表示需要删除的右括号数量。 回溯算法：\n编写回溯算法来尝试删除不同位置的括号，使得字符串有效。 回溯过程中需要注意以下情况： 已经匹配的括号数量ln和rn，以及当前位置i。 遍历字符串s的每个字符，当遇到重复的字符时跳过，以避免重复结果。 如果当前字符为左括号并且ln不为0，则递归调用删除当前左括号的情况，ln减一，否则继续。 如果当前字符为右括号并且rn不为0，则递归调用删除当前右括号的情况，rn减一，否则继续。 检查字符串有效性：\n编写辅助函数check来检查字符串是否有效，即左右括号数量是否匹配。 返回结果：\n将所有有效的字符串结果添加到结果列表ret中，并返回。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: l, r = 0, 0 ret = [] n = len(s) for c in s: if c=='(': l+=1 elif c==')': if l==0: r+=1 else: l-=1 def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': cnt-=1 if cnt\u003c0: return False return (cnt==0) def backtrace(st, start, ln, rn): if ln==0 and rn==0 and check(st): ret.append(st[:]) return for i in range(start, len(st)): if i\u003estart and st[i]==st[i-1]: continue if ln+rn\u003en-1-i+1: break if ln and st[i]=='(': backtrace(st[:i]+st[i+1:], i, ln-1, rn) elif rn and st[i]==')': backtrace(st[:i]+st[i+1:], i, ln, rn-1) backtrace(s, 0, l, r) return ret 广搜 这个实现使用了广度优先搜索（BFS）的思路来解决问题。\nBFS搜索：\n使用一个集合cur来存储当前层的所有字符串，初始时将输入的字符串s加入集合cur中。 在每一轮循环中，遍历当前集合cur中的所有字符串，如果其中有字符串是有效的，则将其加入结果列表ret中。 如果结果列表ret不为空，则跳出循环，表示已经找到了所有有效的字符串。 如果结果列表ret为空，则需要继续进行下一轮搜索，将当前集合cur中的每个字符串，通过删除一个括号的方式，生成所有可能的下一层字符串，加入到集合nxt中。 更新当前集合cur为nxt，继续下一轮搜索。 检查字符串有效性：\n定义一个辅助函数check，用于检查字符串是否有效。 遍历字符串中的每个字符，遇到左括号时增加计数器cnt，遇到右括号时如果cnt为0则返回False（表示右括号没有匹配的左括号），否则减少cnt。 最终判断cnt是否为0，如果为0表示字符串有效。 返回结果：\n返回结果列表ret，其中存储了所有有效的字符串。 class Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 297. 二叉树的序列化与反序列化 不止第一次遇到了。\n题目大意：序列化是将一个数据结构或对象转换为连续的比特位的操作，从而可以存储在文件或内存中，并且通过网络传输到另一个计算机环境中。本题要求设计一个算法来实现二叉树的序列化和反序列化，即将二叉树转换为字符串并将字符串转换回原始的二叉树结构。\n实现思路：\n序列化：使用递归将二叉树转换为字符串，根节点值与左右子树序列化结果之间使用空格分隔，空节点用 ‘#’ 表示。 反序列化：使用递归将字符串转换为二叉树。首先定义一个辅助函数 DerWork()，用于递归构建二叉树。在该函数中，按照前序遍历的顺序，依次提取字符串中的节点值，并根据节点值构建二叉树节点。如果节点值为 ‘#’，表示空节点，返回 None。否则，创建节点并递归构建其左右子树。 在反序列化过程中，使用一个全局变量 self.s 来记录当前待处理的字符串，每次递归处理后，将字符串中已经处理过的部分剔除，继续处理剩余部分。 最终返回根节点即可。 # Definition for a binary tree node. # class TreeNode(object): # def __init__(self, x): # self.val = x # self.left = None # self.right = None class Codec: def serialize(self, root): \"\"\"Encodes a tree to a single string. :type root: TreeNode :rtype: str \"\"\" if not root: return '#' return str(root.val)+' '+self.serialize(root.left)+' '+self.serialize(root.right) def deserialize(self, data): \"\"\"Decodes your encoded data to tree. :type data: str :rtype: TreeNode \"\"\" self.s = data return self.DerWork() def DerWork(self): if len(self.s)==0: return None try: idx = self.s.index(' ') except: idx = -1 node = self.s if idx==-1 else self.s[:idx] self.s = '' if idx==-1 else self.s[idx+1:] if node=='#': return None t = TreeNode(int(node)) t.left = self.DerWork() t.right = self.DerWork() return t # Your Codec object will be instantiated and called as such: # ser = Codec() # deser = Codec() # ans = deser.deserialize(ser.serialize(root)) 84. 柱状图中最大的矩形 题目大意：给定 n 个非负整数，表示柱状图中各个柱子的高度。每个柱子彼此相邻，且宽度为 1。求在该柱状图中，能够勾勒出的矩形的最大面积。\n实现思路：\n使用单调栈解决问题。创建两个数组 l 和 r，分别记录每个柱子向左和向右第一个比其高度小的柱子的索引位置。 初始化一个空栈 stk。 遍历柱子的高度列表 heights： 若栈不为空且当前柱子的高度小于栈顶柱子的高度，则将栈顶元素弹出，并更新栈顶元素对应的 r 值为当前柱子的索引。 若栈为空或者当前柱子的高度大于栈顶柱子的高度，则将当前柱子的索引入栈。 在更新 r 值的同时，若栈不为空，则更新当前柱子的 l 值为栈顶元素的索引。 遍历完成后，对于每个柱子 i，计算以该柱子为高度的矩形面积为 (r[i] - l[i] - 1) * heights[i]，取最大值即为所求的最大矩形面积。 若柱状图为空，则返回 0。 class Solution: def largestRectangleArea(self, heights: List[int]) -\u003e int: n=len(heights) l, r = [-1]*(n+5), [n]*(n+5) stk = list() for i in range(n): while stk and heights[stk[-1]]\u003e=heights[i]: r[stk[-1]]=i stk.pop() if stk: l[i]=stk[-1] stk.append(i) return max( (r[i]-l[i]-1)*heights[i] for i in range(n) ) if n\u003e0 else 0 85. 最大矩形 题目大意：给定一个仅包含 0 和 1、大小为 rows x cols 的二维二进制矩阵，找出只包含 1 的最大矩形，并返回其面积。\n实现思路：\n将问题转化为矩形最大面积问题。 定义变量 area 用于记录最大矩形的面积。 创建二维数组 left，用于记录每个位置 (i, j) 左侧连续 1 的个数。 遍历二维矩阵，初始化 left 数组： 若当前位置为 ‘1’，则 left[i][j] 等于 left[i][j-1] + 1，否则为 0。 遍历矩阵的每一列，对于每一列 j，使用单调栈来计算以当前列为底边的最大矩形的面积： 初始化一个空栈 stk。 定义两个数组 up 和 down，分别记录当前位置上方第一个小于等于其高度的位置和下方第一个小于等于其高度的位置。 遍历矩阵的每一行 i，进行以下操作： 当栈不为空且栈顶位置对应的 left 值大于等于当前位置的 left 值时，弹出栈顶位置，并更新 down 值。 如果栈为空，则当前位置的 up 值为 -1，否则为栈顶位置。 将当前行索引入栈。 在计算当前列的矩形面积时，height 为 down[i] - up[i] - 1，宽度为 left[i][j]，计算当前列的最大面积并更新 area。 返回最大面积 area。 class Solution: def maximalRectangle(self, matrix: List[List[str]]) -\u003e int: # 转化为矩形最大面积问题 n, m = len(matrix), len(matrix[0]) area = 0 left = [[0]*m for _ in range(n)] for i in range(n): for j in range(m): if matrix[i][j]=='1': left[i][j] += left[i][j-1]+1 if j else 1 for j in range(m): stk = [] up, down = [-1]*n, [n]*n for i in range(n): #行 while stk and left[ stk[-1] ][j]\u003e=left[i][j]: down[stk[-1]] = i stk.pop() up[i] = stk[-1] if stk else -1 stk.append(i) for i in range(n): height = down[i]-up[i]-1 area = max(area, height*left[i][j]) return area 76. 最小覆盖子串 题目大意：给定字符串 s 和字符串 t，返回 s 中涵盖 t 所有字符的最小子串。如果 s 中不存在涵盖 t 所有字符的子串，则返回空字符串 “\"。\n注意：\n对于 t 中重复字符，子字符串中该字符数量必须不少于 t 中该字符数量。\n如果 s 中存在这样的子串，保证它是唯一的答案。\n实现思路：\n使用双指针滑动窗口解决问题。 初始化 need 字典，用于记录字符串 t 中每个字符的出现次数。 初始化 needCnt 为 t 的长度 m，表示还需要的字符数量。 初始化左指针 left 为 0，并初始化结果变量 res 为一个长度为 n 的区间，初始值为 (0, n)。 遍历字符串 t，统计每个字符的出现次数并存储在 need 字典中。 遍历字符串 s，使用右指针 right 遍历每个字符： 若当前字符在 t 中出现，则 needCnt 减 1。 更新 need 字典中当前字符的出现次数。 若 needCnt 为 0，表示当前窗口包含了 t 中所有字符，进入内部循环： 移动左指针 left，直到当前窗口不再满足条件（即 need 字典中某个字符的出现次数大于 0）。 更新结果变量 res。 恢复左指针 left 和 needCnt。 返回结果字符串，若结果区间超出 s 的范围，则返回空字符串。 class Solution: def minWindow(self, s: str, t: str) -\u003e str: n, m = len(s), len(t) need = defaultdict(int) needCnt = m left = 0 res = (0, n) for ch in t: need[ch]+=1 for right, ch in enumerate(s): if need[ch]\u003e0: needCnt-=1 need[ch]-=1 if needCnt==0: while need[s[left]]!=0: need[s[left]]+=1 left+=1 if right-left \u003c res[1]-res[0]: res = (left, right) need[s[left]]+=1 needCnt+=1 left+=1 return '' if res[1]\u003en-1 else s[res[0]:res[1]+1] 312. 戳气球 题意：给定n个数字num[0~n-1],每次戳破一个气球可以获得nums[i-1]*nums[i]*nums[i+1]个硬币，最两旁默认为1，问最终获得的最大硬币数量。 思路：区间DP，逆向思维, 思考如何放气球能使硬币最大，f[i][j]代表开区间i~j可以获得的最大硬币， 先枚举小区间，再枚举大区间，枚举区间内每个数字，状态转移有：f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j])。最终输出f[0][n+1] class Solution: def maxCoins(self, nums: List[int]) -\u003e int: n = len(nums) nums = [1]+nums+[1] f = [[0]*(n+5) for _ in range(n+5)] # 开区间 (left, right) 区间内能获得的最大硬币 for l in range(2,n+2): # len:2~n+1 for i in range(n+1-l+1): # left:0~n+1-len j=i+l # right = left + len for k in range(i+1, j): # 开区间(i,j) 即[i+1, j-1] f[i][j] = max(f[i][j], f[i][k]+f[k][j]+nums[i]*nums[k]*nums[j]) return f[0][n+1] 301. 删除无效的括号 题目大意：给定一个由字母和括号组成的字符串s，要求删除最小数量的括号，使得字符串成为有效的括号组合，并返回所有可能的结果。\n实现思路：\n首先定义一个辅助函数check(st)，用于检查字符串st是否为有效的括号组合。遍历字符串中的每个字符，维护一个计数器cnt，遇到左括号增加计数，遇到右括号减少计数，若出现cnt为负数，或者遍历结束后cnt不为0，则说明括号不匹配，返回False，否则返回True。\n初始化一个空列表ret，用于存储结果。\n初始化一个集合cur，初始时将输入字符串s作为唯一元素加入其中。\n使用while循环，直到找到符合条件的结果为止：\n遍历集合cur中的每个字符串，检查其是否为有效括号组合，若是则将其加入结果列表ret。\n若结果列表ret不为空，则说明已找到符合条件的结果，结束循环。\n否则，初始化一个空集合nxt，用于存储下一轮迭代的候选字符串集合。\n遍历集合cur中的每个字符串，对于每个字符串，尝试删除一个字符（括号），生成新的字符串，并将其加入nxt中。\n更新cur为nxt，继续下一轮迭代。\n返回结果列表ret。\nclass Solution: def removeInvalidParentheses(self, s: str) -\u003e List[str]: ret = [] def check(st): cnt=0 for c in st: if c=='(': cnt+=1 elif c==')': if cnt==0: return False cnt-=1 return cnt==0 cur = set([s]) while True: for st in cur: if check(st): ret.append(st) if len(ret): break nxt = set() for st in cur: for i in range(len(st)): if i\u003e0 and st[i]==st[i-1]: continue if st[i]=='(' or st[i]==')': nxt.add(st[:i]+st[i+1:]) cur = nxt return ret 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。\n实现思路：使用双指针法。初始化左指针l指向数组的起始位置，右指针r指向数组的末尾位置。设置变量ret用于记录当前最大容量，初始化为0。在每一轮循环中，计算当前容器的容量，即min(height[l], height[r])乘以r和l之间的距离，更新ret。然后根据指针所指向的高度的大小，移动指针，如果height[l]",
-  "wordCount" : "13615",
+  "wordCount" : "12788",
   "inLanguage": "zh",
   "datePublished": "2024-04-17T15:37:01+08:00",
-  "dateModified": "2024-04-22T15:37:01+08:00",
+  "dateModified": "2024-10-06T15:37:01+08:00",
   "author":{
     "@type": "Person",
     "name": "ShowGuan"
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       LeetCode笔记(hot &amp; 每日一题)
     </div>
-    <div class="post-meta"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;28 分钟&nbsp;·&nbsp;13615 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;26 分钟&nbsp;·&nbsp;12788 字&nbsp;·&nbsp;updated:&nbsp;2024-10-06&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -358,12 +358,11 @@ document.addEventListener("DOMContentLoaded", function() {
                     <li>
                         <a href="#3031-%e5%b0%86%e5%8d%95%e8%af%8d%e6%81%a2%e5%a4%8d%e5%88%9d%e5%a7%8b%e7%8a%b6%e6%80%81%e6%89%80%e9%9c%80%e7%9a%84%e6%9c%80%e7%9f%ad%e6%97%b6%e9%97%b4-iihttpsleetcodecnproblemsminimum-time-to-revert-word-to-initial-state-ii-z%e5%87%bd%e6%95%b0" aria-label="3031. 将单词恢复初始状态所需的最短时间 II Z函数"><a href="https://leetcode.cn/problems/minimum-time-to-revert-word-to-initial-state-ii/">3031. 将单词恢复初始状态所需的最短时间 II</a> Z函数</a></li>
                     <li>
-                        <a href="#5-%e6%9c%80%e9%95%bf%e5%9b%9e%e6%96%87%e5%ad%90%e4%b8%b2httpsleetcodecnproblemslongest-palindromic-substring%e9%a9%ac%e6%8b%89%e8%bd%a6%e7%ae%97%e6%b3%95" aria-label="5. 最长回文子串马拉车算法"><a href="https://leetcode.cn/problems/longest-palindromic-substring/">5. 最长回文子串</a>马拉车算法</a></li></ul>
-                        </ul>
+                        <a href="#5-%e6%9c%80%e9%95%bf%e5%9b%9e%e6%96%87%e5%ad%90%e4%b8%b2httpsleetcodecnproblemslongest-palindromic-substring%e9%a9%ac%e6%8b%89%e8%bd%a6%e7%ae%97%e6%b3%95" aria-label="5. 最长回文子串马拉车算法"><a href="https://leetcode.cn/problems/longest-palindromic-substring/">5. 最长回文子串</a>马拉车算法</a>
                     </li>
-                    <li>
-                        <a href="#prompt" aria-label="Prompt">Prompt</a>
-                    </li>
+                </ul>
+                </ul>
+                </li>
                 </ul>
             </div>
         </details>
@@ -1598,86 +1597,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        idx <span style="color:#f92672">=</span> p<span style="color:#f92672">.</span>index(ma)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> s[idx<span style="color:#f92672">-</span>ma<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>:idx<span style="color:#f92672">+</span>ma<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>:<span style="color:#ae81ff">2</span>] 
-</span></span></code></pre></div><h1 id="prompt">Prompt<a hidden class="anchor" aria-hidden="true" href="#prompt">#</a></h1>
-<pre tabindex="0"><code>下面我给出一个题目，代码实现，和对题目的总结和实现思路， 你需要的是学习我是如何总结的，如果你看懂了则回复我你懂了, 不用回复别的
-&#34;&#34;&#34;
-给你一个 n 个节点的树（也就是一个无环连通无向图），节点编号从 0 到 n - 1 ，且恰好有 n - 1 条边，每个节点有一个值。树的 根节点 为 0 号点。
-
-给你一个整数数组 nums 和一个二维数组 edges 来表示这棵树。nums[i] 表示第 i 个点的值，edges[j] = [uj, vj] 表示节点 uj 和节点 vj 在树中有一条边。
-
-当 gcd(x, y) == 1 ，我们称两个数 x 和 y 是 互质的 ，其中 gcd(x, y) 是 x 和 y 的 最大公约数 。
-
-从节点 i 到 根 最短路径上的点都是节点 i 的祖先节点。一个节点 不是 它自己的祖先节点。
-
-请你返回一个大小为 n 的数组 ans ，其中 ans[i]是离节点 i 最近的祖先节点且满足 nums[i] 和 nums[ans[i]] 是 互质的 ，如果不存在这样的祖先节点，ans[i] 为 -1 。
-
- 
-
-示例 1：
-
-
-
-输入：nums = [2,3,3,2], edges = [[0,1],[1,2],[1,3]]
-输出：[-1,0,0,1]
-解释：上图中，每个节点的值在括号中表示。
-- 节点 0 没有互质祖先。
-- 节点 1 只有一个祖先节点 0 。它们的值是互质的（gcd(2,3) == 1）。
-- 节点 2 有两个祖先节点，分别是节点 1 和节点 0 。节点 1 的值与它的值不是互质的（gcd(3,3) == 3）但节点 0 的值是互质的(gcd(2,3) == 1)，所以节点 0 是最近的符合要求的祖先节点。
-- 节点 3 有两个祖先节点，分别是节点 1 和节点 0 。它与节点 1 互质（gcd(3,2) == 1），所以节点 1 是离它最近的符合要求的祖先节点。
-示例 2：
-
-
-
-输入：nums = [5,6,10,2,3,6,15], edges = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]]
-输出：[-1,0,-1,0,0,0,-1]
- 
-
-提示：
-
-nums.length == n
-1 &lt;= nums[i] &lt;= 50
-1 &lt;= n &lt;= 105
-edges.length == n - 1
-edges[j].length == 2
-0 &lt;= uj, vj &lt; n
-uj != vj
-
-
-代码实现：
-class Solution:
-    def getCoprimes(self, nums: List[int], edges: List[List[int]]) -&gt; List[int]:
-        n = len(nums)
-        g = [[]*n for _ in range(n)]
-        ret = [-1]*n
-        store = [[] for _ in range(51)]
-        mem = [(-1, -1)]*(51) 
-
-        for i in range(1, 51):
-            for j in range(1, 51):
-                if gcd(i, j)==1:
-                    store[i].append(j)
-
-        for u, v in edges:
-            g[u].append(v)
-            g[v].append(u)
-
-        def dfs(u, last, level):
-            ret[u] = max(mem[i] for i in store[nums[u]])[1]
-            tmp = mem[nums[u]]
-            mem[nums[u]] = (level, u)
-            for son in g[u]:
-                if son==last:
-                    continue
-                dfs(son, u, level+1)
-            mem[nums[u]] = tmp
-
-        dfs(0, -1, 0)
-
-        return ret
-&#34;&#34;&#34;
-</code></pre><pre tabindex="0"><code>好的，你现在需要做的是 ： 我给你其他题目，并给出已经AC的代码实现，你需要补充：1、题目大意 2、实现思路
-如果你已经了解了我的需求，请回复我懂了
-</code></pre>
+</span></span></code></pre></div>
 
   </div>
 
@@ -1712,7 +1632,7 @@ class Solution:
     </main>
     
 <footer class="footer">
-    <span>&copy; 2024 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
+    <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span>
     <span>
         Powered by
         <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
