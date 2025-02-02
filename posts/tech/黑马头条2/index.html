@@ -131,8 +131,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Java", "Web"
   ],
-  "articleBody": "黑马头条（2） 从业务角度分析如何分表 滚屏分页的逻辑 大文本静态化方案：\nfreemarker minio 表的拆分-垂直分表 垂直分表：将一个表的字段分散到多个表中，每个表存储其中一部分字段。\n优势：\n减少IO争抢，减少锁表的几率，查看文章概述与文章详情互不影响 充分发挥高频数据的操作效率，对文章概述数据的操作的高效率不会被操作文章详情数据的低效率所拖累 拆分规则：\n把不常用的字段单独放在一张表 把text、blob等大字段拆分出来单独放在一张表 经常组合查询的字段单独放在一张表中 文章详情 FreeMarker FreeMarker是一款模板引擎：即一种基于模板和要改变的数据，并用来生成输出文本（HTML网页，电子邮件，配置文件，原代码等）的通用工具。它不是面向最终用户的，而是一个Java类库，是一款程序员可以嵌入所开发产品的组件。\n依赖导入： junit junit 3.8.1 test org.springframework.boot spring-boot-starter-web org.springframework.boot spring-boot-starter-freemarker org.springframework.boot spring-boot-starter-test org.projectlombok lombok org.apache.commons commons-io 1.3.2 controller中指定对应的数据： @Controller public class HelloController { @GetMapping(\"/basic\") public String hello(Model model){ // name model.addAttribute(\"name\", \"freemarker\"); Student student = new Student(); student.setName(\"Kennem\"); student.setAge(21); student.setBirthday(new Date(2003, 1, 15)); model.addAttribute(\"stu\", student); return \"01-basic\"; } } template中指定对应的样式：01-basic.ftl 最终样式：\nFreemarker指令语法 注释，即\u003c#– –\u003e，介于其之间的内容会被freemarker忽略 \u003c#--这里是注释--\u003e 插值（Interpolation）：即${..}部分，freemarker会用真实的值代替${..} Hello ${name} FTL指令：和HTML标记类似，名字前加#予以区分，Freemarker会解析标签中的表达式或逻辑。 \u003c# \u003eFTL指令\u003c/#\u003e 文本，仅文本信息，这些不是freemarker的注释、插值、FTL指令的内容会被freemarker忽略 \u003c#-- freemarker中的普通文本 --\u003e\r这是普通文本 集合指令-List \u003c!DOCTYPE html\u003e \u003chtml\u003e \u003chead\u003e \u003cmeta charset=\"utf-8\"\u003e \u003ctitle\u003eHello World!\u003c/title\u003e \u003c/head\u003e \u003cbody\u003e \u003c#--List 数据展示--\u003e \u003cb\u003eList 数据展示：\u003c/b\u003e \u003cbr\u003e\u003cbr\u003e \u003ctable\u003e \u003ctr\u003e \u003ctd\u003e序号\u003c/td\u003e \u003ctd\u003e姓名\u003c/td\u003e \u003ctd\u003e年龄\u003c/td\u003e \u003ctd\u003e钱包\u003c/td\u003e \u003c/tr\u003e \u003c#list stus as stu\u003e \u003ctr\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e${stu.name}\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/table\u003e \u003chr\u003e \u003c#--Map 数据展示--\u003e \u003cb\u003eMap 数据展示：\u003c/b\u003e\u003cbr\u003e\u003cbr\u003e \u003ca href=\"###\"\u003e方式一：通过map['keyname'].property\u003c/a\u003e\u003cbr/\u003e 输出stu1的学生信息：\u003cbr/\u003e 姓名：${stuMap['stu1'].name}\u003cbr/\u003e 年龄：${stuMap['stu1'].age}\u003cbr/\u003e 钱包：${stuMap['stu1'].money}\u003cbr/\u003e \u003chr\u003e \u003cbr\u003e \u003ca href=\"###\"\u003e方式二：通过map.keyname.property\u003c/a\u003e\u003cbr/\u003e 输出stu2的学生信息：\u003cbr/\u003e 姓名：${stuMap.stu2.name}\u003cbr/\u003e 年龄：${stuMap.stu2.age}\u003cbr/\u003e 钱包：${stuMap.stu2.money}\u003cbr/\u003e \u003chr\u003e \u003cbr/\u003e \u003ca href=\"###\"\u003e遍历map中两个学生信息：\u003c/a\u003e\u003cbr/\u003e \u003ctable\u003e \u003ctr\u003e \u003ctd\u003e序号\u003c/td\u003e \u003ctd\u003e姓名\u003c/td\u003e \u003ctd\u003e年龄\u003c/td\u003e \u003ctd\u003e钱包\u003c/td\u003e \u003c/tr\u003e \u003c#list stuMap?keys as key\u003e \u003ctr\u003e \u003ctd\u003e${key_index + 1}\u003c/td\u003e \u003ctd\u003e${stuMap[key].name}\u003c/td\u003e \u003ctd\u003e${stuMap[key].age}\u003c/td\u003e \u003ctd\u003e${stuMap[key].money}\u003c/td\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/table\u003e \u003chr\u003e \u003c/body\u003e \u003c/html\u003e if指令 \u003ctable\u003e \u003ctr\u003e \u003ctd\u003e序号\u003c/td\u003e \u003ctd\u003e姓名\u003c/td\u003e \u003ctd\u003e年龄\u003c/td\u003e \u003ctd\u003e钱包\u003c/td\u003e \u003c/tr\u003e \u003c#list stus as stu\u003e \u003ctr\u003e \u003c#if stu.name='小红'\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e\u003cfont color=\"red\"\u003e${stu.name}\u003c/font\u003e\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c#else\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e${stu.name}\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c/#if\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/table\u003e 运算符 算术运算符 FreeMarker表达式中完全支持算术运算，FreeMarker支持的算术运算符包括：\n加法：+ 减法：- 乘法：* 除法：/ 求模（求余）：% 比较运算符 =或者==\n!=\n\u003e 或者 gt\n\u003e= 或者 gte\n\u003c或者lt\n\u003c=或者lte\n逻辑运算符 逻辑与：\u0026\u0026 逻辑或：|| 逻辑非：！ 空值处理 判断某变量是否存在使用?? 用法为：variable??，如果该变量存在，返回true，否则返回false\n\u003c#if stus??\u003e \u003c#list stus as stu\u003e \u003ctr\u003e \u003c#if stu.name='小红'\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e\u003cfont color=\"red\"\u003e${stu.name}\u003c/font\u003e\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c#else\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e${stu.name}\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c/#if\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/#if\u003e 缺失变量默认值使用! 使用!要以指定一个默认值，当变量为空时显示默认值 例如：${name!''}表示如果name为空显示空字符串 如果是嵌套对象则建议使用()括起来 例如：${(stu.name)''}表示，如果stu或name为空默认显示空字符串 内建函数 内建函数语法格式：变量 + ？+ 函数名称\n1.集合的大小 ${集合名?size} 2.日期格式化 当前的日期：${today?date}\u003cbr/\u003e 当前的日期：${today?time}\u003cbr/\u003e 当前的日期：${today?datetime}\u003cbr/\u003e 当前的日期：${today?string(\"yyyy-MM-mm\")}\u003cbr/\u003e 3.内建函数c //长数值类型 model.addAttribute(\"point\", 6549255147894651651L); 默认每三位使用逗号分隔\n如果不想显示为每三位分隔的数字，可以使用c函数将数字型转成字符串输出\n${point?c} 4.将json字符串转成对象 一个例子：\n其中用到了assign标签，assign的作用是定义一个变量\n输出静态化文件 代码补全时注意选择哪一个包\n@SpringBootTest(classes = FreemarkerDemoApplication.class) @RunWith(SpringRunner.class) public class FreemarkerTest { @Autowired private Configuration configuration; @Test public void test() throws IOException, TemplateException { Template template = configuration.getTemplate(\"02-list.ftl\"); /** * 合成方法 * * 参数1：数据模型 * 参数2：输出流 */ Map map = getData(); template.process(map, new FileWriter(\"d:/test/list.html\")); } private Map getData() { Map\u003cString, Object\u003e map = new HashMap\u003c\u003e(); //------------------------------------ Student stu1 = new Student(); stu1.setName(\"小强\"); stu1.setAge(18); stu1.setMoney(1000.86f); stu1.setBirthday(new Date()); //小红对象模型数据 Student stu2 = new Student(); stu2.setName(\"小红\"); stu2.setMoney(200.1f); stu2.setAge(19); //将两个对象模型数据存放到List集合中 List\u003cStudent\u003e list = new ArrayList\u003c\u003e(); list.add(stu1); list.add(stu2); //向model中存放List集合数据 map.put(\"stus\", list); //------------------------------------ //创建Map数据 Map\u003cString, Student\u003e stuMap = new HashMap\u003c\u003e(); stuMap.put(\"stu1\", stu1); stuMap.put(\"stu2\", stu2); // 3.1 向model中存放Map数据 map.put(\"stuMap\", stuMap); map.put(\"today\", new Date()); //长数值类型 map.put(\"point\", 6549255147894651651L); return map; } } 输出对应含有数据的html文件 MinIO 对象存储的方式对比：\n存储方式 优点 缺点 FastDFS 1. 主备服务，高可用2. 支持主从文件，支持自定义扩展名3. 支持动态扩容 1. 没有完善的官方文档，近几年没有更新2. 环境搭建较为麻烦 MinIO 1. 性能高，准硬件条件下它能达到55GB/s的读、35GB/s的写速率2. 部署自带管理界面3. MinIO Inc运营的开源项目，社区活跃度高4. 提供了所有主流开发语言的SDK 1. 不支持动态增加节点 docker部署 docker search minio docker run -p 9000:9000 --name minio -d --restart=always -e \"MINIO_ACCESS_KEY=minio\" -e \"MINIO_SECRET_KEY=minio123\" -v /home/data:/data -v /home/config:/root/.minio minio/minio server /data 基本概念 bucket-类比于文件系统的目录 Object-类比文件系统的文件 Keys-类比文件名 上传文件进行静态访问 public class MinIOTest { public static void main(String[] args){ try { FileInputStream fileInputStream = new FileInputStream(\"D:\\\\test\\\\list.html\"); // 获取minio的链接信息， 创建一个minio的客户端 MinioClient minioClient = MinioClient.builder().credentials(\"minio\", \"minio123\").endpoint(\"http://192.168.200.130:9000/\").build(); // 上传 PutObjectArgs putObjectArgs = PutObjectArgs.builder() .object(\"list.html\") .contentType(\"text/html\") .bucket(\"leadnews\") .stream(fileInputStream, fileInputStream.available(), -1).build(); minioClient.putObject(putObjectArgs); } catch (Exception e) { throw new RuntimeException(e); } } } 封装MinIO为starter MinIO为starter\n错误： @Autowire不成功\n解决方法： 检查启动类是否有@SpringBootApplication\n模块内导入依赖：\n",
-  "wordCount" : "3072",
+  "articleBody": "黑马头条（2） 表结构分析 ap_article 文章基本信息表\nap_article_config 文章配置表\nap_article_content 文章内容表\n三张表关系分析\n从业务角度分析如何分表 滚屏分页的逻辑 表的拆分-垂直分表 垂直分表：将一个表的字段分散到多个表中，每个表存储其中一部分字段。\n优势：\n减少IO争抢，减少锁表的几率，查看文章概述与文章详情互不影响 充分发挥高频数据的操作效率，对文章概述数据的操作的高效率不会被操作文章详情数据的低效率所拖累 拆分规则：\n把不常用的字段单独放在一张表 把text、blob等大字段拆分出来单独放在一张表 经常组合查询的字段单独放在一张表中 导入对应实体类 ApArticle package com.heima.model.article.pojos; import com.baomidou.mybatisplus.annotation.IdType; import com.baomidou.mybatisplus.annotation.TableField; import com.baomidou.mybatisplus.annotation.TableId; import com.baomidou.mybatisplus.annotation.TableName; import lombok.Data; import java.io.Serializable; import java.util.Date; /** * * 文章信息表，存储已发布的文章 * * * @author itheima */ @Data @TableName(\"ap_article\") public class ApArticle implements Serializable { @TableId(value = \"id\",type = IdType.ID_WORKER) private Long id; /** * 标题 */ private String title; /** * 作者id */ @TableField(\"author_id\") private Long authorId; /** * 作者名称 */ @TableField(\"author_name\") private String authorName; /** * 频道id */ @TableField(\"channel_id\") private Integer channelId; /** * 频道名称 */ @TableField(\"channel_name\") private String channelName; /** * 文章布局 0 无图文章 1 单图文章 2 多图文章 */ private Short layout; /** * 文章标记 0 普通文章 1 热点文章 2 置顶文章 3 精品文章 4 大V 文章 */ private Byte flag; /** * 文章封面图片 多张逗号分隔 */ private String images; /** * 标签 */ private String labels; /** * 点赞数量 */ private Integer likes; /** * 收藏数量 */ private Integer collection; /** * 评论数量 */ private Integer comment; /** * 阅读数量 */ private Integer views; /** * 省市 */ @TableField(\"province_id\") private Integer provinceId; /** * 市区 */ @TableField(\"city_id\") private Integer cityId; /** * 区县 */ @TableField(\"county_id\") private Integer countyId; /** * 创建时间 */ @TableField(\"created_time\") private Date createdTime; /** * 发布时间 */ @TableField(\"publish_time\") private Date publishTime; /** * 同步状态 */ @TableField(\"sync_status\") private Boolean syncStatus; /** * 来源 */ private Boolean origin; /** * 静态页面地址 */ @TableField(\"static_url\") private String staticUrl; } ap_article_config文章配置对应实体类 package com.heima.model.article.pojos; import com.baomidou.mybatisplus.annotation.IdType; import com.baomidou.mybatisplus.annotation.TableField; import com.baomidou.mybatisplus.annotation.TableId; import com.baomidou.mybatisplus.annotation.TableName; import lombok.Data; import java.io.Serializable; /** * * APP已发布文章配置表 * * * @author itheima */ @Data @TableName(\"ap_article_config\") public class ApArticleConfig implements Serializable { @TableId(value = \"id\",type = IdType.ID_WORKER) private Long id; /** * 文章id */ @TableField(\"article_id\") private Long articleId; /** * 是否可评论 * true: 可以评论 1 * false: 不可评论 0 */ @TableField(\"is_comment\") private Boolean isComment; /** * 是否转发 * true: 可以转发 1 * false: 不可转发 0 */ @TableField(\"is_forward\") private Boolean isForward; /** * 是否下架 * true: 下架 1 * false: 没有下架 0 */ @TableField(\"is_down\") private Boolean isDown; /** * 是否已删除 * true: 删除 1 * false: 没有删除 0 */ @TableField(\"is_delete\") private Boolean isDelete; } ap_article_content 文章内容对应的实体类 package com.heima.model.article.pojos; import com.baomidou.mybatisplus.annotation.IdType; import com.baomidou.mybatisplus.annotation.TableField; import com.baomidou.mybatisplus.annotation.TableId; import com.baomidou.mybatisplus.annotation.TableName; import lombok.Data; import java.io.Serializable; @Data @TableName(\"ap_article_content\") public class ApArticleContent implements Serializable { @TableId(value = \"id\",type = IdType.ID_WORKER) private Long id; /** * 文章id */ @TableField(\"article_id\") private Long articleId; /** * 文章内容 */ private String content; } 接口定义 加载首页 加载更多 加载最新 接口路径 /api/v1/article/load /api/v1/article/loadmore /api/v1/article/loadnew 请求方式 POST POST POST 参数 ArticleHomeDto ArticleHomeDto ArticleHomeDto 响应结果 ResponseResult ResponseResult ResponseResult ArticleHomeDto\npackage com.heima.model.article.dtos; import lombok.Data; import java.util.Date; @Data public class ArticleHomeDto { // 最大时间 Date maxBehotTime; // 最小时间 Date minBehotTime; // 分页size Integer size; // 频道ID String tag; } 导入heima-leadnews-article微服务，资料在当天的文件夹中\n文章详情 大文本静态化方案：\nfreemarker minio FreeMarker FreeMarker是一款模板引擎：即一种基于模板和要改变的数据，并用来生成输出文本（HTML网页，电子邮件，配置文件，原代码等）的通用工具。它不是面向最终用户的，而是一个Java类库，是一款程序员可以嵌入所开发产品的组件。\n依赖导入： junit junit 3.8.1 test org.springframework.boot spring-boot-starter-web org.springframework.boot spring-boot-starter-freemarker org.springframework.boot spring-boot-starter-test org.projectlombok lombok org.apache.commons commons-io 1.3.2 controller中指定对应的数据： @Controller public class HelloController { @GetMapping(\"/basic\") public String hello(Model model){ // name model.addAttribute(\"name\", \"freemarker\"); Student student = new Student(); student.setName(\"Kennem\"); student.setAge(21); student.setBirthday(new Date(2003, 1, 15)); model.addAttribute(\"stu\", student); return \"01-basic\"; } } template中指定对应的样式：01-basic.ftl 最终样式：\nFreemarker指令语法 注释，即\u003c#– –\u003e，介于其之间的内容会被freemarker忽略 \u003c#--这里是注释--\u003e 插值（Interpolation）：即${..}部分，freemarker会用真实的值代替${..} Hello ${name} FTL指令：和HTML标记类似，名字前加#予以区分，Freemarker会解析标签中的表达式或逻辑。 \u003c# \u003eFTL指令\u003c/#\u003e 文本，仅文本信息，这些不是freemarker的注释、插值、FTL指令的内容会被freemarker忽略 \u003c#-- freemarker中的普通文本 --\u003e\r这是普通文本 集合指令-List \u003c!DOCTYPE html\u003e \u003chtml\u003e \u003chead\u003e \u003cmeta charset=\"utf-8\"\u003e \u003ctitle\u003eHello World!\u003c/title\u003e \u003c/head\u003e \u003cbody\u003e \u003c#--List 数据展示--\u003e \u003cb\u003eList 数据展示：\u003c/b\u003e \u003cbr\u003e\u003cbr\u003e \u003ctable\u003e \u003ctr\u003e \u003ctd\u003e序号\u003c/td\u003e \u003ctd\u003e姓名\u003c/td\u003e \u003ctd\u003e年龄\u003c/td\u003e \u003ctd\u003e钱包\u003c/td\u003e \u003c/tr\u003e \u003c#list stus as stu\u003e \u003ctr\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e${stu.name}\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/table\u003e \u003chr\u003e \u003c#--Map 数据展示--\u003e \u003cb\u003eMap 数据展示：\u003c/b\u003e\u003cbr\u003e\u003cbr\u003e \u003ca href=\"###\"\u003e方式一：通过map['keyname'].property\u003c/a\u003e\u003cbr/\u003e 输出stu1的学生信息：\u003cbr/\u003e 姓名：${stuMap['stu1'].name}\u003cbr/\u003e 年龄：${stuMap['stu1'].age}\u003cbr/\u003e 钱包：${stuMap['stu1'].money}\u003cbr/\u003e \u003chr\u003e \u003cbr\u003e \u003ca href=\"###\"\u003e方式二：通过map.keyname.property\u003c/a\u003e\u003cbr/\u003e 输出stu2的学生信息：\u003cbr/\u003e 姓名：${stuMap.stu2.name}\u003cbr/\u003e 年龄：${stuMap.stu2.age}\u003cbr/\u003e 钱包：${stuMap.stu2.money}\u003cbr/\u003e \u003chr\u003e \u003cbr/\u003e \u003ca href=\"###\"\u003e遍历map中两个学生信息：\u003c/a\u003e\u003cbr/\u003e \u003ctable\u003e \u003ctr\u003e \u003ctd\u003e序号\u003c/td\u003e \u003ctd\u003e姓名\u003c/td\u003e \u003ctd\u003e年龄\u003c/td\u003e \u003ctd\u003e钱包\u003c/td\u003e \u003c/tr\u003e \u003c#list stuMap?keys as key\u003e \u003ctr\u003e \u003ctd\u003e${key_index + 1}\u003c/td\u003e \u003ctd\u003e${stuMap[key].name}\u003c/td\u003e \u003ctd\u003e${stuMap[key].age}\u003c/td\u003e \u003ctd\u003e${stuMap[key].money}\u003c/td\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/table\u003e \u003chr\u003e \u003c/body\u003e \u003c/html\u003e if指令 \u003ctable\u003e \u003ctr\u003e \u003ctd\u003e序号\u003c/td\u003e \u003ctd\u003e姓名\u003c/td\u003e \u003ctd\u003e年龄\u003c/td\u003e \u003ctd\u003e钱包\u003c/td\u003e \u003c/tr\u003e \u003c#list stus as stu\u003e \u003ctr\u003e \u003c#if stu.name='小红'\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e\u003cfont color=\"red\"\u003e${stu.name}\u003c/font\u003e\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c#else\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e${stu.name}\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c/#if\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/table\u003e 运算符 算术运算符 FreeMarker表达式中完全支持算术运算，FreeMarker支持的算术运算符包括：\n加法：+ 减法：- 乘法：* 除法：/ 求模（求余）：% 比较运算符 =或者==\n!=\n\u003e 或者 gt\n\u003e= 或者 gte\n\u003c或者lt\n\u003c=或者lte\n逻辑运算符 逻辑与：\u0026\u0026 逻辑或：|| 逻辑非：！ 空值处理 判断某变量是否存在使用?? 用法为：variable??，如果该变量存在，返回true，否则返回false\n\u003c#if stus??\u003e \u003c#list stus as stu\u003e \u003ctr\u003e \u003c#if stu.name='小红'\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e\u003cfont color=\"red\"\u003e${stu.name}\u003c/font\u003e\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c#else\u003e \u003ctd\u003e${stu_index + 1}\u003c/td\u003e \u003ctd\u003e${stu.name}\u003c/td\u003e \u003ctd\u003e${stu.age}\u003c/td\u003e \u003ctd\u003e${stu.money}\u003c/td\u003e \u003c/#if\u003e \u003c/tr\u003e \u003c/#list\u003e \u003c/#if\u003e 缺失变量默认值使用! 使用!要以指定一个默认值，当变量为空时显示默认值 例如：${name!''}表示如果name为空显示空字符串 如果是嵌套对象则建议使用()括起来 例如：${(stu.name)''}表示，如果stu或name为空默认显示空字符串 内建函数 内建函数语法格式：变量 + ？+ 函数名称\n1.集合的大小 ${集合名?size} 2.日期格式化 当前的日期：${today?date}\u003cbr/\u003e 当前的日期：${today?time}\u003cbr/\u003e 当前的日期：${today?datetime}\u003cbr/\u003e 当前的日期：${today?string(\"yyyy-MM-mm\")}\u003cbr/\u003e 3.内建函数c //长数值类型 model.addAttribute(\"point\", 6549255147894651651L); 默认每三位使用逗号分隔\n如果不想显示为每三位分隔的数字，可以使用c函数将数字型转成字符串输出\n${point?c} 4.将json字符串转成对象 一个例子：\n其中用到了assign标签，assign的作用是定义一个变量\n输出静态化文件 代码补全时注意选择哪一个包\n@SpringBootTest(classes = FreemarkerDemoApplication.class) @RunWith(SpringRunner.class) public class FreemarkerTest { @Autowired private Configuration configuration; @Test public void test() throws IOException, TemplateException { Template template = configuration.getTemplate(\"02-list.ftl\"); /** * 合成方法 * * 参数1：数据模型 * 参数2：输出流 */ Map map = getData(); template.process(map, new FileWriter(\"d:/test/list.html\")); } private Map getData() { Map\u003cString, Object\u003e map = new HashMap\u003c\u003e(); //------------------------------------ Student stu1 = new Student(); stu1.setName(\"小强\"); stu1.setAge(18); stu1.setMoney(1000.86f); stu1.setBirthday(new Date()); //小红对象模型数据 Student stu2 = new Student(); stu2.setName(\"小红\"); stu2.setMoney(200.1f); stu2.setAge(19); //将两个对象模型数据存放到List集合中 List\u003cStudent\u003e list = new ArrayList\u003c\u003e(); list.add(stu1); list.add(stu2); //向model中存放List集合数据 map.put(\"stus\", list); //------------------------------------ //创建Map数据 Map\u003cString, Student\u003e stuMap = new HashMap\u003c\u003e(); stuMap.put(\"stu1\", stu1); stuMap.put(\"stu2\", stu2); // 3.1 向model中存放Map数据 map.put(\"stuMap\", stuMap); map.put(\"today\", new Date()); //长数值类型 map.put(\"point\", 6549255147894651651L); return map; } } 输出对应含有数据的html文件 MinIO 对象存储的方式对比：\n存储方式 优点 缺点 FastDFS 1. 主备服务，高可用2. 支持主从文件，支持自定义扩展名3. 支持动态扩容 1. 没有完善的官方文档，近几年没有更新2. 环境搭建较为麻烦 MinIO 1. 性能高，准硬件条件下它能达到55GB/s的读、35GB/s的写速率2. 部署自带管理界面3. MinIO Inc运营的开源项目，社区活跃度高4. 提供了所有主流开发语言的SDK 1. 不支持动态增加节点 docker部署 docker search minio docker run -p 9000:9000 --name minio -d --restart=always -e \"MINIO_ACCESS_KEY=minio\" -e \"MINIO_SECRET_KEY=minio123\" -v /home/data:/data -v /home/config:/root/.minio minio/minio server /data 基本概念 bucket-类比于文件系统的目录 Object-类比文件系统的文件 Keys-类比文件名 上传文件进行静态访问 public class MinIOTest { public static void main(String[] args){ try { FileInputStream fileInputStream = new FileInputStream(\"D:\\\\test\\\\list.html\"); // 获取minio的链接信息， 创建一个minio的客户端 MinioClient minioClient = MinioClient.builder().credentials(\"minio\", \"minio123\").endpoint(\"http://192.168.200.130:9000/\").build(); // 上传 PutObjectArgs putObjectArgs = PutObjectArgs.builder() .object(\"list.html\") .contentType(\"text/html\") .bucket(\"leadnews\") .stream(fileInputStream, fileInputStream.available(), -1).build(); minioClient.putObject(putObjectArgs); } catch (Exception e) { throw new RuntimeException(e); } } } 封装MinIO为starter MinIO为starter\n错误： @Autowire不成功\n解决方法： 检查启动类是否有@SpringBootApplication\n模块内导入依赖：\n",
+  "wordCount" : "3803",
   "inLanguage": "zh",
   "datePublished": "2024-12-01T15:37:01+08:00",
   "dateModified": "2024-12-01T15:37:01+08:00",
@@ -254,7 +254,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       黑马头条（2）
     </div>
-    <div class="post-meta"><span title='2024-12-01 15:37:01 +0800 CST'>2024-12-01</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3072 字&nbsp;·&nbsp;updated:&nbsp;2024-12-01&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-12-01 15:37:01 +0800 CST'>2024-12-01</span>&nbsp;·&nbsp;8 分钟&nbsp;·&nbsp;3803 字&nbsp;·&nbsp;updated:&nbsp;2024-12-01&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -273,7 +273,23 @@ document.addEventListener("DOMContentLoaded", function() {
                         <a href="#%e9%bb%91%e9%a9%ac%e5%a4%b4%e6%9d%a12" aria-label="黑马头条（2）">黑马头条（2）</a><ul>
                             
                     <li>
+                        <a href="#%e8%a1%a8%e7%bb%93%e6%9e%84%e5%88%86%e6%9e%90" aria-label="表结构分析">表结构分析</a><ul>
+                            
+                    <li>
                         <a href="#%e8%a1%a8%e7%9a%84%e6%8b%86%e5%88%86-%e5%9e%82%e7%9b%b4%e5%88%86%e8%a1%a8" aria-label="表的拆分-垂直分表">表的拆分-垂直分表</a></li>
+                    <li>
+                        <a href="#%e5%af%bc%e5%85%a5%e5%af%b9%e5%ba%94%e5%ae%9e%e4%bd%93%e7%b1%bb" aria-label="导入对应实体类">导入对应实体类</a><ul>
+                            
+                    <li>
+                        <a href="#aparticle" aria-label="ApArticle">ApArticle</a></li>
+                    <li>
+                        <a href="#ap_article_config%e6%96%87%e7%ab%a0%e9%85%8d%e7%bd%ae%e5%af%b9%e5%ba%94%e5%ae%9e%e4%bd%93%e7%b1%bb" aria-label="ap_article_config文章配置对应实体类">ap_article_config文章配置对应实体类</a></li>
+                    <li>
+                        <a href="#ap_article_content-%e6%96%87%e7%ab%a0%e5%86%85%e5%ae%b9%e5%af%b9%e5%ba%94%e7%9a%84%e5%ae%9e%e4%bd%93%e7%b1%bb" aria-label="ap_article_content 文章内容对应的实体类">ap_article_content 文章内容对应的实体类</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e6%8e%a5%e5%8f%a3%e5%ae%9a%e4%b9%89" aria-label="接口定义">接口定义</a></li></ul>
+                    </li>
                     <li>
                         <a href="#%e6%96%87%e7%ab%a0%e8%af%a6%e6%83%85" aria-label="文章详情">文章详情</a><ul>
                             
@@ -411,16 +427,52 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 
   <div class="post-content"><h1 id="黑马头条2">黑马头条（2）<a hidden class="anchor" aria-hidden="true" href="#黑马头条2">#</a></h1>
+<h2 id="表结构分析">表结构分析<a hidden class="anchor" aria-hidden="true" href="#表结构分析">#</a></h2>
+<p>ap_article  文章基本信息表</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151839634.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151839634.png" alt="image-20210419151839634"  />
+        </a>
+    </div>
+
+</p>
+<p>ap_article_config  文章配置表</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151854868.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151854868.png" alt="image-20210419151854868"  />
+        </a>
+    </div>
+
+</p>
+<p>ap_article_content 文章内容表</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151912063.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151912063.png" alt="image-20210419151912063"  />
+        </a>
+    </div>
+
+</p>
+<p>三张表关系分析</p>
+<p>
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151938103.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20210419151938103.png" alt="image-20210419151938103"  />
+        </a>
+    </div>
+
+</p>
 <ul>
 <li>从业务角度分析如何分表</li>
 <li>滚屏分页的逻辑</li>
 </ul>
-<p>大文本静态化方案：</p>
-<ul>
-<li><code>freemarker</code></li>
-<li><code>minio</code></li>
-</ul>
-<h2 id="表的拆分-垂直分表">表的拆分-垂直分表<a hidden class="anchor" aria-hidden="true" href="#表的拆分-垂直分表">#</a></h2>
+<h3 id="表的拆分-垂直分表">表的拆分-垂直分表<a hidden class="anchor" aria-hidden="true" href="#表的拆分-垂直分表">#</a></h3>
 <p><strong>垂直分表</strong>：将一个表的字段分散到多个表中，每个表存储其中一部分字段。</p>
 <p><strong>优势</strong>：</p>
 <ol>
@@ -433,7 +485,307 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>把text、blob等<strong>大字段</strong>拆分出来单独放在一张表</li>
 <li><strong>经常组合查询的字段</strong>单独放在一张表中</li>
 </ol>
+<h3 id="导入对应实体类">导入对应实体类<a hidden class="anchor" aria-hidden="true" href="#导入对应实体类">#</a></h3>
+<h4 id="aparticle">ApArticle<a hidden class="anchor" aria-hidden="true" href="#aparticle">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.heima.model.article.pojos;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.IdType;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableField;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableId;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableName;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> lombok.Data;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.io.Serializable;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.Date;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * &lt;p&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 文章信息表，存储已发布的文章
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * &lt;/p&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @author itheima
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@TableName</span>(<span style="color:#e6db74">&#34;ap_article&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ApArticle</span> <span style="color:#66d9ef">implements</span> Serializable {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableId</span>(value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;id&#34;</span>,type <span style="color:#f92672">=</span> IdType.<span style="color:#a6e22e">ID_WORKER</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long id;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 标题
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String title;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 作者id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;author_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long authorId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 作者名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;author_name&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String authorName;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 频道id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;channel_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer channelId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 频道名称
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;channel_name&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String channelName;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文章布局  0 无图文章   1 单图文章    2 多图文章
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Short layout;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文章标记  0 普通文章   1 热点文章   2 置顶文章   3 精品文章   4 大V 文章
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Byte flag;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文章封面图片 多张逗号分隔
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String images;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 标签
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String labels;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 点赞数量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer likes;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 收藏数量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer collection;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 评论数量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer comment;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 阅读数量
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer views;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 省市
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;province_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer provinceId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 市区
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;city_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer cityId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 区县
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;county_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Integer countyId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 创建时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;created_time&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Date createdTime;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 发布时间
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;publish_time&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Date publishTime;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 同步状态
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;sync_status&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Boolean syncStatus;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 来源
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Boolean origin;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 静态页面地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;static_url&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String staticUrl;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="ap_article_config文章配置对应实体类">ap_article_config文章配置对应实体类<a hidden class="anchor" aria-hidden="true" href="#ap_article_config文章配置对应实体类">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.heima.model.article.pojos;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.IdType;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableField;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableId;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableName;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> lombok.Data;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.io.Serializable;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * &lt;p&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * APP已发布文章配置表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * &lt;/p&gt;
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> *
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @author itheima
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@TableName</span>(<span style="color:#e6db74">&#34;ap_article_config&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ApArticleConfig</span> <span style="color:#66d9ef">implements</span> Serializable {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableId</span>(value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;id&#34;</span>,type <span style="color:#f92672">=</span> IdType.<span style="color:#a6e22e">ID_WORKER</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long id;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文章id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;article_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long articleId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 是否可评论
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * true: 可以评论   1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * false: 不可评论  0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;is_comment&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Boolean isComment;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 是否转发
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * true: 可以转发   1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * false: 不可转发  0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;is_forward&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Boolean isForward;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 是否下架
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * true: 下架   1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * false: 没有下架  0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;is_down&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Boolean isDown;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 是否已删除
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * true: 删除   1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * false: 没有删除  0
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;is_delete&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Boolean isDelete;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="ap_article_content-文章内容对应的实体类">ap_article_content 文章内容对应的实体类<a hidden class="anchor" aria-hidden="true" href="#ap_article_content-文章内容对应的实体类">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.heima.model.article.pojos;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.IdType;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableField;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableId;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> com.baomidou.mybatisplus.annotation.TableName;
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> lombok.Data;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.io.Serializable;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@TableName</span>(<span style="color:#e6db74">&#34;ap_article_content&#34;</span>)
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ApArticleContent</span> <span style="color:#66d9ef">implements</span> Serializable {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableId</span>(value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;id&#34;</span>,type <span style="color:#f92672">=</span> IdType.<span style="color:#a6e22e">ID_WORKER</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long id;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文章id
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@TableField</span>(<span style="color:#e6db74">&#34;article_id&#34;</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> Long articleId;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文章内容
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String content;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="接口定义">接口定义<a hidden class="anchor" aria-hidden="true" href="#接口定义">#</a></h3>
+<table>
+<thead>
+<tr>
+<th></th>
+<th><strong>加载首页</strong></th>
+<th><strong>加载更多</strong></th>
+<th><strong>加载最新</strong></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>接口路径</td>
+<td>/api/v1/article/load</td>
+<td>/api/v1/article/loadmore</td>
+<td>/api/v1/article/loadnew</td>
+</tr>
+<tr>
+<td>请求方式</td>
+<td>POST</td>
+<td>POST</td>
+<td>POST</td>
+</tr>
+<tr>
+<td>参数</td>
+<td>ArticleHomeDto</td>
+<td>ArticleHomeDto</td>
+<td>ArticleHomeDto</td>
+</tr>
+<tr>
+<td>响应结果</td>
+<td>ResponseResult</td>
+<td>ResponseResult</td>
+<td>ResponseResult</td>
+</tr>
+</tbody>
+</table>
+<p>ArticleHomeDto</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.heima.model.article.dtos;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> lombok.Data;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#f92672">import</span> java.util.Date;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ArticleHomeDto</span> {
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 最大时间</span>
+</span></span><span style="display:flex;"><span>    Date maxBehotTime;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 最小时间</span>
+</span></span><span style="display:flex;"><span>    Date minBehotTime;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 分页size</span>
+</span></span><span style="display:flex;"><span>    Integer size;
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 频道ID</span>
+</span></span><span style="display:flex;"><span>    String tag;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p>导入heima-leadnews-article微服务，资料在当天的文件夹中</p>
 <h2 id="文章详情">文章详情<a hidden class="anchor" aria-hidden="true" href="#文章详情">#</a></h2>
+<p>大文本静态化方案：</p>
+<ul>
+<li><code>freemarker</code></li>
+<li><code>minio</code></li>
+</ul>
 <h3 id="freemarker"><code>FreeMarker</code><a hidden class="anchor" aria-hidden="true" href="#freemarker">#</a></h3>
 <p>
 
