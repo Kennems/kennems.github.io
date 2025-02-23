@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but loose performance (kfree is serialized)\nThe lock abstraction:\nlock l\racquire(l)\rx = x + 1 -- \"critical section\"\rrelease(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\nrename(\"d1/x\", \"d2/y\"):\rlock d1, erase x, unlock d1\rlock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\nlock d1 ; lock d2\rerase x, add y\runlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\ncore A core B\rrename(d1/x, d2/y) rename(d2/a, d1/b)\rlock d1 lock d2\rlock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\nwhy not:\rstruct lock { int locked; }\racquire(l) {\rwhile(1){\rif(l-\u003elocked == 0){ // A\rl-\u003elocked = 1; // B\rreturn;\r}\r}\r} oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\na5 = 1\rs1 = \u0026lk-\u003elocked\ramoswap.w.aq a5, a5, (s1) does this in hardware:\nlock addr globally (other cores cannot use it)\rtemp = *s5\r*addr = a5\ra5 = temp\runlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swamp to run one at a time, not interleaved\nLook at xv6 spinlock implementation\nacquire(l){\rwhile(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0)\r} if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\nCore A: Core B:\rlocked = 1\rx = x + 1 while(locked == 1)\rlocked = 0 ...\rlocked = 1\rx = x + 1\rlocked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\nlocked = 1\rlocked = 0\rx = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) ",
-  "wordCount" : "1303",
+  "articleBody": "MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but loose performance (kfree is serialized)\nThe lock abstraction:\n1 2 3 4 lock l acquire(l) x = x + 1 -- \"critical section\" release(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\n1 2 3 rename(\"d1/x\", \"d2/y\"): lock d1, erase x, unlock d1 lock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\n1 2 3 lock d1 ; lock d2 erase x, add y unlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\n1 2 3 4 core A core B rename(d1/x, d2/y) rename(d2/a, d1/b) lock d1 lock d2 lock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\n1 2 3 4 5 6 7 8 9 10 why not: struct lock { int locked; } acquire(l) { while(1){ if(l-\u003elocked == 0){ // A l-\u003elocked = 1; // B return; } } } oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\n1 2 3 a5 = 1 s1 = \u0026lk-\u003elocked amoswap.w.aq a5, a5, (s1) does this in hardware:\n1 2 3 4 5 lock addr globally (other cores cannot use it) temp = *s5 *addr = a5 a5 = temp unlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swamp to run one at a time, not interleaved\nLook at xv6 spinlock implementation\n1 2 3 acquire(l){ while(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0) } if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\n1 2 3 4 5 6 7 Core A: Core B: locked = 1 x = x + 1 while(locked == 1) locked = 0 ... locked = 1 x = x + 1 locked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\n1 2 3 locked = 1 locked = 0 x = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) ",
+  "wordCount" : "1348",
   "inLanguage": "zh",
   "datePublished": "2024-09-19T19:30:13+08:00",
   "dateModified": "2024-09-19T19:20:13+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(10)-Locks
     </div>
-    <div class="post-meta"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1303 字&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1348 字&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -391,11 +391,21 @@ BUMMER:
 we need locks for correctness
 but loose performance (kfree is serialized)</p>
 <p><strong>The lock abstraction:</strong></p>
-<pre tabindex="0"><code>  lock l
-  acquire(l)
-    x = x + 1 -- &#34;critical section&#34;
-  release(l)
-</code></pre><p>a lock is itself an object
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1">1</a>
+</span><span class="lnt" id="hl-0-2"><a class="lnlinks" href="#hl-0-2">2</a>
+</span><span class="lnt" id="hl-0-3"><a class="lnlinks" href="#hl-0-3">3</a>
+</span><span class="lnt" id="hl-0-4"><a class="lnlinks" href="#hl-0-4">4</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  lock l
+</span></span><span class="line"><span class="cl">  acquire(l)
+</span></span><span class="line"><span class="cl">    x = x + 1 -- &#34;critical section&#34;
+</span></span><span class="line"><span class="cl">  release(l)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>a lock is itself an object
 if multiple threads call acquire(l)
 only one will return right away
 the others will wait for release() &ndash; &ldquo;block&rdquo;
@@ -422,18 +432,36 @@ don&rsquo;t touch shared data unless you hold the right lock!</p>
 compiler adds acquire/release around every use
 less room for programmer to forget!
 that idea is often too rigid:</p>
-<pre tabindex="0"><code>    rename(&#34;d1/x&#34;, &#34;d2/y&#34;):
-      lock d1, erase x, unlock d1
-      lock d2, add y, unlock d2
-</code></pre><p>​    problem: the file didn&rsquo;t exist for a while!
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1">1</a>
+</span><span class="lnt" id="hl-1-2"><a class="lnlinks" href="#hl-1-2">2</a>
+</span><span class="lnt" id="hl-1-3"><a class="lnlinks" href="#hl-1-3">3</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">    rename(&#34;d1/x&#34;, &#34;d2/y&#34;):
+</span></span><span class="line"><span class="cl">      lock d1, erase x, unlock d1
+</span></span><span class="line"><span class="cl">      lock d2, add y, unlock d2
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>​    problem: the file didn&rsquo;t exist for a while!
 ​      <code>rename()</code> should be atomic
 ​        other system calls should see before, or after, not in between
 ​      otherwise too hard to write programs
 ​    we need:</p>
-<pre tabindex="0"><code>      lock d1 ; lock d2
-      erase x, add y
-      unlock d2; unlock d1
-</code></pre><p>that is, programmer often needs explicit control over
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-2-1"><a class="lnlinks" href="#hl-2-1">1</a>
+</span><span class="lnt" id="hl-2-2"><a class="lnlinks" href="#hl-2-2">2</a>
+</span><span class="lnt" id="hl-2-3"><a class="lnlinks" href="#hl-2-3">3</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">      lock d1 ; lock d2
+</span></span><span class="line"><span class="cl">      erase x, add y
+</span></span><span class="line"><span class="cl">      unlock d2; unlock d1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>that is, programmer often needs explicit control over
 the region of code during which a lock is held
 in order to hide awkward intermediate states</p>
 <p>Ways to think about what locks achieve
@@ -446,11 +474,21 @@ operation restores invariants before releasing locks</p>
 <h2 id="problem-deadlock">Problem: deadlock<a hidden class="anchor" aria-hidden="true" href="#problem-deadlock">#</a></h2>
 <p>notice <code>rename()</code> held two locks
 what if:</p>
-<pre tabindex="0"><code>    core A              core B
-    rename(d1/x, d2/y)  rename(d2/a, d1/b)
-      lock d1             lock d2
-      lock d2 ...         lock d1 ...
-</code></pre><h3 id="solution">solution:<a hidden class="anchor" aria-hidden="true" href="#solution">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-3-1"><a class="lnlinks" href="#hl-3-1">1</a>
+</span><span class="lnt" id="hl-3-2"><a class="lnlinks" href="#hl-3-2">2</a>
+</span><span class="lnt" id="hl-3-3"><a class="lnlinks" href="#hl-3-3">3</a>
+</span><span class="lnt" id="hl-3-4"><a class="lnlinks" href="#hl-3-4">4</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">    core A              core B
+</span></span><span class="line"><span class="cl">    rename(d1/x, d2/y)  rename(d2/a, d1/b)
+</span></span><span class="line"><span class="cl">      lock d1             lock d2
+</span></span><span class="line"><span class="cl">      lock d2 ...         lock d1 ...
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="solution">solution:<a hidden class="anchor" aria-hidden="true" href="#solution">#</a></h3>
 <p>​    programmer works out an order for all locks
 ​    all code must acquire locks in that order
 ​    i.e. predict locks, sort, acquire &ndash; complex!</p>
@@ -496,39 +534,84 @@ removes character from uart_tx_buf
 hands next queued char to UART h/w (2)
 touches UART h/w registers (3)</p>
 <p>How to implement locks?</p>
-<pre tabindex="0"><code>  why not:
-    struct lock { int locked; }
-    acquire(l) {
-      while(1){
-        if(l-&gt;locked == 0){ // A
-          l-&gt;locked = 1;    // B
-          return;
-        }
-      }
-    }
-</code></pre><p>oops: race between lines A and B
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-4-1"><a class="lnlinks" href="#hl-4-1"> 1</a>
+</span><span class="lnt" id="hl-4-2"><a class="lnlinks" href="#hl-4-2"> 2</a>
+</span><span class="lnt" id="hl-4-3"><a class="lnlinks" href="#hl-4-3"> 3</a>
+</span><span class="lnt" id="hl-4-4"><a class="lnlinks" href="#hl-4-4"> 4</a>
+</span><span class="lnt" id="hl-4-5"><a class="lnlinks" href="#hl-4-5"> 5</a>
+</span><span class="lnt" id="hl-4-6"><a class="lnlinks" href="#hl-4-6"> 6</a>
+</span><span class="lnt" id="hl-4-7"><a class="lnlinks" href="#hl-4-7"> 7</a>
+</span><span class="lnt" id="hl-4-8"><a class="lnlinks" href="#hl-4-8"> 8</a>
+</span><span class="lnt" id="hl-4-9"><a class="lnlinks" href="#hl-4-9"> 9</a>
+</span><span class="lnt" id="hl-4-10"><a class="lnlinks" href="#hl-4-10">10</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  why not:
+</span></span><span class="line"><span class="cl">    struct lock { int locked; }
+</span></span><span class="line"><span class="cl">    acquire(l) {
+</span></span><span class="line"><span class="cl">      while(1){
+</span></span><span class="line"><span class="cl">        if(l-&gt;locked == 0){ // A
+</span></span><span class="line"><span class="cl">          l-&gt;locked = 1;    // B
+</span></span><span class="line"><span class="cl">          return;
+</span></span><span class="line"><span class="cl">        }
+</span></span><span class="line"><span class="cl">      }
+</span></span><span class="line"><span class="cl">    }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>oops: race between lines A and B
 how can we do A and B atomically?</p>
 <p>Atomic swap instruction:</p>
-<pre tabindex="0"><code>  a5 = 1
-  s1 = &amp;lk-&gt;locked
-  amoswap.w.aq a5, a5, (s1)
-</code></pre><p>does this in hardware:</p>
-<pre tabindex="0"><code>    lock addr globally (other cores cannot use it)
-    temp = *s5
-    *addr = a5
-    a5 = temp
-    unlock addr
-</code></pre><p>RISC-V h/w provides a notion of locking a memory location
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-5-1"><a class="lnlinks" href="#hl-5-1">1</a>
+</span><span class="lnt" id="hl-5-2"><a class="lnlinks" href="#hl-5-2">2</a>
+</span><span class="lnt" id="hl-5-3"><a class="lnlinks" href="#hl-5-3">3</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  a5 = 1
+</span></span><span class="line"><span class="cl">  s1 = &amp;lk-&gt;locked
+</span></span><span class="line"><span class="cl">  amoswap.w.aq a5, a5, (s1)
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>does this in hardware:</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-6-1"><a class="lnlinks" href="#hl-6-1">1</a>
+</span><span class="lnt" id="hl-6-2"><a class="lnlinks" href="#hl-6-2">2</a>
+</span><span class="lnt" id="hl-6-3"><a class="lnlinks" href="#hl-6-3">3</a>
+</span><span class="lnt" id="hl-6-4"><a class="lnlinks" href="#hl-6-4">4</a>
+</span><span class="lnt" id="hl-6-5"><a class="lnlinks" href="#hl-6-5">5</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">    lock addr globally (other cores cannot use it)
+</span></span><span class="line"><span class="cl">    temp = *s5
+</span></span><span class="line"><span class="cl">    *addr = a5
+</span></span><span class="line"><span class="cl">    a5 = temp
+</span></span><span class="line"><span class="cl">    unlock addr
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>RISC-V h/w provides a notion of locking a memory location
 different CPUs have had different implementations
 diagram: cores, bus, RAM, lock thing
 so we are really pushing the problem down to the hardware
 h/w implements at granularity of cache-line or entire bus
 memory lock forces concurrent swamp to run one at a time, not interleaved</p>
 <p>Look at xv6 spinlock implementation</p>
-<pre tabindex="0"><code>  acquire(l){
-    while(__sync_lock_test_and_set(&amp;lk-&gt;locked, 1) != 0)
-  }
-</code></pre><p>if l-&gt;locked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1,
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-7-1"><a class="lnlinks" href="#hl-7-1">1</a>
+</span><span class="lnt" id="hl-7-2"><a class="lnlinks" href="#hl-7-2">2</a>
+</span><span class="lnt" id="hl-7-3"><a class="lnlinks" href="#hl-7-3">3</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  acquire(l){
+</span></span><span class="line"><span class="cl">    while(__sync_lock_test_and_set(&amp;lk-&gt;locked, 1) != 0)
+</span></span><span class="line"><span class="cl">  }
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>if l-&gt;locked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1,
 and the loop continues to spin
 if l-&gt;locked was 0, at most one lock_test_and_set will see the 0; it will set
 it to 1 and return 0; other test_an_set will return 1
@@ -541,20 +624,42 @@ and re-enables interrupts</p>
 <p>Detail: memory read/write ordering
 suppose two cores use a lock to guard a counter, x
 and we have a naive lock implementation</p>
-<pre tabindex="0"><code>  Core A:          Core B:
-    locked = 1
-    x = x + 1      while(locked == 1)
-    locked = 0       ...
-                   locked = 1
-                   x = x + 1
-                   locked = 0
-</code></pre><p>the compiler AND the CPU re-order memory accesses
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-8-1"><a class="lnlinks" href="#hl-8-1">1</a>
+</span><span class="lnt" id="hl-8-2"><a class="lnlinks" href="#hl-8-2">2</a>
+</span><span class="lnt" id="hl-8-3"><a class="lnlinks" href="#hl-8-3">3</a>
+</span><span class="lnt" id="hl-8-4"><a class="lnlinks" href="#hl-8-4">4</a>
+</span><span class="lnt" id="hl-8-5"><a class="lnlinks" href="#hl-8-5">5</a>
+</span><span class="lnt" id="hl-8-6"><a class="lnlinks" href="#hl-8-6">6</a>
+</span><span class="lnt" id="hl-8-7"><a class="lnlinks" href="#hl-8-7">7</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">  Core A:          Core B:
+</span></span><span class="line"><span class="cl">    locked = 1
+</span></span><span class="line"><span class="cl">    x = x + 1      while(locked == 1)
+</span></span><span class="line"><span class="cl">    locked = 0       ...
+</span></span><span class="line"><span class="cl">                   locked = 1
+</span></span><span class="line"><span class="cl">                   x = x + 1
+</span></span><span class="line"><span class="cl">                   locked = 0
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>the compiler AND the CPU re-order memory accesses
 i.e. they do not obey the source program&rsquo;s order of memory references
 e.g. the compiler might generate this code for core A:</p>
-<pre tabindex="0"><code>      locked = 1
-      locked = 0
-      x = x + 1
-</code></pre><p>​      i.e. move the increment outside the critical section!
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-9-1"><a class="lnlinks" href="#hl-9-1">1</a>
+</span><span class="lnt" id="hl-9-2"><a class="lnlinks" href="#hl-9-2">2</a>
+</span><span class="lnt" id="hl-9-3"><a class="lnlinks" href="#hl-9-3">3</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-fallback" data-lang="fallback"><span class="line"><span class="cl">      locked = 1
+</span></span><span class="line"><span class="cl">      locked = 0
+</span></span><span class="line"><span class="cl">      x = x + 1
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>​      i.e. move the increment outside the critical section!
 ​    the legal behaviors are called the &ldquo;memory model&rdquo;
 release()&rsquo;s call to __sync_synchronize() prevents re-order
 ​    compiler won&rsquo;t move a memory reference past a __sync_synchronize()

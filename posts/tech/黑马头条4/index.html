@@ -136,8 +136,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Java", "Web"
   ],
-  "articleBody": "黑马头条（4） 自媒体文章审核 文章数据流 审核方式 自动审核 文章发布之后，系统自动审核，主要是通过第三方接口对文章的内容进行审核（成功、失败、不确定）\n人工审核 待自动审核返回不确定信息时，转到人工审核，由平台管理员进行审核\n审核流程图：\n内容安全第三方接口 内容安全接口类型 通过aliyun服务检测内容安全\n分布式id 随着业务增长，文章表占用很大物理存储空间，为了解决该问题，后期使用数据库分片技术，将一个数据库进行拆分，通过数据库中间件连接。如果数据库中该表选用ID自增策略，则可能产生重复的ID，此时应该使用分布式ID生成策略来生成ID。\n唯一主键生成方案比较 方案 优势 劣势 Redis （INCR）生成一个全局连续递增的数字类型主键 增加了一个外部组件的依赖，Redis不可用，则整个数据库将无法插入 UUID 全局唯一，MySQL也有UUID实现 36个字符组成，占用空间大 Snowflake算法 全局唯一，数字类型，存储成本低 机器规模大于1024台无法支持 雪花算法 snowflake是Twitter开源的分布式ID生成算法，结果是一个long型的ID。其核心思想是：使用41bit作为毫秒数，10bit作为机器的ID（5个bit是数据中心，5个bit是机器ID），12bit作为毫秒内的流水号（意味着每个节点在每毫秒可以产生4096个ID），最后还有一个符号位，永远是0。\nfeign远程调用服务降级处理 服务降级是服务自我保护的一种方式，或者保护下流服务的一种方式，用于确保服务不会受请求突增影响变得不可用，确保服务不会崩溃。 服务降级虽然会导致请求失败，但是不会导致阻塞 自管理敏感词过滤 需要自己维护一套敏感词，在文章审核的时候，需要验证文章是否包含这些敏感词\n方案 说明 数据库模糊查询 效率太低 String.indexOf(\"\") 数据库量大的话也是比较慢 全文检索 分词再匹配 DFA算法 确定有穷自动机（一种数据结构） DFA实现原理 DFA ： Deterministic Finite Automation，确定有穷自动机\n存储：一次性的把所有的敏感词存储到了多个map中，就是下图的结构\n1、创建敏感词表 2、敏感词识别工具类 public class SensitiveWordUtil { public static Map\u003cString, Object\u003e dictionaryMap = new HashMap\u003c\u003e(); /** * 生成关键词字典库 * @param words * @return */ public static void initMap(Collection\u003cString\u003e words) { if (words == null) { System.out.println(\"敏感词列表不能为空\"); return ; } // map初始长度words.size()，整个字典库的入口字数(小于words.size()，因为不同的词可能会有相同的首字) Map\u003cString, Object\u003e map = new HashMap\u003c\u003e(words.size()); // 遍历过程中当前层次的数据 Map\u003cString, Object\u003e curMap = null; Iterator\u003cString\u003e iterator = words.iterator(); while (iterator.hasNext()) { String word = iterator.next(); curMap = map; int len = word.length(); for (int i =0; i \u003c len; i++) { // 遍历每个词的字 String key = String.valueOf(word.charAt(i)); // 当前字在当前层是否存在, 不存在则新建, 当前层数据指向下一个节点, 继续判断是否存在数据 Map\u003cString, Object\u003e wordMap = (Map\u003cString, Object\u003e) curMap.get(key); if (wordMap == null) { // 每个节点存在两个数据: 下一个节点和isEnd(是否结束标志) wordMap = new HashMap\u003c\u003e(2); wordMap.put(\"isEnd\", \"0\"); curMap.put(key, wordMap); } curMap = wordMap; // 如果当前字是词的最后一个字，则将isEnd标志置1 if (i == len -1) { curMap.put(\"isEnd\", \"1\"); } } } dictionaryMap = map; } /** * 搜索文本中某个文字是否匹配关键词 * @param text * @param beginIndex * @return */ private static int checkWord(String text, int beginIndex) { if (dictionaryMap == null) { throw new RuntimeException(\"字典不能为空\"); } boolean isEnd = false; int wordLength = 0; Map\u003cString, Object\u003e curMap = dictionaryMap; int len = text.length(); // 从文本的第beginIndex开始匹配 for (int i = beginIndex; i \u003c len; i++) { String key = String.valueOf(text.charAt(i)); // 获取当前key的下一个节点 curMap = (Map\u003cString, Object\u003e) curMap.get(key); if (curMap == null) { break; } else { wordLength ++; if (\"1\".equals(curMap.get(\"isEnd\"))) { isEnd = true; } } } if (!isEnd) { wordLength = 0; } return wordLength; } /** * 获取匹配的关键词和命中次数 * @param text * @return */ public static Map\u003cString, Integer\u003e matchWords(String text) { Map\u003cString, Integer\u003e wordMap = new HashMap\u003c\u003e(); int len = text.length(); for (int i = 0; i \u003c len; i++) { int wordLength = checkWord(text, i); if (wordLength \u003e 0) { String word = text.substring(i, i + wordLength); // 添加关键词匹配次数 if (wordMap.containsKey(word)) { wordMap.put(word, wordMap.get(word) + 1); } else { wordMap.put(word, 1); } i += wordLength - 1; } } return wordMap; } public static void main(String[] args) { List\u003cString\u003e list = new ArrayList\u003c\u003e(); list.add(\"法轮\"); list.add(\"法轮功\"); list.add(\"冰毒\"); initMap(list); String content=\"我是一个好人，并不会卖冰毒，也不操练法轮功,我真的不卖冰毒\"; Map\u003cString, Integer\u003e map = matchWords(content); System.out.println(map); } } 3、添加对应的敏感词过滤逻辑 /** * 自管理敏感词审核 * @param content * @param wmNews * @return */ private boolean handelSensitiveScan(String content, WmNews wmNews) { boolean flag = true; // 获取所有的敏感词 List\u003cWmSensitive\u003e wmSensitives = wmSensitiveMapper.selectList(Wrappers.\u003cWmSensitive\u003elambdaQuery().select(WmSensitive::getSensitives)); List\u003cString\u003e collectList = wmSensitives.stream().map(WmSensitive::getSensitives).collect(Collectors.toList()); // 初始化敏感词库 SensitiveWordUtil.initMap(collectList); // 查看文章中是否包含敏感词 Map\u003cString, Integer\u003e map = SensitiveWordUtil.matchWords(content); if (!map.isEmpty()){ updateWmNews(wmNews, WmNews.Status.FAIL, \"当前文章中存在违规内容\" + map); flag = false; } return flag; } 图片文字-敏感词过滤 图片文字识别 OCR（Optical Character Recognition，光学字符识别）是指电子设备检查纸上的字符，通过检测暗、亮的模式确定其形状，然后用字符识别的方法将形状翻译成计算机文字的过程。\nTesseract - OCR 导入依赖： net.sourceforge.tess4j tess4j 4.1.1 下载对应的模型 识别 public static void main(String[] args) throws TesseractException { ITesseract tesseract = new Tesseract(); tesseract.setDatapath(\"D:\\\\workspace\\\\tessdata\"); tesseract.setLanguage(\"chi_sim\"); File file = new File(\"D:\\\\workspace\\\\image1.png\"); String result = tesseract.doOCR(file); System.out.println(\"识别的结果为:\\n\" + result.replaceAll(\"[\\\\r\\\\n]\", \"-\")); } 文章详情-静态文件的生成 文章端创建app相关文章时，生成文章详情静态页上传到MinIO中\n",
-  "wordCount" : "1963",
+  "articleBody": "黑马头条（4） 自媒体文章审核 文章数据流 审核方式 自动审核 文章发布之后，系统自动审核，主要是通过第三方接口对文章的内容进行审核（成功、失败、不确定）\n人工审核 待自动审核返回不确定信息时，转到人工审核，由平台管理员进行审核\n审核流程图：\n内容安全第三方接口 内容安全接口类型 通过aliyun服务检测内容安全\n分布式id 随着业务增长，文章表占用很大物理存储空间，为了解决该问题，后期使用数据库分片技术，将一个数据库进行拆分，通过数据库中间件连接。如果数据库中该表选用ID自增策略，则可能产生重复的ID，此时应该使用分布式ID生成策略来生成ID。\n唯一主键生成方案比较 方案 优势 劣势 Redis （INCR）生成一个全局连续递增的数字类型主键 增加了一个外部组件的依赖，Redis不可用，则整个数据库将无法插入 UUID 全局唯一，MySQL也有UUID实现 36个字符组成，占用空间大 Snowflake算法 全局唯一，数字类型，存储成本低 机器规模大于1024台无法支持 雪花算法 snowflake是Twitter开源的分布式ID生成算法，结果是一个long型的ID。其核心思想是：使用41bit作为毫秒数，10bit作为机器的ID（5个bit是数据中心，5个bit是机器ID），12bit作为毫秒内的流水号（意味着每个节点在每毫秒可以产生4096个ID），最后还有一个符号位，永远是0。\nfeign远程调用服务降级处理 服务降级是服务自我保护的一种方式，或者保护下流服务的一种方式，用于确保服务不会受请求突增影响变得不可用，确保服务不会崩溃。 服务降级虽然会导致请求失败，但是不会导致阻塞 自管理敏感词过滤 需要自己维护一套敏感词，在文章审核的时候，需要验证文章是否包含这些敏感词\n方案 说明 数据库模糊查询 效率太低 String.indexOf(\"\") 数据库量大的话也是比较慢 全文检索 分词再匹配 DFA算法 确定有穷自动机（一种数据结构） DFA实现原理 DFA ： Deterministic Finite Automation，确定有穷自动机\n存储：一次性的把所有的敏感词存储到了多个map中，就是下图的结构\n1、创建敏感词表 2、敏感词识别工具类 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 82 83 84 85 86 87 88 89 90 91 92 93 94 95 96 97 98 99 100 101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 public class SensitiveWordUtil { public static Map\u003cString, Object\u003e dictionaryMap = new HashMap\u003c\u003e(); /** * 生成关键词字典库 * @param words * @return */ public static void initMap(Collection\u003cString\u003e words) { if (words == null) { System.out.println(\"敏感词列表不能为空\"); return ; } // map初始长度words.size()，整个字典库的入口字数(小于words.size()，因为不同的词可能会有相同的首字) Map\u003cString, Object\u003e map = new HashMap\u003c\u003e(words.size()); // 遍历过程中当前层次的数据 Map\u003cString, Object\u003e curMap = null; Iterator\u003cString\u003e iterator = words.iterator(); while (iterator.hasNext()) { String word = iterator.next(); curMap = map; int len = word.length(); for (int i =0; i \u003c len; i++) { // 遍历每个词的字 String key = String.valueOf(word.charAt(i)); // 当前字在当前层是否存在, 不存在则新建, 当前层数据指向下一个节点, 继续判断是否存在数据 Map\u003cString, Object\u003e wordMap = (Map\u003cString, Object\u003e) curMap.get(key); if (wordMap == null) { // 每个节点存在两个数据: 下一个节点和isEnd(是否结束标志) wordMap = new HashMap\u003c\u003e(2); wordMap.put(\"isEnd\", \"0\"); curMap.put(key, wordMap); } curMap = wordMap; // 如果当前字是词的最后一个字，则将isEnd标志置1 if (i == len -1) { curMap.put(\"isEnd\", \"1\"); } } } dictionaryMap = map; } /** * 搜索文本中某个文字是否匹配关键词 * @param text * @param beginIndex * @return */ private static int checkWord(String text, int beginIndex) { if (dictionaryMap == null) { throw new RuntimeException(\"字典不能为空\"); } boolean isEnd = false; int wordLength = 0; Map\u003cString, Object\u003e curMap = dictionaryMap; int len = text.length(); // 从文本的第beginIndex开始匹配 for (int i = beginIndex; i \u003c len; i++) { String key = String.valueOf(text.charAt(i)); // 获取当前key的下一个节点 curMap = (Map\u003cString, Object\u003e) curMap.get(key); if (curMap == null) { break; } else { wordLength ++; if (\"1\".equals(curMap.get(\"isEnd\"))) { isEnd = true; } } } if (!isEnd) { wordLength = 0; } return wordLength; } /** * 获取匹配的关键词和命中次数 * @param text * @return */ public static Map\u003cString, Integer\u003e matchWords(String text) { Map\u003cString, Integer\u003e wordMap = new HashMap\u003c\u003e(); int len = text.length(); for (int i = 0; i \u003c len; i++) { int wordLength = checkWord(text, i); if (wordLength \u003e 0) { String word = text.substring(i, i + wordLength); // 添加关键词匹配次数 if (wordMap.containsKey(word)) { wordMap.put(word, wordMap.get(word) + 1); } else { wordMap.put(word, 1); } i += wordLength - 1; } } return wordMap; } public static void main(String[] args) { List\u003cString\u003e list = new ArrayList\u003c\u003e(); list.add(\"法轮\"); list.add(\"法轮功\"); list.add(\"冰毒\"); initMap(list); String content=\"我是一个好人，并不会卖冰毒，也不操练法轮功,我真的不卖冰毒\"; Map\u003cString, Integer\u003e map = matchWords(content); System.out.println(map); } } 3、添加对应的敏感词过滤逻辑 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 /** * 自管理敏感词审核 * @param content * @param wmNews * @return */ private boolean handelSensitiveScan(String content, WmNews wmNews) { boolean flag = true; // 获取所有的敏感词 List\u003cWmSensitive\u003e wmSensitives = wmSensitiveMapper.selectList(Wrappers.\u003cWmSensitive\u003elambdaQuery().select(WmSensitive::getSensitives)); List\u003cString\u003e collectList = wmSensitives.stream().map(WmSensitive::getSensitives).collect(Collectors.toList()); // 初始化敏感词库 SensitiveWordUtil.initMap(collectList); // 查看文章中是否包含敏感词 Map\u003cString, Integer\u003e map = SensitiveWordUtil.matchWords(content); if (!map.isEmpty()){ updateWmNews(wmNews, WmNews.Status.FAIL, \"当前文章中存在违规内容\" + map); flag = false; } return flag; } 图片文字-敏感词过滤 图片文字识别 OCR（Optical Character Recognition，光学字符识别）是指电子设备检查纸上的字符，通过检测暗、亮的模式确定其形状，然后用字符识别的方法将形状翻译成计算机文字的过程。\nTesseract - OCR 导入依赖： 1 2 3 4 5 net.sourceforge.tess4j tess4j 4.1.1 下载对应的模型 识别 1 2 3 4 5 6 7 8 9 10 public static void main(String[] args) throws TesseractException { ITesseract tesseract = new Tesseract(); tesseract.setDatapath(\"D:\\\\workspace\\\\tessdata\"); tesseract.setLanguage(\"chi_sim\"); File file = new File(\"D:\\\\workspace\\\\image1.png\"); String result = tesseract.doOCR(file); System.out.println(\"识别的结果为:\\n\" + result.replaceAll(\"[\\\\r\\\\n]\", \"-\")); } 文章详情-静态文件的生成 文章端创建app相关文章时，生成文章详情静态页上传到MinIO中\n",
+  "wordCount" : "2122",
   "inLanguage": "zh",
   "datePublished": "2024-12-28T15:37:01+08:00",
   "dateModified": "2024-12-28T15:37:01+08:00",
@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       黑马头条（4）
     </div>
-    <div class="post-meta"><span title='2024-12-28 15:37:01 +0800 CST'>2024-12-28</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1963 字&nbsp;·&nbsp;updated:&nbsp;2024-12-28&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-12-28 15:37:01 +0800 CST'>2024-12-28</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2122 字&nbsp;·&nbsp;updated:&nbsp;2024-12-28&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -551,162 +551,329 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </p>
 <h4 id="2敏感词识别工具类">2、敏感词识别工具类<a hidden class="anchor" aria-hidden="true" href="#2敏感词识别工具类">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SensitiveWordUtil</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span> dictionaryMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 生成关键词字典库
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param words
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">initMap</span>(Collection<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> words) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (words <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
-</span></span><span style="display:flex;"><span>            System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;敏感词列表不能为空&#34;</span>);
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> ;
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// map初始长度words.size()，整个字典库的入口字数(小于words.size()，因为不同的词可能会有相同的首字)</span>
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>(words.<span style="color:#a6e22e">size</span>());
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 遍历过程中当前层次的数据</span>
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span> curMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">null</span>;
-</span></span><span style="display:flex;"><span>        Iterator<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> iterator <span style="color:#f92672">=</span> words.<span style="color:#a6e22e">iterator</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (iterator.<span style="color:#a6e22e">hasNext</span>()) {
-</span></span><span style="display:flex;"><span>            String word <span style="color:#f92672">=</span> iterator.<span style="color:#a6e22e">next</span>();
-</span></span><span style="display:flex;"><span>            curMap <span style="color:#f92672">=</span> map;
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> word.<span style="color:#a6e22e">length</span>();
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span>0; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>) {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 遍历每个词的字</span>
-</span></span><span style="display:flex;"><span>                String key <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">valueOf</span>(word.<span style="color:#a6e22e">charAt</span>(i));
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 当前字在当前层是否存在, 不存在则新建, 当前层数据指向下一个节点, 继续判断是否存在数据</span>
-</span></span><span style="display:flex;"><span>                Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span> wordMap <span style="color:#f92672">=</span> (Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span>) curMap.<span style="color:#a6e22e">get</span>(key);
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (wordMap <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
-</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 每个节点存在两个数据: 下一个节点和isEnd(是否结束标志)</span>
-</span></span><span style="display:flex;"><span>                    wordMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>(2);
-</span></span><span style="display:flex;"><span>                    wordMap.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;isEnd&#34;</span>, <span style="color:#e6db74">&#34;0&#34;</span>);
-</span></span><span style="display:flex;"><span>                    curMap.<span style="color:#a6e22e">put</span>(key, wordMap);
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>                curMap <span style="color:#f92672">=</span> wordMap;
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 如果当前字是词的最后一个字，则将isEnd标志置1</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">==</span> len <span style="color:#f92672">-</span>1) {
-</span></span><span style="display:flex;"><span>                    curMap.<span style="color:#a6e22e">put</span>(<span style="color:#e6db74">&#34;isEnd&#34;</span>, <span style="color:#e6db74">&#34;1&#34;</span>);
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        dictionaryMap <span style="color:#f92672">=</span> map;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 搜索文本中某个文字是否匹配关键词
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param text
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param beginIndex
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> <span style="color:#a6e22e">checkWord</span>(String text, <span style="color:#66d9ef">int</span> beginIndex) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (dictionaryMap <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">throw</span> <span style="color:#66d9ef">new</span> RuntimeException(<span style="color:#e6db74">&#34;字典不能为空&#34;</span>);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">boolean</span> isEnd <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> wordLength <span style="color:#f92672">=</span> 0;
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span> curMap <span style="color:#f92672">=</span> dictionaryMap;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> text.<span style="color:#a6e22e">length</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 从文本的第beginIndex开始匹配</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> beginIndex; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>) {
-</span></span><span style="display:flex;"><span>            String key <span style="color:#f92672">=</span> String.<span style="color:#a6e22e">valueOf</span>(text.<span style="color:#a6e22e">charAt</span>(i));
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 获取当前key的下一个节点</span>
-</span></span><span style="display:flex;"><span>            curMap <span style="color:#f92672">=</span> (Map<span style="color:#f92672">&lt;</span>String, Object<span style="color:#f92672">&gt;</span>) curMap.<span style="color:#a6e22e">get</span>(key);
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (curMap <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span>) {
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>;
-</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>                wordLength <span style="color:#f92672">++</span>;
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#e6db74">&#34;1&#34;</span>.<span style="color:#a6e22e">equals</span>(curMap.<span style="color:#a6e22e">get</span>(<span style="color:#e6db74">&#34;isEnd&#34;</span>))) {
-</span></span><span style="display:flex;"><span>                    isEnd <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>isEnd) {
-</span></span><span style="display:flex;"><span>            wordLength <span style="color:#f92672">=</span> 0;
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> wordLength;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 获取匹配的关键词和命中次数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param text
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> Map<span style="color:#f92672">&lt;</span>String, Integer<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">matchWords</span>(String text) {
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, Integer<span style="color:#f92672">&gt;</span> wordMap <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> HashMap<span style="color:#f92672">&lt;&gt;</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> len <span style="color:#f92672">=</span> text.<span style="color:#a6e22e">length</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> 0; i <span style="color:#f92672">&lt;</span> len; i<span style="color:#f92672">++</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">int</span> wordLength <span style="color:#f92672">=</span> checkWord(text, i);
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (wordLength <span style="color:#f92672">&gt;</span> 0) {
-</span></span><span style="display:flex;"><span>                String word <span style="color:#f92672">=</span> text.<span style="color:#a6e22e">substring</span>(i, i <span style="color:#f92672">+</span> wordLength);
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 添加关键词匹配次数</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (wordMap.<span style="color:#a6e22e">containsKey</span>(word)) {
-</span></span><span style="display:flex;"><span>                    wordMap.<span style="color:#a6e22e">put</span>(word, wordMap.<span style="color:#a6e22e">get</span>(word) <span style="color:#f92672">+</span> 1);
-</span></span><span style="display:flex;"><span>                } <span style="color:#66d9ef">else</span> {
-</span></span><span style="display:flex;"><span>                    wordMap.<span style="color:#a6e22e">put</span>(word, 1);
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                i <span style="color:#f92672">+=</span> wordLength <span style="color:#f92672">-</span> 1;
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> wordMap;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) {
-</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> list <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ArrayList<span style="color:#f92672">&lt;&gt;</span>();
-</span></span><span style="display:flex;"><span>        list.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;法轮&#34;</span>);
-</span></span><span style="display:flex;"><span>        list.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;法轮功&#34;</span>);
-</span></span><span style="display:flex;"><span>        list.<span style="color:#a6e22e">add</span>(<span style="color:#e6db74">&#34;冰毒&#34;</span>);
-</span></span><span style="display:flex;"><span>        initMap(list);
-</span></span><span style="display:flex;"><span>        String content<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;我是一个好人，并不会卖冰毒，也不操练法轮功,我真的不卖冰毒&#34;</span>;
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, Integer<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> matchWords(content);
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(map);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="3添加对应的敏感词过滤逻辑">3、添加对应的敏感词过滤逻辑<a hidden class="anchor" aria-hidden="true" href="#3添加对应的敏感词过滤逻辑">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 自管理敏感词审核
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param content
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param wmNews
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> <span style="color:#a6e22e">handelSensitiveScan</span>(String content, WmNews wmNews) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">boolean</span> flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取所有的敏感词</span>
-</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>WmSensitive<span style="color:#f92672">&gt;</span> wmSensitives <span style="color:#f92672">=</span> wmSensitiveMapper.<span style="color:#a6e22e">selectList</span>(Wrappers.<span style="color:#f92672">&lt;</span>WmSensitive<span style="color:#f92672">&gt;</span>lambdaQuery().<span style="color:#a6e22e">select</span>(WmSensitive::getSensitives));
-</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> collectList <span style="color:#f92672">=</span> wmSensitives.<span style="color:#a6e22e">stream</span>().<span style="color:#a6e22e">map</span>(WmSensitive::getSensitives).<span style="color:#a6e22e">collect</span>(Collectors.<span style="color:#a6e22e">toList</span>());
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 初始化敏感词库</span>
-</span></span><span style="display:flex;"><span>        SensitiveWordUtil.<span style="color:#a6e22e">initMap</span>(collectList);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 查看文章中是否包含敏感词</span>
-</span></span><span style="display:flex;"><span>        Map<span style="color:#f92672">&lt;</span>String, Integer<span style="color:#f92672">&gt;</span> map <span style="color:#f92672">=</span> SensitiveWordUtil.<span style="color:#a6e22e">matchWords</span>(content);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>map.<span style="color:#a6e22e">isEmpty</span>()){
-</span></span><span style="display:flex;"><span>            updateWmNews(wmNews, WmNews.<span style="color:#a6e22e">Status</span>.<span style="color:#a6e22e">FAIL</span>, <span style="color:#e6db74">&#34;当前文章中存在违规内容&#34;</span> <span style="color:#f92672">+</span> map);
-</span></span><span style="display:flex;"><span>            flag <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> flag;
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h3 id="图片文字-敏感词过滤">图片文字-敏感词过滤<a hidden class="anchor" aria-hidden="true" href="#图片文字-敏感词过滤">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1">  1</a>
+</span><span class="lnt" id="hl-0-2"><a class="lnlinks" href="#hl-0-2">  2</a>
+</span><span class="lnt" id="hl-0-3"><a class="lnlinks" href="#hl-0-3">  3</a>
+</span><span class="lnt" id="hl-0-4"><a class="lnlinks" href="#hl-0-4">  4</a>
+</span><span class="lnt" id="hl-0-5"><a class="lnlinks" href="#hl-0-5">  5</a>
+</span><span class="lnt" id="hl-0-6"><a class="lnlinks" href="#hl-0-6">  6</a>
+</span><span class="lnt" id="hl-0-7"><a class="lnlinks" href="#hl-0-7">  7</a>
+</span><span class="lnt" id="hl-0-8"><a class="lnlinks" href="#hl-0-8">  8</a>
+</span><span class="lnt" id="hl-0-9"><a class="lnlinks" href="#hl-0-9">  9</a>
+</span><span class="lnt" id="hl-0-10"><a class="lnlinks" href="#hl-0-10"> 10</a>
+</span><span class="lnt" id="hl-0-11"><a class="lnlinks" href="#hl-0-11"> 11</a>
+</span><span class="lnt" id="hl-0-12"><a class="lnlinks" href="#hl-0-12"> 12</a>
+</span><span class="lnt" id="hl-0-13"><a class="lnlinks" href="#hl-0-13"> 13</a>
+</span><span class="lnt" id="hl-0-14"><a class="lnlinks" href="#hl-0-14"> 14</a>
+</span><span class="lnt" id="hl-0-15"><a class="lnlinks" href="#hl-0-15"> 15</a>
+</span><span class="lnt" id="hl-0-16"><a class="lnlinks" href="#hl-0-16"> 16</a>
+</span><span class="lnt" id="hl-0-17"><a class="lnlinks" href="#hl-0-17"> 17</a>
+</span><span class="lnt" id="hl-0-18"><a class="lnlinks" href="#hl-0-18"> 18</a>
+</span><span class="lnt" id="hl-0-19"><a class="lnlinks" href="#hl-0-19"> 19</a>
+</span><span class="lnt" id="hl-0-20"><a class="lnlinks" href="#hl-0-20"> 20</a>
+</span><span class="lnt" id="hl-0-21"><a class="lnlinks" href="#hl-0-21"> 21</a>
+</span><span class="lnt" id="hl-0-22"><a class="lnlinks" href="#hl-0-22"> 22</a>
+</span><span class="lnt" id="hl-0-23"><a class="lnlinks" href="#hl-0-23"> 23</a>
+</span><span class="lnt" id="hl-0-24"><a class="lnlinks" href="#hl-0-24"> 24</a>
+</span><span class="lnt" id="hl-0-25"><a class="lnlinks" href="#hl-0-25"> 25</a>
+</span><span class="lnt" id="hl-0-26"><a class="lnlinks" href="#hl-0-26"> 26</a>
+</span><span class="lnt" id="hl-0-27"><a class="lnlinks" href="#hl-0-27"> 27</a>
+</span><span class="lnt" id="hl-0-28"><a class="lnlinks" href="#hl-0-28"> 28</a>
+</span><span class="lnt" id="hl-0-29"><a class="lnlinks" href="#hl-0-29"> 29</a>
+</span><span class="lnt" id="hl-0-30"><a class="lnlinks" href="#hl-0-30"> 30</a>
+</span><span class="lnt" id="hl-0-31"><a class="lnlinks" href="#hl-0-31"> 31</a>
+</span><span class="lnt" id="hl-0-32"><a class="lnlinks" href="#hl-0-32"> 32</a>
+</span><span class="lnt" id="hl-0-33"><a class="lnlinks" href="#hl-0-33"> 33</a>
+</span><span class="lnt" id="hl-0-34"><a class="lnlinks" href="#hl-0-34"> 34</a>
+</span><span class="lnt" id="hl-0-35"><a class="lnlinks" href="#hl-0-35"> 35</a>
+</span><span class="lnt" id="hl-0-36"><a class="lnlinks" href="#hl-0-36"> 36</a>
+</span><span class="lnt" id="hl-0-37"><a class="lnlinks" href="#hl-0-37"> 37</a>
+</span><span class="lnt" id="hl-0-38"><a class="lnlinks" href="#hl-0-38"> 38</a>
+</span><span class="lnt" id="hl-0-39"><a class="lnlinks" href="#hl-0-39"> 39</a>
+</span><span class="lnt" id="hl-0-40"><a class="lnlinks" href="#hl-0-40"> 40</a>
+</span><span class="lnt" id="hl-0-41"><a class="lnlinks" href="#hl-0-41"> 41</a>
+</span><span class="lnt" id="hl-0-42"><a class="lnlinks" href="#hl-0-42"> 42</a>
+</span><span class="lnt" id="hl-0-43"><a class="lnlinks" href="#hl-0-43"> 43</a>
+</span><span class="lnt" id="hl-0-44"><a class="lnlinks" href="#hl-0-44"> 44</a>
+</span><span class="lnt" id="hl-0-45"><a class="lnlinks" href="#hl-0-45"> 45</a>
+</span><span class="lnt" id="hl-0-46"><a class="lnlinks" href="#hl-0-46"> 46</a>
+</span><span class="lnt" id="hl-0-47"><a class="lnlinks" href="#hl-0-47"> 47</a>
+</span><span class="lnt" id="hl-0-48"><a class="lnlinks" href="#hl-0-48"> 48</a>
+</span><span class="lnt" id="hl-0-49"><a class="lnlinks" href="#hl-0-49"> 49</a>
+</span><span class="lnt" id="hl-0-50"><a class="lnlinks" href="#hl-0-50"> 50</a>
+</span><span class="lnt" id="hl-0-51"><a class="lnlinks" href="#hl-0-51"> 51</a>
+</span><span class="lnt" id="hl-0-52"><a class="lnlinks" href="#hl-0-52"> 52</a>
+</span><span class="lnt" id="hl-0-53"><a class="lnlinks" href="#hl-0-53"> 53</a>
+</span><span class="lnt" id="hl-0-54"><a class="lnlinks" href="#hl-0-54"> 54</a>
+</span><span class="lnt" id="hl-0-55"><a class="lnlinks" href="#hl-0-55"> 55</a>
+</span><span class="lnt" id="hl-0-56"><a class="lnlinks" href="#hl-0-56"> 56</a>
+</span><span class="lnt" id="hl-0-57"><a class="lnlinks" href="#hl-0-57"> 57</a>
+</span><span class="lnt" id="hl-0-58"><a class="lnlinks" href="#hl-0-58"> 58</a>
+</span><span class="lnt" id="hl-0-59"><a class="lnlinks" href="#hl-0-59"> 59</a>
+</span><span class="lnt" id="hl-0-60"><a class="lnlinks" href="#hl-0-60"> 60</a>
+</span><span class="lnt" id="hl-0-61"><a class="lnlinks" href="#hl-0-61"> 61</a>
+</span><span class="lnt" id="hl-0-62"><a class="lnlinks" href="#hl-0-62"> 62</a>
+</span><span class="lnt" id="hl-0-63"><a class="lnlinks" href="#hl-0-63"> 63</a>
+</span><span class="lnt" id="hl-0-64"><a class="lnlinks" href="#hl-0-64"> 64</a>
+</span><span class="lnt" id="hl-0-65"><a class="lnlinks" href="#hl-0-65"> 65</a>
+</span><span class="lnt" id="hl-0-66"><a class="lnlinks" href="#hl-0-66"> 66</a>
+</span><span class="lnt" id="hl-0-67"><a class="lnlinks" href="#hl-0-67"> 67</a>
+</span><span class="lnt" id="hl-0-68"><a class="lnlinks" href="#hl-0-68"> 68</a>
+</span><span class="lnt" id="hl-0-69"><a class="lnlinks" href="#hl-0-69"> 69</a>
+</span><span class="lnt" id="hl-0-70"><a class="lnlinks" href="#hl-0-70"> 70</a>
+</span><span class="lnt" id="hl-0-71"><a class="lnlinks" href="#hl-0-71"> 71</a>
+</span><span class="lnt" id="hl-0-72"><a class="lnlinks" href="#hl-0-72"> 72</a>
+</span><span class="lnt" id="hl-0-73"><a class="lnlinks" href="#hl-0-73"> 73</a>
+</span><span class="lnt" id="hl-0-74"><a class="lnlinks" href="#hl-0-74"> 74</a>
+</span><span class="lnt" id="hl-0-75"><a class="lnlinks" href="#hl-0-75"> 75</a>
+</span><span class="lnt" id="hl-0-76"><a class="lnlinks" href="#hl-0-76"> 76</a>
+</span><span class="lnt" id="hl-0-77"><a class="lnlinks" href="#hl-0-77"> 77</a>
+</span><span class="lnt" id="hl-0-78"><a class="lnlinks" href="#hl-0-78"> 78</a>
+</span><span class="lnt" id="hl-0-79"><a class="lnlinks" href="#hl-0-79"> 79</a>
+</span><span class="lnt" id="hl-0-80"><a class="lnlinks" href="#hl-0-80"> 80</a>
+</span><span class="lnt" id="hl-0-81"><a class="lnlinks" href="#hl-0-81"> 81</a>
+</span><span class="lnt" id="hl-0-82"><a class="lnlinks" href="#hl-0-82"> 82</a>
+</span><span class="lnt" id="hl-0-83"><a class="lnlinks" href="#hl-0-83"> 83</a>
+</span><span class="lnt" id="hl-0-84"><a class="lnlinks" href="#hl-0-84"> 84</a>
+</span><span class="lnt" id="hl-0-85"><a class="lnlinks" href="#hl-0-85"> 85</a>
+</span><span class="lnt" id="hl-0-86"><a class="lnlinks" href="#hl-0-86"> 86</a>
+</span><span class="lnt" id="hl-0-87"><a class="lnlinks" href="#hl-0-87"> 87</a>
+</span><span class="lnt" id="hl-0-88"><a class="lnlinks" href="#hl-0-88"> 88</a>
+</span><span class="lnt" id="hl-0-89"><a class="lnlinks" href="#hl-0-89"> 89</a>
+</span><span class="lnt" id="hl-0-90"><a class="lnlinks" href="#hl-0-90"> 90</a>
+</span><span class="lnt" id="hl-0-91"><a class="lnlinks" href="#hl-0-91"> 91</a>
+</span><span class="lnt" id="hl-0-92"><a class="lnlinks" href="#hl-0-92"> 92</a>
+</span><span class="lnt" id="hl-0-93"><a class="lnlinks" href="#hl-0-93"> 93</a>
+</span><span class="lnt" id="hl-0-94"><a class="lnlinks" href="#hl-0-94"> 94</a>
+</span><span class="lnt" id="hl-0-95"><a class="lnlinks" href="#hl-0-95"> 95</a>
+</span><span class="lnt" id="hl-0-96"><a class="lnlinks" href="#hl-0-96"> 96</a>
+</span><span class="lnt" id="hl-0-97"><a class="lnlinks" href="#hl-0-97"> 97</a>
+</span><span class="lnt" id="hl-0-98"><a class="lnlinks" href="#hl-0-98"> 98</a>
+</span><span class="lnt" id="hl-0-99"><a class="lnlinks" href="#hl-0-99"> 99</a>
+</span><span class="lnt" id="hl-0-100"><a class="lnlinks" href="#hl-0-100">100</a>
+</span><span class="lnt" id="hl-0-101"><a class="lnlinks" href="#hl-0-101">101</a>
+</span><span class="lnt" id="hl-0-102"><a class="lnlinks" href="#hl-0-102">102</a>
+</span><span class="lnt" id="hl-0-103"><a class="lnlinks" href="#hl-0-103">103</a>
+</span><span class="lnt" id="hl-0-104"><a class="lnlinks" href="#hl-0-104">104</a>
+</span><span class="lnt" id="hl-0-105"><a class="lnlinks" href="#hl-0-105">105</a>
+</span><span class="lnt" id="hl-0-106"><a class="lnlinks" href="#hl-0-106">106</a>
+</span><span class="lnt" id="hl-0-107"><a class="lnlinks" href="#hl-0-107">107</a>
+</span><span class="lnt" id="hl-0-108"><a class="lnlinks" href="#hl-0-108">108</a>
+</span><span class="lnt" id="hl-0-109"><a class="lnlinks" href="#hl-0-109">109</a>
+</span><span class="lnt" id="hl-0-110"><a class="lnlinks" href="#hl-0-110">110</a>
+</span><span class="lnt" id="hl-0-111"><a class="lnlinks" href="#hl-0-111">111</a>
+</span><span class="lnt" id="hl-0-112"><a class="lnlinks" href="#hl-0-112">112</a>
+</span><span class="lnt" id="hl-0-113"><a class="lnlinks" href="#hl-0-113">113</a>
+</span><span class="lnt" id="hl-0-114"><a class="lnlinks" href="#hl-0-114">114</a>
+</span><span class="lnt" id="hl-0-115"><a class="lnlinks" href="#hl-0-115">115</a>
+</span><span class="lnt" id="hl-0-116"><a class="lnlinks" href="#hl-0-116">116</a>
+</span><span class="lnt" id="hl-0-117"><a class="lnlinks" href="#hl-0-117">117</a>
+</span><span class="lnt" id="hl-0-118"><a class="lnlinks" href="#hl-0-118">118</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">SensitiveWordUtil</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">dictionaryMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 生成关键词字典库
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @param words
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @return
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">initMap</span><span class="p">(</span><span class="n">Collection</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">words</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">words</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&#34;敏感词列表不能为空&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">return</span><span class="w"> </span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// map初始长度words.size()，整个字典库的入口字数(小于words.size()，因为不同的词可能会有相同的首字)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="n">words</span><span class="p">.</span><span class="na">size</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 遍历过程中当前层次的数据</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">curMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">null</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Iterator</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">iterator</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">words</span><span class="p">.</span><span class="na">iterator</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="n">iterator</span><span class="p">.</span><span class="na">hasNext</span><span class="p">())</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">String</span><span class="w"> </span><span class="n">word</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">iterator</span><span class="p">.</span><span class="na">next</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">curMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">map</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">word</span><span class="p">.</span><span class="na">length</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="n">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="c1">// 遍历每个词的字</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">String</span><span class="p">.</span><span class="na">valueOf</span><span class="p">(</span><span class="n">word</span><span class="p">.</span><span class="na">charAt</span><span class="p">(</span><span class="n">i</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="c1">// 当前字在当前层是否存在, 不存在则新建, 当前层数据指向下一个节点, 继续判断是否存在数据</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">wordMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">curMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">key</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wordMap</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="c1">// 每个节点存在两个数据: 下一个节点和isEnd(是否结束标志)</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">wordMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">(</span><span class="n">2</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">wordMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&#34;isEnd&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;0&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">curMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">key</span><span class="p">,</span><span class="w"> </span><span class="n">wordMap</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">curMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wordMap</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="c1">// 如果当前字是词的最后一个字，则将isEnd标志置1</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">i</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">-</span><span class="n">1</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">curMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="s">&#34;isEnd&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;1&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">dictionaryMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">map</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 搜索文本中某个文字是否匹配关键词
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @param text
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @param beginIndex
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @return
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="nf">checkWord</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="n">beginIndex</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">dictionaryMap</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">throw</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">RuntimeException</span><span class="p">(</span><span class="s">&#34;字典不能为空&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">boolean</span><span class="w"> </span><span class="n">isEnd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">wordLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="w"> </span><span class="n">curMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">dictionaryMap</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">text</span><span class="p">.</span><span class="na">length</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 从文本的第beginIndex开始匹配</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">beginIndex</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">String</span><span class="w"> </span><span class="n">key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">String</span><span class="p">.</span><span class="na">valueOf</span><span class="p">(</span><span class="n">text</span><span class="p">.</span><span class="na">charAt</span><span class="p">(</span><span class="n">i</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="c1">// 获取当前key的下一个节点</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">curMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Object</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="n">curMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">key</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">curMap</span><span class="w"> </span><span class="o">==</span><span class="w"> </span><span class="kc">null</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">break</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">wordLength</span><span class="w"> </span><span class="o">++</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="s">&#34;1&#34;</span><span class="p">.</span><span class="na">equals</span><span class="p">(</span><span class="n">curMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&#34;isEnd&#34;</span><span class="p">)))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">isEnd</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">isEnd</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">wordLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">wordLength</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 获取匹配的关键词和命中次数
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @param text
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @return
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="nf">matchWords</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">text</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">wordMap</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">HashMap</span><span class="o">&lt;&gt;</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">int</span><span class="w"> </span><span class="n">len</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">text</span><span class="p">.</span><span class="na">length</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="kt">int</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">0</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">len</span><span class="p">;</span><span class="w"> </span><span class="n">i</span><span class="o">++</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kt">int</span><span class="w"> </span><span class="n">wordLength</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">checkWord</span><span class="p">(</span><span class="n">text</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wordLength</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">0</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">String</span><span class="w"> </span><span class="n">word</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">text</span><span class="p">.</span><span class="na">substring</span><span class="p">(</span><span class="n">i</span><span class="p">,</span><span class="w"> </span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">wordLength</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="c1">// 添加关键词匹配次数</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="n">wordMap</span><span class="p">.</span><span class="na">containsKey</span><span class="p">(</span><span class="n">word</span><span class="p">))</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">wordMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="w"> </span><span class="n">wordMap</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="n">word</span><span class="p">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">1</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">wordMap</span><span class="p">.</span><span class="na">put</span><span class="p">(</span><span class="n">word</span><span class="p">,</span><span class="w"> </span><span class="n">1</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">i</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">wordLength</span><span class="w"> </span><span class="o">-</span><span class="w"> </span><span class="n">1</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">wordMap</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">list</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ArrayList</span><span class="o">&lt;&gt;</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">list</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">&#34;法轮&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">list</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">&#34;法轮功&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">list</span><span class="p">.</span><span class="na">add</span><span class="p">(</span><span class="s">&#34;冰毒&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">initMap</span><span class="p">(</span><span class="n">list</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">content</span><span class="o">=</span><span class="s">&#34;我是一个好人，并不会卖冰毒，也不操练法轮功,我真的不卖冰毒&#34;</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">matchWords</span><span class="p">(</span><span class="n">content</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">map</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="3添加对应的敏感词过滤逻辑">3、添加对应的敏感词过滤逻辑<a hidden class="anchor" aria-hidden="true" href="#3添加对应的敏感词过滤逻辑">#</a></h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1"> 1</a>
+</span><span class="lnt" id="hl-1-2"><a class="lnlinks" href="#hl-1-2"> 2</a>
+</span><span class="lnt" id="hl-1-3"><a class="lnlinks" href="#hl-1-3"> 3</a>
+</span><span class="lnt" id="hl-1-4"><a class="lnlinks" href="#hl-1-4"> 4</a>
+</span><span class="lnt" id="hl-1-5"><a class="lnlinks" href="#hl-1-5"> 5</a>
+</span><span class="lnt" id="hl-1-6"><a class="lnlinks" href="#hl-1-6"> 6</a>
+</span><span class="lnt" id="hl-1-7"><a class="lnlinks" href="#hl-1-7"> 7</a>
+</span><span class="lnt" id="hl-1-8"><a class="lnlinks" href="#hl-1-8"> 8</a>
+</span><span class="lnt" id="hl-1-9"><a class="lnlinks" href="#hl-1-9"> 9</a>
+</span><span class="lnt" id="hl-1-10"><a class="lnlinks" href="#hl-1-10">10</a>
+</span><span class="lnt" id="hl-1-11"><a class="lnlinks" href="#hl-1-11">11</a>
+</span><span class="lnt" id="hl-1-12"><a class="lnlinks" href="#hl-1-12">12</a>
+</span><span class="lnt" id="hl-1-13"><a class="lnlinks" href="#hl-1-13">13</a>
+</span><span class="lnt" id="hl-1-14"><a class="lnlinks" href="#hl-1-14">14</a>
+</span><span class="lnt" id="hl-1-15"><a class="lnlinks" href="#hl-1-15">15</a>
+</span><span class="lnt" id="hl-1-16"><a class="lnlinks" href="#hl-1-16">16</a>
+</span><span class="lnt" id="hl-1-17"><a class="lnlinks" href="#hl-1-17">17</a>
+</span><span class="lnt" id="hl-1-18"><a class="lnlinks" href="#hl-1-18">18</a>
+</span><span class="lnt" id="hl-1-19"><a class="lnlinks" href="#hl-1-19">19</a>
+</span><span class="lnt" id="hl-1-20"><a class="lnlinks" href="#hl-1-20">20</a>
+</span><span class="lnt" id="hl-1-21"><a class="lnlinks" href="#hl-1-21">21</a>
+</span><span class="lnt" id="hl-1-22"><a class="lnlinks" href="#hl-1-22">22</a>
+</span><span class="lnt" id="hl-1-23"><a class="lnlinks" href="#hl-1-23">23</a>
+</span><span class="lnt" id="hl-1-24"><a class="lnlinks" href="#hl-1-24">24</a>
+</span><span class="lnt" id="hl-1-25"><a class="lnlinks" href="#hl-1-25">25</a>
+</span><span class="lnt" id="hl-1-26"><a class="lnlinks" href="#hl-1-26">26</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="cm">/**
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * 自管理敏感词审核
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @param content
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @param wmNews
+</span></span></span><span class="line"><span class="cl"><span class="cm">     * @return
+</span></span></span><span class="line"><span class="cl"><span class="cm">     */</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="nf">handelSensitiveScan</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">content</span><span class="p">,</span><span class="w"> </span><span class="n">WmNews</span><span class="w"> </span><span class="n">wmNews</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kt">boolean</span><span class="w"> </span><span class="n">flag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 获取所有的敏感词</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">List</span><span class="o">&lt;</span><span class="n">WmSensitive</span><span class="o">&gt;</span><span class="w"> </span><span class="n">wmSensitives</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wmSensitiveMapper</span><span class="p">.</span><span class="na">selectList</span><span class="p">(</span><span class="n">Wrappers</span><span class="p">.</span><span class="o">&lt;</span><span class="n">WmSensitive</span><span class="o">&gt;</span><span class="n">lambdaQuery</span><span class="p">().</span><span class="na">select</span><span class="p">(</span><span class="n">WmSensitive</span><span class="p">::</span><span class="n">getSensitives</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span><span class="w"> </span><span class="n">collectList</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">wmSensitives</span><span class="p">.</span><span class="na">stream</span><span class="p">().</span><span class="na">map</span><span class="p">(</span><span class="n">WmSensitive</span><span class="p">::</span><span class="n">getSensitives</span><span class="p">).</span><span class="na">collect</span><span class="p">(</span><span class="n">Collectors</span><span class="p">.</span><span class="na">toList</span><span class="p">());</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 初始化敏感词库</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">SensitiveWordUtil</span><span class="p">.</span><span class="na">initMap</span><span class="p">(</span><span class="n">collectList</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="c1">// 查看文章中是否包含敏感词</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">Map</span><span class="o">&lt;</span><span class="n">String</span><span class="p">,</span><span class="w"> </span><span class="n">Integer</span><span class="o">&gt;</span><span class="w"> </span><span class="n">map</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">SensitiveWordUtil</span><span class="p">.</span><span class="na">matchWords</span><span class="p">(</span><span class="n">content</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">if</span><span class="w"> </span><span class="p">(</span><span class="o">!</span><span class="n">map</span><span class="p">.</span><span class="na">isEmpty</span><span class="p">()){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">updateWmNews</span><span class="p">(</span><span class="n">wmNews</span><span class="p">,</span><span class="w"> </span><span class="n">WmNews</span><span class="p">.</span><span class="na">Status</span><span class="p">.</span><span class="na">FAIL</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;当前文章中存在违规内容&#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">map</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">flag</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="n">flag</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="图片文字-敏感词过滤">图片文字-敏感词过滤<a hidden class="anchor" aria-hidden="true" href="#图片文字-敏感词过滤">#</a></h3>
 <h4 id="图片文字识别">图片文字识别<a hidden class="anchor" aria-hidden="true" href="#图片文字识别">#</a></h4>
 <p>OCR（<strong>Optical Character Recognition</strong>，光学字符识别）是指电子设备检查纸上的字符，通过检测暗、亮的模式确定其形状，然后用字符识别的方法将形状翻译成计算机文字的过程。</p>
 <h5 id="tesseract---ocr">Tesseract - OCR<a hidden class="anchor" aria-hidden="true" href="#tesseract---ocr">#</a></h5>
 <h6 id="导入依赖">导入依赖：<a hidden class="anchor" aria-hidden="true" href="#导入依赖">#</a></h6>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>net.sourceforge.tess4j<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>tess4j<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;version&gt;</span>4.1.1<span style="color:#f92672">&lt;/version&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
-</span></span></code></pre></div><h6 id="下载对应的模型">下载对应的模型<a hidden class="anchor" aria-hidden="true" href="#下载对应的模型">#</a></h6>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-2-1"><a class="lnlinks" href="#hl-2-1">1</a>
+</span><span class="lnt" id="hl-2-2"><a class="lnlinks" href="#hl-2-2">2</a>
+</span><span class="lnt" id="hl-2-3"><a class="lnlinks" href="#hl-2-3">3</a>
+</span><span class="lnt" id="hl-2-4"><a class="lnlinks" href="#hl-2-4">4</a>
+</span><span class="lnt" id="hl-2-5"><a class="lnlinks" href="#hl-2-5">5</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">        <span class="nt">&lt;dependency&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;groupId&gt;</span>net.sourceforge.tess4j<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;artifactId&gt;</span>tess4j<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;version&gt;</span>4.1.1<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/dependency&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h6 id="下载对应的模型">下载对应的模型<a hidden class="anchor" aria-hidden="true" href="#下载对应的模型">#</a></h6>
 <p>
 
 
@@ -721,17 +888,33 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </p>
 <h6 id="识别">识别<a hidden class="anchor" aria-hidden="true" href="#识别">#</a></h6>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">static</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">main</span>(String<span style="color:#f92672">[]</span> args) <span style="color:#66d9ef">throws</span> TesseractException {
-</span></span><span style="display:flex;"><span>        ITesseract tesseract <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Tesseract();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        tesseract.<span style="color:#a6e22e">setDatapath</span>(<span style="color:#e6db74">&#34;D:\\workspace\\tessdata&#34;</span>);
-</span></span><span style="display:flex;"><span>        tesseract.<span style="color:#a6e22e">setLanguage</span>(<span style="color:#e6db74">&#34;chi_sim&#34;</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        File file <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> File(<span style="color:#e6db74">&#34;D:\\workspace\\image1.png&#34;</span>);
-</span></span><span style="display:flex;"><span>        String result <span style="color:#f92672">=</span> tesseract.<span style="color:#a6e22e">doOCR</span>(file);
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;识别的结果为:\n&#34;</span> <span style="color:#f92672">+</span> result.<span style="color:#a6e22e">replaceAll</span>(<span style="color:#e6db74">&#34;[\\r\\n]&#34;</span>, <span style="color:#e6db74">&#34;-&#34;</span>));
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h2 id="文章详情-静态文件的生成">文章详情-静态文件的生成<a hidden class="anchor" aria-hidden="true" href="#文章详情-静态文件的生成">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-3-1"><a class="lnlinks" href="#hl-3-1"> 1</a>
+</span><span class="lnt" id="hl-3-2"><a class="lnlinks" href="#hl-3-2"> 2</a>
+</span><span class="lnt" id="hl-3-3"><a class="lnlinks" href="#hl-3-3"> 3</a>
+</span><span class="lnt" id="hl-3-4"><a class="lnlinks" href="#hl-3-4"> 4</a>
+</span><span class="lnt" id="hl-3-5"><a class="lnlinks" href="#hl-3-5"> 5</a>
+</span><span class="lnt" id="hl-3-6"><a class="lnlinks" href="#hl-3-6"> 6</a>
+</span><span class="lnt" id="hl-3-7"><a class="lnlinks" href="#hl-3-7"> 7</a>
+</span><span class="lnt" id="hl-3-8"><a class="lnlinks" href="#hl-3-8"> 8</a>
+</span><span class="lnt" id="hl-3-9"><a class="lnlinks" href="#hl-3-9"> 9</a>
+</span><span class="lnt" id="hl-3-10"><a class="lnlinks" href="#hl-3-10">10</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kd">static</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">main</span><span class="p">(</span><span class="n">String</span><span class="o">[]</span><span class="w"> </span><span class="n">args</span><span class="p">)</span><span class="w"> </span><span class="kd">throws</span><span class="w"> </span><span class="n">TesseractException</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">ITesseract</span><span class="w"> </span><span class="n">tesseract</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Tesseract</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">tesseract</span><span class="p">.</span><span class="na">setDatapath</span><span class="p">(</span><span class="s">&#34;D:\\workspace\\tessdata&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">tesseract</span><span class="p">.</span><span class="na">setLanguage</span><span class="p">(</span><span class="s">&#34;chi_sim&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">File</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">File</span><span class="p">(</span><span class="s">&#34;D:\\workspace\\image1.png&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">String</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">tesseract</span><span class="p">.</span><span class="na">doOCR</span><span class="p">(</span><span class="n">file</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="s">&#34;识别的结果为:\n&#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">result</span><span class="p">.</span><span class="na">replaceAll</span><span class="p">(</span><span class="s">&#34;[\\r\\n]&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;-&#34;</span><span class="p">));</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="文章详情-静态文件的生成">文章详情-静态文件的生成<a hidden class="anchor" aria-hidden="true" href="#文章详情-静态文件的生成">#</a></h2>
 <p>文章端创建app相关文章时，生成文章详情静态页上传到MinIO中</p>
 <p>
 

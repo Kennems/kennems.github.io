@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "LeetCode周赛"
   ],
-  "articleBody": "LeetCode第 393 场周赛 第三题3116. 单面值组合的第 K 小金额 题目大意： 给定一个整数数组coins表示不同面额的硬币，另给定一个整数k。你有无限量的每种面额的硬币，但是，你不能组合使用不同面额的硬币。要求返回使用这些硬币能制造的第kth小金额。\n实现思路：\n首先，对于给定的硬币数组，我们需要求出它们的所有可能的组合方式。 使用位运算来枚举所有的组合方式，对于数组中的每个硬币，分别考虑选取和不选取两种情况，通过位运算将这两种情况枚举出来。 对于每种组合方式，计算其对应的最小公倍数（LCM）作为该组合的金额。 根据组合的奇偶性，将金额的正负号记录下来，并存储在列表ls中。 利用二分查找来求解第kth小的金额，通过不断调整左右边界，直到找到满足条件的金额。 返回最终找到的金额作为结果。 这种方法利用了位运算和二分查找的思想，可以在较短的时间内求解出结果。\nclass Solution: def findKthSmallest(self, coins: List[int], k: int) -\u003e int: n = len(coins) ls = [] for i in range(1, 1\u003c\u003cn): Lcm = 1 for j, x in enumerate(coins): if i\u003e\u003ej \u0026 1: Lcm = lcm(Lcm, x) ls.append((1, Lcm)) if i.bit_count()\u00261 else ls.append((-1, Lcm)) l, r = 1, int(5e10) while l\u003cr: mid = l+r\u003e\u003e1 cnt = 0 for sign, val in ls: cnt += sign*(mid//val) if cnt\u003e=k: r = mid else: l = mid+1 return l 第四题3117. 划分数组得到最小的值之和 题目大意： 给定两个数组nums和andValues，长度分别为n和m。数组的值等于该数组的最后一个元素。需要将nums划分为m个不相交的连续子数组，对于第ith个子数组[li, ri]，子数组元素的按位AND运算结果等于andValues[i]。返回将nums划分为m个子数组所能得到的可能的最小子数组值之和。如果无法完成这样的划分，则返回-1。\n实现思路：\n使用动态规划来解决此问题，具体来说，可以采用递归加记忆化搜索的方法。 定义dfs函数用于递归求解，其中i表示当前处理到nums的第i个元素，j表示当前处理到andValues的第j个元素，k表示当前子数组的按位AND运算结果。 在dfs函数中，首先进行边界条件的判断，如果i等于n，表示nums已经处理完毕，则返回0（如果j等于m）或者正无穷（如果j不等于m）。 然后，对当前nums[i]进行按位AND运算，并更新k的值。如果更新后的k小于andValues[j]，则返回正无穷。 如果更新后的k等于andValues[j]，则递归调用dfs函数继续处理下一个元素，同时更新i和j，并将k重置为-1。递归调用的结果加上nums[i]的值即为当前划分情况的子数组值之和。 最后，返回所有划分情况中的最小值作为答案，如果答案为正无穷，则返回-1。 这种方法利用了递归和记忆化搜索的思想，避免了重复计算，提高了效率。\nclass Solution: def minimumValueSum(self, nums: List[int], andValues: List[int]) -\u003e int: n = len(nums) m = len(andValues) @cache def dfs(i, j, k): if i==n: return 0 if j==m else inf if j==m: return inf k\u0026=nums[i] if k\u003candValues[j]: return inf res = dfs(i+1, j, k) if k==andValues[j]: res = min(res, dfs(i+1, j+1, -1)+nums[i]) return res ans = dfs(0, 0, -1) return ans if ans\u003cinf else -1 ",
-  "wordCount" : "1109",
+  "articleBody": "LeetCode第 393 场周赛 第三题3116. 单面值组合的第 K 小金额 题目大意： 给定一个整数数组coins表示不同面额的硬币，另给定一个整数k。你有无限量的每种面额的硬币，但是，你不能组合使用不同面额的硬币。要求返回使用这些硬币能制造的第kth小金额。\n实现思路：\n首先，对于给定的硬币数组，我们需要求出它们的所有可能的组合方式。 使用位运算来枚举所有的组合方式，对于数组中的每个硬币，分别考虑选取和不选取两种情况，通过位运算将这两种情况枚举出来。 对于每种组合方式，计算其对应的最小公倍数（LCM）作为该组合的金额。 根据组合的奇偶性，将金额的正负号记录下来，并存储在列表ls中。 利用二分查找来求解第kth小的金额，通过不断调整左右边界，直到找到满足条件的金额。 返回最终找到的金额作为结果。 这种方法利用了位运算和二分查找的思想，可以在较短的时间内求解出结果。\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 class Solution: def findKthSmallest(self, coins: List[int], k: int) -\u003e int: n = len(coins) ls = [] for i in range(1, 1\u003c\u003cn): Lcm = 1 for j, x in enumerate(coins): if i\u003e\u003ej \u0026 1: Lcm = lcm(Lcm, x) ls.append((1, Lcm)) if i.bit_count()\u00261 else ls.append((-1, Lcm)) l, r = 1, int(5e10) while l\u003cr: mid = l+r\u003e\u003e1 cnt = 0 for sign, val in ls: cnt += sign*(mid//val) if cnt\u003e=k: r = mid else: l = mid+1 return l 第四题3117. 划分数组得到最小的值之和 题目大意： 给定两个数组nums和andValues，长度分别为n和m。数组的值等于该数组的最后一个元素。需要将nums划分为m个不相交的连续子数组，对于第ith个子数组[li, ri]，子数组元素的按位AND运算结果等于andValues[i]。返回将nums划分为m个子数组所能得到的可能的最小子数组值之和。如果无法完成这样的划分，则返回-1。\n实现思路：\n使用动态规划来解决此问题，具体来说，可以采用递归加记忆化搜索的方法。 定义dfs函数用于递归求解，其中i表示当前处理到nums的第i个元素，j表示当前处理到andValues的第j个元素，k表示当前子数组的按位AND运算结果。 在dfs函数中，首先进行边界条件的判断，如果i等于n，表示nums已经处理完毕，则返回0（如果j等于m）或者正无穷（如果j不等于m）。 然后，对当前nums[i]进行按位AND运算，并更新k的值。如果更新后的k小于andValues[j]，则返回正无穷。 如果更新后的k等于andValues[j]，则递归调用dfs函数继续处理下一个元素，同时更新i和j，并将k重置为-1。递归调用的结果加上nums[i]的值即为当前划分情况的子数组值之和。 最后，返回所有划分情况中的最小值作为答案，如果答案为正无穷，则返回-1。 这种方法利用了递归和记忆化搜索的思想，避免了重复计算，提高了效率。\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 class Solution: def minimumValueSum(self, nums: List[int], andValues: List[int]) -\u003e int: n = len(nums) m = len(andValues) @cache def dfs(i, j, k): if i==n: return 0 if j==m else inf if j==m: return inf k\u0026=nums[i] if k\u003candValues[j]: return inf res = dfs(i+1, j, k) if k==andValues[j]: res = min(res, dfs(i+1, j+1, -1)+nums[i]) return res ans = dfs(0, 0, -1) return ans if ans\u003cinf else -1 ",
+  "wordCount" : "1150",
   "inLanguage": "zh",
   "datePublished": "2024-04-16T15:37:01+08:00",
   "dateModified": "2024-04-16T15:37:01+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       LeetCode 周赛 393(240414)
     </div>
-    <div class="post-meta"><span title='2024-04-16 15:37:01 +0800 CST'>2024-04-16</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1109 字&nbsp;·&nbsp;updated:&nbsp;2024-04-16&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-16 15:37:01 +0800 CST'>2024-04-16</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1150 字&nbsp;·&nbsp;updated:&nbsp;2024-04-16&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -362,28 +362,55 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>返回最终找到的金额作为结果。</li>
 </ul>
 <p>这种方法利用了位运算和二分查找的思想，可以在较短的时间内求解出结果。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findKthSmallest</span>(self, coins: List[int], k: int) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(coins)
-</span></span><span style="display:flex;"><span>        ls <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span><span style="color:#f92672">&lt;&lt;</span>n):
-</span></span><span style="display:flex;"><span>            Lcm <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j, x <span style="color:#f92672">in</span> enumerate(coins):
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> i<span style="color:#f92672">&gt;&gt;</span>j <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>                    Lcm <span style="color:#f92672">=</span> lcm(Lcm, x)
-</span></span><span style="display:flex;"><span>            ls<span style="color:#f92672">.</span>append((<span style="color:#ae81ff">1</span>, Lcm)) <span style="color:#66d9ef">if</span> i<span style="color:#f92672">.</span>bit_count()<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span> <span style="color:#66d9ef">else</span> ls<span style="color:#f92672">.</span>append((<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, Lcm))
-</span></span><span style="display:flex;"><span>        l, r <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>, int(<span style="color:#ae81ff">5e10</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> l<span style="color:#f92672">&lt;</span>r:
-</span></span><span style="display:flex;"><span>            mid <span style="color:#f92672">=</span> l<span style="color:#f92672">+</span>r<span style="color:#f92672">&gt;&gt;</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> sign, val <span style="color:#f92672">in</span> ls:
-</span></span><span style="display:flex;"><span>                cnt <span style="color:#f92672">+=</span> sign<span style="color:#f92672">*</span>(mid<span style="color:#f92672">//</span>val)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> cnt<span style="color:#f92672">&gt;=</span>k:
-</span></span><span style="display:flex;"><span>                r <span style="color:#f92672">=</span> mid
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>                l <span style="color:#f92672">=</span> mid<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> l
-</span></span></code></pre></div><h2 id="第四题3117-划分数组得到最小的值之和httpsleetcodecnproblemsminimum-sum-of-values-by-dividing-array">第四题<a href="https://leetcode.cn/problems/minimum-sum-of-values-by-dividing-array/">3117. 划分数组得到最小的值之和</a><a hidden class="anchor" aria-hidden="true" href="#第四题3117-划分数组得到最小的值之和httpsleetcodecnproblemsminimum-sum-of-values-by-dividing-array">#</a></h2>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1"> 1</a>
+</span><span class="lnt" id="hl-0-2"><a class="lnlinks" href="#hl-0-2"> 2</a>
+</span><span class="lnt" id="hl-0-3"><a class="lnlinks" href="#hl-0-3"> 3</a>
+</span><span class="lnt" id="hl-0-4"><a class="lnlinks" href="#hl-0-4"> 4</a>
+</span><span class="lnt" id="hl-0-5"><a class="lnlinks" href="#hl-0-5"> 5</a>
+</span><span class="lnt" id="hl-0-6"><a class="lnlinks" href="#hl-0-6"> 6</a>
+</span><span class="lnt" id="hl-0-7"><a class="lnlinks" href="#hl-0-7"> 7</a>
+</span><span class="lnt" id="hl-0-8"><a class="lnlinks" href="#hl-0-8"> 8</a>
+</span><span class="lnt" id="hl-0-9"><a class="lnlinks" href="#hl-0-9"> 9</a>
+</span><span class="lnt" id="hl-0-10"><a class="lnlinks" href="#hl-0-10">10</a>
+</span><span class="lnt" id="hl-0-11"><a class="lnlinks" href="#hl-0-11">11</a>
+</span><span class="lnt" id="hl-0-12"><a class="lnlinks" href="#hl-0-12">12</a>
+</span><span class="lnt" id="hl-0-13"><a class="lnlinks" href="#hl-0-13">13</a>
+</span><span class="lnt" id="hl-0-14"><a class="lnlinks" href="#hl-0-14">14</a>
+</span><span class="lnt" id="hl-0-15"><a class="lnlinks" href="#hl-0-15">15</a>
+</span><span class="lnt" id="hl-0-16"><a class="lnlinks" href="#hl-0-16">16</a>
+</span><span class="lnt" id="hl-0-17"><a class="lnlinks" href="#hl-0-17">17</a>
+</span><span class="lnt" id="hl-0-18"><a class="lnlinks" href="#hl-0-18">18</a>
+</span><span class="lnt" id="hl-0-19"><a class="lnlinks" href="#hl-0-19">19</a>
+</span><span class="lnt" id="hl-0-20"><a class="lnlinks" href="#hl-0-20">20</a>
+</span><span class="lnt" id="hl-0-21"><a class="lnlinks" href="#hl-0-21">21</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">findKthSmallest</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">coins</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">k</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coins</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ls</span> <span class="o">=</span> <span class="p">[]</span>
+</span></span><span class="line"><span class="cl">        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="o">&lt;&lt;</span><span class="n">n</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="n">Lcm</span> <span class="o">=</span> <span class="mi">1</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="n">j</span><span class="p">,</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">coins</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">                <span class="k">if</span> <span class="n">i</span><span class="o">&gt;&gt;</span><span class="n">j</span> <span class="o">&amp;</span> <span class="mi">1</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                    <span class="n">Lcm</span> <span class="o">=</span> <span class="n">lcm</span><span class="p">(</span><span class="n">Lcm</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="n">ls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">1</span><span class="p">,</span> <span class="n">Lcm</span><span class="p">))</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">bit_count</span><span class="p">()</span><span class="o">&amp;</span><span class="mi">1</span> <span class="k">else</span> <span class="n">ls</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">Lcm</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">        <span class="n">l</span><span class="p">,</span> <span class="n">r</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="mf">5e10</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">while</span> <span class="n">l</span><span class="o">&lt;</span><span class="n">r</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">            <span class="n">mid</span> <span class="o">=</span> <span class="n">l</span><span class="o">+</span><span class="n">r</span><span class="o">&gt;&gt;</span><span class="mi">1</span>
+</span></span><span class="line"><span class="cl">            <span class="n">cnt</span> <span class="o">=</span> <span class="mi">0</span>
+</span></span><span class="line"><span class="cl">            <span class="k">for</span> <span class="n">sign</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">ls</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">cnt</span> <span class="o">+=</span> <span class="n">sign</span><span class="o">*</span><span class="p">(</span><span class="n">mid</span><span class="o">//</span><span class="n">val</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">cnt</span><span class="o">&gt;=</span><span class="n">k</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">r</span> <span class="o">=</span> <span class="n">mid</span>
+</span></span><span class="line"><span class="cl">            <span class="k">else</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">l</span> <span class="o">=</span> <span class="n">mid</span><span class="o">+</span><span class="mi">1</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">l</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h2 id="第四题3117-划分数组得到最小的值之和httpsleetcodecnproblemsminimum-sum-of-values-by-dividing-array">第四题<a href="https://leetcode.cn/problems/minimum-sum-of-values-by-dividing-array/">3117. 划分数组得到最小的值之和</a><a hidden class="anchor" aria-hidden="true" href="#第四题3117-划分数组得到最小的值之和httpsleetcodecnproblemsminimum-sum-of-values-by-dividing-array">#</a></h2>
 <p>题目大意：
 给定两个数组nums和andValues，长度分别为n和m。数组的值等于该数组的最后一个元素。需要将nums划分为m个不相交的连续子数组，对于第ith个子数组[li, ri]，子数组元素的按位AND运算结果等于andValues[i]。返回将nums划分为m个子数组所能得到的可能的最小子数组值之和。如果无法完成这样的划分，则返回-1。</p>
 <p>实现思路：</p>
@@ -396,27 +423,53 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>最后，返回所有划分情况中的最小值作为答案，如果答案为正无穷，则返回-1。</li>
 </ul>
 <p>这种方法利用了递归和记忆化搜索的思想，避免了重复计算，提高了效率。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">minimumValueSum</span>(self, nums: List[int], andValues: List[int]) <span style="color:#f92672">-&gt;</span> int:
-</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">=</span> len(nums)
-</span></span><span style="display:flex;"><span>        m <span style="color:#f92672">=</span> len(andValues)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@cache</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">dfs</span>(i, j, k):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">==</span>n:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span> <span style="color:#66d9ef">if</span> j<span style="color:#f92672">==</span>m <span style="color:#66d9ef">else</span> inf
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> j<span style="color:#f92672">==</span>m:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> inf
-</span></span><span style="display:flex;"><span>            k<span style="color:#f92672">&amp;=</span>nums[i]
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> k<span style="color:#f92672">&lt;</span>andValues[j]:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> inf
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, j, k)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> k<span style="color:#f92672">==</span>andValues[j]:
-</span></span><span style="display:flex;"><span>                res <span style="color:#f92672">=</span> min(res, dfs(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, j<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">+</span>nums[i])
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>        ans <span style="color:#f92672">=</span> dfs(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> ans <span style="color:#66d9ef">if</span> ans<span style="color:#f92672">&lt;</span>inf <span style="color:#66d9ef">else</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span></code></pre></div>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1"> 1</a>
+</span><span class="lnt" id="hl-1-2"><a class="lnlinks" href="#hl-1-2"> 2</a>
+</span><span class="lnt" id="hl-1-3"><a class="lnlinks" href="#hl-1-3"> 3</a>
+</span><span class="lnt" id="hl-1-4"><a class="lnlinks" href="#hl-1-4"> 4</a>
+</span><span class="lnt" id="hl-1-5"><a class="lnlinks" href="#hl-1-5"> 5</a>
+</span><span class="lnt" id="hl-1-6"><a class="lnlinks" href="#hl-1-6"> 6</a>
+</span><span class="lnt" id="hl-1-7"><a class="lnlinks" href="#hl-1-7"> 7</a>
+</span><span class="lnt" id="hl-1-8"><a class="lnlinks" href="#hl-1-8"> 8</a>
+</span><span class="lnt" id="hl-1-9"><a class="lnlinks" href="#hl-1-9"> 9</a>
+</span><span class="lnt" id="hl-1-10"><a class="lnlinks" href="#hl-1-10">10</a>
+</span><span class="lnt" id="hl-1-11"><a class="lnlinks" href="#hl-1-11">11</a>
+</span><span class="lnt" id="hl-1-12"><a class="lnlinks" href="#hl-1-12">12</a>
+</span><span class="lnt" id="hl-1-13"><a class="lnlinks" href="#hl-1-13">13</a>
+</span><span class="lnt" id="hl-1-14"><a class="lnlinks" href="#hl-1-14">14</a>
+</span><span class="lnt" id="hl-1-15"><a class="lnlinks" href="#hl-1-15">15</a>
+</span><span class="lnt" id="hl-1-16"><a class="lnlinks" href="#hl-1-16">16</a>
+</span><span class="lnt" id="hl-1-17"><a class="lnlinks" href="#hl-1-17">17</a>
+</span><span class="lnt" id="hl-1-18"><a class="lnlinks" href="#hl-1-18">18</a>
+</span><span class="lnt" id="hl-1-19"><a class="lnlinks" href="#hl-1-19">19</a>
+</span><span class="lnt" id="hl-1-20"><a class="lnlinks" href="#hl-1-20">20</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-py" data-lang="py"><span class="line"><span class="cl"><span class="k">class</span> <span class="nc">Solution</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">    <span class="k">def</span> <span class="nf">minimumValueSum</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">nums</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">],</span> <span class="n">andValues</span><span class="p">:</span> <span class="n">List</span><span class="p">[</span><span class="nb">int</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="n">m</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">andValues</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">        <span class="nd">@cache</span>
+</span></span><span class="line"><span class="cl">        <span class="k">def</span> <span class="nf">dfs</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">):</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">i</span><span class="o">==</span><span class="n">n</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">m</span> <span class="k">else</span> <span class="n">inf</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">j</span><span class="o">==</span><span class="n">m</span><span class="p">:</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="n">inf</span>
+</span></span><span class="line"><span class="cl">            <span class="n">k</span><span class="o">&amp;=</span><span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">k</span><span class="o">&lt;</span><span class="n">andValues</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">                <span class="k">return</span> <span class="n">inf</span>
+</span></span><span class="line"><span class="cl">            <span class="n">res</span> <span class="o">=</span> <span class="n">dfs</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">            <span class="k">if</span> <span class="n">k</span><span class="o">==</span><span class="n">andValues</span><span class="p">[</span><span class="n">j</span><span class="p">]:</span>
+</span></span><span class="line"><span class="cl">                <span class="n">res</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">dfs</span><span class="p">(</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span><span class="o">+</span><span class="n">nums</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+</span></span><span class="line"><span class="cl">            <span class="k">return</span> <span class="n">res</span>
+</span></span><span class="line"><span class="cl">        <span class="n">ans</span> <span class="o">=</span> <span class="n">dfs</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="k">return</span> <span class="n">ans</span> <span class="k">if</span> <span class="n">ans</span><span class="o">&lt;</span><span class="n">inf</span> <span class="k">else</span> <span class="o">-</span><span class="mi">1</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div>
 
   </div>
 

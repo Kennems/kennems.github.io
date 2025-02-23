@@ -136,8 +136,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Java", "Web"
   ],
-  "articleBody": "Java Web开发(7) Spring原理 配置优先级 SpringBoot中支持三种格式配置文件的优先级\nproperties yaml yml 配置 SpringBoot除了支持配置文件属性配置，还支持Java系统属性和命令行参数的方式进行属性配置\nJava系统属性\n-Dserver.port=9000 命令行参数\n--server.port=10010 打包时指定端口号(cmd 命令)\njava -Dserver.port=9000 -jar tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 powershell命令行参数解释不同\njava -D\"server.port=9000\" -jar .\\tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 Java系统属性-Dserver.port=9000优先级高于三种配置文件， 而--server.port=10011高于Java系统属性\nBean管理 获取bean\n默认情况下，Spring项目启动时，会把bean都创建好放在IOC容器中，如果想要主动获取这些bean， 可以通过如下方式\n根据name获取bean\nObject getBean(String name) 根据类型获取bean\n\u003cT\u003e T getBean(Class\u003cT\u003e requiredType) 根据name获取bean（带类型转换）\n\u003cT\u003e T getBean(String name, Class\u003cT\u003e requiredType) BUG解决Could not autowire. No beans of 'ApplicationContext' type found.的问题\nidea导入出错\nimport org.springframework.context.ApplicationContext; DeptController bean1 = (DeptController) applicationContext.getBean(\"deptController\"); System.out.println(bean1); DeptController bean2 = (DeptController) applicationContext.getBean(DeptController.class); System.out.println(bean2); DeptController bean3 = (DeptController) applicationContext.getBean(\"deptController\", DeptController.class); System.out.println(bean3); bean的作用域 作用域 说明 singleton 容器内同名称的bean只有一个实例（单例）默认 prototype 每次使用该bean时会创建新的实例（非单例） request 每个请求范围内会创建新的实例（web环境中，了解） session 每个会话范围内会创建新的实例（web环境中，了解） application 每个应用范围内会创建新的实例（web环境中，了解） //@Lazy @Scope(\"prototype\") 注意事项：\n默认singleton的bean，在容器启动时背创建，可以使用@Lazy注解来延迟初始化（延迟到第一次使用） prototype的bean，每一次使用该bean的时候都会创建一个新的实例 实际开发中，绝大部分的bean都是单例的，也就是说绝大部分的bean不需要配置scope属性 第三方bean 如果要管理的bean对象来自第三方（不是自定义的），是无法使用@Component及衍生注解声明bean的，就需要用到@Bean注解 若要管理的第三方bean对象，建议对这些bean进行集中分类配置，可以通过@Configuration注解声明一个配置类。 @Configuration public class CommonConfig { @Bean // 第三方bean对象 // 获取bean对象 : 如果没有指定bean名称，则默认为方法名 // 第三方bean对象需要对象注入，只需要在方法参数中写该参数即可 public SAXReader reader(DeptService deptService){ System.out.println(deptService); return new SAXReader(); } } @Component及衍生注解与@Bean注解使用场景：\n项目中自定义的，使用@Component及其衍生注解 项目中引入第三方的，使用@Bean注解 SpringBoot原理 起步依赖：SpringBoot使用Maven依赖传递管理依赖，可以自动配置依赖\n自动配置：\nSpringBoot的自动配置就是当Spring容器启动后，一些配置类，bean对象就自动存入到了IOC容器中，不需要我们手动去声明，从而简化了开发，省去了繁琐的配置操作。 自动配置原理 方案一：@ComponentScan 组件扫描\n@ComponentScan({\"com.example\", \"com.showguan\"}) public class TilasWebManagementApplication { 方案二：@Import导入。使用@Import导入的类会被Spring加载到IOC容器中，导入形式\n导入普通类 导入配置类 导入ImportSelector接口实现类 @EnableXXX注解，封装@Import注解 //@Import({TokenParser.class}) //@Import({HeaderConfig.class}) //@Import({MyImportSelector.class}) @EnableHeaderConfig public class TilasWebManagementApplication { } 源码跟踪 @SpringBootApplication\n该注解标识在SpringBoot工程引导类上，是SpringBoot中最最最重要的注解。 @SpringBootConfiguration：该注解与@Configuration注解作用相同，用来声明当前也是一个配置类 @ComponentScan：组件扫描，默认扫描当前引导类所在包及其子包 @EnableAutoConfiguration：SpringBoot实现自动化配置的核心注解 @Conditional 作用：按照一定的条件进行判断，在满足给定条件后才会注册对应的bean对象到Spring IOC容器中 位置：方法，类 @Conditional 本身是一个父注解，派生出大量的子注解 @ConditionalOnClass：判断环境中是否有对应字节码文件，才注册bean到IOC容器 @ConditonalOnMissingBean：判断环境中没有对应的bean（类型或名称），才注册这个bean到IOC容器中 （常用场景：先使用自己创建的bean，如果自己没有创建，则使用系统默认的bean）– 指定类型（value属性） 或 名称（name属性） @ConditionalProperty：判断配置文件中有对应属性和值，才注册bean到IOC容器中 自定义starter 场景：在实际开发中，经常会定义一些公共组件，提供给项目团队使用。而在SpringBoot的项目中，一般会将这些公共组件封装为SpringBoot的starter 步骤：\n创建aliyun-oss-spring-boot-starter模块 创建aliyun-oss-spring-boot-autoconfigure模块，在starter中引入该模块 在aliyun-oss-spring-boot-autoconfigure 模块中的定义自动配置功能，并定义自动配置文件 META-INF/spring/xxx.imports 文件目录结构：\n外部类需要使用OSS功能时：\n1、引入依赖 2、编写yml文件的必要参数 3、直接注入即可\n总结 Web三层架构\nSpringMVC 是 Spring framework中的Web模块\nSSM(SpringMVC + Spring framework + Mybatis)\nMVN高级 maven生成imi文件\nmvn idea:module 为什么要分模块设计？ 方便项目的管理维护，扩展，也方便模块间的相互调用，资源共享。\n注意事项 分模块设计需要先针对模块功能进行设计，再进行编码。不会先将工程开发完毕，然后进行拆分。 继承关系实现 常见打包方式：\njar：普通模块打包，springboot项目基本都是jar包（内嵌tomcat运行） war：普通web程序打包，需要部署在外部的tomcat服务器上 pom：父工程或聚合工程，该模块不写代码，仅进行依赖管理 步骤:\n创建maven模块 tlias-parent，该工程为父工程， 设置打包方式pom\norg.springframework.boot spring-boot-starter-parent 3.2.6 com.showguan tlias-parent 1.0-SNAPSHOT pom 在子工程的pom.xml文件中，配置继承关系\ncom.showguan tlias-parent 1.0-SNAPSHOT ../tlias-parent/pom.xml 注意事项：\n在子工程中，配置了继承关系之后，坐标中的groupid是可以省略的，因为会自动继承父工程的。 relativePath指定父工程的pom文件的相对位置（如果不指定，将从本地仓库/远程仓库查找该工程）。 在父工程中配置各个工程共有的依赖（子工程会自动继承父工程的依赖）\norg.projectlombok lombok 若父子工程都配置了同一个依赖，以子工程的依赖为准。 版本锁定 在maven中，可以在父工程的pom文件中 通过 来统一管理依赖版本 父工程：\n0.9.1 io.jsonwebtoken jjwt ${jjwt.version} 子工程（仍需引入依赖，但是不需要版本号）：\nio.jsonwebtoken jjwt 注意事项：\n子工程引入依赖时，无需指定版本号，父工程统一管理，变更依赖版本，只需要父工程中统一变更。 聚合 将多个模块组织成一个整体，同时进行项目的构建\n聚合工程 一个不具有业务功能的\"空\"工程（有且仅有一个pom文件\n作用：快速构建项目（无需根据依赖关系手动构建，直接在聚合工程上构建即可）\n在parent 的pom.xml文件内添加\n../tlias-pojo ../tlias-utils ../tlias-web-management 聚合和继承：\n作用 聚合用于快速构建项目 继承用于简化依赖配置、统一管理依赖 相同点 聚合与继承的pom.xml文件打包方式均为pom， 可以将两种关系制作到同一个pom文件中 聚合与继承均属于设计型模块，并无实际的模块内容 不同点 聚合是在聚合工程中配置关系，聚合可以感知到参与聚合的模块有哪些 继承是在子模块中配置关系，父模块无法感知哪些子模块继承了自己 私服 私服是一种特殊的仓库，它是架设在局域网内的仓库服务，用来代理位于外部的中央仓库，用于解决团队内部的资源共享和资源同步问题。 资源上传与下载\n项目版本：\ntlias-web-management 0.0.1-SNAPSHOT tilas-web-management tilas-web-management RELEASE（发行版本）：功能趋于稳定，当前更新停止，可以用于发行的版本，存储在私服中的RELEASE仓库中。 SNAPSHOT（快照版本）：功能不稳定，尚处于开发中的版本，即快照版本，存储在私服的SNAPSHOT仓库中。 ",
-  "wordCount" : "3242",
+  "articleBody": "Java Web开发(7) Spring原理 配置优先级 SpringBoot中支持三种格式配置文件的优先级\nproperties yaml yml 配置 SpringBoot除了支持配置文件属性配置，还支持Java系统属性和命令行参数的方式进行属性配置\nJava系统属性\n1 -Dserver.port=9000 命令行参数\n1 --server.port=10010 打包时指定端口号(cmd 命令)\n1 java -Dserver.port=9000 -jar tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 powershell命令行参数解释不同\n1 java -D\"server.port=9000\" -jar .\\tilas-web-management-0.0.1-SNAPSHOT.jar --server.port=10011 Java系统属性-Dserver.port=9000优先级高于三种配置文件， 而--server.port=10011高于Java系统属性\nBean管理 获取bean\n默认情况下，Spring项目启动时，会把bean都创建好放在IOC容器中，如果想要主动获取这些bean， 可以通过如下方式\n根据name获取bean\n1 Object getBean(String name) 根据类型获取bean\n1 \u003cT\u003e T getBean(Class\u003cT\u003e requiredType) 根据name获取bean（带类型转换）\n1 \u003cT\u003e T getBean(String name, Class\u003cT\u003e requiredType) BUG解决Could not autowire. No beans of 'ApplicationContext' type found.的问题\nidea导入出错\n1 import org.springframework.context.ApplicationContext; 1 2 3 4 5 6 7 8 DeptController bean1 = (DeptController) applicationContext.getBean(\"deptController\"); System.out.println(bean1); DeptController bean2 = (DeptController) applicationContext.getBean(DeptController.class); System.out.println(bean2); DeptController bean3 = (DeptController) applicationContext.getBean(\"deptController\", DeptController.class); System.out.println(bean3); bean的作用域 作用域 说明 singleton 容器内同名称的bean只有一个实例（单例）默认 prototype 每次使用该bean时会创建新的实例（非单例） request 每个请求范围内会创建新的实例（web环境中，了解） session 每个会话范围内会创建新的实例（web环境中，了解） application 每个应用范围内会创建新的实例（web环境中，了解） 1 2 //@Lazy @Scope(\"prototype\") 注意事项：\n默认singleton的bean，在容器启动时背创建，可以使用@Lazy注解来延迟初始化（延迟到第一次使用） prototype的bean，每一次使用该bean的时候都会创建一个新的实例 实际开发中，绝大部分的bean都是单例的，也就是说绝大部分的bean不需要配置scope属性 第三方bean 如果要管理的bean对象来自第三方（不是自定义的），是无法使用@Component及衍生注解声明bean的，就需要用到@Bean注解 若要管理的第三方bean对象，建议对这些bean进行集中分类配置，可以通过@Configuration注解声明一个配置类。 1 2 3 4 5 6 7 8 9 10 11 @Configuration public class CommonConfig { @Bean // 第三方bean对象 // 获取bean对象 : 如果没有指定bean名称，则默认为方法名 // 第三方bean对象需要对象注入，只需要在方法参数中写该参数即可 public SAXReader reader(DeptService deptService){ System.out.println(deptService); return new SAXReader(); } } @Component及衍生注解与@Bean注解使用场景：\n项目中自定义的，使用@Component及其衍生注解 项目中引入第三方的，使用@Bean注解 SpringBoot原理 起步依赖：SpringBoot使用Maven依赖传递管理依赖，可以自动配置依赖\n自动配置：\nSpringBoot的自动配置就是当Spring容器启动后，一些配置类，bean对象就自动存入到了IOC容器中，不需要我们手动去声明，从而简化了开发，省去了繁琐的配置操作。 自动配置原理 方案一：@ComponentScan 组件扫描\n1 2 @ComponentScan({\"com.example\", \"com.showguan\"}) public class TilasWebManagementApplication { 方案二：@Import导入。使用@Import导入的类会被Spring加载到IOC容器中，导入形式\n导入普通类 导入配置类 导入ImportSelector接口实现类 @EnableXXX注解，封装@Import注解 1 2 3 4 5 6 //@Import({TokenParser.class}) //@Import({HeaderConfig.class}) //@Import({MyImportSelector.class}) @EnableHeaderConfig public class TilasWebManagementApplication { } 源码跟踪 @SpringBootApplication\n该注解标识在SpringBoot工程引导类上，是SpringBoot中最最最重要的注解。 @SpringBootConfiguration：该注解与@Configuration注解作用相同，用来声明当前也是一个配置类 @ComponentScan：组件扫描，默认扫描当前引导类所在包及其子包 @EnableAutoConfiguration：SpringBoot实现自动化配置的核心注解 @Conditional 作用：按照一定的条件进行判断，在满足给定条件后才会注册对应的bean对象到Spring IOC容器中 位置：方法，类 @Conditional 本身是一个父注解，派生出大量的子注解 @ConditionalOnClass：判断环境中是否有对应字节码文件，才注册bean到IOC容器 @ConditonalOnMissingBean：判断环境中没有对应的bean（类型或名称），才注册这个bean到IOC容器中 （常用场景：先使用自己创建的bean，如果自己没有创建，则使用系统默认的bean）– 指定类型（value属性） 或 名称（name属性） @ConditionalProperty：判断配置文件中有对应属性和值，才注册bean到IOC容器中 自定义starter 场景：在实际开发中，经常会定义一些公共组件，提供给项目团队使用。而在SpringBoot的项目中，一般会将这些公共组件封装为SpringBoot的starter 步骤：\n创建aliyun-oss-spring-boot-starter模块 创建aliyun-oss-spring-boot-autoconfigure模块，在starter中引入该模块 在aliyun-oss-spring-boot-autoconfigure 模块中的定义自动配置功能，并定义自动配置文件 META-INF/spring/xxx.imports 文件目录结构：\n外部类需要使用OSS功能时：\n1、引入依赖 2、编写yml文件的必要参数 3、直接注入即可\n总结 Web三层架构\nSpringMVC 是 Spring framework中的Web模块\nSSM(SpringMVC + Spring framework + Mybatis)\nMVN高级 maven生成imi文件\n1 mvn idea:module 为什么要分模块设计？ 方便项目的管理维护，扩展，也方便模块间的相互调用，资源共享。\n注意事项 分模块设计需要先针对模块功能进行设计，再进行编码。不会先将工程开发完毕，然后进行拆分。 继承关系实现 常见打包方式：\njar：普通模块打包，springboot项目基本都是jar包（内嵌tomcat运行） war：普通web程序打包，需要部署在外部的tomcat服务器上 pom：父工程或聚合工程，该模块不写代码，仅进行依赖管理 步骤:\n创建maven模块 tlias-parent，该工程为父工程， 设置打包方式pom\n1 2 3 4 5 6 7 8 9 10 11 12 13 org.springframework.boot spring-boot-starter-parent 3.2.6 com.showguan tlias-parent 1.0-SNAPSHOT pom 在子工程的pom.xml文件中，配置继承关系\n1 2 3 4 5 6 com.showguan tlias-parent 1.0-SNAPSHOT ../tlias-parent/pom.xml 注意事项：\n在子工程中，配置了继承关系之后，坐标中的groupid是可以省略的，因为会自动继承父工程的。 relativePath指定父工程的pom文件的相对位置（如果不指定，将从本地仓库/远程仓库查找该工程）。 在父工程中配置各个工程共有的依赖（子工程会自动继承父工程的依赖）\n1 2 3 4 5 6 org.projectlombok lombok 若父子工程都配置了同一个依赖，以子工程的依赖为准。 版本锁定 在maven中，可以在父工程的pom文件中 通过 来统一管理依赖版本 父工程：\n1 2 3 4 5 6 7 8 9 10 11 12 13 0.9.1 io.jsonwebtoken jjwt ${jjwt.version} 子工程（仍需引入依赖，但是不需要版本号）：\n1 2 3 4 io.jsonwebtoken jjwt 注意事项：\n子工程引入依赖时，无需指定版本号，父工程统一管理，变更依赖版本，只需要父工程中统一变更。 聚合 将多个模块组织成一个整体，同时进行项目的构建\n聚合工程 一个不具有业务功能的\"空\"工程（有且仅有一个pom文件\n作用：快速构建项目（无需根据依赖关系手动构建，直接在聚合工程上构建即可）\n在parent 的pom.xml文件内添加\n1 2 3 4 5 ../tlias-pojo ../tlias-utils ../tlias-web-management 聚合和继承：\n作用 聚合用于快速构建项目 继承用于简化依赖配置、统一管理依赖 相同点 聚合与继承的pom.xml文件打包方式均为pom， 可以将两种关系制作到同一个pom文件中 聚合与继承均属于设计型模块，并无实际的模块内容 不同点 聚合是在聚合工程中配置关系，聚合可以感知到参与聚合的模块有哪些 继承是在子模块中配置关系，父模块无法感知哪些子模块继承了自己 私服 私服是一种特殊的仓库，它是架设在局域网内的仓库服务，用来代理位于外部的中央仓库，用于解决团队内部的资源共享和资源同步问题。 资源上传与下载\n项目版本：\n1 2 3 4 tlias-web-management 0.0.1-SNAPSHOT tilas-web-management tilas-web-management RELEASE（发行版本）：功能趋于稳定，当前更新停止，可以用于发行的版本，存储在私服中的RELEASE仓库中。 SNAPSHOT（快照版本）：功能不稳定，尚处于开发中的版本，即快照版本，存储在私服的SNAPSHOT仓库中。 ",
+  "wordCount" : "3331",
   "inLanguage": "zh",
   "datePublished": "2024-06-11T22:30:13+08:00",
   "dateModified": "2024-06-11T22:20:13+08:00",
@@ -259,7 +259,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       JavaWeb学习笔记
     </div>
-    <div class="post-meta"><span title='2024-06-11 22:30:13 +0800 CST'>2024-06-11</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3242 字&nbsp;·&nbsp;updated:&nbsp;2024-06-11&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-06-11 22:30:13 +0800 CST'>2024-06-11</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3331 字&nbsp;·&nbsp;updated:&nbsp;2024-06-11&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -417,22 +417,50 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>Java系统属性</p>
 </li>
 <li>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">-</span>Dserver.<span style="color:#a6e22e">port</span><span style="color:#f92672">=</span>9000
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="o">-</span><span class="n">Dserver</span><span class="p">.</span><span class="na">port</span><span class="o">=</span><span class="n">9000</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 <li>
 <p>命令行参数</p>
 </li>
 <li>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>--server.port<span style="color:#f92672">=</span><span style="color:#ae81ff">10010</span>
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">--server.port<span class="o">=</span><span class="m">10010</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 </ul>
 </li>
 </ul>
 <p>打包时指定端口号(cmd 命令)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>java -Dserver.port<span style="color:#f92672">=</span><span style="color:#ae81ff">9000</span> -jar tilas-web-management-0.0.1-SNAPSHOT.jar --server.port<span style="color:#f92672">=</span><span style="color:#ae81ff">10011</span>
-</span></span></code></pre></div><p>powershell命令行参数解释不同</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>java -D<span style="color:#e6db74">&#34;server.port=9000&#34;</span> -jar .\tilas-web-management-<span style="color:#ae81ff">0.0</span>.<span style="color:#ae81ff">1</span>-SNAPSHOT.jar --server.port=<span style="color:#ae81ff">10011</span>
-</span></span></code></pre></div><p>Java系统属性<code>-Dserver.port=9000</code>优先级高于三种配置文件， 而<code>--server.port=10011</code>高于Java系统属性</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-2-1"><a class="lnlinks" href="#hl-2-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">java -Dserver.port<span class="o">=</span><span class="m">9000</span> -jar tilas-web-management-0.0.1-SNAPSHOT.jar --server.port<span class="o">=</span><span class="m">10011</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>powershell命令行参数解释不同</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-3-1"><a class="lnlinks" href="#hl-3-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-powershell" data-lang="powershell"><span class="line"><span class="cl"><span class="n">java</span> <span class="n">-D</span><span class="s2">&#34;server.port=9000&#34;</span> <span class="n">-jar</span> <span class="p">.\</span><span class="nb">tilas-web</span><span class="n">-management</span><span class="p">-</span><span class="mf">0.0</span><span class="p">.</span><span class="mf">1</span><span class="n">-SNAPSHOT</span><span class="p">.</span><span class="py">jar</span> <span class="p">-</span><span class="n">-server</span><span class="p">.</span><span class="n">port</span><span class="p">=</span><span class="mf">10011</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>Java系统属性<code>-Dserver.port=9000</code>优先级高于三种配置文件， 而<code>--server.port=10011</code>高于Java系统属性</p>
 <h2 id="bean管理">Bean管理<a hidden class="anchor" aria-hidden="true" href="#bean管理">#</a></h2>
 <p>获取bean</p>
 <ul>
@@ -441,31 +469,73 @@ document.addEventListener("DOMContentLoaded", function() {
 <ul>
 <li>
 <p>根据name获取bean</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>Object <span style="color:#a6e22e">getBean</span>(String name)
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-4-1"><a class="lnlinks" href="#hl-4-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">Object</span><span class="w"> </span><span class="nf">getBean</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 <li>
 <p>根据类型获取bean</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> T <span style="color:#a6e22e">getBean</span>(Class<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> requiredType)
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-5-1"><a class="lnlinks" href="#hl-5-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="nf">getBean</span><span class="p">(</span><span class="n">Class</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">requiredType</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 <li>
 <p>根据name获取bean（<strong>带类型转换</strong>）</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> T <span style="color:#a6e22e">getBean</span>(String name, Class<span style="color:#f92672">&lt;</span>T<span style="color:#f92672">&gt;</span> requiredType)
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-6-1"><a class="lnlinks" href="#hl-6-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="nf">getBean</span><span class="p">(</span><span class="n">String</span><span class="w"> </span><span class="n">name</span><span class="p">,</span><span class="w"> </span><span class="n">Class</span><span class="o">&lt;</span><span class="n">T</span><span class="o">&gt;</span><span class="w"> </span><span class="n">requiredType</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 </ul>
 </li>
 </ul>
 <p><strong>BUG</strong><code>解决Could not autowire. No beans of 'ApplicationContext' type found.的问题</code></p>
 <p>idea导入出错</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">import</span> org.springframework.context.ApplicationContext;
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>        DeptController bean1 <span style="color:#f92672">=</span> (DeptController) applicationContext.<span style="color:#a6e22e">getBean</span>(<span style="color:#e6db74">&#34;deptController&#34;</span>);
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(bean1);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        DeptController bean2 <span style="color:#f92672">=</span> (DeptController) applicationContext.<span style="color:#a6e22e">getBean</span>(DeptController.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(bean2);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        DeptController bean3 <span style="color:#f92672">=</span> (DeptController) applicationContext.<span style="color:#a6e22e">getBean</span>(<span style="color:#e6db74">&#34;deptController&#34;</span>, DeptController.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(bean3);
-</span></span></code></pre></div><h3 id="bean的作用域">bean的作用域<a hidden class="anchor" aria-hidden="true" href="#bean的作用域">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-7-1"><a class="lnlinks" href="#hl-7-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kn">import</span><span class="w"> </span><span class="nn">org.springframework.context.ApplicationContext</span><span class="p">;</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-8-1"><a class="lnlinks" href="#hl-8-1">1</a>
+</span><span class="lnt" id="hl-8-2"><a class="lnlinks" href="#hl-8-2">2</a>
+</span><span class="lnt" id="hl-8-3"><a class="lnlinks" href="#hl-8-3">3</a>
+</span><span class="lnt" id="hl-8-4"><a class="lnlinks" href="#hl-8-4">4</a>
+</span><span class="lnt" id="hl-8-5"><a class="lnlinks" href="#hl-8-5">5</a>
+</span><span class="lnt" id="hl-8-6"><a class="lnlinks" href="#hl-8-6">6</a>
+</span><span class="lnt" id="hl-8-7"><a class="lnlinks" href="#hl-8-7">7</a>
+</span><span class="lnt" id="hl-8-8"><a class="lnlinks" href="#hl-8-8">8</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="w">        </span><span class="n">DeptController</span><span class="w"> </span><span class="n">bean1</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">DeptController</span><span class="p">)</span><span class="w"> </span><span class="n">applicationContext</span><span class="p">.</span><span class="na">getBean</span><span class="p">(</span><span class="s">&#34;deptController&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">bean1</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">DeptController</span><span class="w"> </span><span class="n">bean2</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">DeptController</span><span class="p">)</span><span class="w"> </span><span class="n">applicationContext</span><span class="p">.</span><span class="na">getBean</span><span class="p">(</span><span class="n">DeptController</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">bean2</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">DeptController</span><span class="w"> </span><span class="n">bean3</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">(</span><span class="n">DeptController</span><span class="p">)</span><span class="w"> </span><span class="n">applicationContext</span><span class="p">.</span><span class="na">getBean</span><span class="p">(</span><span class="s">&#34;deptController&#34;</span><span class="p">,</span><span class="w"> </span><span class="n">DeptController</span><span class="p">.</span><span class="na">class</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">bean3</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="bean的作用域">bean的作用域<a hidden class="anchor" aria-hidden="true" href="#bean的作用域">#</a></h3>
 <table>
 <thead>
 <tr>
@@ -496,9 +566,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </tr>
 </tbody>
 </table>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">//@Lazy</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Scope</span>(<span style="color:#e6db74">&#34;prototype&#34;</span>)
-</span></span></code></pre></div><p><strong>注意事项</strong>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-9-1"><a class="lnlinks" href="#hl-9-1">1</a>
+</span><span class="lnt" id="hl-9-2"><a class="lnlinks" href="#hl-9-2">2</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">//@Lazy</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nd">@Scope</span><span class="p">(</span><span class="s">&#34;prototype&#34;</span><span class="p">)</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>注意事项</strong>：</p>
 <ul>
 <li>默认<code>singleton</code>的bean，在容器启动时背创建，可以使用@Lazy注解来延迟初始化（延迟到第一次使用）</li>
 <li><code>prototype</code>的bean，每一次使用该bean的时候都会创建一个新的实例</li>
@@ -509,18 +587,35 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>如果要管理的bean对象来自第三方（不是自定义的），是无法使用<code>@Component</code>及衍生注解声明bean的，<strong>就需要用到<code>@Bean</code>注解</strong></li>
 <li>若要管理的第三方bean对象，建议对这些bean进行集中分类配置，可以通过<code>@Configuration</code>注解声明一个配置类。</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CommonConfig</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 第三方bean对象</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 获取bean对象 : 如果没有指定bean名称，则默认为方法名</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 第三方bean对象需要对象注入，只需要在方法参数中写该参数即可</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> SAXReader <span style="color:#a6e22e">reader</span>(DeptService deptService){
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(deptService);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> SAXReader();
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p><code>@Component</code>及衍生注解与<code>@Bean</code>注解使用场景：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-10-1"><a class="lnlinks" href="#hl-10-1"> 1</a>
+</span><span class="lnt" id="hl-10-2"><a class="lnlinks" href="#hl-10-2"> 2</a>
+</span><span class="lnt" id="hl-10-3"><a class="lnlinks" href="#hl-10-3"> 3</a>
+</span><span class="lnt" id="hl-10-4"><a class="lnlinks" href="#hl-10-4"> 4</a>
+</span><span class="lnt" id="hl-10-5"><a class="lnlinks" href="#hl-10-5"> 5</a>
+</span><span class="lnt" id="hl-10-6"><a class="lnlinks" href="#hl-10-6"> 6</a>
+</span><span class="lnt" id="hl-10-7"><a class="lnlinks" href="#hl-10-7"> 7</a>
+</span><span class="lnt" id="hl-10-8"><a class="lnlinks" href="#hl-10-8"> 8</a>
+</span><span class="lnt" id="hl-10-9"><a class="lnlinks" href="#hl-10-9"> 9</a>
+</span><span class="lnt" id="hl-10-10"><a class="lnlinks" href="#hl-10-10">10</a>
+</span><span class="lnt" id="hl-10-11"><a class="lnlinks" href="#hl-10-11">11</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@Configuration</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">CommonConfig</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Bean</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// 第三方bean对象</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// 获取bean对象 : 如果没有指定bean名称，则默认为方法名</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="c1">// 第三方bean对象需要对象注入，只需要在方法参数中写该参数即可</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="n">SAXReader</span><span class="w"> </span><span class="nf">reader</span><span class="p">(</span><span class="n">DeptService</span><span class="w"> </span><span class="n">deptService</span><span class="p">){</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">System</span><span class="p">.</span><span class="na">out</span><span class="p">.</span><span class="na">println</span><span class="p">(</span><span class="n">deptService</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">return</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SAXReader</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p><code>@Component</code>及衍生注解与<code>@Bean</code>注解使用场景：</p>
 <ol>
 <li>项目中自定义的，使用@Component及其衍生注解</li>
 <li>项目中引入第三方的，使用@Bean注解</li>
@@ -535,9 +630,17 @@ document.addEventListener("DOMContentLoaded", function() {
 <ul>
 <li>
 <p>方案一：<code>@ComponentScan</code> 组件扫描</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@ComponentScan</span>({<span style="color:#e6db74">&#34;com.example&#34;</span>, <span style="color:#e6db74">&#34;com.showguan&#34;</span>})
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TilasWebManagementApplication</span> {
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-11-1"><a class="lnlinks" href="#hl-11-1">1</a>
+</span><span class="lnt" id="hl-11-2"><a class="lnlinks" href="#hl-11-2">2</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="nd">@ComponentScan</span><span class="p">({</span><span class="s">&#34;com.example&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;com.showguan&#34;</span><span class="p">})</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">TilasWebManagementApplication</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 <li>
 <p>方案二：<code>@Import</code>导入。使用<code>@Import</code>导入的类会被Spring加载到IOC容器中，导入形式</p>
 <ul>
@@ -548,13 +651,25 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 </li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">//@Import({TokenParser.class})</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//@Import({HeaderConfig.class})</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">//@Import({MyImportSelector.class})</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@EnableHeaderConfig</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TilasWebManagementApplication</span> {
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="源码跟踪">源码跟踪<a hidden class="anchor" aria-hidden="true" href="#源码跟踪">#</a></h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-12-1"><a class="lnlinks" href="#hl-12-1">1</a>
+</span><span class="lnt" id="hl-12-2"><a class="lnlinks" href="#hl-12-2">2</a>
+</span><span class="lnt" id="hl-12-3"><a class="lnlinks" href="#hl-12-3">3</a>
+</span><span class="lnt" id="hl-12-4"><a class="lnlinks" href="#hl-12-4">4</a>
+</span><span class="lnt" id="hl-12-5"><a class="lnlinks" href="#hl-12-5">5</a>
+</span><span class="lnt" id="hl-12-6"><a class="lnlinks" href="#hl-12-6">6</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="c1">//@Import({TokenParser.class})</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">//@Import({HeaderConfig.class})</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="c1">//@Import({MyImportSelector.class})</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="nd">@EnableHeaderConfig</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">TilasWebManagementApplication</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="源码跟踪">源码跟踪<a hidden class="anchor" aria-hidden="true" href="#源码跟踪">#</a></h4>
 <p><code>@SpringBootApplication</code></p>
 <ul>
 <li>该注解标识在SpringBoot工程引导类上，是SpringBoot中<strong>最最最</strong>重要的注解。
@@ -702,8 +817,15 @@ document.addEventListener("DOMContentLoaded", function() {
 <p><strong>SSM</strong>(SpringMVC + Spring framework + Mybatis)</p>
 <h2 id="mvn高级">MVN高级<a hidden class="anchor" aria-hidden="true" href="#mvn高级">#</a></h2>
 <p><strong>maven生成imi文件</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>mvn idea:module
-</span></span></code></pre></div><h3 id="为什么要分模块设计">为什么要分模块设计？<a hidden class="anchor" aria-hidden="true" href="#为什么要分模块设计">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-13-1"><a class="lnlinks" href="#hl-13-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-shell" data-lang="shell"><span class="line"><span class="cl">mvn idea:module
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="为什么要分模块设计">为什么要分模块设计？<a hidden class="anchor" aria-hidden="true" href="#为什么要分模块设计">#</a></h3>
 <p>方便项目的管理维护，扩展，也方便模块间的相互调用，资源共享。</p>
 <h3 id="注意事项">注意事项<a hidden class="anchor" aria-hidden="true" href="#注意事项">#</a></h3>
 <ul>
@@ -720,29 +842,60 @@ document.addEventListener("DOMContentLoaded", function() {
 <ol>
 <li>
 <p>创建maven模块 tlias-parent，该工程为父工程， 设置打包方式<strong>pom</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    设置spring工程的父工程--&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;parent&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>org.springframework.boot<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>spring-boot-starter-parent<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>3.2.6<span style="color:#f92672">&lt;/version&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;relativePath/&gt;</span> <span style="color:#75715e">&lt;!-- lookup parent from repository --&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/parent&gt;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;groupId&gt;</span>com.showguan<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;artifactId&gt;</span>tlias-parent<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;version&gt;</span>1.0-SNAPSHOT<span style="color:#f92672">&lt;/version&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!--    设置打包方式--&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;packaging&gt;</span>pom<span style="color:#f92672">&lt;/packaging&gt;</span>
-</span></span></code></pre></div></li>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-14-1"><a class="lnlinks" href="#hl-14-1"> 1</a>
+</span><span class="lnt" id="hl-14-2"><a class="lnlinks" href="#hl-14-2"> 2</a>
+</span><span class="lnt" id="hl-14-3"><a class="lnlinks" href="#hl-14-3"> 3</a>
+</span><span class="lnt" id="hl-14-4"><a class="lnlinks" href="#hl-14-4"> 4</a>
+</span><span class="lnt" id="hl-14-5"><a class="lnlinks" href="#hl-14-5"> 5</a>
+</span><span class="lnt" id="hl-14-6"><a class="lnlinks" href="#hl-14-6"> 6</a>
+</span><span class="lnt" id="hl-14-7"><a class="lnlinks" href="#hl-14-7"> 7</a>
+</span><span class="lnt" id="hl-14-8"><a class="lnlinks" href="#hl-14-8"> 8</a>
+</span><span class="lnt" id="hl-14-9"><a class="lnlinks" href="#hl-14-9"> 9</a>
+</span><span class="lnt" id="hl-14-10"><a class="lnlinks" href="#hl-14-10">10</a>
+</span><span class="lnt" id="hl-14-11"><a class="lnlinks" href="#hl-14-11">11</a>
+</span><span class="lnt" id="hl-14-12"><a class="lnlinks" href="#hl-14-12">12</a>
+</span><span class="lnt" id="hl-14-13"><a class="lnlinks" href="#hl-14-13">13</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl"><span class="c">&lt;!--    设置spring工程的父工程--&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;parent&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-parent<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;version&gt;</span>3.2.6<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;relativePath/&gt;</span> <span class="c">&lt;!-- lookup parent from repository --&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/parent&gt;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;groupId&gt;</span>com.showguan<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;artifactId&gt;</span>tlias-parent<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;version&gt;</span>1.0-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl"><span class="c">&lt;!--    设置打包方式--&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;packaging&gt;</span>pom<span class="nt">&lt;/packaging&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div></li>
 <li>
 <p>在子工程的<strong>pom.xml</strong>文件中，配置继承关系</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;parent&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;groupId&gt;</span>com.showguan<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;artifactId&gt;</span>tlias-parent<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;version&gt;</span>1.0-SNAPSHOT<span style="color:#f92672">&lt;/version&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;relativePath&gt;</span>../tlias-parent/pom.xml<span style="color:#f92672">&lt;/relativePath&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/parent&gt;</span>
-</span></span></code></pre></div><p><strong>注意事项</strong>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-15-1"><a class="lnlinks" href="#hl-15-1">1</a>
+</span><span class="lnt" id="hl-15-2"><a class="lnlinks" href="#hl-15-2">2</a>
+</span><span class="lnt" id="hl-15-3"><a class="lnlinks" href="#hl-15-3">3</a>
+</span><span class="lnt" id="hl-15-4"><a class="lnlinks" href="#hl-15-4">4</a>
+</span><span class="lnt" id="hl-15-5"><a class="lnlinks" href="#hl-15-5">5</a>
+</span><span class="lnt" id="hl-15-6"><a class="lnlinks" href="#hl-15-6">6</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;parent&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;groupId&gt;</span>com.showguan<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;artifactId&gt;</span>tlias-parent<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;version&gt;</span>1.0-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;relativePath&gt;</span>../tlias-parent/pom.xml<span class="nt">&lt;/relativePath&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/parent&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>注意事项</strong>：</p>
 <ul>
 <li>在子工程中，配置了继承关系之后，坐标中的<strong>groupid</strong>是可以省略的，因为会自动继承父工程的。</li>
 <li>relativePath指定父工程的pom文件的相对位置（如果不指定，将从本地仓库/远程仓库查找该工程）。</li>
@@ -750,13 +903,25 @@ document.addEventListener("DOMContentLoaded", function() {
 </li>
 <li>
 <p>在父工程中配置各个工程共有的依赖（子工程会自动继承父工程的依赖）</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependencies&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>org.projectlombok<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>lombok<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/dependencies&gt;</span>
-</span></span></code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-16-1"><a class="lnlinks" href="#hl-16-1">1</a>
+</span><span class="lnt" id="hl-16-2"><a class="lnlinks" href="#hl-16-2">2</a>
+</span><span class="lnt" id="hl-16-3"><a class="lnlinks" href="#hl-16-3">3</a>
+</span><span class="lnt" id="hl-16-4"><a class="lnlinks" href="#hl-16-4">4</a>
+</span><span class="lnt" id="hl-16-5"><a class="lnlinks" href="#hl-16-5">5</a>
+</span><span class="lnt" id="hl-16-6"><a class="lnlinks" href="#hl-16-6">6</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;dependencies&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;dependency&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;groupId&gt;</span>org.projectlombok<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;artifactId&gt;</span>lombok<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/dependency&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/dependencies&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li>若父子工程都配置了同一个依赖，以子工程的依赖为准。</li>
 </ul>
 </li>
@@ -766,25 +931,54 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>在maven中，可以在父工程的pom文件中 通过 <code>&lt;dependencyManagement&gt;</code> 来统一管理依赖版本</li>
 </ul>
 <p>父工程：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;properties&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;jjwt.version&gt;</span>0.9.1<span style="color:#f92672">&lt;/jjwt.version&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/properties&gt;</span>
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependencyManagement&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;dependencies&gt;</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;dependency&gt;</span>
-</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">&lt;groupId&gt;</span>io.jsonwebtoken<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">&lt;artifactId&gt;</span>jjwt<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>                    <span style="color:#f92672">&lt;version&gt;</span>${jjwt.version}<span style="color:#f92672">&lt;/version&gt;</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#f92672">&lt;/dependency&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;dependencies&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;dependencyManagement&gt;</span>
-</span></span></code></pre></div><p>子工程（仍需引入依赖，但是不需要版本号）：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>io.jsonwebtoken<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>jjwt<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
-</span></span></code></pre></div><p><strong>注意事项</strong>：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-17-1"><a class="lnlinks" href="#hl-17-1"> 1</a>
+</span><span class="lnt" id="hl-17-2"><a class="lnlinks" href="#hl-17-2"> 2</a>
+</span><span class="lnt" id="hl-17-3"><a class="lnlinks" href="#hl-17-3"> 3</a>
+</span><span class="lnt" id="hl-17-4"><a class="lnlinks" href="#hl-17-4"> 4</a>
+</span><span class="lnt" id="hl-17-5"><a class="lnlinks" href="#hl-17-5"> 5</a>
+</span><span class="lnt" id="hl-17-6"><a class="lnlinks" href="#hl-17-6"> 6</a>
+</span><span class="lnt" id="hl-17-7"><a class="lnlinks" href="#hl-17-7"> 7</a>
+</span><span class="lnt" id="hl-17-8"><a class="lnlinks" href="#hl-17-8"> 8</a>
+</span><span class="lnt" id="hl-17-9"><a class="lnlinks" href="#hl-17-9"> 9</a>
+</span><span class="lnt" id="hl-17-10"><a class="lnlinks" href="#hl-17-10">10</a>
+</span><span class="lnt" id="hl-17-11"><a class="lnlinks" href="#hl-17-11">11</a>
+</span><span class="lnt" id="hl-17-12"><a class="lnlinks" href="#hl-17-12">12</a>
+</span><span class="lnt" id="hl-17-13"><a class="lnlinks" href="#hl-17-13">13</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;properties&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;jjwt.version&gt;</span>0.9.1<span class="nt">&lt;/jjwt.version&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/properties&gt;</span>
+</span></span><span class="line"><span class="cl">        
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;dependencyManagement&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;dependencies&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;dependency&gt;</span>
+</span></span><span class="line"><span class="cl">                    <span class="nt">&lt;groupId&gt;</span>io.jsonwebtoken<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">                    <span class="nt">&lt;artifactId&gt;</span>jjwt<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">                    <span class="nt">&lt;version&gt;</span>${jjwt.version}<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">                <span class="nt">&lt;/dependency&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;dependencies&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;dependencyManagement&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>子工程（仍需引入依赖，但是不需要版本号）：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-18-1"><a class="lnlinks" href="#hl-18-1">1</a>
+</span><span class="lnt" id="hl-18-2"><a class="lnlinks" href="#hl-18-2">2</a>
+</span><span class="lnt" id="hl-18-3"><a class="lnlinks" href="#hl-18-3">3</a>
+</span><span class="lnt" id="hl-18-4"><a class="lnlinks" href="#hl-18-4">4</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">        <span class="nt">&lt;dependency&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;groupId&gt;</span>io.jsonwebtoken<span class="nt">&lt;/groupId&gt;</span>
+</span></span><span class="line"><span class="cl">            <span class="nt">&lt;artifactId&gt;</span>jjwt<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;/dependency&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p><strong>注意事项</strong>：</p>
 <ul>
 <li>子工程引入依赖时，无需指定<code>&lt;version&gt;</code>版本号，父工程统一管理，变更依赖版本，只需要父工程中统一变更。</li>
 </ul>
@@ -796,12 +990,23 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>一个不具有业务功能的&quot;空&quot;工程（有且仅有一个pom文件</p>
 <p><strong>作用</strong>：快速构建项目（无需根据依赖关系手动构建，直接在聚合工程上构建即可）</p>
 <p>在parent 的pom.xml文件内添加</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;modules&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;module&gt;</span>../tlias-pojo<span style="color:#f92672">&lt;/module&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;module&gt;</span>../tlias-utils<span style="color:#f92672">&lt;/module&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;module&gt;</span>../tlias-web-management<span style="color:#f92672">&lt;/module&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/modules&gt;</span>
-</span></span></code></pre></div><p>聚合和继承：</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-19-1"><a class="lnlinks" href="#hl-19-1">1</a>
+</span><span class="lnt" id="hl-19-2"><a class="lnlinks" href="#hl-19-2">2</a>
+</span><span class="lnt" id="hl-19-3"><a class="lnlinks" href="#hl-19-3">3</a>
+</span><span class="lnt" id="hl-19-4"><a class="lnlinks" href="#hl-19-4">4</a>
+</span><span class="lnt" id="hl-19-5"><a class="lnlinks" href="#hl-19-5">5</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;modules&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;module&gt;</span>../tlias-pojo<span class="nt">&lt;/module&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;module&gt;</span>../tlias-utils<span class="nt">&lt;/module&gt;</span>
+</span></span><span class="line"><span class="cl">        <span class="nt">&lt;module&gt;</span>../tlias-web-management<span class="nt">&lt;/module&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;/modules&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>聚合和继承：</p>
 <ul>
 <li>作用
 <ul>
@@ -828,11 +1033,21 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <p>资源上传与下载</p>
 <p><strong>项目版本</strong>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;artifactId&gt;</span>tlias-web-management<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;version&gt;</span>0.0.1-SNAPSHOT<span style="color:#f92672">&lt;/version&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;name&gt;</span>tilas-web-management<span style="color:#f92672">&lt;/name&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;description&gt;</span>tilas-web-management<span style="color:#f92672">&lt;/description&gt;</span>
-</span></span></code></pre></div><ul>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-20-1"><a class="lnlinks" href="#hl-20-1">1</a>
+</span><span class="lnt" id="hl-20-2"><a class="lnlinks" href="#hl-20-2">2</a>
+</span><span class="lnt" id="hl-20-3"><a class="lnlinks" href="#hl-20-3">3</a>
+</span><span class="lnt" id="hl-20-4"><a class="lnlinks" href="#hl-20-4">4</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-xml" data-lang="xml"><span class="line"><span class="cl">    <span class="nt">&lt;artifactId&gt;</span>tlias-web-management<span class="nt">&lt;/artifactId&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;version&gt;</span>0.0.1-SNAPSHOT<span class="nt">&lt;/version&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;name&gt;</span>tilas-web-management<span class="nt">&lt;/name&gt;</span>
+</span></span><span class="line"><span class="cl">    <span class="nt">&lt;description&gt;</span>tilas-web-management<span class="nt">&lt;/description&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><ul>
 <li><strong>RELEASE（发行版本）</strong>：功能趋于稳定，当前更新停止，可以用于发行的版本，存储在私服中的RELEASE仓库中。</li>
 <li><strong>SNAPSHOT</strong>（快照版本）：功能不稳定，尚处于开发中的版本，即快照版本，存储在私服的SNAPSHOT仓库中。</li>
 </ul>

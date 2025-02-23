@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Android"
   ],
-  "articleBody": "第十天笔记 内存泄漏 1. Java垃圾回收机制 1.1 什么是垃圾回收 垃圾回收（GC）是由Java虚拟机（JVM）垃圾回收器提供的一种内存回收机制。 当内存空间或内存占用过高时，系统会回收那些没有引用的对象。 JVM内存模型 运行时数据区域：包括方法区、堆、栈、本地方法栈和程序计数器等。 堆内存： 新生代（Young Generation）：分为Eden区和两个Survivor区（S0、S1）。 老年代（Old Generation）。 方法区（MetaSpace）：存储类元数据、方法信息等。 1.2 判断对象是否是垃圾的算法 1.2.1 引用计数算法 对象被创建后，系统为其初始化引用计数器。 每当对象被引用时，计数器加1，引用失效时，计数器减1。 当计数器为0时，对象不再被引用，可以进行回收。 优点：判断简单，效率高。 缺点：无法避免循环引用。 1.2.2 可达性分析法 从GC Roots出发，逐步遍历到所有可达的对象。 这些对象称为可达对象，不可达的对象则被标记为垃圾，需要回收。 GC Roots包括的对象： 虚拟机栈中引用的对象（栈帧中的本地变量表）。 方法区中类静态属性引用的对象。 方法区中常量引用的对象。 本地方法栈中JNI（Native方法）引用的对象。 Java中的对象引用 Java中的对象引用主要分为四种类型：\n1. 强引用 (Strong Reference) 定义: 例如 Object obj = new Object()，这是Java程序中最常见的引用类型。 特点: 强引用是不可回收的资源，垃圾回收器不会回收它。当内存空间不足时，JVM宁愿抛出 OutOfMemoryError 错误，也不会回收强引用的对象。 2. 软引用 (Soft Reference) 定义: 软引用是一种相对强引用有所弱化的引用。 特点: 可以让对象避免一些垃圾收集。只有当JVM认为内存不足时，才会尝试回收软引用指向的对象。在抛出 OutOfMemoryError 之前，JVM会确保回收软引用的对象。软引用通常用于实现内存敏感的缓存，如果有足够内存，软引用对象会被保留。 3. 弱引用 (Weak Reference) 定义: 弱引用的强度比软引用更弱。 特点: 无论内存是否充足，当JVM进行垃圾回收时，都会回收被弱引用关联的对象。 4. 虚引用 (Phantom Reference) 定义: 虚引用也称为幽灵引用或幻象引用，是最弱的一种引用关系。 特点: 虚引用的存在不会对对象的生命周期构成影响，无法通过虚引用获得对象实例。唯一的目的是在对象被垃圾回收器回收时收到系统通知。 图示总结 强引用: 只有在没有空闲内存时才会被回收。 软引用: 在内存不足时会被回收。 弱引用: 在垃圾回收检测时立即回收。 虚引用: 不会直接影响对象生命周期，但能在对象被回收时收到通知。 这个图示展示了不同引用类型如何与垃圾回收器交互，以及在垃圾回收后的结果。\n初识ANR 主线程执行耗时操作 当主线程执行耗时操作（如大量计算、循环、递归、IO操作等）会导致ANR。\n示例代码:\nmBind.textView.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { while (true) { Log.i(\"TAG\", \"主线程执行耗时操作\"); try { // 执行耗时操作 Thread.sleep(500); } catch (Exception e) { e.printStackTrace(); } } } }); 死锁 当对象锁被其他线程持有，主线程长时间无法获取当前对象锁，会导致ANR。\n示例代码:\npublic class MainThreadAnrActivity extends BaseActivity\u003cActivityHandlerBinding\u003e { private final Object object = new Object(); private final String TAG = MainThreadAnrActivity.class.getSimpleName(); private boolean taskComplete = false; @Override protected void bindListener() { super.bindListener(); mBind.textView.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { // 需要使用子线程执行的结果 synchronized (object) { Log.i(TAG, \"死锁导致ANR \" + taskComplete); } } }); new Thread(new Runnable() { @Override public void run() { synchronized (object) { try { Thread.sleep(30 * 1000); taskComplete = true; } catch (Exception e) { e.printStackTrace(); } } } }).start(); } } 解决方法 使用ReentrantLock代替synchronized，同时tryLock()增加最大等待时间，超过最大等待时间主动释放锁，避免出现ANR。 示例代码:\nReentrantLock lock = new ReentrantLock(); lock.tryLock(3000, TimeUnit.MICROSECONDS); android长生命周期：application， service content provider\n作业 ",
-  "wordCount" : "1411",
+  "articleBody": "第十天笔记 内存泄漏 1. Java垃圾回收机制 1.1 什么是垃圾回收 垃圾回收（GC）是由Java虚拟机（JVM）垃圾回收器提供的一种内存回收机制。 当内存空间或内存占用过高时，系统会回收那些没有引用的对象。 JVM内存模型 运行时数据区域：包括方法区、堆、栈、本地方法栈和程序计数器等。 堆内存： 新生代（Young Generation）：分为Eden区和两个Survivor区（S0、S1）。 老年代（Old Generation）。 方法区（MetaSpace）：存储类元数据、方法信息等。 1.2 判断对象是否是垃圾的算法 1.2.1 引用计数算法 对象被创建后，系统为其初始化引用计数器。 每当对象被引用时，计数器加1，引用失效时，计数器减1。 当计数器为0时，对象不再被引用，可以进行回收。 优点：判断简单，效率高。 缺点：无法避免循环引用。 1.2.2 可达性分析法 从GC Roots出发，逐步遍历到所有可达的对象。 这些对象称为可达对象，不可达的对象则被标记为垃圾，需要回收。 GC Roots包括的对象： 虚拟机栈中引用的对象（栈帧中的本地变量表）。 方法区中类静态属性引用的对象。 方法区中常量引用的对象。 本地方法栈中JNI（Native方法）引用的对象。 Java中的对象引用 Java中的对象引用主要分为四种类型：\n1. 强引用 (Strong Reference) 定义: 例如 Object obj = new Object()，这是Java程序中最常见的引用类型。 特点: 强引用是不可回收的资源，垃圾回收器不会回收它。当内存空间不足时，JVM宁愿抛出 OutOfMemoryError 错误，也不会回收强引用的对象。 2. 软引用 (Soft Reference) 定义: 软引用是一种相对强引用有所弱化的引用。 特点: 可以让对象避免一些垃圾收集。只有当JVM认为内存不足时，才会尝试回收软引用指向的对象。在抛出 OutOfMemoryError 之前，JVM会确保回收软引用的对象。软引用通常用于实现内存敏感的缓存，如果有足够内存，软引用对象会被保留。 3. 弱引用 (Weak Reference) 定义: 弱引用的强度比软引用更弱。 特点: 无论内存是否充足，当JVM进行垃圾回收时，都会回收被弱引用关联的对象。 4. 虚引用 (Phantom Reference) 定义: 虚引用也称为幽灵引用或幻象引用，是最弱的一种引用关系。 特点: 虚引用的存在不会对对象的生命周期构成影响，无法通过虚引用获得对象实例。唯一的目的是在对象被垃圾回收器回收时收到系统通知。 图示总结 强引用: 只有在没有空闲内存时才会被回收。 软引用: 在内存不足时会被回收。 弱引用: 在垃圾回收检测时立即回收。 虚引用: 不会直接影响对象生命周期，但能在对象被回收时收到通知。 这个图示展示了不同引用类型如何与垃圾回收器交互，以及在垃圾回收后的结果。\n初识ANR 主线程执行耗时操作 当主线程执行耗时操作（如大量计算、循环、递归、IO操作等）会导致ANR。\n示例代码:\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 mBind.textView.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { while (true) { Log.i(\"TAG\", \"主线程执行耗时操作\"); try { // 执行耗时操作 Thread.sleep(500); } catch (Exception e) { e.printStackTrace(); } } } }); 死锁 当对象锁被其他线程持有，主线程长时间无法获取当前对象锁，会导致ANR。\n示例代码:\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 public class MainThreadAnrActivity extends BaseActivity\u003cActivityHandlerBinding\u003e { private final Object object = new Object(); private final String TAG = MainThreadAnrActivity.class.getSimpleName(); private boolean taskComplete = false; @Override protected void bindListener() { super.bindListener(); mBind.textView.setOnClickListener(new View.OnClickListener() { @Override public void onClick(View v) { // 需要使用子线程执行的结果 synchronized (object) { Log.i(TAG, \"死锁导致ANR \" + taskComplete); } } }); new Thread(new Runnable() { @Override public void run() { synchronized (object) { try { Thread.sleep(30 * 1000); taskComplete = true; } catch (Exception e) { e.printStackTrace(); } } } }).start(); } } 解决方法 使用ReentrantLock代替synchronized，同时tryLock()增加最大等待时间，超过最大等待时间主动释放锁，避免出现ANR。 示例代码:\n1 2 ReentrantLock lock = new ReentrantLock(); lock.tryLock(3000, TimeUnit.MICROSECONDS); android长生命周期：application， service content provider\n作业 ",
+  "wordCount" : "1460",
   "inLanguage": "zh",
   "datePublished": "2024-07-15T22:30:13+08:00",
   "dateModified": "2024-07-15T22:20:13+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Android学习笔记
     </div>
-    <div class="post-meta"><span title='2024-07-15 22:30:13 +0800 CST'>2024-07-15</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1411 字&nbsp;·&nbsp;updated:&nbsp;2024-07-15&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-07-15 22:30:13 +0800 CST'>2024-07-15</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1460 字&nbsp;·&nbsp;updated:&nbsp;2024-07-15&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -470,64 +470,131 @@ document.addEventListener("DOMContentLoaded", function() {
 <h4 id="主线程执行耗时操作">主线程执行耗时操作<a hidden class="anchor" aria-hidden="true" href="#主线程执行耗时操作">#</a></h4>
 <p>当主线程执行耗时操作（如大量计算、循环、递归、IO操作等）会导致ANR。</p>
 <p><strong>示例代码</strong>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>mBind.<span style="color:#a6e22e">textView</span>.<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">new</span> View.<span style="color:#a6e22e">OnClickListener</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
-</span></span><span style="display:flex;"><span>            Log.<span style="color:#a6e22e">i</span>(<span style="color:#e6db74">&#34;TAG&#34;</span>, <span style="color:#e6db74">&#34;主线程执行耗时操作&#34;</span>);
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 执行耗时操作</span>
-</span></span><span style="display:flex;"><span>                Thread.<span style="color:#a6e22e">sleep</span>(500);
-</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">catch</span> (Exception e) {
-</span></span><span style="display:flex;"><span>                e.<span style="color:#a6e22e">printStackTrace</span>();
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>});
-</span></span></code></pre></div><h4 id="死锁">死锁<a hidden class="anchor" aria-hidden="true" href="#死锁">#</a></h4>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1"> 1</a>
+</span><span class="lnt" id="hl-0-2"><a class="lnlinks" href="#hl-0-2"> 2</a>
+</span><span class="lnt" id="hl-0-3"><a class="lnlinks" href="#hl-0-3"> 3</a>
+</span><span class="lnt" id="hl-0-4"><a class="lnlinks" href="#hl-0-4"> 4</a>
+</span><span class="lnt" id="hl-0-5"><a class="lnlinks" href="#hl-0-5"> 5</a>
+</span><span class="lnt" id="hl-0-6"><a class="lnlinks" href="#hl-0-6"> 6</a>
+</span><span class="lnt" id="hl-0-7"><a class="lnlinks" href="#hl-0-7"> 7</a>
+</span><span class="lnt" id="hl-0-8"><a class="lnlinks" href="#hl-0-8"> 8</a>
+</span><span class="lnt" id="hl-0-9"><a class="lnlinks" href="#hl-0-9"> 9</a>
+</span><span class="lnt" id="hl-0-10"><a class="lnlinks" href="#hl-0-10">10</a>
+</span><span class="lnt" id="hl-0-11"><a class="lnlinks" href="#hl-0-11">11</a>
+</span><span class="lnt" id="hl-0-12"><a class="lnlinks" href="#hl-0-12">12</a>
+</span><span class="lnt" id="hl-0-13"><a class="lnlinks" href="#hl-0-13">13</a>
+</span><span class="lnt" id="hl-0-14"><a class="lnlinks" href="#hl-0-14">14</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">mBind</span><span class="p">.</span><span class="na">textView</span><span class="p">.</span><span class="na">setOnClickListener</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">View</span><span class="p">.</span><span class="na">OnClickListener</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onClick</span><span class="p">(</span><span class="n">View</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">while</span><span class="w"> </span><span class="p">(</span><span class="kc">true</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="n">Log</span><span class="p">.</span><span class="na">i</span><span class="p">(</span><span class="s">&#34;TAG&#34;</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;主线程执行耗时操作&#34;</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="c1">// 执行耗时操作</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">Thread</span><span class="p">.</span><span class="na">sleep</span><span class="p">(</span><span class="n">500</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">});</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h4 id="死锁">死锁<a hidden class="anchor" aria-hidden="true" href="#死锁">#</a></h4>
 <p>当对象锁被其他线程持有，主线程长时间无法获取当前对象锁，会导致ANR。</p>
 <p><strong>示例代码</strong>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainThreadAnrActivity</span> <span style="color:#66d9ef">extends</span> BaseActivity<span style="color:#f92672">&lt;</span>ActivityHandlerBinding<span style="color:#f92672">&gt;</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> Object object <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Object();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">final</span> String TAG <span style="color:#f92672">=</span> MainThreadAnrActivity.<span style="color:#a6e22e">class</span>.<span style="color:#a6e22e">getSimpleName</span>();
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">boolean</span> taskComplete <span style="color:#f92672">=</span> <span style="color:#66d9ef">false</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">protected</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bindListener</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.<span style="color:#a6e22e">bindListener</span>();
-</span></span><span style="display:flex;"><span>        mBind.<span style="color:#a6e22e">textView</span>.<span style="color:#a6e22e">setOnClickListener</span>(<span style="color:#66d9ef">new</span> View.<span style="color:#a6e22e">OnClickListener</span>() {
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onClick</span>(View v) {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 需要使用子线程执行的结果</span>
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">synchronized</span> (object) {
-</span></span><span style="display:flex;"><span>                    Log.<span style="color:#a6e22e">i</span>(TAG, <span style="color:#e6db74">&#34;死锁导致ANR &#34;</span> <span style="color:#f92672">+</span> taskComplete);
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        });
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">new</span> Thread(<span style="color:#66d9ef">new</span> Runnable() {
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">run</span>() {
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">synchronized</span> (object) {
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>                        Thread.<span style="color:#a6e22e">sleep</span>(30 <span style="color:#f92672">*</span> 1000);
-</span></span><span style="display:flex;"><span>                        taskComplete <span style="color:#f92672">=</span> <span style="color:#66d9ef">true</span>;
-</span></span><span style="display:flex;"><span>                    } <span style="color:#66d9ef">catch</span> (Exception e) {
-</span></span><span style="display:flex;"><span>                        e.<span style="color:#a6e22e">printStackTrace</span>();
-</span></span><span style="display:flex;"><span>                    }
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }).<span style="color:#a6e22e">start</span>();
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="解决方法">解决方法<a hidden class="anchor" aria-hidden="true" href="#解决方法">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1"> 1</a>
+</span><span class="lnt" id="hl-1-2"><a class="lnlinks" href="#hl-1-2"> 2</a>
+</span><span class="lnt" id="hl-1-3"><a class="lnlinks" href="#hl-1-3"> 3</a>
+</span><span class="lnt" id="hl-1-4"><a class="lnlinks" href="#hl-1-4"> 4</a>
+</span><span class="lnt" id="hl-1-5"><a class="lnlinks" href="#hl-1-5"> 5</a>
+</span><span class="lnt" id="hl-1-6"><a class="lnlinks" href="#hl-1-6"> 6</a>
+</span><span class="lnt" id="hl-1-7"><a class="lnlinks" href="#hl-1-7"> 7</a>
+</span><span class="lnt" id="hl-1-8"><a class="lnlinks" href="#hl-1-8"> 8</a>
+</span><span class="lnt" id="hl-1-9"><a class="lnlinks" href="#hl-1-9"> 9</a>
+</span><span class="lnt" id="hl-1-10"><a class="lnlinks" href="#hl-1-10">10</a>
+</span><span class="lnt" id="hl-1-11"><a class="lnlinks" href="#hl-1-11">11</a>
+</span><span class="lnt" id="hl-1-12"><a class="lnlinks" href="#hl-1-12">12</a>
+</span><span class="lnt" id="hl-1-13"><a class="lnlinks" href="#hl-1-13">13</a>
+</span><span class="lnt" id="hl-1-14"><a class="lnlinks" href="#hl-1-14">14</a>
+</span><span class="lnt" id="hl-1-15"><a class="lnlinks" href="#hl-1-15">15</a>
+</span><span class="lnt" id="hl-1-16"><a class="lnlinks" href="#hl-1-16">16</a>
+</span><span class="lnt" id="hl-1-17"><a class="lnlinks" href="#hl-1-17">17</a>
+</span><span class="lnt" id="hl-1-18"><a class="lnlinks" href="#hl-1-18">18</a>
+</span><span class="lnt" id="hl-1-19"><a class="lnlinks" href="#hl-1-19">19</a>
+</span><span class="lnt" id="hl-1-20"><a class="lnlinks" href="#hl-1-20">20</a>
+</span><span class="lnt" id="hl-1-21"><a class="lnlinks" href="#hl-1-21">21</a>
+</span><span class="lnt" id="hl-1-22"><a class="lnlinks" href="#hl-1-22">22</a>
+</span><span class="lnt" id="hl-1-23"><a class="lnlinks" href="#hl-1-23">23</a>
+</span><span class="lnt" id="hl-1-24"><a class="lnlinks" href="#hl-1-24">24</a>
+</span><span class="lnt" id="hl-1-25"><a class="lnlinks" href="#hl-1-25">25</a>
+</span><span class="lnt" id="hl-1-26"><a class="lnlinks" href="#hl-1-26">26</a>
+</span><span class="lnt" id="hl-1-27"><a class="lnlinks" href="#hl-1-27">27</a>
+</span><span class="lnt" id="hl-1-28"><a class="lnlinks" href="#hl-1-28">28</a>
+</span><span class="lnt" id="hl-1-29"><a class="lnlinks" href="#hl-1-29">29</a>
+</span><span class="lnt" id="hl-1-30"><a class="lnlinks" href="#hl-1-30">30</a>
+</span><span class="lnt" id="hl-1-31"><a class="lnlinks" href="#hl-1-31">31</a>
+</span><span class="lnt" id="hl-1-32"><a class="lnlinks" href="#hl-1-32">32</a>
+</span><span class="lnt" id="hl-1-33"><a class="lnlinks" href="#hl-1-33">33</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="kd">public</span><span class="w"> </span><span class="kd">class</span> <span class="nc">MainThreadAnrActivity</span><span class="w"> </span><span class="kd">extends</span><span class="w"> </span><span class="n">BaseActivity</span><span class="o">&lt;</span><span class="n">ActivityHandlerBinding</span><span class="o">&gt;</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">Object</span><span class="w"> </span><span class="n">object</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">Object</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kd">final</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">TAG</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">MainThreadAnrActivity</span><span class="p">.</span><span class="na">class</span><span class="p">.</span><span class="na">getSimpleName</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">private</span><span class="w"> </span><span class="kt">boolean</span><span class="w"> </span><span class="n">taskComplete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">false</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="kd">protected</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">bindListener</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="kd">super</span><span class="p">.</span><span class="na">bindListener</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="n">mBind</span><span class="p">.</span><span class="na">textView</span><span class="p">.</span><span class="na">setOnClickListener</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">View</span><span class="p">.</span><span class="na">OnClickListener</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">onClick</span><span class="p">(</span><span class="n">View</span><span class="w"> </span><span class="n">v</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="c1">// 需要使用子线程执行的结果</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kd">synchronized</span><span class="w"> </span><span class="p">(</span><span class="n">object</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="n">Log</span><span class="p">.</span><span class="na">i</span><span class="p">(</span><span class="n">TAG</span><span class="p">,</span><span class="w"> </span><span class="s">&#34;死锁导致ANR &#34;</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="n">taskComplete</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">});</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="k">new</span><span class="w"> </span><span class="n">Thread</span><span class="p">(</span><span class="k">new</span><span class="w"> </span><span class="n">Runnable</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="nd">@Override</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="kd">public</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="nf">run</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="kd">synchronized</span><span class="w"> </span><span class="p">(</span><span class="n">object</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="k">try</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">Thread</span><span class="p">.</span><span class="na">sleep</span><span class="p">(</span><span class="n">30</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">1000</span><span class="p">);</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">taskComplete</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span><span class="p">;</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w"> </span><span class="k">catch</span><span class="w"> </span><span class="p">(</span><span class="n">Exception</span><span class="w"> </span><span class="n">e</span><span class="p">)</span><span class="w"> </span><span class="p">{</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                        </span><span class="n">e</span><span class="p">.</span><span class="na">printStackTrace</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">                </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">            </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">        </span><span class="p">}).</span><span class="na">start</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w">    </span><span class="p">}</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="p">}</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="解决方法">解决方法<a hidden class="anchor" aria-hidden="true" href="#解决方法">#</a></h3>
 <ol>
 <li>使用<code>ReentrantLock</code>代替<code>synchronized</code>，同时<code>tryLock()</code>增加最大等待时间，超过最大等待时间主动释放锁，避免出现ANR。</li>
 </ol>
 <p><strong>示例代码</strong>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>ReentrantLock lock <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> ReentrantLock();
-</span></span><span style="display:flex;"><span>lock.<span style="color:#a6e22e">tryLock</span>(3000, TimeUnit.<span style="color:#a6e22e">MICROSECONDS</span>);
-</span></span></code></pre></div><p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-2-1"><a class="lnlinks" href="#hl-2-1">1</a>
+</span><span class="lnt" id="hl-2-2"><a class="lnlinks" href="#hl-2-2">2</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-java" data-lang="java"><span class="line"><span class="cl"><span class="n">ReentrantLock</span><span class="w"> </span><span class="n">lock</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">ReentrantLock</span><span class="p">();</span><span class="w">
+</span></span></span><span class="line"><span class="cl"><span class="w"></span><span class="n">lock</span><span class="p">.</span><span class="na">tryLock</span><span class="p">(</span><span class="n">3000</span><span class="p">,</span><span class="w"> </span><span class="n">TimeUnit</span><span class="p">.</span><span class="na">MICROSECONDS</span><span class="p">);</span><span class="w">
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>
 
 
 

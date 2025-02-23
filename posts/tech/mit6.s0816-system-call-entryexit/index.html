@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(6)-System Call Entry/Exit Today: user -\u003e kernel transition system calls, faults, interrupts enter the kernel in the same way important for isolation and performance lots of careful design and important detail\nWhat needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs to happen? save 32 user registers and pc switch to supervisor mode switch to kernel page table switch to kernel stack jump to kernel C code high-level goals don’t let user code interfere with user-\u003ekernel transition e.g. don’t execute user code in supervisor mode! transparent to user code – resume without disturbing\nToday we’re focusing on the user/kernel transition and ignoring what the system call implemenation does once in the kernel but the sys call impl has to be careful and secure also!\nWhat does the CPU’s “mode” protect? i.e. what does switching mode from user to supervisor allow? supervisor can use CPU control registers: satp – page table physical address stvec – ecall jumps here in kernel; points to trampoline sepc – ecall saves user pc here sscratch – address of trapframe supervisor can use PTEs that have no PTE_U flag but supervisor has no other powers! e.g. can’t use addresses that aren’t the in page table so kernel has to carefully set things up so it can work\npreview: write() write() returns User uservec() in trampoline.S userret() in trampoline.S Kernel usertrap() in trap.c usertrapret() in trap.c syscall() in syscall.c ^ sys_write() in sysfile.c —|\nlet’s watch an xv6 system call entering/leaving the kernel xv6 shell writing its $ prompt sh.c line 137: write(2, “$ “, 2); user/usys.S line 29 this is the write() function, still in user space a7 tells the kernel what system call we want – SYS_write = 16 ecall – triggers the user/kernel transition\nlet’s start by putting a breakpoint on the ecall user/sh.asm says write()’s ecall is at address 0xde6\n$ make qemu-gdb (gdb) b *0xde6 (gdb) c (gdb) delete 1 (gdb) x/3i 0xde4\nlet’s look at the registers (gdb) print $pc (gdb) info reg\n$pc and $sp are at low addresses – user memory starts at zero C on RISC-V puts function arguments in a0, a1, a2, \u0026c write() arguments: a0 is fd, a1 is buf, a2 is n\n(gdb) x/2c $a1\nthe shell is printing the $ prompt\nwhat page table is in use? (gdb) print/x $satp not very useful qemu: control-a c, info mem there are mappings for six pages instructions, data, stack guard (no PTE_U), stack, then two high mystery pages: trapframe and trampoline there are no mappings for kernel memory, devices, physical mem\nlet’s execute the ecall\n(gdb) stepi\nwhere are we? (gdb) print $pc we’re executing at a very high virtual address (gdb) x/6i 0x3ffffff000 these are the instructions we’re about to execute see uservec in kernel/trampoline.S it’s the start of the kernel’s trap handling code (gdb) info reg the registers hold user values (except $pc) qemu: info mem we’re still using the user page table note that $pc is in the trampoline page, the very last page\nwe’re executing in the “trampoline” page, which contains the start of the kernel’s trap handling code. ecall doesn’t switch page tables, so these kernel instructions have to exist somewhere in the user page table. the trampoline page is the answer: the kernel maps it at the top of every user page table. the kernel sets $stvec to the trampoline page’s virtual address. the trampoline is protected: no PTE_U flag.\n(gdb) print/x $stvec\ncan we tell that we’re in supervisor mode? I don’t know a way to find the mode directly but observe $pc is executing in a page with no PTE_U flag lack of crash implies we are in supervisor mode\nhow did we get here? ecall did three things: change mode from user to supervisor save $pc in $sepc (gdb) print/x $sepc jump to $stvec (i.e. set $pc to $stvec) the kernel previously set $stvec, before jumping to user space\nnote: ecall lets user code switch to supervisor mode but the kernel immediately gains control via $stvec so the user program itself can’t execute as supervisor\nwhat needs to happen now? save the 32 user register values (for later transparent resume) switch to kernel page table set up stack for kernel C code jump to kernel C code\nwhy didn’t the RISC-V designers have ecall do these things for us? ecall does as little as possible: to give O/S designers scope for very fast syscalls / faults / intrs maybe O/S can handle some traps w/o switching page tables maybe we can map BOTH user and kernel into a single page table so no page table switch required maybe some registers do not have to be saved maybe no stack is required for simple system calls\nthere have been many clever schemes invented for kernel entry! different amounts of work by CPU different strategies for handler s/w performance here is often super important\nwhat are our options at this point for saving user registers? can we just write them somewhere convenient in physical memory? no, even supervisor mode is constrained to use the page table can we first set satp to the kernel page table? supervisor mode is allowed to set satp… but we don’t know the address of the kernel page table at this point! and we need a free register to even execute csrw satp, $xx\ntwo parts to the solution for where to save the 32 user registers:\nxv6 maps a 2nd kernel page, the trapframe, into every user page table it has space to hold the saved registers the kernel gives each process a different trapframe page the page at 0x3fffffe000 is the trapframe page see struct trapframe in kernel/proc.h (but we still need a register holding the trapframe’s address…) RISC-V provides the sscratch register the kernel puts a pointer to the trapframe in sscratch before entering user space supervisor code can swap any register with sscratch thus both getting hold of the value in sscratch, and simultaneously saving the register’s user value see this at the start of uservec in trapframe.S: csrrw a0, sscratch, a0\nthe csrrw has already been executed due to some gdb quirk…\n(gdb) print/x $a0 address of the trapframe (gdb\u003e print/x $sscratch 0x2, the old first argument (fd)\nnow uservec() has 32 saves of user registers to the trapframe, via a0 so they can be restored later, when the system call returns let’s skip them\n(gdb) b *0x3ffffff076 (gdb) c\nnow we’re setting up to be able to run C code in the kernel first a stack previously, kernel put a pointer to top of this process’s kernel stack in trapframe look at struct trapframe in kernel/proc.h “ld sp, 8(a0)” fetches the kernel stack pointer remember a0 points to the trapframe at this point the only kernel data the code can get at is the trapframe, so everything has to be loaded from there.\n(gdb) stepi\nretrieve hart ID into tp\n(gdb) stepi\nwe want to jump to the kernel C function usertrap(), which the kernel previously saved in the trapframe. “ld t0, 16(a0)” fetches it into t0, we’ll use it in a moment, after switching to the kernel page table\n(gdb) stepi\nload a pointer to the kernel pagetable from the trapframe, and load it into satp, and issue an sfence to clear the TLB.\n(gdb) stepi (gdb) stepi (gdb) stepi\nwhy isn’t there a crash at this point? after all we just switched page tables while executing! answer: the trampoline page is mapped at the same virtual address in the kernel page table as well as every user page table\n(gdb) print $pc qemu: info mem\nwith the kernel page table we can now use kernel functions and data\nthe jr t0 is a jump to usertrap() (using t0 retrieved from trapframe)\n(gdb) print/x $t0 (gdb) x/4i $t0 (gdb) stepi (gdb) tui enable\nwe’re now in usertrap() in kernel/trap.c various traps come here, e.g. errors, device interrupts, and system calls usertrap() looks in the scause register to see the trap cause see Figure 10.3 on page 102 of The RISC-V Reader scause = 8 is a system call\n(gdb) next … until syscall() (gdb) step (gdb) next\nnow we’re in syscall() kernel/syscall.c myproc() uses tp to retrieve current struct proc * p-\u003exxx is usually a slot in the current process’s struct proc\nsyscall() retrieves the system call number from saved register a7 p-\u003etrapframe points to the trapframe, with saved registers p-\u003etrapframe-\u003ea7 holds 16, SYS_write p-\u003etrapframe-\u003ea0 holds write() first argument – fd p-\u003etrapframe-\u003ea1 holds buf p-\u003etrapframe-\u003ea2 holds n\n(gdb) next … (gdb) print num\nthen dispatches through syscall[num], a table of functions\n(gdb) next … (gdb) step\naha, we’re in sys_write. at this point system call implementations are fairly ordinary C code. let’s skip to the end, to see how a system call returns to user space.\n(gdb) finish\nnotice that write() produced console output (the shell’s $ prompt) back to syscall() the p-\u003etf-\u003ea0 assignment causes (eventually) a0 to hold the return value the C calling convention on RISC-V puts return values in a0\n(gdb) next\nback to usertrap()\n(gdb) print p-\u003etrapframe-\u003ea0\nwrite() returned 2 – two characters – $ and space\n(gdb) next (gdb) step\nnow we’re in usertrapret(), which starts the process of returning to the user program\nwe need to prepare for the next user-\u003ekernel transition stvec = uservec (the trampoline), for the next ecall traframe satp = kernel page table, for next uservec traframe sp = top of kernel stack trapframe trap = usertrap trapframe hartid = hartid (in tp)\nat the end, we’ll use the RISC-V sret instruction we need to prepare a few registers that sret uses sstatus – set the “previous mode” bit to user sepc – the saved user program counter (from trap entry)\nwe’re going to switch to the user page table while executing not OK in usertrapret(), since it’s not mapped in the user page table. need a page that’s mapped in both user and kernel page table – the trampoline. jump to userret in trampoline.S\n(gdb) tui disable (gdb) step (gdb) x/8i 0x3ffffff090\na0 holds TRAPFRAME a1 holds user page table address the csrw satp switches to the user address space\n(gdb) stepi (gdb) stepi (gdb) stepi\nthe csrw scratch puts the user a0 into sscratch just before sret we’ll do a swap, so that a0 holds the user a0 and sscratch holds trapframe pointer. which is what uservec expects.\nnow 32 loads from the trapframe into registers these restore the user registers let’s skip over them\n(gdb) b *0x3ffffff10a (gdb) c\nhere’s the csrw that swaps a0 with sscratch\n(gdb) stepi (gdb) print/x $a0 – the return value from write() (gdb) print/x $sscratch – trapframe address for uservec\nnow we’re at the sret instruction\n(gdb) print $pc (gdb) stepi (gdb) print $pc\nnow we’re back in the user program ($pc = 0x0xdea) returning 2 from the write() function\n(gdb) print/x $a0\nand we’re done with a system call!\nsummary system call entry/exit is far more complex than function call much of the complexity is due to the requirement for isolation and the desire for simple and fast hardware mechanisms a few design questions to ponder: can an evil program abuse the entry mechanism? can you think of ways to make the hardware or software simpler? can you think of ways to make traps faster?\nLab: traps RISC-V assembly (easy) Which registers contain arguments to functions? For example, which register holds 13 in main’s call to printf? 13 -\u003e a2\n12 -\u003e a1\n第一个参数-\u003e a0 在printf中代表格式化字符串的地址，在exit(0)中代表参数0\nra(返回地址)\ns0(保存帧指针)\nauipc xx, 0x0 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 xx 中。\nWhere is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.) printf(\"%d %d\\n\", f(8)+1, 13); 24:\t4635 li\ta2,13 26:\t45b1 li\ta1,12 这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。\nAt what address is the function printf located? 34:\t600080e7 jalr\t1536(ra) # 630 $0x630$ 位置\nWhat value is in the register ra just after the jalr to printf in main? 30:\t00000097 auipc\tra,0x0 34:\t600080e7 jalr\t1536(ra) # 630 \u003cprintf\u003e $0x630 = 0x30(ra) + 1536, ra = 0x30$\nRun the following code. unsigned int i = 0x00646c72; printf(\"H%x Wo%s\", 57616, \u0026i); 输出 ： He110 World\n其中57616十六进制数组的ascii码为110\n因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：\n0x72 (ASCII ‘r’)\n0x6c (ASCII ’l')\n0x64 (ASCII ’d')\n0x00 (null terminator)\nIn the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen? printf(\"x=%d y=%d\", 3); 因为printf会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的的状态，编译行为和优化，运行环境和内存的管理。\nBacktrace (moderate) defs.h void backtrace(void); printf.c void backtrace(void) { uint64 p = r_fp(); while (p != PGROUNDUP(p)) { uint64 ra = *(uint64 *)(p - 8); uint64 fp = *(uint64 *)(p - 16); printf(\"%p\\n\", ra); p = fp; } } riscv.h Alarm (hard) proc.c p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if ((p-\u003ealarm_trapframe = (struct trapframe *)kalloc()) == 0) { release(\u0026p-\u003elock); return 0; } p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if (p-\u003ealarm_trapframe) kfree((void *)p-\u003ealarm_trapframe); // sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序 // // 参数： // 无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。 // 返回值： // 成功返回0，失败返回-1。 // // 功能： // 该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发 // 用户定义的信号处理程序（handler）。 // // 具体来说： // 1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。 // 2. 在失败的情况下返回-1。 // 3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔） // 和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。 uint64 sys_sigalarm(void) { int ticks; // 用于存储用户传入的tick数（间隔时间） void (*handler)(); // 用于存储用户传入的信号处理程序的指针 // 从第一个参数获取tick数，argint用于获取整数类型的参数。 if (argint(0, \u0026ticks) \u003c 0) return -1; // 获取失败，返回-1 // 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。 if (argaddr(1, (uint64 *)\u0026handler) \u003c 0) return -1; // 获取失败，返回-1 // 获取当前的进程结构体指针 struct proc *p = myproc(); // 设置进程的闹钟间隔 p-\u003ealarm_interval = ticks; // 设置进程的信号处理程序 p-\u003ealarm_handler = handler; // 重置闹钟的计数器 p-\u003ealarm_tick_count = 0; // 初始化闹钟处理状态为未处理 p-\u003ealarm_handling = 0; // 设置成功，返回0 return 0; } // sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序 // // 参数： // 无直接参数。 // 返回值： // 成功返回0。 // // 功能： // 该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时， // 恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括： // 1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。 // 2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。 uint64 sys_sigreturn(void) { struct proc *p = myproc(); // 获取当前进程的指针 // 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。 // trapframe保存了进程在处理信号之前的CPU寄存器状态。 *(p-\u003etrapframe) = *(p-\u003ealarm_trapframe); // 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。 p-\u003ealarm_tick_count = 0; // 重置闹钟的处理状态，表示当前不在信号处理程序中。 p-\u003ealarm_handling = 0; // 成功返回 return 0; } proc.h int alarm_interval; void (*alarm_handler)(); int alarm_tick_count; int alarm_handling; struct trapframe *alarm_trapframe; riscv.h static inline uint64 r_fp() { uint64 x; asm volatile(\"mv %0, s0\" : \"=r\"(x)); return x; } syscall.c syscall.h trap.c // ok if (which_dev == 2) { if (p-\u003ealarm_interval != 0 \u0026\u0026 !p-\u003ealarm_handling) { ++p-\u003ealarm_tick_count; if (p-\u003ealarm_tick_count == p-\u003ealarm_interval) { *(p-\u003ealarm_trapframe) = *(p-\u003etrapframe); p-\u003etrapframe-\u003eepc = (uint64)(p-\u003ealarm_handler); p-\u003ealarm_handling = 1; } } } user.h usys.pl ",
-  "wordCount" : "3445",
+  "articleBody": "MIT6.S081(6)-System Call Entry/Exit Today: user -\u003e kernel transition system calls, faults, interrupts enter the kernel in the same way important for isolation and performance lots of careful design and important detail\nWhat needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs to happen? save 32 user registers and pc switch to supervisor mode switch to kernel page table switch to kernel stack jump to kernel C code high-level goals don’t let user code interfere with user-\u003ekernel transition e.g. don’t execute user code in supervisor mode! transparent to user code – resume without disturbing\nToday we’re focusing on the user/kernel transition and ignoring what the system call implemenation does once in the kernel but the sys call impl has to be careful and secure also!\nWhat does the CPU’s “mode” protect? i.e. what does switching mode from user to supervisor allow? supervisor can use CPU control registers: satp – page table physical address stvec – ecall jumps here in kernel; points to trampoline sepc – ecall saves user pc here sscratch – address of trapframe supervisor can use PTEs that have no PTE_U flag but supervisor has no other powers! e.g. can’t use addresses that aren’t the in page table so kernel has to carefully set things up so it can work\npreview: write() write() returns User uservec() in trampoline.S userret() in trampoline.S Kernel usertrap() in trap.c usertrapret() in trap.c syscall() in syscall.c ^ sys_write() in sysfile.c —|\nlet’s watch an xv6 system call entering/leaving the kernel xv6 shell writing its $ prompt sh.c line 137: write(2, “$ “, 2); user/usys.S line 29 this is the write() function, still in user space a7 tells the kernel what system call we want – SYS_write = 16 ecall – triggers the user/kernel transition\nlet’s start by putting a breakpoint on the ecall user/sh.asm says write()’s ecall is at address 0xde6\n$ make qemu-gdb (gdb) b *0xde6 (gdb) c (gdb) delete 1 (gdb) x/3i 0xde4\nlet’s look at the registers (gdb) print $pc (gdb) info reg\n$pc and $sp are at low addresses – user memory starts at zero C on RISC-V puts function arguments in a0, a1, a2, \u0026c write() arguments: a0 is fd, a1 is buf, a2 is n\n(gdb) x/2c $a1\nthe shell is printing the $ prompt\nwhat page table is in use? (gdb) print/x $satp not very useful qemu: control-a c, info mem there are mappings for six pages instructions, data, stack guard (no PTE_U), stack, then two high mystery pages: trapframe and trampoline there are no mappings for kernel memory, devices, physical mem\nlet’s execute the ecall\n(gdb) stepi\nwhere are we? (gdb) print $pc we’re executing at a very high virtual address (gdb) x/6i 0x3ffffff000 these are the instructions we’re about to execute see uservec in kernel/trampoline.S it’s the start of the kernel’s trap handling code (gdb) info reg the registers hold user values (except $pc) qemu: info mem we’re still using the user page table note that $pc is in the trampoline page, the very last page\nwe’re executing in the “trampoline” page, which contains the start of the kernel’s trap handling code. ecall doesn’t switch page tables, so these kernel instructions have to exist somewhere in the user page table. the trampoline page is the answer: the kernel maps it at the top of every user page table. the kernel sets $stvec to the trampoline page’s virtual address. the trampoline is protected: no PTE_U flag.\n(gdb) print/x $stvec\ncan we tell that we’re in supervisor mode? I don’t know a way to find the mode directly but observe $pc is executing in a page with no PTE_U flag lack of crash implies we are in supervisor mode\nhow did we get here? ecall did three things: change mode from user to supervisor save $pc in $sepc (gdb) print/x $sepc jump to $stvec (i.e. set $pc to $stvec) the kernel previously set $stvec, before jumping to user space\nnote: ecall lets user code switch to supervisor mode but the kernel immediately gains control via $stvec so the user program itself can’t execute as supervisor\nwhat needs to happen now? save the 32 user register values (for later transparent resume) switch to kernel page table set up stack for kernel C code jump to kernel C code\nwhy didn’t the RISC-V designers have ecall do these things for us? ecall does as little as possible: to give O/S designers scope for very fast syscalls / faults / intrs maybe O/S can handle some traps w/o switching page tables maybe we can map BOTH user and kernel into a single page table so no page table switch required maybe some registers do not have to be saved maybe no stack is required for simple system calls\nthere have been many clever schemes invented for kernel entry! different amounts of work by CPU different strategies for handler s/w performance here is often super important\nwhat are our options at this point for saving user registers? can we just write them somewhere convenient in physical memory? no, even supervisor mode is constrained to use the page table can we first set satp to the kernel page table? supervisor mode is allowed to set satp… but we don’t know the address of the kernel page table at this point! and we need a free register to even execute csrw satp, $xx\ntwo parts to the solution for where to save the 32 user registers:\nxv6 maps a 2nd kernel page, the trapframe, into every user page table it has space to hold the saved registers the kernel gives each process a different trapframe page the page at 0x3fffffe000 is the trapframe page see struct trapframe in kernel/proc.h (but we still need a register holding the trapframe’s address…) RISC-V provides the sscratch register the kernel puts a pointer to the trapframe in sscratch before entering user space supervisor code can swap any register with sscratch thus both getting hold of the value in sscratch, and simultaneously saving the register’s user value see this at the start of uservec in trapframe.S: csrrw a0, sscratch, a0\nthe csrrw has already been executed due to some gdb quirk…\n(gdb) print/x $a0 address of the trapframe (gdb\u003e print/x $sscratch 0x2, the old first argument (fd)\nnow uservec() has 32 saves of user registers to the trapframe, via a0 so they can be restored later, when the system call returns let’s skip them\n(gdb) b *0x3ffffff076 (gdb) c\nnow we’re setting up to be able to run C code in the kernel first a stack previously, kernel put a pointer to top of this process’s kernel stack in trapframe look at struct trapframe in kernel/proc.h “ld sp, 8(a0)” fetches the kernel stack pointer remember a0 points to the trapframe at this point the only kernel data the code can get at is the trapframe, so everything has to be loaded from there.\n(gdb) stepi\nretrieve hart ID into tp\n(gdb) stepi\nwe want to jump to the kernel C function usertrap(), which the kernel previously saved in the trapframe. “ld t0, 16(a0)” fetches it into t0, we’ll use it in a moment, after switching to the kernel page table\n(gdb) stepi\nload a pointer to the kernel pagetable from the trapframe, and load it into satp, and issue an sfence to clear the TLB.\n(gdb) stepi (gdb) stepi (gdb) stepi\nwhy isn’t there a crash at this point? after all we just switched page tables while executing! answer: the trampoline page is mapped at the same virtual address in the kernel page table as well as every user page table\n(gdb) print $pc qemu: info mem\nwith the kernel page table we can now use kernel functions and data\nthe jr t0 is a jump to usertrap() (using t0 retrieved from trapframe)\n(gdb) print/x $t0 (gdb) x/4i $t0 (gdb) stepi (gdb) tui enable\nwe’re now in usertrap() in kernel/trap.c various traps come here, e.g. errors, device interrupts, and system calls usertrap() looks in the scause register to see the trap cause see Figure 10.3 on page 102 of The RISC-V Reader scause = 8 is a system call\n(gdb) next … until syscall() (gdb) step (gdb) next\nnow we’re in syscall() kernel/syscall.c myproc() uses tp to retrieve current struct proc * p-\u003exxx is usually a slot in the current process’s struct proc\nsyscall() retrieves the system call number from saved register a7 p-\u003etrapframe points to the trapframe, with saved registers p-\u003etrapframe-\u003ea7 holds 16, SYS_write p-\u003etrapframe-\u003ea0 holds write() first argument – fd p-\u003etrapframe-\u003ea1 holds buf p-\u003etrapframe-\u003ea2 holds n\n(gdb) next … (gdb) print num\nthen dispatches through syscall[num], a table of functions\n(gdb) next … (gdb) step\naha, we’re in sys_write. at this point system call implementations are fairly ordinary C code. let’s skip to the end, to see how a system call returns to user space.\n(gdb) finish\nnotice that write() produced console output (the shell’s $ prompt) back to syscall() the p-\u003etf-\u003ea0 assignment causes (eventually) a0 to hold the return value the C calling convention on RISC-V puts return values in a0\n(gdb) next\nback to usertrap()\n(gdb) print p-\u003etrapframe-\u003ea0\nwrite() returned 2 – two characters – $ and space\n(gdb) next (gdb) step\nnow we’re in usertrapret(), which starts the process of returning to the user program\nwe need to prepare for the next user-\u003ekernel transition stvec = uservec (the trampoline), for the next ecall traframe satp = kernel page table, for next uservec traframe sp = top of kernel stack trapframe trap = usertrap trapframe hartid = hartid (in tp)\nat the end, we’ll use the RISC-V sret instruction we need to prepare a few registers that sret uses sstatus – set the “previous mode” bit to user sepc – the saved user program counter (from trap entry)\nwe’re going to switch to the user page table while executing not OK in usertrapret(), since it’s not mapped in the user page table. need a page that’s mapped in both user and kernel page table – the trampoline. jump to userret in trampoline.S\n(gdb) tui disable (gdb) step (gdb) x/8i 0x3ffffff090\na0 holds TRAPFRAME a1 holds user page table address the csrw satp switches to the user address space\n(gdb) stepi (gdb) stepi (gdb) stepi\nthe csrw scratch puts the user a0 into sscratch just before sret we’ll do a swap, so that a0 holds the user a0 and sscratch holds trapframe pointer. which is what uservec expects.\nnow 32 loads from the trapframe into registers these restore the user registers let’s skip over them\n(gdb) b *0x3ffffff10a (gdb) c\nhere’s the csrw that swaps a0 with sscratch\n(gdb) stepi (gdb) print/x $a0 – the return value from write() (gdb) print/x $sscratch – trapframe address for uservec\nnow we’re at the sret instruction\n(gdb) print $pc (gdb) stepi (gdb) print $pc\nnow we’re back in the user program ($pc = 0x0xdea) returning 2 from the write() function\n(gdb) print/x $a0\nand we’re done with a system call!\nsummary system call entry/exit is far more complex than function call much of the complexity is due to the requirement for isolation and the desire for simple and fast hardware mechanisms a few design questions to ponder: can an evil program abuse the entry mechanism? can you think of ways to make the hardware or software simpler? can you think of ways to make traps faster?\nLab: traps RISC-V assembly (easy) Which registers contain arguments to functions? For example, which register holds 13 in main’s call to printf? 13 -\u003e a2\n12 -\u003e a1\n第一个参数-\u003e a0 在printf中代表格式化字符串的地址，在exit(0)中代表参数0\nra(返回地址)\ns0(保存帧指针)\nauipc xx, 0x0 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 xx 中。\nWhere is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.) 1 2 3 printf(\"%d %d\\n\", f(8)+1, 13); 24:\t4635 li\ta2,13 26:\t45b1 li\ta1,12 这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。\nAt what address is the function printf located? 1 34:\t600080e7 jalr\t1536(ra) # 630 $0x630$ 位置\nWhat value is in the register ra just after the jalr to printf in main? 1 2 30:\t00000097 auipc\tra,0x0 34:\t600080e7 jalr\t1536(ra) # 630 \u003cprintf\u003e $0x630 = 0x30(ra) + 1536, ra = 0x30$\nRun the following code. 1 2 unsigned int i = 0x00646c72; printf(\"H%x Wo%s\", 57616, \u0026i); 输出 ： He110 World\n其中57616十六进制数组的ascii码为110\n因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：\n0x72 (ASCII ‘r’)\n0x6c (ASCII ’l')\n0x64 (ASCII ’d')\n0x00 (null terminator)\nIn the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen? 1 printf(\"x=%d y=%d\", 3); 因为printf会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的的状态，编译行为和优化，运行环境和内存的管理。\nBacktrace (moderate) defs.h 1 void backtrace(void); printf.c 1 2 3 4 5 6 7 8 9 10 11 void backtrace(void) { uint64 p = r_fp(); while (p != PGROUNDUP(p)) { uint64 ra = *(uint64 *)(p - 8); uint64 fp = *(uint64 *)(p - 16); printf(\"%p\\n\", ra); p = fp; } } riscv.h Alarm (hard) proc.c 1 2 3 4 5 6 7 8 9 p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if ((p-\u003ealarm_trapframe = (struct trapframe *)kalloc()) == 0) { release(\u0026p-\u003elock); return 0; } 1 2 3 4 5 6 p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if (p-\u003ealarm_trapframe) kfree((void *)p-\u003ealarm_trapframe); 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 // sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序 // // 参数： // 无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。 // 返回值： // 成功返回0，失败返回-1。 // // 功能： // 该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发 // 用户定义的信号处理程序（handler）。 // // 具体来说： // 1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。 // 2. 在失败的情况下返回-1。 // 3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔） // 和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。 uint64 sys_sigalarm(void) { int ticks; // 用于存储用户传入的tick数（间隔时间） void (*handler)(); // 用于存储用户传入的信号处理程序的指针 // 从第一个参数获取tick数，argint用于获取整数类型的参数。 if (argint(0, \u0026ticks) \u003c 0) return -1; // 获取失败，返回-1 // 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。 if (argaddr(1, (uint64 *)\u0026handler) \u003c 0) return -1; // 获取失败，返回-1 // 获取当前的进程结构体指针 struct proc *p = myproc(); // 设置进程的闹钟间隔 p-\u003ealarm_interval = ticks; // 设置进程的信号处理程序 p-\u003ealarm_handler = handler; // 重置闹钟的计数器 p-\u003ealarm_tick_count = 0; // 初始化闹钟处理状态为未处理 p-\u003ealarm_handling = 0; // 设置成功，返回0 return 0; } // sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序 // // 参数： // 无直接参数。 // 返回值： // 成功返回0。 // // 功能： // 该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时， // 恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括： // 1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。 // 2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。 uint64 sys_sigreturn(void) { struct proc *p = myproc(); // 获取当前进程的指针 // 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。 // trapframe保存了进程在处理信号之前的CPU寄存器状态。 *(p-\u003etrapframe) = *(p-\u003ealarm_trapframe); // 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。 p-\u003ealarm_tick_count = 0; // 重置闹钟的处理状态，表示当前不在信号处理程序中。 p-\u003ealarm_handling = 0; // 成功返回 return 0; } proc.h 1 2 3 4 5 int alarm_interval; void (*alarm_handler)(); int alarm_tick_count; int alarm_handling; struct trapframe *alarm_trapframe; riscv.h 1 2 3 4 5 6 7 static inline uint64 r_fp() { uint64 x; asm volatile(\"mv %0, s0\" : \"=r\"(x)); return x; } syscall.c syscall.h trap.c 1 2 3 4 5 6 7 8 9 10 11 12 13 14 // ok if (which_dev == 2) { if (p-\u003ealarm_interval != 0 \u0026\u0026 !p-\u003ealarm_handling) { ++p-\u003ealarm_tick_count; if (p-\u003ealarm_tick_count == p-\u003ealarm_interval) { *(p-\u003ealarm_trapframe) = *(p-\u003etrapframe); p-\u003etrapframe-\u003eepc = (uint64)(p-\u003ealarm_handler); p-\u003ealarm_handling = 1; } } } user.h usys.pl ",
+  "wordCount" : "3586",
   "inLanguage": "zh",
   "datePublished": "2024-09-10T19:30:13+08:00",
   "dateModified": "2024-09-10T19:20:13+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(6)
     </div>
-    <div class="post-meta"><span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3445 字&nbsp;·&nbsp;updated:&nbsp;2024-09-10&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;8 分钟&nbsp;·&nbsp;3586 字&nbsp;·&nbsp;updated:&nbsp;2024-09-10&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -682,21 +682,53 @@ can you think of ways to make traps faster?</p>
 <p><code>s0</code>(保存帧指针)</p>
 <p><code>auipc xx, 0x0</code> 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 <code>x</code>x 中。</p>
 <h3 id="where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions">Where is the call to function <code>f</code> in the assembly code for main? Where is the call to <code>g</code>? (Hint: the compiler may inline functions.)<a hidden class="anchor" aria-hidden="true" href="#where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">f</span>(<span style="color:#ae81ff">8</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">13</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">24</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">4635</span>                	li	a2,<span style="color:#ae81ff">13</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">26</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">45</span>b1                	li	a1,<span style="color:#ae81ff">12</span>
-</span></span></code></pre></div><p>这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-0-1"><a class="lnlinks" href="#hl-0-1">1</a>
+</span><span class="lnt" id="hl-0-2"><a class="lnlinks" href="#hl-0-2">2</a>
+</span><span class="lnt" id="hl-0-3"><a class="lnlinks" href="#hl-0-3">3</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">  <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%d %d</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="nf">f</span><span class="p">(</span><span class="mi">8</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,</span> <span class="mi">13</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">24</span><span class="o">:</span>	<span class="mi">4635</span>                	<span class="n">li</span>	<span class="n">a2</span><span class="p">,</span><span class="mi">13</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">26</span><span class="o">:</span>	<span class="mi">45</span><span class="n">b1</span>                	<span class="n">li</span>	<span class="n">a1</span><span class="p">,</span><span class="mi">12</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。</p>
 <h3 id="at-what-address-is-the-function-printf-located">At what address is the function <code>printf</code> located?<a hidden class="anchor" aria-hidden="true" href="#at-what-address-is-the-function-printf-located">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">34:</span>	<span style="color:#960050;background-color:#1e0010">600080</span><span style="color:#a6e22e">e7</span>          	<span style="color:#66d9ef">jalr</span>	<span style="color:#ae81ff">1536</span>(<span style="color:#66d9ef">ra</span>) <span style="color:#75715e"># 630 &lt;printf&gt;
-</span></span></span></code></pre></div><p>$0x630$ 位置</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-1-1"><a class="lnlinks" href="#hl-1-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-asm" data-lang="asm"><span class="line"><span class="cl">  <span class="err">34:</span>	<span class="err">600080</span><span class="nf">e7</span>          	<span class="no">jalr</span>	<span class="mi">1536</span><span class="p">(</span><span class="no">ra</span><span class="p">)</span> <span class="c1"># 630 &lt;printf&gt;
+</span></span></span></code></pre></td></tr></table>
+</div>
+</div><p>$0x630$ 位置</p>
 <h3 id="what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main">What value is in the register <code>ra</code> just after the <code>jalr</code> to <code>printf</code> in <code>main</code>?<a hidden class="anchor" aria-hidden="true" href="#what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#ae81ff">30</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">000000</span><span style="color:#ae81ff">97</span>          	auipc	ra,<span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">34</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">600080e7</span>          	jalr	<span style="color:#ae81ff">1536</span>(ra) <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#ae81ff">630</span> <span style="color:#f92672">&lt;</span>printf<span style="color:#f92672">&gt;</span>
-</span></span></code></pre></div><p>$0x630 = 0x30(ra) + 1536, ra = 0x30$</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-2-1"><a class="lnlinks" href="#hl-2-1">1</a>
+</span><span class="lnt" id="hl-2-2"><a class="lnlinks" href="#hl-2-2">2</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">  <span class="mi">30</span><span class="o">:</span>	<span class="mo">000000</span><span class="mi">97</span>          	<span class="n">auipc</span>	<span class="n">ra</span><span class="p">,</span><span class="mh">0x0</span>
+</span></span><span class="line"><span class="cl">  <span class="mi">34</span><span class="o">:</span>	<span class="mf">600080e7</span>          	<span class="n">jalr</span>	<span class="mi">1536</span><span class="p">(</span><span class="n">ra</span><span class="p">)</span> <span class="err">#</span> <span class="mi">630</span> <span class="o">&lt;</span><span class="n">printf</span><span class="o">&gt;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>$0x630 = 0x30(ra) + 1536, ra = 0x30$</p>
 <h3 id="run-the-following-code">Run the following code.<a hidden class="anchor" aria-hidden="true" href="#run-the-following-code">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00646c72</span>;
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;H%x Wo%s&#34;</span>, <span style="color:#ae81ff">57616</span>, <span style="color:#f92672">&amp;</span>i);
-</span></span></code></pre></div><p>输出 ： He110 World</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-3-1"><a class="lnlinks" href="#hl-3-1">1</a>
+</span><span class="lnt" id="hl-3-2"><a class="lnlinks" href="#hl-3-2">2</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">	<span class="kt">unsigned</span> <span class="kt">int</span> <span class="n">i</span> <span class="o">=</span> <span class="mh">0x00646c72</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;H%x Wo%s&#34;</span><span class="p">,</span> <span class="mi">57616</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">i</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>输出 ： He110 World</p>
 <p>其中57616十六进制数组的ascii码为110</p>
 <p>因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：</p>
 <ul>
@@ -714,12 +746,26 @@ can you think of ways to make traps faster?</p>
 </li>
 </ul>
 <h3 id="in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen">In the following code, what is going to be printed after <code>'y='</code>? (note: the answer is not a specific value.) Why does this happen?<a hidden class="anchor" aria-hidden="true" href="#in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;x=%d y=%d&#34;</span>, <span style="color:#ae81ff">3</span>);
-</span></span></code></pre></div><p>因为<code>printf</code>会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的的状态，编译行为和优化，运行环境和内存的管理。</p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-4-1"><a class="lnlinks" href="#hl-4-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">	<span class="nf">printf</span><span class="p">(</span><span class="s">&#34;x=%d y=%d&#34;</span><span class="p">,</span> <span class="mi">3</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>因为<code>printf</code>会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的的状态，编译行为和优化，运行环境和内存的管理。</p>
 <h2 id="backtrace-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Backtrace (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#backtrace-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
 <h3 id="defsh">defs.h<a hidden class="anchor" aria-hidden="true" href="#defsh">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">backtrace</span>(<span style="color:#66d9ef">void</span>);
-</span></span></code></pre></div><h3 id="printfc">printf.c<a hidden class="anchor" aria-hidden="true" href="#printfc">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-5-1"><a class="lnlinks" href="#hl-5-1">1</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span>            <span class="nf">backtrace</span><span class="p">(</span><span class="kt">void</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="printfc">printf.c<a hidden class="anchor" aria-hidden="true" href="#printfc">#</a></h3>
 <p>
 
 
@@ -733,18 +779,35 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">backtrace</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  uint64 p <span style="color:#f92672">=</span> <span style="color:#a6e22e">r_fp</span>();
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> (p <span style="color:#f92672">!=</span> <span style="color:#a6e22e">PGROUNDUP</span>(p))
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    uint64 ra <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(uint64 <span style="color:#f92672">*</span>)(p <span style="color:#f92672">-</span> <span style="color:#ae81ff">8</span>);
-</span></span><span style="display:flex;"><span>    uint64 fp <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(uint64 <span style="color:#f92672">*</span>)(p <span style="color:#f92672">-</span> <span style="color:#ae81ff">16</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, ra);
-</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> fp;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-6-1"><a class="lnlinks" href="#hl-6-1"> 1</a>
+</span><span class="lnt" id="hl-6-2"><a class="lnlinks" href="#hl-6-2"> 2</a>
+</span><span class="lnt" id="hl-6-3"><a class="lnlinks" href="#hl-6-3"> 3</a>
+</span><span class="lnt" id="hl-6-4"><a class="lnlinks" href="#hl-6-4"> 4</a>
+</span><span class="lnt" id="hl-6-5"><a class="lnlinks" href="#hl-6-5"> 5</a>
+</span><span class="lnt" id="hl-6-6"><a class="lnlinks" href="#hl-6-6"> 6</a>
+</span><span class="lnt" id="hl-6-7"><a class="lnlinks" href="#hl-6-7"> 7</a>
+</span><span class="lnt" id="hl-6-8"><a class="lnlinks" href="#hl-6-8"> 8</a>
+</span><span class="lnt" id="hl-6-9"><a class="lnlinks" href="#hl-6-9"> 9</a>
+</span><span class="lnt" id="hl-6-10"><a class="lnlinks" href="#hl-6-10">10</a>
+</span><span class="lnt" id="hl-6-11"><a class="lnlinks" href="#hl-6-11">11</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="kt">void</span> <span class="nf">backtrace</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">uint64</span> <span class="n">p</span> <span class="o">=</span> <span class="nf">r_fp</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">  <span class="k">while</span> <span class="p">(</span><span class="n">p</span> <span class="o">!=</span> <span class="nf">PGROUNDUP</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+</span></span><span class="line"><span class="cl">  <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uint64</span> <span class="n">ra</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">uint64</span> <span class="o">*</span><span class="p">)(</span><span class="n">p</span> <span class="o">-</span> <span class="mi">8</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">uint64</span> <span class="n">fp</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">uint64</span> <span class="o">*</span><span class="p">)(</span><span class="n">p</span> <span class="o">-</span> <span class="mi">16</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">printf</span><span class="p">(</span><span class="s">&#34;%p</span><span class="se">\n</span><span class="s">&#34;</span><span class="p">,</span> <span class="n">ra</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="n">p</span> <span class="o">=</span> <span class="n">fp</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>
 
 
 
@@ -799,16 +862,31 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handler <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((p<span style="color:#f92672">-&gt;</span>alarm_trapframe <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> trapframe <span style="color:#f92672">*</span>)<span style="color:#a6e22e">kalloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></div><p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-7-1"><a class="lnlinks" href="#hl-7-1">1</a>
+</span><span class="lnt" id="hl-7-2"><a class="lnlinks" href="#hl-7-2">2</a>
+</span><span class="lnt" id="hl-7-3"><a class="lnlinks" href="#hl-7-3">3</a>
+</span><span class="lnt" id="hl-7-4"><a class="lnlinks" href="#hl-7-4">4</a>
+</span><span class="lnt" id="hl-7-5"><a class="lnlinks" href="#hl-7-5">5</a>
+</span><span class="lnt" id="hl-7-6"><a class="lnlinks" href="#hl-7-6">6</a>
+</span><span class="lnt" id="hl-7-7"><a class="lnlinks" href="#hl-7-7">7</a>
+</span><span class="lnt" id="hl-7-8"><a class="lnlinks" href="#hl-7-8">8</a>
+</span><span class="lnt" id="hl-7-9"><a class="lnlinks" href="#hl-7-9">9</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_interval</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handler</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_tick_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handling</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">((</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_trapframe</span> <span class="o">=</span> <span class="p">(</span><span class="k">struct</span> <span class="n">trapframe</span> <span class="o">*</span><span class="p">)</span><span class="nf">kalloc</span><span class="p">())</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">  <span class="p">{</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">release</span><span class="p">(</span><span class="o">&amp;</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">lock</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>
 
 
 
@@ -821,13 +899,25 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handler <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>alarm_trapframe)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kfree</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)p<span style="color:#f92672">-&gt;</span>alarm_trapframe);
-</span></span></code></pre></div><p>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-8-1"><a class="lnlinks" href="#hl-8-1">1</a>
+</span><span class="lnt" id="hl-8-2"><a class="lnlinks" href="#hl-8-2">2</a>
+</span><span class="lnt" id="hl-8-3"><a class="lnlinks" href="#hl-8-3">3</a>
+</span><span class="lnt" id="hl-8-4"><a class="lnlinks" href="#hl-8-4">4</a>
+</span><span class="lnt" id="hl-8-5"><a class="lnlinks" href="#hl-8-5">5</a>
+</span><span class="lnt" id="hl-8-6"><a class="lnlinks" href="#hl-8-6">6</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_interval</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handler</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_tick_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handling</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_trapframe</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="nf">kfree</span><span class="p">((</span><span class="kt">void</span> <span class="o">*</span><span class="p">)</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_trapframe</span><span class="p">);</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><p>
 
 
 
@@ -853,86 +943,171 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 参数：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 返回值：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   成功返回0，失败返回-1。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 功能：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   用户定义的信号处理程序（handler）。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   具体来说：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   2. 在失败的情况下返回-1。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//      和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>uint64 <span style="color:#a6e22e">sys_sigalarm</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> ticks;         <span style="color:#75715e">// 用于存储用户传入的tick数（间隔时间）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>handler)(); <span style="color:#75715e">// 用于存储用户传入的信号处理程序的指针
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从第一个参数获取tick数，argint用于获取整数类型的参数。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>ticks) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 获取失败，返回-1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">argaddr</span>(<span style="color:#ae81ff">1</span>, (uint64 <span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>handler) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 获取失败，返回-1
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取当前的进程结构体指针
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置进程的闹钟间隔
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">=</span> ticks;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置进程的信号处理程序
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>alarm_handler <span style="color:#f92672">=</span> handler;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 重置闹钟的计数器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 初始化闹钟处理状态为未处理
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置成功，返回0
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 参数：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   无直接参数。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 返回值：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   成功返回0。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 功能：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时，
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>uint64 <span style="color:#a6e22e">sys_sigreturn</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>(); <span style="color:#75715e">// 获取当前进程的指针
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// trapframe保存了进程在处理信号之前的CPU寄存器状态。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>alarm_trapframe);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 重置闹钟的处理状态，表示当前不在信号处理程序中。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 成功返回
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="proch">proc.h<a hidden class="anchor" aria-hidden="true" href="#proch">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-9-1"><a class="lnlinks" href="#hl-9-1"> 1</a>
+</span><span class="lnt" id="hl-9-2"><a class="lnlinks" href="#hl-9-2"> 2</a>
+</span><span class="lnt" id="hl-9-3"><a class="lnlinks" href="#hl-9-3"> 3</a>
+</span><span class="lnt" id="hl-9-4"><a class="lnlinks" href="#hl-9-4"> 4</a>
+</span><span class="lnt" id="hl-9-5"><a class="lnlinks" href="#hl-9-5"> 5</a>
+</span><span class="lnt" id="hl-9-6"><a class="lnlinks" href="#hl-9-6"> 6</a>
+</span><span class="lnt" id="hl-9-7"><a class="lnlinks" href="#hl-9-7"> 7</a>
+</span><span class="lnt" id="hl-9-8"><a class="lnlinks" href="#hl-9-8"> 8</a>
+</span><span class="lnt" id="hl-9-9"><a class="lnlinks" href="#hl-9-9"> 9</a>
+</span><span class="lnt" id="hl-9-10"><a class="lnlinks" href="#hl-9-10">10</a>
+</span><span class="lnt" id="hl-9-11"><a class="lnlinks" href="#hl-9-11">11</a>
+</span><span class="lnt" id="hl-9-12"><a class="lnlinks" href="#hl-9-12">12</a>
+</span><span class="lnt" id="hl-9-13"><a class="lnlinks" href="#hl-9-13">13</a>
+</span><span class="lnt" id="hl-9-14"><a class="lnlinks" href="#hl-9-14">14</a>
+</span><span class="lnt" id="hl-9-15"><a class="lnlinks" href="#hl-9-15">15</a>
+</span><span class="lnt" id="hl-9-16"><a class="lnlinks" href="#hl-9-16">16</a>
+</span><span class="lnt" id="hl-9-17"><a class="lnlinks" href="#hl-9-17">17</a>
+</span><span class="lnt" id="hl-9-18"><a class="lnlinks" href="#hl-9-18">18</a>
+</span><span class="lnt" id="hl-9-19"><a class="lnlinks" href="#hl-9-19">19</a>
+</span><span class="lnt" id="hl-9-20"><a class="lnlinks" href="#hl-9-20">20</a>
+</span><span class="lnt" id="hl-9-21"><a class="lnlinks" href="#hl-9-21">21</a>
+</span><span class="lnt" id="hl-9-22"><a class="lnlinks" href="#hl-9-22">22</a>
+</span><span class="lnt" id="hl-9-23"><a class="lnlinks" href="#hl-9-23">23</a>
+</span><span class="lnt" id="hl-9-24"><a class="lnlinks" href="#hl-9-24">24</a>
+</span><span class="lnt" id="hl-9-25"><a class="lnlinks" href="#hl-9-25">25</a>
+</span><span class="lnt" id="hl-9-26"><a class="lnlinks" href="#hl-9-26">26</a>
+</span><span class="lnt" id="hl-9-27"><a class="lnlinks" href="#hl-9-27">27</a>
+</span><span class="lnt" id="hl-9-28"><a class="lnlinks" href="#hl-9-28">28</a>
+</span><span class="lnt" id="hl-9-29"><a class="lnlinks" href="#hl-9-29">29</a>
+</span><span class="lnt" id="hl-9-30"><a class="lnlinks" href="#hl-9-30">30</a>
+</span><span class="lnt" id="hl-9-31"><a class="lnlinks" href="#hl-9-31">31</a>
+</span><span class="lnt" id="hl-9-32"><a class="lnlinks" href="#hl-9-32">32</a>
+</span><span class="lnt" id="hl-9-33"><a class="lnlinks" href="#hl-9-33">33</a>
+</span><span class="lnt" id="hl-9-34"><a class="lnlinks" href="#hl-9-34">34</a>
+</span><span class="lnt" id="hl-9-35"><a class="lnlinks" href="#hl-9-35">35</a>
+</span><span class="lnt" id="hl-9-36"><a class="lnlinks" href="#hl-9-36">36</a>
+</span><span class="lnt" id="hl-9-37"><a class="lnlinks" href="#hl-9-37">37</a>
+</span><span class="lnt" id="hl-9-38"><a class="lnlinks" href="#hl-9-38">38</a>
+</span><span class="lnt" id="hl-9-39"><a class="lnlinks" href="#hl-9-39">39</a>
+</span><span class="lnt" id="hl-9-40"><a class="lnlinks" href="#hl-9-40">40</a>
+</span><span class="lnt" id="hl-9-41"><a class="lnlinks" href="#hl-9-41">41</a>
+</span><span class="lnt" id="hl-9-42"><a class="lnlinks" href="#hl-9-42">42</a>
+</span><span class="lnt" id="hl-9-43"><a class="lnlinks" href="#hl-9-43">43</a>
+</span><span class="lnt" id="hl-9-44"><a class="lnlinks" href="#hl-9-44">44</a>
+</span><span class="lnt" id="hl-9-45"><a class="lnlinks" href="#hl-9-45">45</a>
+</span><span class="lnt" id="hl-9-46"><a class="lnlinks" href="#hl-9-46">46</a>
+</span><span class="lnt" id="hl-9-47"><a class="lnlinks" href="#hl-9-47">47</a>
+</span><span class="lnt" id="hl-9-48"><a class="lnlinks" href="#hl-9-48">48</a>
+</span><span class="lnt" id="hl-9-49"><a class="lnlinks" href="#hl-9-49">49</a>
+</span><span class="lnt" id="hl-9-50"><a class="lnlinks" href="#hl-9-50">50</a>
+</span><span class="lnt" id="hl-9-51"><a class="lnlinks" href="#hl-9-51">51</a>
+</span><span class="lnt" id="hl-9-52"><a class="lnlinks" href="#hl-9-52">52</a>
+</span><span class="lnt" id="hl-9-53"><a class="lnlinks" href="#hl-9-53">53</a>
+</span><span class="lnt" id="hl-9-54"><a class="lnlinks" href="#hl-9-54">54</a>
+</span><span class="lnt" id="hl-9-55"><a class="lnlinks" href="#hl-9-55">55</a>
+</span><span class="lnt" id="hl-9-56"><a class="lnlinks" href="#hl-9-56">56</a>
+</span><span class="lnt" id="hl-9-57"><a class="lnlinks" href="#hl-9-57">57</a>
+</span><span class="lnt" id="hl-9-58"><a class="lnlinks" href="#hl-9-58">58</a>
+</span><span class="lnt" id="hl-9-59"><a class="lnlinks" href="#hl-9-59">59</a>
+</span><span class="lnt" id="hl-9-60"><a class="lnlinks" href="#hl-9-60">60</a>
+</span><span class="lnt" id="hl-9-61"><a class="lnlinks" href="#hl-9-61">61</a>
+</span><span class="lnt" id="hl-9-62"><a class="lnlinks" href="#hl-9-62">62</a>
+</span><span class="lnt" id="hl-9-63"><a class="lnlinks" href="#hl-9-63">63</a>
+</span><span class="lnt" id="hl-9-64"><a class="lnlinks" href="#hl-9-64">64</a>
+</span><span class="lnt" id="hl-9-65"><a class="lnlinks" href="#hl-9-65">65</a>
+</span><span class="lnt" id="hl-9-66"><a class="lnlinks" href="#hl-9-66">66</a>
+</span><span class="lnt" id="hl-9-67"><a class="lnlinks" href="#hl-9-67">67</a>
+</span><span class="lnt" id="hl-9-68"><a class="lnlinks" href="#hl-9-68">68</a>
+</span><span class="lnt" id="hl-9-69"><a class="lnlinks" href="#hl-9-69">69</a>
+</span><span class="lnt" id="hl-9-70"><a class="lnlinks" href="#hl-9-70">70</a>
+</span><span class="lnt" id="hl-9-71"><a class="lnlinks" href="#hl-9-71">71</a>
+</span><span class="lnt" id="hl-9-72"><a class="lnlinks" href="#hl-9-72">72</a>
+</span><span class="lnt" id="hl-9-73"><a class="lnlinks" href="#hl-9-73">73</a>
+</span><span class="lnt" id="hl-9-74"><a class="lnlinks" href="#hl-9-74">74</a>
+</span><span class="lnt" id="hl-9-75"><a class="lnlinks" href="#hl-9-75">75</a>
+</span><span class="lnt" id="hl-9-76"><a class="lnlinks" href="#hl-9-76">76</a>
+</span><span class="lnt" id="hl-9-77"><a class="lnlinks" href="#hl-9-77">77</a>
+</span><span class="lnt" id="hl-9-78"><a class="lnlinks" href="#hl-9-78">78</a>
+</span><span class="lnt" id="hl-9-79"><a class="lnlinks" href="#hl-9-79">79</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="c1">// sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序
+</span></span></span><span class="line"><span class="cl"><span class="c1">//
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 参数：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 返回值：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   成功返回0，失败返回-1。
+</span></span></span><span class="line"><span class="cl"><span class="c1">//
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 功能：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   用户定义的信号处理程序（handler）。
+</span></span></span><span class="line"><span class="cl"><span class="c1">//
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   具体来说：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   2. 在失败的情况下返回-1。
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔）
+</span></span></span><span class="line"><span class="cl"><span class="c1">//      和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="n">uint64</span> <span class="nf">sys_sigalarm</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="kt">int</span> <span class="n">ticks</span><span class="p">;</span>         <span class="c1">// 用于存储用户传入的tick数（间隔时间）
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">handler</span><span class="p">)();</span> <span class="c1">// 用于存储用户传入的信号处理程序的指针
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// 从第一个参数获取tick数，argint用于获取整数类型的参数。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">if</span> <span class="p">(</span><span class="nf">argint</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="o">&amp;</span><span class="n">ticks</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="c1">// 获取失败，返回-1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">if</span> <span class="p">(</span><span class="nf">argaddr</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="p">(</span><span class="n">uint64</span> <span class="o">*</span><span class="p">)</span><span class="o">&amp;</span><span class="n">handler</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="k">return</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span> <span class="c1">// 获取失败，返回-1
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// 获取当前的进程结构体指针
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">struct</span> <span class="n">proc</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="nf">myproc</span><span class="p">();</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 设置进程的闹钟间隔
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_interval</span> <span class="o">=</span> <span class="n">ticks</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 设置进程的信号处理程序
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handler</span> <span class="o">=</span> <span class="n">handler</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 重置闹钟的计数器
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_tick_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 初始化闹钟处理状态为未处理
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handling</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 设置成功，返回0
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl"><span class="c1">// sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序
+</span></span></span><span class="line"><span class="cl"><span class="c1">//
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 参数：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   无直接参数。
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 返回值：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   成功返回0。
+</span></span></span><span class="line"><span class="cl"><span class="c1">//
+</span></span></span><span class="line"><span class="cl"><span class="c1">// 功能：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时，
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括：
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。
+</span></span></span><span class="line"><span class="cl"><span class="c1">//   2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl"><span class="n">uint64</span> <span class="nf">sys_sigreturn</span><span class="p">(</span><span class="kt">void</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="k">struct</span> <span class="n">proc</span> <span class="o">*</span><span class="n">p</span> <span class="o">=</span> <span class="nf">myproc</span><span class="p">();</span> <span class="c1">// 获取当前进程的指针
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>
+</span></span><span class="line"><span class="cl">  <span class="c1">// 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="c1">// trapframe保存了进程在处理信号之前的CPU寄存器状态。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">trapframe</span><span class="p">)</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_trapframe</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_tick_count</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 重置闹钟的处理状态，表示当前不在信号处理程序中。
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handling</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">
+</span></span><span class="line"><span class="cl">  <span class="c1">// 成功返回
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>  <span class="k">return</span> <span class="mi">0</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="proch">proc.h<a hidden class="anchor" aria-hidden="true" href="#proch">#</a></h3>
 <p>
 
 
@@ -946,12 +1121,23 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> alarm_interval;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>alarm_handler)();
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> alarm_tick_count;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> alarm_handling;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> trapframe <span style="color:#f92672">*</span>alarm_trapframe;
-</span></span></code></pre></div><h3 id="riscvh-1">riscv.h<a hidden class="anchor" aria-hidden="true" href="#riscvh-1">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-10-1"><a class="lnlinks" href="#hl-10-1">1</a>
+</span><span class="lnt" id="hl-10-2"><a class="lnlinks" href="#hl-10-2">2</a>
+</span><span class="lnt" id="hl-10-3"><a class="lnlinks" href="#hl-10-3">3</a>
+</span><span class="lnt" id="hl-10-4"><a class="lnlinks" href="#hl-10-4">4</a>
+</span><span class="lnt" id="hl-10-5"><a class="lnlinks" href="#hl-10-5">5</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">  <span class="kt">int</span> <span class="n">alarm_interval</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kt">void</span> <span class="p">(</span><span class="o">*</span><span class="n">alarm_handler</span><span class="p">)();</span>
+</span></span><span class="line"><span class="cl">  <span class="kt">int</span> <span class="n">alarm_tick_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="kt">int</span> <span class="n">alarm_handling</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="k">struct</span> <span class="n">trapframe</span> <span class="o">*</span><span class="n">alarm_trapframe</span><span class="p">;</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="riscvh-1">riscv.h<a hidden class="anchor" aria-hidden="true" href="#riscvh-1">#</a></h3>
 <p>
 
 
@@ -965,14 +1151,27 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> uint64
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">r_fp</span>()
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  uint64 x;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">asm</span> <span style="color:#66d9ef">volatile</span>(<span style="color:#e6db74">&#34;mv %0, s0&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;=r&#34;</span>(x));
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> x;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="syscallc">syscall.c<a hidden class="anchor" aria-hidden="true" href="#syscallc">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-11-1"><a class="lnlinks" href="#hl-11-1">1</a>
+</span><span class="lnt" id="hl-11-2"><a class="lnlinks" href="#hl-11-2">2</a>
+</span><span class="lnt" id="hl-11-3"><a class="lnlinks" href="#hl-11-3">3</a>
+</span><span class="lnt" id="hl-11-4"><a class="lnlinks" href="#hl-11-4">4</a>
+</span><span class="lnt" id="hl-11-5"><a class="lnlinks" href="#hl-11-5">5</a>
+</span><span class="lnt" id="hl-11-6"><a class="lnlinks" href="#hl-11-6">6</a>
+</span><span class="lnt" id="hl-11-7"><a class="lnlinks" href="#hl-11-7">7</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl"><span class="k">static</span> <span class="kr">inline</span> <span class="n">uint64</span>
+</span></span><span class="line"><span class="cl"><span class="nf">r_fp</span><span class="p">()</span>
+</span></span><span class="line"><span class="cl"><span class="p">{</span>
+</span></span><span class="line"><span class="cl">  <span class="n">uint64</span> <span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">  <span class="k">asm</span> <span class="k">volatile</span><span class="p">(</span><span class="s">&#34;mv %0, s0&#34;</span> <span class="o">:</span> <span class="s">&#34;=r&#34;</span><span class="p">(</span><span class="n">x</span><span class="p">));</span>
+</span></span><span class="line"><span class="cl">  <span class="k">return</span> <span class="n">x</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl"><span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="syscallc">syscall.c<a hidden class="anchor" aria-hidden="true" href="#syscallc">#</a></h3>
 <p>
 
 
@@ -1027,21 +1226,41 @@ can you think of ways to make traps faster?</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#75715e">// ok
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">if</span> (which_dev <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>p<span style="color:#f92672">-&gt;</span>alarm_handling)
-</span></span><span style="display:flex;"><span>      {
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">++</span>p<span style="color:#f92672">-&gt;</span>alarm_tick_count;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">==</span> p<span style="color:#f92672">-&gt;</span>alarm_interval)
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>          <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>alarm_trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe);
-</span></span><span style="display:flex;"><span>          p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>epc <span style="color:#f92672">=</span> (uint64)(p<span style="color:#f92672">-&gt;</span>alarm_handler);
-</span></span><span style="display:flex;"><span>          p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>      }
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h3 id="userh">user.h<a hidden class="anchor" aria-hidden="true" href="#userh">#</a></h3>
+<div class="highlight"><div class="chroma">
+<table class="lntable"><tr><td class="lntd">
+<pre tabindex="0" class="chroma"><code><span class="lnt" id="hl-12-1"><a class="lnlinks" href="#hl-12-1"> 1</a>
+</span><span class="lnt" id="hl-12-2"><a class="lnlinks" href="#hl-12-2"> 2</a>
+</span><span class="lnt" id="hl-12-3"><a class="lnlinks" href="#hl-12-3"> 3</a>
+</span><span class="lnt" id="hl-12-4"><a class="lnlinks" href="#hl-12-4"> 4</a>
+</span><span class="lnt" id="hl-12-5"><a class="lnlinks" href="#hl-12-5"> 5</a>
+</span><span class="lnt" id="hl-12-6"><a class="lnlinks" href="#hl-12-6"> 6</a>
+</span><span class="lnt" id="hl-12-7"><a class="lnlinks" href="#hl-12-7"> 7</a>
+</span><span class="lnt" id="hl-12-8"><a class="lnlinks" href="#hl-12-8"> 8</a>
+</span><span class="lnt" id="hl-12-9"><a class="lnlinks" href="#hl-12-9"> 9</a>
+</span><span class="lnt" id="hl-12-10"><a class="lnlinks" href="#hl-12-10">10</a>
+</span><span class="lnt" id="hl-12-11"><a class="lnlinks" href="#hl-12-11">11</a>
+</span><span class="lnt" id="hl-12-12"><a class="lnlinks" href="#hl-12-12">12</a>
+</span><span class="lnt" id="hl-12-13"><a class="lnlinks" href="#hl-12-13">13</a>
+</span><span class="lnt" id="hl-12-14"><a class="lnlinks" href="#hl-12-14">14</a>
+</span></code></pre></td>
+<td class="lntd">
+<pre tabindex="0" class="chroma"><code class="language-c" data-lang="c"><span class="line"><span class="cl">    <span class="c1">// ok
+</span></span></span><span class="line"><span class="cl"><span class="c1"></span>    <span class="k">if</span> <span class="p">(</span><span class="n">which_dev</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">    <span class="p">{</span>
+</span></span><span class="line"><span class="cl">      <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_interval</span> <span class="o">!=</span> <span class="mi">0</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handling</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">      <span class="p">{</span>
+</span></span><span class="line"><span class="cl">        <span class="o">++</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_tick_count</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="k">if</span> <span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_tick_count</span> <span class="o">==</span> <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_interval</span><span class="p">)</span>
+</span></span><span class="line"><span class="cl">        <span class="p">{</span>
+</span></span><span class="line"><span class="cl">          <span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_trapframe</span><span class="p">)</span> <span class="o">=</span> <span class="o">*</span><span class="p">(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">trapframe</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">          <span class="n">p</span><span class="o">-&gt;</span><span class="n">trapframe</span><span class="o">-&gt;</span><span class="n">epc</span> <span class="o">=</span> <span class="p">(</span><span class="n">uint64</span><span class="p">)(</span><span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handler</span><span class="p">);</span>
+</span></span><span class="line"><span class="cl">          <span class="n">p</span><span class="o">-&gt;</span><span class="n">alarm_handling</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+</span></span><span class="line"><span class="cl">        <span class="p">}</span>
+</span></span><span class="line"><span class="cl">      <span class="p">}</span>
+</span></span><span class="line"><span class="cl">    <span class="p">}</span>
+</span></span></code></pre></td></tr></table>
+</div>
+</div><h3 id="userh">user.h<a hidden class="anchor" aria-hidden="true" href="#userh">#</a></h3>
 <p>
 
 
