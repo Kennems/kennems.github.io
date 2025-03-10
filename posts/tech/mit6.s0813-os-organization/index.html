@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6\nOS picture apps: sh, echo, … system call interface (open, close,…) OS\nGoal of OS run multiple applications isolate them multiplex them share\nStrawman design: No OS Application directly interacts with hardware CPU cores \u0026 registers DRAM chips Disk blocks … OS library perhaps abstracts some of it\nStrawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”\nStrawman design not conducive to memory isolation all apps share physical memory one app can overwrites another apps memory one app can overwrite OS library\nUnix interface conducive to OS goals abstracts the hardware in way that achieves goals processes (instead of cores): fork OS transparently allocates cores to processes Saves and restore registers Enforces that processes give them up Periodically re-allocates cores memory (instead of physical memory): exec Each process has its “own” memory OS can decide where to place app in memory OS can enforce isolation between memory of different apps OS allows storing image in file system files (instead of disk blocks) OS can provide convenient names OS can allow sharing of files between processes/users pipes (instead of shared physical mem) OS can stop sender/receiver\nOS must be defensive an application shouldn’t be able to crash OS an application shouldn’t be able to break out of its isolation =\u003e need strong isolation between apps and OS approach: hardware support\nuser/kernel mode virtual memory Processors provide user/kernel mode kernel mode: can execute “privileged” instructions e.g., setting kernel/user bit e.g., reprogramming timer chip user mode: cannot execute privileged instructions Run OS in kernel mode, applications in user mode [RISC-V has also an M mode, which we mostly ignore]\nProcessors provide virtual memory Hardware provides page tables that translate virtual address to physical Define what physical memory an application can access OS sets up page tables so that each application can access only its memory\nApps must be able to communicate with kernel Write to storage device, which is shared =\u003e must be protected =\u003e in kernel Exit app …\nSolution: add instruction to change mode in controlled way ecall enters kernel mode at a pre-agreed entry point\nModify OS picture user / kernel (redline) app -\u003e printf() -\u003e write() -\u003e SYSTEM CALL -\u003e sys_write() -\u003e … user-level libraries are app’s private business kernel internal functions are not callable by user\nother way of drawing picture: syscall 1 -\u003e system call stub -\u003e kernel entry -\u003e syscall -\u003e fs syscall 2 -\u003e proc\nsystem call stub executes special instruction to enter kernel hardware switches to kernel mode but only at an entry point specified by the kernel\nsyscall need some way to get at arguments of syscall\n[syscalls the topic of this week’s lab]\nKernel is the Trusted Computing Base (TCB) Kernel must be “correct” Bugs in kernel could allow user apps to circumvent kernel/user Happens often in practice, because kernels are complex See CVEs Kernel must treat user apps as suspect User app may trick kernel to do the wrong thing Kernel must check arguments carefully Setup user/kernel correctly Etc. Kernel in charge of separating applications too One app may try to read/write another app’s memory =\u003e Requires a security mindset Any bug in kernel may be a security exploit\nAside: can one have process isolation WITHOUT h/w-supported kernel/user mode and virtual memory? yes! use a strongly-typed programming language\nFor example, see Singularity O/S the compiler is then the trust computing base (TCB) but h/w user/kernel mode is the most popular plan Monolothic kernel OS runs in kernel space Xv6 does this. Linux etc. too. kernel interface == system call interface one big program with file system, drivers, \u0026c\ngood: easy for subsystems to cooperate one cache shared by file system and virtual memory bad: interactions are complex leads to bugs no isolation within Microkernel design many OS services run as ordinary user programs file system in a file server kernel implements minimal mechanism to run services in user space processes with memory inter-process communication (IPC) kernel interface != system call interface\ngood: more isolation bad: may be hard to get good performance both monolithic and microkernel designs widely used Xv6 case study Monolithic kernel Unix system calls == kernel interface Source code reflects OS organization (by convention) user/ apps in user mode kernel/ code in kernel mode Kernel has several parts kernel/defs.h proc fs .. Goal: read source code and understand it (without consulting book)\nUsing xv6 Makefile builds kernel program user programs mkfs $ make qemu runs xv6 on qemu emulates a RISC-V computer\nBuilding kernel\n1 2 3 .c -\u003e gcc -\u003e .s -\u003e .o \\ .... ld -\u003e a.out .c -\u003e gcc -\u003e .s -\u003e .o / makefile keeps .asm file around for binary see for example, kernel/kernel.asm\nThe RISC-V computer A very simple board (e.g., no display)\nRISC-V processor with 4 cores RAM (128 MB) support for interrupts (PLIC, CLINT) support for UART allows xv6 to talk to console allows xv6 to read from keyboard support for e1000 network card (through PCIe) Development using Qemu More convenient than using the real hardware Qemu emulates several RISC-V computers\nwe use the “virt” one https://github.com/riscv/riscv-qemu/wiki close to the SiFive board (https://www.sifive.com/boards) but with virtio for disk What is “to emulate”? Qemu is a C program that faithfully implements a RISC-V processor\n1 2 3 4 5 for (;;) { read next instructions decode instruction execute instruction (updating processor state) } [big idea: software = hardware]\nBoot xv6 (under gdb)\n1 $ make CPUS=1 qemu-gdb ​ runs xv6 under gdb (with 1 core) Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld) ​ set breakpoint at _entry ​ look at instruction ​ info reg ​ set breakpoint at main ​ Walk through main ​ single step into userinit ​ Walk through userinit ​ show proc.h ​ show allocproc() ​ show initcode.S/initcode.asm ​ break forkret() ​ walk to userret ​ break syscall ​ print num ​ syscalls[num] ​ exec “/init”\nOperating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab: system calls System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile 1 2 3 $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl 1 entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n1 2 3 4 5 6 // copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\n1 2 3 char name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n1 2 3 [SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 char *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\n1 2 3 4 5 6 7 8 9 if (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h 1 2 3 #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\n1 2 3 4 5 6 7 8 uint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h 1 2 3 int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile 1 $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h 1 2 3 // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c 1 2 3 4 5 6 7 8 9 10 11 // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c 1 #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h 1 2 3 4 5 6 7 char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c 1 2 3 [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; 1 2 3 4 \"close\", \"trace\", \"sysinfo\" }; 1 2 3 extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h 1 2 3 #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c 1 #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h 1 2 struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl 1 2 3 entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
-  "wordCount" : "1913",
+  "articleBody": "MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6\nOS picture apps: sh, echo, … system call interface (open, close,…) OS\nGoal of OS run multiple applications isolate them multiplex them share\nStrawman design: No OS Application directly interacts with hardware CPU cores \u0026 registers DRAM chips Disk blocks … OS library perhaps abstracts some of it\nStrawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”\nStrawman design not conducive to memory isolation all apps share physical memory one app can overwrites another apps memory one app can overwrite OS library\nUnix interface conducive to OS goals abstracts the hardware in way that achieves goals processes (instead of cores): fork OS transparently allocates cores to processes Saves and restore registers Enforces that processes give them up Periodically re-allocates cores memory (instead of physical memory): exec Each process has its “own” memory OS can decide where to place app in memory OS can enforce isolation between memory of different apps OS allows storing image in file system files (instead of disk blocks) OS can provide convenient names OS can allow sharing of files between processes/users pipes (instead of shared physical mem) OS can stop sender/receiver\nOS must be defensive an application shouldn’t be able to crash OS an application shouldn’t be able to break out of its isolation =\u003e need strong isolation between apps and OS approach: hardware support\nuser/kernel mode virtual memory Processors provide user/kernel mode kernel mode: can execute “privileged” instructions e.g., setting kernel/user bit e.g., reprogramming timer chip user mode: cannot execute privileged instructions Run OS in kernel mode, applications in user mode [RISC-V has also an M mode, which we mostly ignore]\nProcessors provide virtual memory Hardware provides page tables that translate virtual address to physical Define what physical memory an application can access OS sets up page tables so that each application can access only its memory\nApps must be able to communicate with kernel Write to storage device, which is shared =\u003e must be protected =\u003e in kernel Exit app …\nSolution: add instruction to change mode in controlled way ecall enters kernel mode at a pre-agreed entry point\nModify OS picture user / kernel (redline) app -\u003e printf() -\u003e write() -\u003e SYSTEM CALL -\u003e sys_write() -\u003e … user-level libraries are app’s private business kernel internal functions are not callable by user\nother way of drawing picture: syscall 1 -\u003e system call stub -\u003e kernel entry -\u003e syscall -\u003e fs syscall 2 -\u003e proc\nsystem call stub executes special instruction to enter kernel hardware switches to kernel mode but only at an entry point specified by the kernel\nsyscall need some way to get at arguments of syscall\n[syscalls the topic of this week’s lab]\nKernel is the Trusted Computing Base (TCB) Kernel must be “correct” Bugs in kernel could allow user apps to circumvent kernel/user Happens often in practice, because kernels are complex See CVEs Kernel must treat user apps as suspect User app may trick kernel to do the wrong thing Kernel must check arguments carefully Setup user/kernel correctly Etc. Kernel in charge of separating applications too One app may try to read/write another app’s memory =\u003e Requires a security mindset Any bug in kernel may be a security exploit\nAside: can one have process isolation WITHOUT h/w-supported kernel/user mode and virtual memory? yes! use a strongly-typed programming language\nFor example, see Singularity O/S the compiler is then the trust computing base (TCB) but h/w user/kernel mode is the most popular plan Monolothic kernel OS runs in kernel space Xv6 does this. Linux etc. too. kernel interface == system call interface one big program with file system, drivers, \u0026c\ngood: easy for subsystems to cooperate one cache shared by file system and virtual memory bad: interactions are complex leads to bugs no isolation within Microkernel design many OS services run as ordinary user programs file system in a file server kernel implements minimal mechanism to run services in user space processes with memory inter-process communication (IPC) kernel interface != system call interface\ngood: more isolation bad: may be hard to get good performance both monolithic and microkernel designs widely used Xv6 case study Monolithic kernel Unix system calls == kernel interface Source code reflects OS organization (by convention) user/ apps in user mode kernel/ code in kernel mode Kernel has several parts kernel/defs.h proc fs .. Goal: read source code and understand it (without consulting book)\nUsing xv6 Makefile builds kernel program user programs mkfs $ make qemu runs xv6 on qemu emulates a RISC-V computer\nBuilding kernel\n.c -\u003e gcc -\u003e .s -\u003e .o \\ .... ld -\u003e a.out .c -\u003e gcc -\u003e .s -\u003e .o / makefile keeps .asm file around for binary see for example, kernel/kernel.asm\nThe RISC-V computer A very simple board (e.g., no display)\nRISC-V processor with 4 cores RAM (128 MB) support for interrupts (PLIC, CLINT) support for UART allows xv6 to talk to console allows xv6 to read from keyboard support for e1000 network card (through PCIe) Development using Qemu More convenient than using the real hardware Qemu emulates several RISC-V computers\nwe use the “virt” one https://github.com/riscv/riscv-qemu/wiki close to the SiFive board (https://www.sifive.com/boards) but with virtio for disk What is “to emulate”? Qemu is a C program that faithfully implements a RISC-V processor\nfor (;;) { read next instructions decode instruction execute instruction (updating processor state) } [big idea: software = hardware]\nBoot xv6 (under gdb)\n$ make CPUS=1 qemu-gdb ​ runs xv6 under gdb (with 1 core) Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld) ​ set breakpoint at _entry ​ look at instruction ​ info reg ​ set breakpoint at main ​ Walk through main ​ single step into userinit ​ Walk through userinit ​ show proc.h ​ show allocproc() ​ show initcode.S/initcode.asm ​ break forkret() ​ walk to userret ​ break syscall ​ print num ​ syscalls[num] ​ exec “/init”\nOperating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab: system calls System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
+  "wordCount" : "1800",
   "inLanguage": "zh",
   "datePublished": "2024-08-31T22:30:13+08:00",
   "dateModified": "2024-08-31T22:20:13+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(3)
     </div>
-    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1913 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1800 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -561,19 +561,10 @@ $ make qemu
 runs xv6 on qemu
 emulates a RISC-V computer</p>
 <p>Building kernel</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  .c -&gt; gcc -&gt; .s -&gt; .o  \
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  .c -&gt; gcc -&gt; .s -&gt; .o  \
 </span></span><span style="display:flex;"><span>  ....                     ld -&gt; a.out
 </span></span><span style="display:flex;"><span>  .c -&gt; gcc -&gt; .s -&gt; .o  /
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>makefile keeps .asm file around for binary
+</span></span></code></pre></div><p>makefile keeps .asm file around for binary
 see for example, kernel/kernel.asm</p>
 <p>The RISC-V computer
 A very simple board (e.g., no display)</p>
@@ -597,33 +588,15 @@ but with virtio for disk</li>
 </ul>
 <p>What is &ldquo;to emulate&rdquo;?
 Qemu is a C program that faithfully implements a RISC-V processor</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-5">5</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  for (;;) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  for (;;) {
 </span></span><span style="display:flex;"><span>    read next instructions
 </span></span><span style="display:flex;"><span>    decode instruction
 </span></span><span style="display:flex;"><span>    execute instruction (updating processor state)
 </span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>[big idea: software = hardware]</p>
+</span></span></code></pre></div><p>[big idea: software = hardware]</p>
 <p>Boot xv6 (under gdb)</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  $ make CPUS=1 qemu-gdb
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>​    runs xv6 under gdb (with 1 core)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  $ make CPUS=1 qemu-gdb
+</span></span></code></pre></div><p>​    runs xv6 under gdb (with 1 core)
 Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
 ​    set breakpoint at _entry
 ​      look at instruction
@@ -763,104 +736,31 @@ Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
 <h2 id="lab-system-callshttpspdoscsailmitedu6s0812020labssyscallhtml"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab: system calls</a><a hidden class="anchor" aria-hidden="true" href="#lab-system-callshttpspdoscsailmitedu6s0812020labssyscallhtml">#</a></h2>
 <h2 id="system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#system-call-tracing-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
 <h3 id="hometopeetprojectxv6-labs-2020makefile">/home/topeet/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020makefile">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>    $U/_wc<span style="color:#ae81ff">\
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>    $U/_wc<span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    $U/_zombie<span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span>    $U/_trace<span style="color:#ae81ff">\
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="hometopeetprojectxv6-labs-2020userusyspl">/home/topeet/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020userusyspl">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-perl" data-lang="perl"><span style="display:flex;"><span>	entry(<span style="color:#e6db74">&#34;trace&#34;</span>);
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelprocc">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc">#</a></h3>
+</span></span></span></code></pre></div><h3 id="hometopeetprojectxv6-labs-2020userusyspl">/home/topeet/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020userusyspl">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-perl" data-lang="perl"><span style="display:flex;"><span>	entry(<span style="color:#e6db74">&#34;trace&#34;</span>);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelprocc">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc">#</a></h3>
 <p>在fork()函数内部添加如下代码：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-6">6</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">// copy saved user registers.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">// copy saved user registers.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#f92672">*</span>(np<span style="color:#f92672">-&gt;</span>trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe);
 </span></span><span style="display:flex;"><span>  np<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>tracemask;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Cause fork to return 0 in the child.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  np<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelproch">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch">#</a></h3>
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelproch">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch">#</a></h3>
 <p>在结构体<code>proc</code>中添加<code>tracemask</code>属性</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> tracemask; <span style="color:#75715e">// Trace Mask
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelsyscallc">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc">#</a></h3>
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallc">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc">#</a></h3>
 <p>处理系统调用（system call)的核心代码， 主要作用是实现系统调用的<strong>参数提取</strong>，<strong>处理</strong>和<strong>结果返回</strong>。</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_mkdir] sys_mkdir,
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_mkdir] sys_mkdir,
 </span></span><span style="display:flex;"><span>    [SYS_close] sys_close,
 </span></span><span style="display:flex;"><span>    [SYS_trace] sys_trace};
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>按照参数顺序保存每个系统调用的名称，便于调试和输出。</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-17">17</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-18"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-18">18</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-19"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-19">19</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-20"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-20">20</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-21"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-21">21</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-22"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-22">22</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-23"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-23">23</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>sys_name[] <span style="color:#f92672">=</span> {
+</span></span></code></pre></div><p>按照参数顺序保存每个系统调用的名称，便于调试和输出。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>sys_name[] <span style="color:#f92672">=</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;fork&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exit&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;wait&#34;</span>,
@@ -883,23 +783,8 @@ Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mkdir&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;trace&#34;</span>};
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>在<code>syscall</code>函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-8">8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-9">9</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (num <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> num <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">NELEM</span>(syscalls) <span style="color:#f92672">&amp;&amp;</span> syscalls[num])
+</span></span></code></pre></div><p>在<code>syscall</code>函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (num <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> num <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">NELEM</span>(syscalls) <span style="color:#f92672">&amp;&amp;</span> syscalls[num])
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> syscalls[num]();
 </span></span><span style="display:flex;"><span>
@@ -908,36 +793,13 @@ Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
 </span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d: syscall %s -&gt; %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p<span style="color:#f92672">-&gt;</span>pid, sys_name[num <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>], p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelsyscallh">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_mkdir 20
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallh">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_mkdir 20
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close 21
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace 22
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelsysprocc">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc">#</a></h3>
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsysprocc">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc">#</a></h3>
 <p>当命令行输入命令后执行此函数</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-8">8</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
@@ -945,62 +807,20 @@ Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">=</span> n;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020useruserh">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020useruserh">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">uptime</span>(<span style="color:#66d9ef">void</span>);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span>);
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Sysinfo (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
+</span></span></code></pre></div><h2 id="sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">Sysinfo (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#sysinfo-moderatehttpspdoscsailmitedu6s0812020labsguidancehtml">#</a></h2>
 <p>实现<code>sysinfo</code>，同时重构上面的 <code>trace</code></p>
 <h3 id="projectxv6-labs-2020makefile">~/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020makefile">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>	$U/_sysinfotest<span style="color:#ae81ff">\
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kerneldefsh">~/project/xv6-labs-2020/kernel/defs.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kerneldefsh">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// sysinfo.c
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>	$U/_sysinfotest<span style="color:#ae81ff">\
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kerneldefsh">~/project/xv6-labs-2020/kernel/defs.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kerneldefsh">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// sysinfo.c
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">process_number</span>();
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">amount_free_memory</span>(<span style="color:#66d9ef">void</span>);
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelkallocc">~/project/xv6-labs-2020/kernel/kalloc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelkallocc">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-11">11</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// get free memory
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelkallocc">~/project/xv6-labs-2020/kernel/kalloc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelkallocc">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// get free memory
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">int</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">amount_free_memory</span>(<span style="color:#66d9ef">void</span>){
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
@@ -1011,124 +831,41 @@ Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cnt<span style="color:#f92672">*</span>PGSIZE;
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelprocc-1">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-16-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-16-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelproch-1">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-7">7</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelprocc-1">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelproch-1">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> tracemask; <span style="color:#75715e">// Trace memory
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>};
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span> mask);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">gather_sysinfo</span>(<span style="color:#66d9ef">struct</span> sysinfo <span style="color:#f92672">*</span>info);
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelsyscallc-1">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-18-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-18-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-18-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-18-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-18-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-18-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_trace] sys_trace,
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallc-1">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_trace] sys_trace,
 </span></span><span style="display:flex;"><span>    [SYS_sysinfo] sys_sysinfo
 </span></span><span style="display:flex;"><span>    };
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-19-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-19-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-19-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-19-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-19-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-19-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-19-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-19-4">4</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;trace&#34;</span>,
 </span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sysinfo&#34;</span>
 </span></span><span style="display:flex;"><span>    };
-</span></span></code></pre></td></tr></table>
-</div>
-</div><div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-20-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-20-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-20-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-20-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-20-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-20-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_uptime</span>(<span style="color:#66d9ef">void</span>);
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_uptime</span>(<span style="color:#66d9ef">void</span>);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>);
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_sysinfo</span>(<span style="color:#66d9ef">void</span>);
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelsyscallh-1">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-21-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-21-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-21-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-21-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-21-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-21-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close  21
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallh-1">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close  21
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace  22
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_sysinfo 23
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020kernelsysprocc-1">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-22-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-22-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
-</span></span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020useruserh-1">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-23-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-23-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-23-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-23-2">2</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> rtcdate;
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsysprocc-1">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
+</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020useruserh-1">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh-1">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> rtcdate;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo;
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="projectxv6-labs-2020userusyspl">~/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020userusyspl">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-24-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-24-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-24-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-24-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-24-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-24-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;uptime&#34;</span>);
+</span></span></code></pre></div><h3 id="projectxv6-labs-2020userusyspl">~/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020userusyspl">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;uptime&#34;</span>);
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;trace&#34;</span>);
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;sysinfo&#34;</span>);
-</span></span></code></pre></td></tr></table>
-</div>
-</div>
+</span></span></code></pre></div>
 
   </div>
 

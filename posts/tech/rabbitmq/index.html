@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "RabbitMQ"
   ],
-  "articleBody": "RabbitMQ 同步通讯 和 异步通讯\n同步调用 同步调用的问题：\n拓展性差 性能下降 级联失败 异步调用 异步调用方式其实就是基于消息通知的方式，一般包含三个角色：\n消息发送者：投递消息的人，就是原来的调用方 消息代理：管理、暂存、转发消息，可以理解为微信服务器 消息接收者：接受和处理消息的人，就是原来的服务提供方 支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。\n具备下列优势：\n解除耦合，拓展性强 无需等待，性能好 故障隔离 缓存消息，流量削峰填谷 缺点：\n不能立刻得到调用结果，时效性差 不确定下游业务执行是否成功 业务安全依赖于Broker的可靠性 MQ MQ（MessageQueue），消息队列，存放消息的队列，也就是异步调用中的Broker。\n特性 RabbitMQ ActiveMQ RocketMQ Kafka 公司/社区 Rabbit Apache 阿里 Apache 开发语言 Erlang Java Java Scala \u0026 Java 协议支持 AMQP, XMPP, SMTP, STOMP OpenWire, STOMP, REST, XMPP, AMQP 自定义协议 自定义协议 可用性 高 一般 高 非常高 单机吞吐量 一般 差 高 非常高 消息延迟 微秒级 毫秒级 毫秒级 毫秒以内 消息可靠性 高 一般 高 一般 RabbitMQ的整体架构及核心概念 virtual-host：虚拟主机，起到数据隔离的作用 publisher：消息发送者 consumer：消息的消费者 queue：队列，存储消息 exchange：交换机，负责路由消息 快速入门 启动MQ 1 2 3 4 5 6 7 8 9 10 11 docker run \\ -e RABBITMQ_DEFAULT_USER=itheima \\ -e RABBITMQ_DEFAULT_PASS=123321 \\ -v mq-plugins:/plugins \\ --name mq \\ --hostname mq \\ -p 15672:15672 \\ -p 5672:5672 \\ --network hmall \\ -d \\ rabbitmq:3.8-management 程序控制 AMQP Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。\nSpring AMQP Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。\n发送者 1 2 3 4 5 6 7 8 9 10 11 12 @SpringBootTest public class SpringAmqpTest { @Autowired private RabbitTemplate rabbitTemplate; @Test void testSendMessage2Queue(){ String queueName = \"simple.queue\"; String msg = \"hello, rabbitmq\"; rabbitTemplate.convertAndSend(queueName, msg); } } 监听者 1 2 3 4 5 6 7 8 @Slf4j @Component public class MqListener { @RabbitListener(queues = \"simple.queue\") public void listenSimpleQueue(String msg) { System.out.println(\"消费者收到消息：【\" + msg + \"】\"); } } Work模型的使用：\n多个消费者绑定到一个队列，可以加快消息处理速度 同一条消息只会被一个消费者处理 通过设置prefetch来控制消费者预取的消息数量，处理完一条再处理下一条，实现能者多劳 交换机 真正生产环境都会经过exchange来发送消息，而不是直接发送到队列，交换机的类型有以下三种：\nFanout：广播 Direct：定向 Topic：话题 Fanout交换机 Fanout Exchange会将接受到的消息广播到每一个跟其绑定的queue，所以也叫广播模式\nDirect交换机 Direct Exchange会将接收到的消息根据规则路由到指定的Queue，因此称为定向路由。\n每一个Queue都与Exchange设置一个BindingKey 发布者发送消息时，指定消息的RoutingKey Exchange将消息路由到BindingKey与消息RoutingKey一致的队列 Topic交换机 TopicExchange与DirectExchange类似，区别在于routingKey可以时多个单词的列表，并且以，分割。\nQueue与Exchange指定BindingKey时可以使用通配符：\n# ：代指0个或多个单词 *：代指一个单词 声明队列和交换机 SpringAMQP提供了几个类，用来声明队列、交换机及其绑定关系：\nQueue：用于声明队列，可以用工厂类QueueBuilder构建 Exchange：用于声明交换机，可以用工厂类ExchangeBuilder构建 Binding：用于声明队列和交换机的绑定关系，可以用工厂类BindingBuilder构建 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 @Configuration public class DirectConfiguration { @Bean public DirectExchange directExchange() { return new DirectExchange(\"hmall.direct\"); } @Bean public Queue directQueue1() { return new Queue(\"direct.queue1\"); } @Bean public Binding directQueue1BindingRed(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"red\"); } @Bean public Binding directQueue1BindingBlue(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"blue\"); } @Bean public Queue directQueue2() { return new Queue(\"direct.queue2\"); } @Bean public Binding directQueue2BindingRed(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"red\"); } @Bean public Binding directQueue2BindingYellow(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"yellow\"); } } 基于注解声明 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue1\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"blue\", \"Kennem\"} )) public void listenDirectQueue1(String msg) throws InterruptedException { System.out.println(\"消费者1 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue2\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"yellow\"} )) public void listenDirectQueue2(String msg) throws InterruptedException { System.out.println(\"消费者2 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } 消息转换器 导入依赖\n1 2 3 4 5 com.fasterxml.jackson.dataformat jackson-dataformat-xml 定义转换器\n1 2 3 4 @Bean public MessageConverter jackonMessageConverter() { return new Jackson2JsonMessageConverter(); } 业务改造 需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态\nMQ高级 消息可靠性问题 发送者的可靠性 生产者重连 由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。\n1 2 3 4 5 6 spring: rabbitmq: connection-timeout: 1s template: retry: enabled: true SpringAMQP提供的重试机制是阻塞式的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。\n如果对于业务性能有要求，建议禁用重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码\n生产者确认 RabbitMQ提供了Publisher Confirm和Publisher Return两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：\n消息投递到了MQ，但是路由失败。此时会通过PublisherReturn返回路由异常原因，然后返回ACK，告知投递成功 临时消息投递到了MQ，并且入队成功，返回ACK，告知投递成功 持久消息投递到了MQ，并且入队完成持久化，返回ACK，告知投递成功 其他情况都会返回NACK，告知投递失败 在publisher这个微服务的application.yml中添加配置： 1 2 3 4 spring: rabbitmq: publisher-confirm-type: correlated publisher-returns: true 配置说明：\npublisher-comfirm-type有三种模式可选：\nnone：关闭confirm机制 simple：同步阻塞等待MQ的回执消息 correlated：MQ异步回调方式返回回执消息 每个RabbitTemplate只能配置ReturnCallback，因此需要在项目启动过程中配置： 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 @Slf4j @Configuration public class CommonConfig implements ApplicationContextAware { @Override public void setApplicationContext(ApplicationContext applicationContext) throws BeansException { // 获取RabbitTemplate RabbitTemplate rabbitTemplate = applicationContext.getBean(RabbitTemplate.class); // 设置ReturnCallback rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -\u003e { log.info(\"消息发送失败, 应答码{}, 原因{}, 交换机{}, 路由键{},消息{}\", replyCode, replyText, exchange, routingKey, message.toString()); }); } } 发送消息，指定消息ID、消息ConfirmCallback 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 @Test void testPublisherConfirm() throws InterruptedException { // 1. 创建CorrelationData CorrelationData cd = new CorrelationData(); // 2. 给Future添加ConfirmCallback cd.getFuture().addCallback(new ListenableFutureCallback\u003cCorrelationData.Confirm\u003e() { @Override public void onFailure(Throwable ex) { // 2.1.Future发生异常时的处理逻辑,基本不会触发 log.error(\"handle message ack fail\", ex); } @Override public void onSuccess(CorrelationData.Confirm result) { // 2.2.Future接收到回执的处理逻辑,参数中的result就是回执内容 if(result.isAck()){ // result.isAck(), boolean类型, true代表ack回执, false 代表 nack回执 log.debug(\"发送消息成功, 收到 ack!\"); }else{ // result.getReason(), String类型, 返回nack时的异常描述 log.error(\"发送消息失败, 收到 nack, reason : {}\", result.getReason()); } } }); // 3. 发送消息 rabbitTemplate.convertAndSend(\"hmall.direct\", \"red1\", \"hello\", cd);d } 生产者确认需要额外的网络和系统资源开销，尽量不要使用 如果一定要用，无需开启Publisher-Return机制，因为一般路由失败是自己业务问题 对于nack消息可以有限次数重试，依然失败则记录异常消息 MQ的可靠性 在默认情况下，RabbitMQ会将接收到的消息保存在内存中以降低消息收发的延迟。这样会导致两个问题：\n一旦MQ宕机，内存中的消息会丢失 内存空间有限，当消费者故障或处理过慢时，会导致消息积压，引发MQ阻塞 数据持久化 Rabbit MQ实现的数据持久化包括3个方面：\n交换机持久化 指定durable 队列持久化 指定durable 消息持久化 指定persistent LazyQueue 从RabbitMQ的3.6.0版本开始，就增加了Lazy Queue的概念，也就是惰性队列\n惰性队列的特征如下：\n接收到消息后直接存入磁盘而非内存（内存中只保留最近的消息，默认2048条） 消费者要消费消息时才会从磁盘中读取并加载到内存 支持数百万条的消息存储 在3.12版本之后，所有队列都是Lazy Queue模式，无法更改\n定义queue形式\n1 2 3 4 5 6 7 @Bean public Queue lazyQueue(){ return QueueBuilder .durable(\"lazy.queue\") .lazy() // 开启Lazy模式 .build(); } 基于注解形式：\n1 2 3 4 5 6 7 8 @RabbitListener(queuesToDeclare = @Queue( name = \"lazy.queue\", durable = \"true\", arguments = @Argument(name = \"x-queue-mode\", value = \"lazy\") )) public void listenLazyQueue(String msg){ log.info(\"接收到 lazy.queue的消息: {}\", msg); } 开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。 消费者的可靠性 消费者确认机制 为了确认消费者是否成功处理消息，RabbitMQ提供了消费者确认机制（Consumer Acknowledgement）。当消费者处理消息结束后，应该向RabbitMQ发送一个回执，告知RabbitMQ自己消息处理状态。回执有三种可选值：\nack：成功处理消息，RabbitMQ从队列中删除消息 nack：消息处理失败，RabbitMQ需要再次投递消息 reject：消息处理失败并拒绝该消息，RabbitMQ从队列中删除该消息 SpringAMQP已经实现了消息确认功能。并允许我们通过配置文件选择ACK处理方式，有三种方式：\nnone：不处理。即消息投递给消费者后立刻ack，消息会立刻从MQ删除。非常不安全，不建议使用 manual：手动模式。需要自己在业务代码中调用api，发送ack和reject，存在业务入侵，但更灵活 auto：自动模式。SpringAMQP利用AOP对我们的消息处理逻辑做了环绕增强，当业务正常执行时刻自动返回ack，当业务出现异常时，根据异常判断返回不同结果： 如果业务异常，会自动返回nack 如果是消息处理或校验异常，自动返回reject 失败消息处理策略 在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有MessageRecoverer接口来处理，它包含三种不同的实现：\nRejectAndDontRequeueRecoverer：重试耗尽后，直接reject，丢弃消息。默认就是这种方式。 ImmediateRequeueMessageRecoverer：重试耗尽后，返回nack，消息重新入队 RepublishMessageRecoverer：重试耗尽后，将失败消息投递到指定的交换机 RepublishMessageRecoverer 多次重试耗尽后，将错误转发到error.direct交换机中\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 @Configuration @ConditionalOnProperty(prefix = \"spring.rabbitmq.listener.simple.retry\", name = \"enabled\", havingValue = \"true\") public class ErrorConfiguration { @Bean public DirectExchange errorExchange(){ return new DirectExchange(\"error.direct\"); } @Bean public Queue errorQueue(){ return new Queue(\"error.queue\"); } @Bean public Binding errorBinding(Queue errorQueue, DirectExchange errorExchange){ return BindingBuilder.bind(errorQueue).to(errorExchange).with(\"error\"); } @Bean public MessageRecoverer messageRecoverer(RabbitTemplate rabbitTemplate){ return new RepublishMessageRecoverer(rabbitTemplate, \"error.direct\", \"error\"); } } 业务幂等性 幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。\n查询和删除操作天生幂等 唯一消息Id 方案一，给每个消息都设置一个唯一的id，利用id区分是否是重复消息：\n每一条消息都生成一个唯一的id，与消息一起投递给消费者 消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中 如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理 1 2 3 4 5 6 @Bean public MessageConverter jackonMessageConverter() { Jackson2JsonMessageConverter jjmc = new Jackson2JsonMessageConverter(); jjmc.setCreateMessageIds(true); return jjmc; } 方案二，结合业务逻辑，基于业务本身做判断。\n面试题 如果保证支付服务与交易服务之间的订单状态一致性？ 首先，支付服务会正在用户支付成功以后利用MQ消息通知交易服务，完成订单状态同步。 其次，为了保证MQ消息的可靠性，我们采用了生产者确认机制、消费者确认、消费者失败重试等策略，确保消息投递和处理的可靠性。同时也开启了MQ的持久化，避免因服务宕机导致消息丢失。 最后，我们还在交易服务更新订单状态时做了业务幂等判断，避免了因为重复消费导致订单状态异常。 如果交易服务消息处理失败，有没有什么兜底方案？ 我们可以在交易服务设置定时任务，定时查询订单支付状态。这样即便MQ通知失败，还可以利用定时任务作为兜底方案，确保订单支付状态的最终一致性。 延迟消息 延迟消息：生产者发送消息时指定一个时间，消费者不会立刻收到消息，而是在指定时间之后才收到消息\n延迟任务：设置在一定时间之后才执行的任务\n死信交换机 当一个队列中的消息满足下列情况之一时，就会成为死信（dead letter）：\n消费者使用 basic.reject 或 basic.nack 声明消费失败，并且消息的requeue参数设置为false 消息是一个过期消息（达到了队列或消息本身设置的过期时间），超时无人消费 要投递的队列消息堆积满了，最早的消息可能称为死信 如果队列通过dead-letter-exchange属性制定了一个交换机，那么该队列中的死信就会投递到这个交换机中。这个交换机称为死信交换机（Dead Letter Exchange， 简称DLX）\n延迟消息插件 ",
-  "wordCount" : "5272",
+  "articleBody": "RabbitMQ 同步通讯 和 异步通讯\n同步调用 同步调用的问题：\n拓展性差 性能下降 级联失败 异步调用 异步调用方式其实就是基于消息通知的方式，一般包含三个角色：\n消息发送者：投递消息的人，就是原来的调用方 消息代理：管理、暂存、转发消息，可以理解为微信服务器 消息接收者：接受和处理消息的人，就是原来的服务提供方 支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。\n具备下列优势：\n解除耦合，拓展性强 无需等待，性能好 故障隔离 缓存消息，流量削峰填谷 缺点：\n不能立刻得到调用结果，时效性差 不确定下游业务执行是否成功 业务安全依赖于Broker的可靠性 MQ MQ（MessageQueue），消息队列，存放消息的队列，也就是异步调用中的Broker。\n特性 RabbitMQ ActiveMQ RocketMQ Kafka 公司/社区 Rabbit Apache 阿里 Apache 开发语言 Erlang Java Java Scala \u0026 Java 协议支持 AMQP, XMPP, SMTP, STOMP OpenWire, STOMP, REST, XMPP, AMQP 自定义协议 自定义协议 可用性 高 一般 高 非常高 单机吞吐量 一般 差 高 非常高 消息延迟 微秒级 毫秒级 毫秒级 毫秒以内 消息可靠性 高 一般 高 一般 RabbitMQ的整体架构及核心概念 virtual-host：虚拟主机，起到数据隔离的作用 publisher：消息发送者 consumer：消息的消费者 queue：队列，存储消息 exchange：交换机，负责路由消息 快速入门 启动MQ docker run \\ -e RABBITMQ_DEFAULT_USER=itheima \\ -e RABBITMQ_DEFAULT_PASS=123321 \\ -v mq-plugins:/plugins \\ --name mq \\ --hostname mq \\ -p 15672:15672 \\ -p 5672:5672 \\ --network hmall \\ -d \\ rabbitmq:3.8-management 程序控制 AMQP Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。\nSpring AMQP Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。\n发送者 @SpringBootTest public class SpringAmqpTest { @Autowired private RabbitTemplate rabbitTemplate; @Test void testSendMessage2Queue(){ String queueName = \"simple.queue\"; String msg = \"hello, rabbitmq\"; rabbitTemplate.convertAndSend(queueName, msg); } } 监听者 @Slf4j @Component public class MqListener { @RabbitListener(queues = \"simple.queue\") public void listenSimpleQueue(String msg) { System.out.println(\"消费者收到消息：【\" + msg + \"】\"); } } Work模型的使用：\n多个消费者绑定到一个队列，可以加快消息处理速度 同一条消息只会被一个消费者处理 通过设置prefetch来控制消费者预取的消息数量，处理完一条再处理下一条，实现能者多劳 交换机 真正生产环境都会经过exchange来发送消息，而不是直接发送到队列，交换机的类型有以下三种：\nFanout：广播 Direct：定向 Topic：话题 Fanout交换机 Fanout Exchange会将接受到的消息广播到每一个跟其绑定的queue，所以也叫广播模式\nDirect交换机 Direct Exchange会将接收到的消息根据规则路由到指定的Queue，因此称为定向路由。\n每一个Queue都与Exchange设置一个BindingKey 发布者发送消息时，指定消息的RoutingKey Exchange将消息路由到BindingKey与消息RoutingKey一致的队列 Topic交换机 TopicExchange与DirectExchange类似，区别在于routingKey可以时多个单词的列表，并且以，分割。\nQueue与Exchange指定BindingKey时可以使用通配符：\n# ：代指0个或多个单词 *：代指一个单词 声明队列和交换机 SpringAMQP提供了几个类，用来声明队列、交换机及其绑定关系：\nQueue：用于声明队列，可以用工厂类QueueBuilder构建 Exchange：用于声明交换机，可以用工厂类ExchangeBuilder构建 Binding：用于声明队列和交换机的绑定关系，可以用工厂类BindingBuilder构建 @Configuration public class DirectConfiguration { @Bean public DirectExchange directExchange() { return new DirectExchange(\"hmall.direct\"); } @Bean public Queue directQueue1() { return new Queue(\"direct.queue1\"); } @Bean public Binding directQueue1BindingRed(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"red\"); } @Bean public Binding directQueue1BindingBlue(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"blue\"); } @Bean public Queue directQueue2() { return new Queue(\"direct.queue2\"); } @Bean public Binding directQueue2BindingRed(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"red\"); } @Bean public Binding directQueue2BindingYellow(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"yellow\"); } } 基于注解声明 @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue1\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"blue\", \"Kennem\"} )) public void listenDirectQueue1(String msg) throws InterruptedException { System.out.println(\"消费者1 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue2\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"yellow\"} )) public void listenDirectQueue2(String msg) throws InterruptedException { System.out.println(\"消费者2 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } 消息转换器 导入依赖\ncom.fasterxml.jackson.dataformat jackson-dataformat-xml 定义转换器\n@Bean public MessageConverter jackonMessageConverter() { return new Jackson2JsonMessageConverter(); } 业务改造 需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态\nMQ高级 消息可靠性问题 发送者的可靠性 生产者重连 由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。\nspring: rabbitmq: connection-timeout: 1s template: retry: enabled: true SpringAMQP提供的重试机制是阻塞式的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。\n如果对于业务性能有要求，建议禁用重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码\n生产者确认 RabbitMQ提供了Publisher Confirm和Publisher Return两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：\n消息投递到了MQ，但是路由失败。此时会通过PublisherReturn返回路由异常原因，然后返回ACK，告知投递成功 临时消息投递到了MQ，并且入队成功，返回ACK，告知投递成功 持久消息投递到了MQ，并且入队完成持久化，返回ACK，告知投递成功 其他情况都会返回NACK，告知投递失败 在publisher这个微服务的application.yml中添加配置： spring: rabbitmq: publisher-confirm-type: correlated publisher-returns: true 配置说明：\npublisher-comfirm-type有三种模式可选：\nnone：关闭confirm机制 simple：同步阻塞等待MQ的回执消息 correlated：MQ异步回调方式返回回执消息 每个RabbitTemplate只能配置ReturnCallback，因此需要在项目启动过程中配置： @Slf4j @Configuration public class CommonConfig implements ApplicationContextAware { @Override public void setApplicationContext(ApplicationContext applicationContext) throws BeansException { // 获取RabbitTemplate RabbitTemplate rabbitTemplate = applicationContext.getBean(RabbitTemplate.class); // 设置ReturnCallback rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -\u003e { log.info(\"消息发送失败, 应答码{}, 原因{}, 交换机{}, 路由键{},消息{}\", replyCode, replyText, exchange, routingKey, message.toString()); }); } } 发送消息，指定消息ID、消息ConfirmCallback @Test void testPublisherConfirm() throws InterruptedException { // 1. 创建CorrelationData CorrelationData cd = new CorrelationData(); // 2. 给Future添加ConfirmCallback cd.getFuture().addCallback(new ListenableFutureCallback\u003cCorrelationData.Confirm\u003e() { @Override public void onFailure(Throwable ex) { // 2.1.Future发生异常时的处理逻辑,基本不会触发 log.error(\"handle message ack fail\", ex); } @Override public void onSuccess(CorrelationData.Confirm result) { // 2.2.Future接收到回执的处理逻辑,参数中的result就是回执内容 if(result.isAck()){ // result.isAck(), boolean类型, true代表ack回执, false 代表 nack回执 log.debug(\"发送消息成功, 收到 ack!\"); }else{ // result.getReason(), String类型, 返回nack时的异常描述 log.error(\"发送消息失败, 收到 nack, reason : {}\", result.getReason()); } } }); // 3. 发送消息 rabbitTemplate.convertAndSend(\"hmall.direct\", \"red1\", \"hello\", cd);d } 生产者确认需要额外的网络和系统资源开销，尽量不要使用 如果一定要用，无需开启Publisher-Return机制，因为一般路由失败是自己业务问题 对于nack消息可以有限次数重试，依然失败则记录异常消息 MQ的可靠性 在默认情况下，RabbitMQ会将接收到的消息保存在内存中以降低消息收发的延迟。这样会导致两个问题：\n一旦MQ宕机，内存中的消息会丢失 内存空间有限，当消费者故障或处理过慢时，会导致消息积压，引发MQ阻塞 数据持久化 Rabbit MQ实现的数据持久化包括3个方面：\n交换机持久化 指定durable 队列持久化 指定durable 消息持久化 指定persistent LazyQueue 从RabbitMQ的3.6.0版本开始，就增加了Lazy Queue的概念，也就是惰性队列\n惰性队列的特征如下：\n接收到消息后直接存入磁盘而非内存（内存中只保留最近的消息，默认2048条） 消费者要消费消息时才会从磁盘中读取并加载到内存 支持数百万条的消息存储 在3.12版本之后，所有队列都是Lazy Queue模式，无法更改\n定义queue形式\n@Bean public Queue lazyQueue(){ return QueueBuilder .durable(\"lazy.queue\") .lazy() // 开启Lazy模式 .build(); } 基于注解形式：\n@RabbitListener(queuesToDeclare = @Queue( name = \"lazy.queue\", durable = \"true\", arguments = @Argument(name = \"x-queue-mode\", value = \"lazy\") )) public void listenLazyQueue(String msg){ log.info(\"接收到 lazy.queue的消息: {}\", msg); } 开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。 消费者的可靠性 消费者确认机制 为了确认消费者是否成功处理消息，RabbitMQ提供了消费者确认机制（Consumer Acknowledgement）。当消费者处理消息结束后，应该向RabbitMQ发送一个回执，告知RabbitMQ自己消息处理状态。回执有三种可选值：\nack：成功处理消息，RabbitMQ从队列中删除消息 nack：消息处理失败，RabbitMQ需要再次投递消息 reject：消息处理失败并拒绝该消息，RabbitMQ从队列中删除该消息 SpringAMQP已经实现了消息确认功能。并允许我们通过配置文件选择ACK处理方式，有三种方式：\nnone：不处理。即消息投递给消费者后立刻ack，消息会立刻从MQ删除。非常不安全，不建议使用 manual：手动模式。需要自己在业务代码中调用api，发送ack和reject，存在业务入侵，但更灵活 auto：自动模式。SpringAMQP利用AOP对我们的消息处理逻辑做了环绕增强，当业务正常执行时刻自动返回ack，当业务出现异常时，根据异常判断返回不同结果： 如果业务异常，会自动返回nack 如果是消息处理或校验异常，自动返回reject 失败消息处理策略 在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有MessageRecoverer接口来处理，它包含三种不同的实现：\nRejectAndDontRequeueRecoverer：重试耗尽后，直接reject，丢弃消息。默认就是这种方式。 ImmediateRequeueMessageRecoverer：重试耗尽后，返回nack，消息重新入队 RepublishMessageRecoverer：重试耗尽后，将失败消息投递到指定的交换机 RepublishMessageRecoverer 多次重试耗尽后，将错误转发到error.direct交换机中\n@Configuration @ConditionalOnProperty(prefix = \"spring.rabbitmq.listener.simple.retry\", name = \"enabled\", havingValue = \"true\") public class ErrorConfiguration { @Bean public DirectExchange errorExchange(){ return new DirectExchange(\"error.direct\"); } @Bean public Queue errorQueue(){ return new Queue(\"error.queue\"); } @Bean public Binding errorBinding(Queue errorQueue, DirectExchange errorExchange){ return BindingBuilder.bind(errorQueue).to(errorExchange).with(\"error\"); } @Bean public MessageRecoverer messageRecoverer(RabbitTemplate rabbitTemplate){ return new RepublishMessageRecoverer(rabbitTemplate, \"error.direct\", \"error\"); } } 业务幂等性 幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。\n查询和删除操作天生幂等 唯一消息Id 方案一，给每个消息都设置一个唯一的id，利用id区分是否是重复消息：\n每一条消息都生成一个唯一的id，与消息一起投递给消费者 消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中 如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理 @Bean public MessageConverter jackonMessageConverter() { Jackson2JsonMessageConverter jjmc = new Jackson2JsonMessageConverter(); jjmc.setCreateMessageIds(true); return jjmc; } 方案二，结合业务逻辑，基于业务本身做判断。\n面试题 如果保证支付服务与交易服务之间的订单状态一致性？ 首先，支付服务会正在用户支付成功以后利用MQ消息通知交易服务，完成订单状态同步。 其次，为了保证MQ消息的可靠性，我们采用了生产者确认机制、消费者确认、消费者失败重试等策略，确保消息投递和处理的可靠性。同时也开启了MQ的持久化，避免因服务宕机导致消息丢失。 最后，我们还在交易服务更新订单状态时做了业务幂等判断，避免了因为重复消费导致订单状态异常。 如果交易服务消息处理失败，有没有什么兜底方案？ 我们可以在交易服务设置定时任务，定时查询订单支付状态。这样即便MQ通知失败，还可以利用定时任务作为兜底方案，确保订单支付状态的最终一致性。 延迟消息 延迟消息：生产者发送消息时指定一个时间，消费者不会立刻收到消息，而是在指定时间之后才收到消息\n延迟任务：设置在一定时间之后才执行的任务\n死信交换机 当一个队列中的消息满足下列情况之一时，就会成为死信（dead letter）：\n消费者使用 basic.reject 或 basic.nack 声明消费失败，并且消息的requeue参数设置为false 消息是一个过期消息（达到了队列或消息本身设置的过期时间），超时无人消费 要投递的队列消息堆积满了，最早的消息可能称为死信 如果队列通过dead-letter-exchange属性制定了一个交换机，那么该队列中的死信就会投递到这个交换机中。这个交换机称为死信交换机（Dead Letter Exchange， 简称DLX）\n延迟消息插件 ",
+  "wordCount" : "5084",
   "inLanguage": "zh",
   "datePublished": "2024-11-05T22:30:13+08:00",
   "dateModified": "2024-11-06T22:20:13+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       RabbitMQ
     </div>
-    <div class="post-meta"><span title='2024-11-05 22:30:13 +0800 CST'>2024-11-05</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5272 字&nbsp;·&nbsp;updated:&nbsp;2024-11-06&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-11-05 22:30:13 +0800 CST'>2024-11-05</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5084 字&nbsp;·&nbsp;updated:&nbsp;2024-11-06&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -568,22 +568,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </p>
 <h2 id="快速入门">快速入门<a hidden class="anchor" aria-hidden="true" href="#快速入门">#</a></h2>
 <h3 id="启动mq">启动MQ<a hidden class="anchor" aria-hidden="true" href="#启动mq">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-11">11</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run <span style="color:#ae81ff">\
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> -e RABBITMQ_DEFAULT_USER<span style="color:#f92672">=</span>itheima <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> -e RABBITMQ_DEFAULT_PASS<span style="color:#f92672">=</span><span style="color:#ae81ff">123321</span> <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> -v mq-plugins:/plugins <span style="color:#ae81ff">\
@@ -594,31 +579,13 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> --network hmall <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> -d <span style="color:#ae81ff">\
 </span></span></span><span style="display:flex;"><span><span style="color:#ae81ff"></span> rabbitmq:3.8-management
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="程序控制">程序控制<a hidden class="anchor" aria-hidden="true" href="#程序控制">#</a></h3>
+</span></span></code></pre></div><h3 id="程序控制">程序控制<a hidden class="anchor" aria-hidden="true" href="#程序控制">#</a></h3>
 <h4 id="amqp">AMQP<a hidden class="anchor" aria-hidden="true" href="#amqp">#</a></h4>
 <p>Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。</p>
 <h3 id="spring-amqp">Spring AMQP<a hidden class="anchor" aria-hidden="true" href="#spring-amqp">#</a></h3>
 <p>Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。</p>
 <h4 id="发送者">发送者<a hidden class="anchor" aria-hidden="true" href="#发送者">#</a></h4>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-12">12</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@SpringBootTest</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@SpringBootTest</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SpringAmqpTest</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> RabbitTemplate rabbitTemplate;
@@ -630,22 +597,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        rabbitTemplate.<span style="color:#a6e22e">convertAndSend</span>(queueName, msg);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h4 id="监听者">监听者<a hidden class="anchor" aria-hidden="true" href="#监听者">#</a></h4>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-8">8</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+</span></span></code></pre></div><h4 id="监听者">监听者<a hidden class="anchor" aria-hidden="true" href="#监听者">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MqListener</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@RabbitListener</span>(queues <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;simple.queue&#34;</span>)
@@ -653,9 +606,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;消费者收到消息：【&#34;</span> <span style="color:#f92672">+</span> msg <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;】&#34;</span>);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>Work模型的使用：</p>
+</span></span></code></pre></div><p>Work模型的使用：</p>
 <ul>
 <li>多个消费者绑定到一个队列，可以加快消息处理速度</li>
 <li>同一条消息只会被一个消费者处理</li>
@@ -691,48 +642,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>Exchange：用于声明交换机，可以用工厂类<code>ExchangeBuilder</code>构建</li>
 <li>Binding：用于声明队列和交换机的绑定关系，可以用工厂类<code>BindingBuilder</code>构建</li>
 </ul>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-17">17</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-18"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-18">18</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-19"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-19">19</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-20"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-20">20</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-21"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-21">21</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-22"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-22">22</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-23"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-23">23</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-24"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-24">24</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-25"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-25">25</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-26"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-26">26</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-27"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-27">27</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-28"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-28">28</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-29"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-29">29</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-30"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-30">30</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-31"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-31">31</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-32"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-32">32</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-33"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-33">33</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-34"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-34">34</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-35"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-35">35</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-36"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-36">36</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-37"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-37">37</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DirectConfiguration</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> DirectExchange <span style="color:#a6e22e">directExchange</span>() {
@@ -769,31 +679,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> BindingBuilder.<span style="color:#a6e22e">bind</span>(directQueue2).<span style="color:#a6e22e">to</span>(directExchange).<span style="color:#a6e22e">with</span>(<span style="color:#e6db74">&#34;yellow&#34;</span>);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="基于注解声明">基于注解声明<a hidden class="anchor" aria-hidden="true" href="#基于注解声明">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-17">17</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@RabbitListener</span>(bindings <span style="color:#f92672">=</span> <span style="color:#a6e22e">@QueueBinding</span>(
+</span></span></code></pre></div><h3 id="基于注解声明">基于注解声明<a hidden class="anchor" aria-hidden="true" href="#基于注解声明">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@RabbitListener</span>(bindings <span style="color:#f92672">=</span> <span style="color:#a6e22e">@QueueBinding</span>(
 </span></span><span style="display:flex;"><span>            value <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;direct.queue1&#34;</span>, durable <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>),
 </span></span><span style="display:flex;"><span>            exchange <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Exchange</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hmall.direct&#34;</span>, type <span style="color:#f92672">=</span> ExchangeTypes.<span style="color:#a6e22e">DIRECT</span>),
 </span></span><span style="display:flex;"><span>            key <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;red&#34;</span>, <span style="color:#e6db74">&#34;blue&#34;</span>, <span style="color:#e6db74">&#34;Kennem&#34;</span>}
@@ -810,67 +697,32 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenDirectQueue2</span>(String msg) <span style="color:#66d9ef">throws</span> InterruptedException {
 </span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;消费者2 收到 direct.queue1 消息：【&#34;</span> <span style="color:#f92672">+</span> msg <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;】.......&#34;</span>);
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="消息转换器">消息转换器<a hidden class="anchor" aria-hidden="true" href="#消息转换器">#</a></h2>
+</span></span></code></pre></div><h2 id="消息转换器">消息转换器<a hidden class="anchor" aria-hidden="true" href="#消息转换器">#</a></h2>
 <p>导入依赖</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-5">5</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!--Jackon--&gt;</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!--Jackon--&gt;</span>
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
 </span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.dataformat<span style="color:#f92672">&lt;/groupId&gt;</span>
 </span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-dataformat-xml<span style="color:#f92672">&lt;/artifactId&gt;</span>
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>定义转换器</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-4">4</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+</span></span></code></pre></div><p>定义转换器</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> MessageConverter <span style="color:#a6e22e">jackonMessageConverter</span>() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Jackson2JsonMessageConverter();
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="业务改造">业务改造<a hidden class="anchor" aria-hidden="true" href="#业务改造">#</a></h2>
+</span></span></code></pre></div><h2 id="业务改造">业务改造<a hidden class="anchor" aria-hidden="true" href="#业务改造">#</a></h2>
 <p>需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态</p>
 <h1 id="mq高级">MQ高级<a hidden class="anchor" aria-hidden="true" href="#mq高级">#</a></h1>
 <h2 id="消息可靠性问题">消息可靠性问题<a hidden class="anchor" aria-hidden="true" href="#消息可靠性问题">#</a></h2>
 <h3 id="发送者的可靠性">发送者的可靠性<a hidden class="anchor" aria-hidden="true" href="#发送者的可靠性">#</a></h3>
 <h4 id="生产者重连">生产者重连<a hidden class="anchor" aria-hidden="true" href="#生产者重连">#</a></h4>
 <p>由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-6">6</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">rabbitmq</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">connection-timeout</span>: <span style="color:#ae81ff">1s</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">template</span>:
 </span></span><span style="display:flex;"><span>      <span style="color:#f92672">retry</span>:
 </span></span><span style="display:flex;"><span>        <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>SpringAMQP</code>提供的重试机制是<strong>阻塞式</strong>的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。</p>
+</span></span></code></pre></div><p><code>SpringAMQP</code>提供的重试机制是<strong>阻塞式</strong>的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。</p>
 <p>如果对于业务性能有要求，建议<strong>禁用</strong>重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码</p>
 <h4 id="生产者确认">生产者确认<a hidden class="anchor" aria-hidden="true" href="#生产者确认">#</a></h4>
 <p>RabbitMQ提供了<strong>Publisher Confirm</strong>和<strong>Publisher Return</strong>两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：</p>
@@ -896,21 +748,11 @@ document.addEventListener("DOMContentLoaded", function() {
 <ol>
 <li>在publisher这个微服务的application.yml中添加配置：</li>
 </ol>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-4">4</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
 </span></span><span style="display:flex;"><span>  <span style="color:#f92672">rabbitmq</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">publisher-confirm-type</span>: <span style="color:#ae81ff">correlated</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#f92672">publisher-returns</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>配置说明：</p>
+</span></span></code></pre></div><p>配置说明：</p>
 <p>publisher-comfirm-type有三种模式可选：</p>
 <ul>
 <li>none：关闭confirm机制</li>
@@ -920,26 +762,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <ol start="2">
 <li>每个<code>RabbitTemplate</code>只能配置<code>ReturnCallback</code>，因此需要在项目启动过程中配置：</li>
 </ol>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-15">15</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CommonConfig</span> <span style="color:#66d9ef">implements</span> ApplicationContextAware {
 </span></span><span style="display:flex;"><span>
@@ -954,41 +777,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        });
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><ol start="3">
+</span></span></code></pre></div><ol start="3">
 <li>发送消息，指定消息ID、消息<code>ConfirmCallback</code></li>
 </ol>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-17">17</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-18"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-18">18</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-19"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-19">19</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-20"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-20">20</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-21"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-21">21</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-22"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-22">22</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-23"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-23">23</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-24"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-24">24</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-25"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-25">25</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testPublisherConfirm</span>() <span style="color:#66d9ef">throws</span> InterruptedException {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 创建CorrelationData</span>
 </span></span><span style="display:flex;"><span>    CorrelationData cd <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> CorrelationData();
@@ -1013,9 +805,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 发送消息</span>
 </span></span><span style="display:flex;"><span>    rabbitTemplate.<span style="color:#a6e22e">convertAndSend</span>(<span style="color:#e6db74">&#34;hmall.direct&#34;</span>, <span style="color:#e6db74">&#34;red1&#34;</span>, <span style="color:#e6db74">&#34;hello&#34;</span>, cd);d
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><ul>
+</span></span></code></pre></div><ul>
 <li>生产者确认需要额外的网络和系统资源开销，尽量不要使用</li>
 <li>如果一定要用，无需开启<code>Publisher-Return</code>机制，因为一般路由失败是自己业务问题</li>
 <li>对于<strong>nack</strong>消息可以有限次数重试，依然失败则记录异常消息</li>
@@ -1043,40 +833,15 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <p>在3.12版本之后，所有队列都是Lazy Queue模式，无法更改</p>
 <p>定义queue形式</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-7">7</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Bean</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Bean</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Queue <span style="color:#a6e22e">lazyQueue</span>(){
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> QueueBuilder
 </span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">durable</span>(<span style="color:#e6db74">&#34;lazy.queue&#34;</span>)
 </span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">lazy</span>() <span style="color:#75715e">// 开启Lazy模式</span>
 </span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>基于注解形式：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-8">8</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RabbitListener</span>(queuesToDeclare <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(
+</span></span></code></pre></div><p>基于注解形式：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RabbitListener</span>(queuesToDeclare <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(
 </span></span><span style="display:flex;"><span>        name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lazy.queue&#34;</span>,
 </span></span><span style="display:flex;"><span>        durable <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>,
 </span></span><span style="display:flex;"><span>        arguments <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Argument</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;x-queue-mode&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lazy&#34;</span>)
@@ -1084,9 +849,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenLazyQueue</span>(String msg){
 </span></span><span style="display:flex;"><span>    log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;接收到 lazy.queue的消息: {}&#34;</span>, msg);
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><ul>
+</span></span></code></pre></div><ul>
 <li>开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。</li>
 </ul>
 <h3 id="消费者的可靠性">消费者的可靠性<a hidden class="anchor" aria-hidden="true" href="#消费者的可靠性">#</a></h3>
@@ -1130,34 +893,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <h5 id="republishmessagerecoverer">RepublishMessageRecoverer<a hidden class="anchor" aria-hidden="true" href="#republishmessagerecoverer">#</a></h5>
 <p>多次重试耗尽后，将错误转发到<code>error.direct</code>交换机中</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-17">17</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-18"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-18">18</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-19"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-19">19</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-20"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-20">20</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-21"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-21">21</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-22"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-22">22</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-23"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-23">23</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ConditionalOnProperty</span>(prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;spring.rabbitmq.listener.simple.retry&#34;</span>, name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;enabled&#34;</span>, havingValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>)
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ErrorConfiguration</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
@@ -1180,9 +916,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> RepublishMessageRecoverer(rabbitTemplate, <span style="color:#e6db74">&#34;error.direct&#34;</span>, <span style="color:#e6db74">&#34;error&#34;</span>);
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="业务幂等性">业务幂等性<a hidden class="anchor" aria-hidden="true" href="#业务幂等性">#</a></h2>
+</span></span></code></pre></div><h2 id="业务幂等性">业务幂等性<a hidden class="anchor" aria-hidden="true" href="#业务幂等性">#</a></h2>
 <p>幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。</p>
 <ul>
 <li>查询和删除操作天生幂等</li>
@@ -1194,25 +928,13 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中</li>
 <li>如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理</li>
 </ol>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-6">6</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> MessageConverter <span style="color:#a6e22e">jackonMessageConverter</span>() {
 </span></span><span style="display:flex;"><span>        Jackson2JsonMessageConverter jjmc <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Jackson2JsonMessageConverter();
 </span></span><span style="display:flex;"><span>        jjmc.<span style="color:#a6e22e">setCreateMessageIds</span>(<span style="color:#66d9ef">true</span>);
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> jjmc;
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>方案二，结合业务逻辑，基于业务本身做判断。</p>
+</span></span></code></pre></div><p>方案二，结合业务逻辑，基于业务本身做判断。</p>
 <h2 id="面试题">面试题<a hidden class="anchor" aria-hidden="true" href="#面试题">#</a></h2>
 <h3 id="如果保证支付服务与交易服务之间的订单状态一致性">如果保证支付服务与交易服务之间的订单状态一致性？<a hidden class="anchor" aria-hidden="true" href="#如果保证支付服务与交易服务之间的订单状态一致性">#</a></h3>
 <ul>

@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "GoLang"
   ],
-  "articleBody": "Go 内存管理与编译器优化 本文深入探讨 Go 语言的自动内存管理、垃圾回收机制以及编译器优化技术，结合具体示例和流程图，帮助你理解 Go 内存管理的核心原理和性能优化方法。\n01 自动内存管理 1.1 什么是自动内存管理？ 自动内存管理（垃圾回收，GC）是指由程序语言的运行时系统管理动态内存，开发者无需手动分配和释放内存。\n核心概念：\n动态内存：程序运行时根据需求动态分配的内存（如 malloc()）。 Mutator：业务线程，负责分配新对象和修改对象指向关系。 Collector：GC 线程，负责找到存活对象并回收死亡对象的内存空间。 1.2 垃圾回收算法分类 Serial GC：只有一个 Collector，单线程执行。 Parallel GC：多个 Collectors 同时回收。 Concurrent GC：Mutators 和 Collectors 可以同时执行。 GC 算法评价标准：\n安全性：不能回收存活的对象。 吞吐率：1 - (GC 时间 / 程序执行总时间)。 暂停时间：Stop The World (STW) 的时间，业务是否感知。 内存开销：GC 元数据的额外内存占用。 1.3 追踪垃圾回收（Tracing GC） 追踪垃圾回收的核心思想是通过指针的可达性判断对象是否存活。\n流程：\n标记根对象：静态变量、全局变量、常量、线程栈等。 标记可达对象：从根对象出发，找到所有可达对象。 清理不可达对象： Copying GC：将存活对象复制到另一块内存。 Mark-Sweep GC：将死亡对象的内存标记为可分配。 Mark-Compact GC：移动并整理存活对象。 示例：Mark-Sweep GC\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 // 伪代码：标记-清除算法 func mark(root *Object) { if root == nil || root.marked { return } root.marked = true for _, child := range root.children { mark(child) } } func sweep() { for obj := range heap { if !obj.marked { free(obj) } else { obj.marked = false } } } 1.4 分代垃圾回收 根据对象的生命周期，将内存划分为不同区域，采用不同的回收策略。\n年轻代（Young Generation）： 对象存活时间短，存活对象少。 采用 Copying GC，吞吐率高。 老年代（Old Generation）： 对象存活时间长，反复回收开销大。 采用 Mark-Sweep GC。 流程图：分代垃圾回收\n1 2 3 4 5 6 7 8 9 10 graph TD A[新对象分配] --\u003e B{是否年轻代?} B -- 是 --\u003e C[年轻代 GC] B -- 否 --\u003e D[老年代 GC] C --\u003e E{对象存活?} E -- 是 --\u003e F[晋升到老年代] E -- 否 --\u003e G[回收内存] D --\u003e H{对象存活?} H -- 是 --\u003e I[保留] H -- 否 --\u003e J[回收内存] 1.5 引用计数（Reference Counting） 每个对象维护一个引用计数，当引用计数为 0 时回收对象。\n优点：\n内存管理操作平摊到程序执行过程中。 无需了解运行时实现细节（如 C++ 智能指针）。 缺点：\n维护引用计数的开销大（需原子操作）。 无法回收环形数据结构。 每个对象需额外内存存储引用计数。 示例：引用计数\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 type Object struct { refCount int data string } func (o *Object) AddRef() { atomic.AddInt32(\u0026o.refCount, 1) } func (o *Object) Release() { if atomic.AddInt32(\u0026o.refCount, -1) == 0 { free(o) } } 02 Go 内存管理及优化 2.1 Go 内存分配 Go 的内存分配器基于 TCMalloc（Thread-Caching Malloc），核心思想是分块和缓存。\n分块：\n调用 mmap() 向操作系统申请大块内存。 将内存划分为 mspan（大块），再划分为特定大小的小块。 noscan mspan：分配不包含指针的对象，GC 不需要扫描。 scan mspan：分配包含指针的对象，GC 需要扫描。 缓存：\n每个 P（Processor）包含一个 mcache，用于快速分配小对象。 当 mcache 中的 mspan 用完时，向 mcentral 申请新的 mspan。 当 mspan 中没有对象时，缓存在 mcentral 中，而非立即释放。 流程图：Go 内存分配\n1 2 3 4 5 6 7 8 graph TD A[对象分配请求] --\u003e B{mcache 有可用 mspan?} B -- 是 --\u003e C[从 mcache 分配] B -- 否 --\u003e D[向 mcentral 申请 mspan] D --\u003e E{mcentral 有可用 mspan?} E -- 是 --\u003e F[返回 mspan 给 mcache] E -- 否 --\u003e G[向 mheap 申请内存] G --\u003e H[返回 mspan 给 mcentral] 2.2 内存管理优化 Go 内存分配的高频操作和小对象占比较高，导致分配耗时。\n优化方案：Balanced GC\n每个 Goroutine 绑定一块内存（1KB），称为 Goroutine Allocation Buffer (GAB)。 GAB 用于分配小于 128B 的 noscan 小对象。 使用指针碰撞（Bump Pointer）风格分配，无需互斥锁。 优点：\n将多个小对象的分配合并为一次大对象分配。 分配动作简单高效。 缺点：\nGAB 的内存释放可能延迟。 03 编译器与静态分析 3.1 编译器结构 前端（Front End）：词法分析、语法分析、语义分析。 后端（Back End）：代码生成、优化。 3.2 静态分析 静态分析是在不执行程序的情况下，推导程序的行为和性质。\n分析内容：\n控制流：程序执行的流程。 数据流：数据在控制流上的传递。 分类：\n过程内分析：仅在函数内部进行分析。 过程间分析：考虑函数调用时的参数传递和返回值。 04 Go 编译器优化 4.1 函数内联（Inlining） 将调用函数的函数体副本替换到调用位置，并重写代码以反映参数绑定。\n优点：\n消除函数调用开销。 将过程间分析转化为过程内分析。 缺点：\n函数体变大，影响指令缓存。 编译生成的二进制文件变大。 示例：函数内联\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 // 内联前 func add(a, b int) int { return a + b } func main() { result := add(1, 2) fmt.Println(result) } // 内联后 func main() { result := 1 + 2 fmt.Println(result) } 4.2 Beast Mode Beast Mode 是 Go 编译器的一种优化模式，调整函数内联策略，使更多函数被内联。\n优点：\n降低函数调用开销。 增加逃逸分析的机会，减少堆分配。 示例：逃逸分析优化\n1 2 3 4 5 6 7 8 9 // 优化前：对象逃逸到堆 func createObject() *Object { return \u0026Object{} } // 优化后：对象在栈上分配 func createObject() Object { return Object{} } 05 性能调优案例 5.1 业务服务优化 问题描述\n某业务服务的接口响应时间较长，用户请求的平均响应时间超过 500ms，导致用户体验下降。\n分析过程\n使用 pprof 进行性能分析：\n启动 pprof 的 CPU 和 Heap 分析，发现数据库查询占用了 70% 的 CPU 时间。 进一步分析发现，某些 SQL 查询未使用索引，导致全表扫描。 定位瓶颈：\n通过日志和 pprof 数据，定位到以下几个问题： 高频查询未使用索引。 部分查询返回过多无用数据。 重复查询相同数据。 优化方案\n优化 SQL 查询：\n为高频查询字段添加索引。 使用 SELECT 只查询需要的字段，避免返回过多数据。 使用 EXPLAIN 分析查询执行计划，确保查询效率。 示例：优化 SQL 查询\n1 2 3 4 5 6 -- 优化前 SELECT * FROM users WHERE age \u003e 20; -- 优化后 SELECT id, name FROM users WHERE age \u003e 20; CREATE INDEX idx_age ON users(age); 引入缓存：\n使用 Redis 缓存高频查询结果，减少数据库压力。 设置合理的缓存过期时间，避免数据不一致。 示例：使用 Redis 缓存\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 func getUserFromCache(userID int) (*User, error) { var user User cacheKey := fmt.Sprintf(\"user:%d\", userID) err := redisClient.Get(cacheKey, \u0026user) if err == nil { return \u0026user, nil } // 缓存未命中，查询数据库 user, err := db.GetUser(userID) if err != nil { return nil, err } // 将结果写入缓存 redisClient.Set(cacheKey, user, time.Hour) return \u0026user, nil } 优化结果：\n接口响应时间从 500ms 降低到 50ms。 数据库 CPU 使用率从 70% 降低到 20%。 5.2 基础库优化 问题描述\n某基础库在高并发场景下性能不足，表现为内存分配频繁、锁竞争激烈，导致服务吞吐量下降。\n分析过程\n使用 pprof 进行性能分析：\n通过 Heap 分析发现，大量内存分配来自于临时对象的创建。 通过 Mutex 分析发现，某些锁的竞争非常激烈。 定位瓶颈：\n频繁创建和销毁临时对象，导致 GC 压力大。 锁竞争导致 Goroutine 阻塞，影响并发性能。 优化方案\n使用 sync.Pool 减少内存分配：\n通过对象池复用临时对象，减少内存分配和 GC 压力。 示例：使用 sync.Pool\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 var bufferPool = sync.Pool{ New: func() interface{} { return new(bytes.Buffer) }, } func getBuffer() *bytes.Buffer { return bufferPool.Get().(*bytes.Buffer) } func putBuffer(buf *bytes.Buffer) { buf.Reset() bufferPool.Put(buf) } 使用 atomic 减少锁竞争：\n将部分锁保护的操作替换为原子操作，减少锁竞争。 示例：使用 atomic\n1 2 3 4 5 6 7 8 9 var counter int64 func incrementCounter() { atomic.AddInt64(\u0026counter, 1) } func getCounter() int64 { return atomic.LoadInt64(\u0026counter) } 优化结果：\n内存分配减少 50%，GC 压力显著降低。 锁竞争减少，服务吞吐量提升 30%。 5.3 Go 语言优化 问题描述\n某服务在高并发场景下，GC（垃圾回收）压力较大，导致服务出现周期性延迟。\n分析过程\n使用 pprof 进行性能分析：\n通过 Heap 分析发现，堆内存中存在大量短期对象。 通过 Goroutine 分析发现，Goroutine 数量过多，导致调度开销增加。 定位瓶颈：\n频繁创建和销毁短期对象，导致 GC 频繁触发。 Goroutine 数量过多，导致调度器负载过高。 优化方案\n减少堆内存分配：\n使用栈分配代替堆分配，减少 GC 压力。 复用对象，避免频繁创建和销毁。 示例：复用对象\n1 2 3 4 5 6 7 8 9 10 11 12 13 14 var userPool = sync.Pool{ New: func() interface{} { return new(User) }, } func getUser() *User { return userPool.Get().(*User) } func putUser(user *User) { user.Reset() userPool.Put(user) } 控制 Goroutine 数量：\n使用 Goroutine 池限制并发数量，避免 Goroutine 数量过多。 示例：使用 Goroutine 池\n1 2 3 4 5 6 7 8 9 10 11 12 13 func workerPool(workerNum int, tasks \u003c-chan func()) { var wg sync.WaitGroup for i := 0; i \u003c workerNum; i++ { wg.Add(1) go func() { defer wg.Done() for task := range tasks { task() } }() } wg.Wait() } 优化结果：\nGC 频率降低，服务延迟减少。 Goroutine 数量控制在合理范围，调度开销降低。 总结 通过以上案例可以看出，性能调优的关键在于：\n定位瓶颈：使用 pprof 等工具分析性能数据，找到真正的瓶颈。 针对性优化：根据瓶颈类型（如 CPU、内存、锁竞争等）选择合适的优化方法。 验证效果：通过性能测试验证优化效果，确保优化方案有效。 希望这些案例能为你的性能调优工作提供实用参考！\n",
-  "wordCount" : "3346",
+  "articleBody": "Go 内存管理与编译器优化 本文深入探讨 Go 语言的自动内存管理、垃圾回收机制以及编译器优化技术，结合具体示例和流程图，帮助你理解 Go 内存管理的核心原理和性能优化方法。\n01 自动内存管理 1.1 什么是自动内存管理？ 自动内存管理（垃圾回收，GC）是指由程序语言的运行时系统管理动态内存，开发者无需手动分配和释放内存。\n核心概念：\n动态内存：程序运行时根据需求动态分配的内存（如 malloc()）。 Mutator：业务线程，负责分配新对象和修改对象指向关系。 Collector：GC 线程，负责找到存活对象并回收死亡对象的内存空间。 1.2 垃圾回收算法分类 Serial GC：只有一个 Collector，单线程执行。 Parallel GC：多个 Collectors 同时回收。 Concurrent GC：Mutators 和 Collectors 可以同时执行。 GC 算法评价标准：\n安全性：不能回收存活的对象。 吞吐率：1 - (GC 时间 / 程序执行总时间)。 暂停时间：Stop The World (STW) 的时间，业务是否感知。 内存开销：GC 元数据的额外内存占用。 1.3 追踪垃圾回收（Tracing GC） 追踪垃圾回收的核心思想是通过指针的可达性判断对象是否存活。\n流程：\n标记根对象：静态变量、全局变量、常量、线程栈等。 标记可达对象：从根对象出发，找到所有可达对象。 清理不可达对象： Copying GC：将存活对象复制到另一块内存。 Mark-Sweep GC：将死亡对象的内存标记为可分配。 Mark-Compact GC：移动并整理存活对象。 示例：Mark-Sweep GC\n// 伪代码：标记-清除算法 func mark(root *Object) { if root == nil || root.marked { return } root.marked = true for _, child := range root.children { mark(child) } } func sweep() { for obj := range heap { if !obj.marked { free(obj) } else { obj.marked = false } } } 1.4 分代垃圾回收 根据对象的生命周期，将内存划分为不同区域，采用不同的回收策略。\n年轻代（Young Generation）： 对象存活时间短，存活对象少。 采用 Copying GC，吞吐率高。 老年代（Old Generation）： 对象存活时间长，反复回收开销大。 采用 Mark-Sweep GC。 流程图：分代垃圾回收\ngraph TD A[新对象分配] --\u003e B{是否年轻代?} B -- 是 --\u003e C[年轻代 GC] B -- 否 --\u003e D[老年代 GC] C --\u003e E{对象存活?} E -- 是 --\u003e F[晋升到老年代] E -- 否 --\u003e G[回收内存] D --\u003e H{对象存活?} H -- 是 --\u003e I[保留] H -- 否 --\u003e J[回收内存] 1.5 引用计数（Reference Counting） 每个对象维护一个引用计数，当引用计数为 0 时回收对象。\n优点：\n内存管理操作平摊到程序执行过程中。 无需了解运行时实现细节（如 C++ 智能指针）。 缺点：\n维护引用计数的开销大（需原子操作）。 无法回收环形数据结构。 每个对象需额外内存存储引用计数。 示例：引用计数\ntype Object struct { refCount int data string } func (o *Object) AddRef() { atomic.AddInt32(\u0026o.refCount, 1) } func (o *Object) Release() { if atomic.AddInt32(\u0026o.refCount, -1) == 0 { free(o) } } 02 Go 内存管理及优化 2.1 Go 内存分配 Go 的内存分配器基于 TCMalloc（Thread-Caching Malloc），核心思想是分块和缓存。\n分块：\n调用 mmap() 向操作系统申请大块内存。 将内存划分为 mspan（大块），再划分为特定大小的小块。 noscan mspan：分配不包含指针的对象，GC 不需要扫描。 scan mspan：分配包含指针的对象，GC 需要扫描。 缓存：\n每个 P（Processor）包含一个 mcache，用于快速分配小对象。 当 mcache 中的 mspan 用完时，向 mcentral 申请新的 mspan。 当 mspan 中没有对象时，缓存在 mcentral 中，而非立即释放。 流程图：Go 内存分配\ngraph TD A[对象分配请求] --\u003e B{mcache 有可用 mspan?} B -- 是 --\u003e C[从 mcache 分配] B -- 否 --\u003e D[向 mcentral 申请 mspan] D --\u003e E{mcentral 有可用 mspan?} E -- 是 --\u003e F[返回 mspan 给 mcache] E -- 否 --\u003e G[向 mheap 申请内存] G --\u003e H[返回 mspan 给 mcentral] 2.2 内存管理优化 Go 内存分配的高频操作和小对象占比较高，导致分配耗时。\n优化方案：Balanced GC\n每个 Goroutine 绑定一块内存（1KB），称为 Goroutine Allocation Buffer (GAB)。 GAB 用于分配小于 128B 的 noscan 小对象。 使用指针碰撞（Bump Pointer）风格分配，无需互斥锁。 优点：\n将多个小对象的分配合并为一次大对象分配。 分配动作简单高效。 缺点：\nGAB 的内存释放可能延迟。 03 编译器与静态分析 3.1 编译器结构 前端（Front End）：词法分析、语法分析、语义分析。 后端（Back End）：代码生成、优化。 3.2 静态分析 静态分析是在不执行程序的情况下，推导程序的行为和性质。\n分析内容：\n控制流：程序执行的流程。 数据流：数据在控制流上的传递。 分类：\n过程内分析：仅在函数内部进行分析。 过程间分析：考虑函数调用时的参数传递和返回值。 04 Go 编译器优化 4.1 函数内联（Inlining） 将调用函数的函数体副本替换到调用位置，并重写代码以反映参数绑定。\n优点：\n消除函数调用开销。 将过程间分析转化为过程内分析。 缺点：\n函数体变大，影响指令缓存。 编译生成的二进制文件变大。 示例：函数内联\n// 内联前 func add(a, b int) int { return a + b } func main() { result := add(1, 2) fmt.Println(result) } // 内联后 func main() { result := 1 + 2 fmt.Println(result) } 4.2 Beast Mode Beast Mode 是 Go 编译器的一种优化模式，调整函数内联策略，使更多函数被内联。\n优点：\n降低函数调用开销。 增加逃逸分析的机会，减少堆分配。 示例：逃逸分析优化\n// 优化前：对象逃逸到堆 func createObject() *Object { return \u0026Object{} } // 优化后：对象在栈上分配 func createObject() Object { return Object{} } 05 性能调优案例 5.1 业务服务优化 问题描述\n某业务服务的接口响应时间较长，用户请求的平均响应时间超过 500ms，导致用户体验下降。\n分析过程\n使用 pprof 进行性能分析：\n启动 pprof 的 CPU 和 Heap 分析，发现数据库查询占用了 70% 的 CPU 时间。 进一步分析发现，某些 SQL 查询未使用索引，导致全表扫描。 定位瓶颈：\n通过日志和 pprof 数据，定位到以下几个问题： 高频查询未使用索引。 部分查询返回过多无用数据。 重复查询相同数据。 优化方案\n优化 SQL 查询：\n为高频查询字段添加索引。 使用 SELECT 只查询需要的字段，避免返回过多数据。 使用 EXPLAIN 分析查询执行计划，确保查询效率。 示例：优化 SQL 查询\n-- 优化前 SELECT * FROM users WHERE age \u003e 20; -- 优化后 SELECT id, name FROM users WHERE age \u003e 20; CREATE INDEX idx_age ON users(age); 引入缓存：\n使用 Redis 缓存高频查询结果，减少数据库压力。 设置合理的缓存过期时间，避免数据不一致。 示例：使用 Redis 缓存\nfunc getUserFromCache(userID int) (*User, error) { var user User cacheKey := fmt.Sprintf(\"user:%d\", userID) err := redisClient.Get(cacheKey, \u0026user) if err == nil { return \u0026user, nil } // 缓存未命中，查询数据库 user, err := db.GetUser(userID) if err != nil { return nil, err } // 将结果写入缓存 redisClient.Set(cacheKey, user, time.Hour) return \u0026user, nil } 优化结果：\n接口响应时间从 500ms 降低到 50ms。 数据库 CPU 使用率从 70% 降低到 20%。 5.2 基础库优化 问题描述\n某基础库在高并发场景下性能不足，表现为内存分配频繁、锁竞争激烈，导致服务吞吐量下降。\n分析过程\n使用 pprof 进行性能分析：\n通过 Heap 分析发现，大量内存分配来自于临时对象的创建。 通过 Mutex 分析发现，某些锁的竞争非常激烈。 定位瓶颈：\n频繁创建和销毁临时对象，导致 GC 压力大。 锁竞争导致 Goroutine 阻塞，影响并发性能。 优化方案\n使用 sync.Pool 减少内存分配：\n通过对象池复用临时对象，减少内存分配和 GC 压力。 示例：使用 sync.Pool\nvar bufferPool = sync.Pool{ New: func() interface{} { return new(bytes.Buffer) }, } func getBuffer() *bytes.Buffer { return bufferPool.Get().(*bytes.Buffer) } func putBuffer(buf *bytes.Buffer) { buf.Reset() bufferPool.Put(buf) } 使用 atomic 减少锁竞争：\n将部分锁保护的操作替换为原子操作，减少锁竞争。 示例：使用 atomic\nvar counter int64 func incrementCounter() { atomic.AddInt64(\u0026counter, 1) } func getCounter() int64 { return atomic.LoadInt64(\u0026counter) } 优化结果：\n内存分配减少 50%，GC 压力显著降低。 锁竞争减少，服务吞吐量提升 30%。 5.3 Go 语言优化 问题描述\n某服务在高并发场景下，GC（垃圾回收）压力较大，导致服务出现周期性延迟。\n分析过程\n使用 pprof 进行性能分析：\n通过 Heap 分析发现，堆内存中存在大量短期对象。 通过 Goroutine 分析发现，Goroutine 数量过多，导致调度开销增加。 定位瓶颈：\n频繁创建和销毁短期对象，导致 GC 频繁触发。 Goroutine 数量过多，导致调度器负载过高。 优化方案\n减少堆内存分配：\n使用栈分配代替堆分配，减少 GC 压力。 复用对象，避免频繁创建和销毁。 示例：复用对象\nvar userPool = sync.Pool{ New: func() interface{} { return new(User) }, } func getUser() *User { return userPool.Get().(*User) } func putUser(user *User) { user.Reset() userPool.Put(user) } 控制 Goroutine 数量：\n使用 Goroutine 池限制并发数量，避免 Goroutine 数量过多。 示例：使用 Goroutine 池\nfunc workerPool(workerNum int, tasks \u003c-chan func()) { var wg sync.WaitGroup for i := 0; i \u003c workerNum; i++ { wg.Add(1) go func() { defer wg.Done() for task := range tasks { task() } }() } wg.Wait() } 优化结果：\nGC 频率降低，服务延迟减少。 Goroutine 数量控制在合理范围，调度开销降低。 总结 通过以上案例可以看出，性能调优的关键在于：\n定位瓶颈：使用 pprof 等工具分析性能数据，找到真正的瓶颈。 针对性优化：根据瓶颈类型（如 CPU、内存、锁竞争等）选择合适的优化方法。 验证效果：通过性能测试验证优化效果，确保优化方案有效。 希望这些案例能为你的性能调优工作提供实用参考！\n",
+  "wordCount" : "3196",
   "inLanguage": "zh",
   "datePublished": "2025-01-25T15:37:01+08:00",
   "dateModified": "2025-01-25T15:37:01+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Go 内存管理与编译器优化
     </div>
-    <div class="post-meta"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3346 字&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3196 字&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -434,31 +434,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </li>
 </ol>
 <p><strong>示例：Mark-Sweep GC</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-17">17</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-18"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-18">18</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-19"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-19">19</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-20"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-20">20</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 伪代码：标记-清除算法
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 伪代码：标记-清除算法
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mark</span>(<span style="color:#a6e22e">root</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Object</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">root</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">marked</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
@@ -478,9 +454,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="14-分代垃圾回收">1.4 分代垃圾回收<a hidden class="anchor" aria-hidden="true" href="#14-分代垃圾回收">#</a></h3>
+</span></span></code></pre></div><h3 id="14-分代垃圾回收">1.4 分代垃圾回收<a hidden class="anchor" aria-hidden="true" href="#14-分代垃圾回收">#</a></h3>
 <p>根据对象的生命周期，将内存划分为不同区域，采用不同的回收策略。</p>
 <ul>
 <li><strong>年轻代（Young Generation）</strong>：
@@ -497,21 +471,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </li>
 </ul>
 <p><strong>流程图：分代垃圾回收</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-10">10</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>graph TD
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>graph TD
 </span></span><span style="display:flex;"><span>    A[新对象分配] --&gt; B{是否年轻代?}
 </span></span><span style="display:flex;"><span>    B -- 是 --&gt; C[年轻代 GC]
 </span></span><span style="display:flex;"><span>    B -- 否 --&gt; D[老年代 GC]
@@ -521,9 +481,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    D --&gt; H{对象存活?}
 </span></span><span style="display:flex;"><span>    H -- 是 --&gt; I[保留]
 </span></span><span style="display:flex;"><span>    H -- 否 --&gt; J[回收内存]
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="15-引用计数reference-counting">1.5 引用计数（Reference Counting）<a hidden class="anchor" aria-hidden="true" href="#15-引用计数reference-counting">#</a></h3>
+</span></span></code></pre></div><h3 id="15-引用计数reference-counting">1.5 引用计数（Reference Counting）<a hidden class="anchor" aria-hidden="true" href="#15-引用计数reference-counting">#</a></h3>
 <p>每个对象维护一个引用计数，当引用计数为 0 时回收对象。</p>
 <p><strong>优点</strong>：</p>
 <ul>
@@ -537,25 +495,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>每个对象需额外内存存储引用计数。</li>
 </ul>
 <p><strong>示例：引用计数</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-14">14</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Object</span> <span style="color:#66d9ef">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">type</span> <span style="color:#a6e22e">Object</span> <span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">refCount</span> <span style="color:#66d9ef">int</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">data</span>     <span style="color:#66d9ef">string</span>
 </span></span><span style="display:flex;"><span>}
@@ -569,9 +509,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">free</span>(<span style="color:#a6e22e">o</span>)
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><hr>
+</span></span></code></pre></div><hr>
 <h2 id="02-go-内存管理及优化">02 Go 内存管理及优化<a hidden class="anchor" aria-hidden="true" href="#02-go-内存管理及优化">#</a></h2>
 <h3 id="21-go-内存分配">2.1 Go 内存分配<a hidden class="anchor" aria-hidden="true" href="#21-go-内存分配">#</a></h3>
 <p>Go 的内存分配器基于 TCMalloc（Thread-Caching Malloc），核心思想是分块和缓存。</p>
@@ -592,19 +530,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>当 <code>mspan</code> 中没有对象时，缓存在 <code>mcentral</code> 中，而非立即释放。</li>
 </ul>
 <p><strong>流程图：Go 内存分配</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-8">8</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>graph TD
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>graph TD
 </span></span><span style="display:flex;"><span>    A[对象分配请求] --&gt; B{mcache 有可用 mspan?}
 </span></span><span style="display:flex;"><span>    B -- 是 --&gt; C[从 mcache 分配]
 </span></span><span style="display:flex;"><span>    B -- 否 --&gt; D[向 mcentral 申请 mspan]
@@ -612,9 +538,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    E -- 是 --&gt; F[返回 mspan 给 mcache]
 </span></span><span style="display:flex;"><span>    E -- 否 --&gt; G[向 mheap 申请内存]
 </span></span><span style="display:flex;"><span>    G --&gt; H[返回 mspan 给 mcentral]
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="22-内存管理优化">2.2 内存管理优化<a hidden class="anchor" aria-hidden="true" href="#22-内存管理优化">#</a></h3>
+</span></span></code></pre></div><h3 id="22-内存管理优化">2.2 内存管理优化<a hidden class="anchor" aria-hidden="true" href="#22-内存管理优化">#</a></h3>
 <p>Go 内存分配的高频操作和小对象占比较高，导致分配耗时。</p>
 <p><strong>优化方案：Balanced GC</strong></p>
 <ul>
@@ -665,26 +589,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>编译生成的二进制文件变大。</li>
 </ul>
 <p><strong>示例：函数内联</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-15">15</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 内联前
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 内联前
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">add</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
 </span></span><span style="display:flex;"><span>}
@@ -699,9 +604,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">result</span>)
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="42-beast-mode">4.2 Beast Mode<a hidden class="anchor" aria-hidden="true" href="#42-beast-mode">#</a></h3>
+</span></span></code></pre></div><h3 id="42-beast-mode">4.2 Beast Mode<a hidden class="anchor" aria-hidden="true" href="#42-beast-mode">#</a></h3>
 <p>Beast Mode 是 Go 编译器的一种优化模式，调整函数内联策略，使更多函数被内联。</p>
 <p><strong>优点</strong>：</p>
 <ul>
@@ -709,20 +612,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>增加逃逸分析的机会，减少堆分配。</li>
 </ul>
 <p><strong>示例：逃逸分析优化</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-8">8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-9">9</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 优化前：对象逃逸到堆
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 优化前：对象逃逸到堆
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createObject</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">Object</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Object</span>{}
 </span></span><span style="display:flex;"><span>}
@@ -731,9 +621,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createObject</span>() <span style="color:#a6e22e">Object</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Object</span>{}
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><hr>
+</span></span></code></pre></div><hr>
 <h2 id="05-性能调优案例">05 性能调优案例<a hidden class="anchor" aria-hidden="true" href="#05-性能调优案例">#</a></h2>
 <h3 id="51-业务服务优化">5.1 业务服务优化<a hidden class="anchor" aria-hidden="true" href="#51-业务服务优化">#</a></h3>
 <p><strong>问题描述</strong><br>
@@ -770,25 +658,13 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>使用 <code>EXPLAIN</code> 分析查询执行计划，确保查询效率。</li>
 </ul>
 <p><strong>示例：优化 SQL 查询</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-6">6</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#75715e">-- 优化前
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sql" data-lang="sql"><span style="display:flex;"><span><span style="color:#75715e">-- 优化前
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">SELECT</span> <span style="color:#f92672">*</span> <span style="color:#66d9ef">FROM</span> users <span style="color:#66d9ef">WHERE</span> age <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">20</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">-- 优化后
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">SELECT</span> id, name <span style="color:#66d9ef">FROM</span> users <span style="color:#66d9ef">WHERE</span> age <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">20</span>;
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> idx_age <span style="color:#66d9ef">ON</span> users(age);
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+</span></span></code></pre></div></li>
 <li>
 <p><strong>引入缓存</strong>：</p>
 <ul>
@@ -796,29 +672,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>设置合理的缓存过期时间，避免数据不一致。</li>
 </ul>
 <p><strong>示例：使用 Redis 缓存</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-15">15</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-16"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-16">16</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-17"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-17">17</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-18"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-18">18</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getUserFromCache</span>(<span style="color:#a6e22e">userID</span> <span style="color:#66d9ef">int</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">User</span>, <span style="color:#66d9ef">error</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getUserFromCache</span>(<span style="color:#a6e22e">userID</span> <span style="color:#66d9ef">int</span>) (<span style="color:#f92672">*</span><span style="color:#a6e22e">User</span>, <span style="color:#66d9ef">error</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">user</span> <span style="color:#a6e22e">User</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">cacheKey</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Sprintf</span>(<span style="color:#e6db74">&#34;user:%d&#34;</span>, <span style="color:#a6e22e">userID</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">redisClient</span>.<span style="color:#a6e22e">Get</span>(<span style="color:#a6e22e">cacheKey</span>, <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>)
@@ -836,9 +690,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">redisClient</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#a6e22e">cacheKey</span>, <span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>, <span style="color:#66d9ef">nil</span>
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+</span></span></code></pre></div></li>
 <li>
 <p><strong>优化结果</strong>：</p>
 <ul>
@@ -876,25 +728,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>通过对象池复用临时对象，减少内存分配和 GC 压力。</li>
 </ul>
 <p><strong>示例：使用 <code>sync.Pool</code></strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-14">14</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">bufferPool</span> = <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Pool</span>{
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">bufferPool</span> = <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Pool</span>{
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">New</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">interface</span>{} {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> new(<span style="color:#a6e22e">bytes</span>.<span style="color:#a6e22e">Buffer</span>)
 </span></span><span style="display:flex;"><span>    },
@@ -908,29 +742,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">buf</span>.<span style="color:#a6e22e">Reset</span>()
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">bufferPool</span>.<span style="color:#a6e22e">Put</span>(<span style="color:#a6e22e">buf</span>)
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+</span></span></code></pre></div></li>
 <li>
 <p><strong>使用 <code>atomic</code> 减少锁竞争</strong>：</p>
 <ul>
 <li>将部分锁保护的操作替换为原子操作，减少锁竞争。</li>
 </ul>
 <p><strong>示例：使用 <code>atomic</code></strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-8">8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-9">9</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">counter</span> <span style="color:#66d9ef">int64</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">counter</span> <span style="color:#66d9ef">int64</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">incrementCounter</span>() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">AddInt64</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">counter</span>, <span style="color:#ae81ff">1</span>)
@@ -939,9 +758,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">getCounter</span>() <span style="color:#66d9ef">int64</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">atomic</span>.<span style="color:#a6e22e">LoadInt64</span>(<span style="color:#f92672">&amp;</span><span style="color:#a6e22e">counter</span>)
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+</span></span></code></pre></div></li>
 <li>
 <p><strong>优化结果</strong>：</p>
 <ul>
@@ -980,25 +797,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>复用对象，避免频繁创建和销毁。</li>
 </ul>
 <p><strong>示例：复用对象</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-14">14</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">userPool</span> = <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Pool</span>{
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">var</span> <span style="color:#a6e22e">userPool</span> = <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">Pool</span>{
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">New</span>: <span style="color:#66d9ef">func</span>() <span style="color:#66d9ef">interface</span>{} {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> new(<span style="color:#a6e22e">User</span>)
 </span></span><span style="display:flex;"><span>    },
@@ -1012,33 +811,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">user</span>.<span style="color:#a6e22e">Reset</span>()
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">userPool</span>.<span style="color:#a6e22e">Put</span>(<span style="color:#a6e22e">user</span>)
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+</span></span></code></pre></div></li>
 <li>
 <p><strong>控制 Goroutine 数量</strong>：</p>
 <ul>
 <li>使用 Goroutine 池限制并发数量，避免 Goroutine 数量过多。</li>
 </ul>
 <p><strong>示例：使用 Goroutine 池</strong></p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-13">13</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">workerPool</span>(<span style="color:#a6e22e">workerNum</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">tasks</span> <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">func</span>()) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">workerPool</span>(<span style="color:#a6e22e">workerNum</span> <span style="color:#66d9ef">int</span>, <span style="color:#a6e22e">tasks</span> <span style="color:#f92672">&lt;-</span><span style="color:#66d9ef">chan</span> <span style="color:#66d9ef">func</span>()) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> <span style="color:#a6e22e">wg</span> <span style="color:#a6e22e">sync</span>.<span style="color:#a6e22e">WaitGroup</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> <span style="color:#a6e22e">i</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">0</span>; <span style="color:#a6e22e">i</span> &lt; <span style="color:#a6e22e">workerNum</span>; <span style="color:#a6e22e">i</span><span style="color:#f92672">++</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Add</span>(<span style="color:#ae81ff">1</span>)
@@ -1051,9 +831,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">wg</span>.<span style="color:#a6e22e">Wait</span>()
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+</span></span></code></pre></div></li>
 <li>
 <p><strong>优化结果</strong>：</p>
 <ul>

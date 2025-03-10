@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "JavaWeb项目-苍穹外卖"
   ],
-  "articleBody": "苍穹外卖后端开发(Day2) 新增员工 管理端发出的请求， 统一使用/admin作为前缀 用户端发出的请求，统一使用/user作为前缀 代码开发 根据新增员工接口设计对应的DTO\n注意 ： 当前端提交的数据和实体类中对应的属性差别比较大时，建议使用DTO来封装数据\n功能测试 功能测试方式：\n通过接口文档测试 通过前后端联调测试 注意：由于开发阶段前端和后端时并行开发的，后端完成某个功能后，此时前端对应的功能可能还没有开发完成，导致无法进行前后端联调测试。所以在开发阶段，后端测试主要以接口文档测试为主。\n代码完善 录入的用户名已存在，抛出异常后没有处理 新增员工时，创建人id和修改人id设置为了固定值 ThreadLocal 并不是一个Thread，而是Thread的局部变量。\nThreadLocal为每个线程提供单独一份存储空间，具有线程隔离的效果， 只有在线程内才能获取到对应的值，线程外则不能访问。\nThreadLocal常用方法：\n1 public void set(T value) //设置当前线程的线程局部变量的值 1 public T get() //返回当前线程所对应的线程局部变量的值 1 public void remove() //移除当前线程的线程局部变量 员工分页查询 需求分析和设计 业务规则 ：\n根据页码展示员工信息 每页展示10条数据 分页查询时可以根据需要，输入员工姓名进行查询 代码开发 1 2 3 4 5 6 7 8 9 10 11 12 /** * 员工分页查询 * @param employeePageQueryDTO * @return */ @GetMapping(\"/page\") @ApiOperation(\"员工分页查询\") public Result\u003cPageResult\u003e page(EmployeePageQueryDTO employeePageQueryDTO){ log.info(\"员工分页查询， 参数为：{}\", employeePageQueryDTO); PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO); return Result.success(pageResult); } 根据分页查询接口设计对应的DTO：\n解决方式：\n方式一：在属性上加入注解，对日期进行格式化 1 2 3 //更新时间 @JsonFormat(pattern = \"yyyy-MM-dd HH:mm:ss\") private LocalDateTime updateTime; 方式二：在WebMvcConfiguration中扩展Spring MVC的消息转换器，统一对日期类型进行格式化处理 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 /** * 扩展mvc框架的消息转换器 * @param converters */ protected void extendMessageConverters(List\u003cHttpMessageConverter\u003c?\u003e\u003e converters) { Log.info(\"开始扩展消息转换器...\"); // 创建一个消息转换器对象 MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(); // 设置对象转换器，可以将Java对象转为json字符串 converter.setObjectMapper(new JacksonObjectMapper()); // 将我们自己的转换器放入Spring MVC框架的容器中 converters.add(0, converter); } 启用禁用员工账号 业务规则：\n可以对状态为”启用“的员工账号进行“禁用”操作 可以对状态为“禁用”的员工账号进行“启用”操作 状态为“禁用”的员工账号不能登录系统 代码开发 1 2 3 4 5 6 7 8 9 10 11 12 13 /** * 启用禁用员工账号 * @param status * @param id * @return */ @PostMapping(\"status/{status}\") @ApiOperation(\"启用禁用员工账号\") public Result startOrStop(@PathVariable(\"status\") Integer status, Long id){ log.info(\"启用禁用员工账号：{}, {}\", status, id); employeeService.startOrStop(status, id); return Result.success(); } 编辑员工 涉及到两个接口：\n根据id查询员工信息 编辑员工信息 代码开发 1 2 3 4 5 6 7 8 9 10 11 12 13 14 @GetMapping(\"/{id}\") @ApiOperation(\"根据id查询员工信息\") public Result\u003cEmployee\u003e getById(@PathVariable Long id) { Employee employee = employeeService.getById(id); return Result.success(employee); } @PutMapping @ApiOperation(\"编辑修改员工信息\") public Result update(@RequestBody EmployeeDTO employeeDTO) { log.info(\"编辑员工信息{}\", employeeDTO); employeeService.update(employeeDTO); return Result.success(); } 导入分类模块功能代码 业务规则：\n分类名称必须是唯一的 分类按照类型可以分为菜品分类和套餐分类 新添加的分类状态默认为“禁用” ",
-  "wordCount" : "1301",
+  "articleBody": "苍穹外卖后端开发(Day2) 新增员工 管理端发出的请求， 统一使用/admin作为前缀 用户端发出的请求，统一使用/user作为前缀 代码开发 根据新增员工接口设计对应的DTO\n注意 ： 当前端提交的数据和实体类中对应的属性差别比较大时，建议使用DTO来封装数据\n功能测试 功能测试方式：\n通过接口文档测试 通过前后端联调测试 注意：由于开发阶段前端和后端时并行开发的，后端完成某个功能后，此时前端对应的功能可能还没有开发完成，导致无法进行前后端联调测试。所以在开发阶段，后端测试主要以接口文档测试为主。\n代码完善 录入的用户名已存在，抛出异常后没有处理 新增员工时，创建人id和修改人id设置为了固定值 ThreadLocal 并不是一个Thread，而是Thread的局部变量。\nThreadLocal为每个线程提供单独一份存储空间，具有线程隔离的效果， 只有在线程内才能获取到对应的值，线程外则不能访问。\nThreadLocal常用方法：\npublic void set(T value) //设置当前线程的线程局部变量的值 public T get() //返回当前线程所对应的线程局部变量的值 public void remove() //移除当前线程的线程局部变量 员工分页查询 需求分析和设计 业务规则 ：\n根据页码展示员工信息 每页展示10条数据 分页查询时可以根据需要，输入员工姓名进行查询 代码开发 /** * 员工分页查询 * @param employeePageQueryDTO * @return */ @GetMapping(\"/page\") @ApiOperation(\"员工分页查询\") public Result\u003cPageResult\u003e page(EmployeePageQueryDTO employeePageQueryDTO){ log.info(\"员工分页查询， 参数为：{}\", employeePageQueryDTO); PageResult pageResult = employeeService.pageQuery(employeePageQueryDTO); return Result.success(pageResult); } 根据分页查询接口设计对应的DTO：\n解决方式：\n方式一：在属性上加入注解，对日期进行格式化 //更新时间 @JsonFormat(pattern = \"yyyy-MM-dd HH:mm:ss\") private LocalDateTime updateTime; 方式二：在WebMvcConfiguration中扩展Spring MVC的消息转换器，统一对日期类型进行格式化处理 /** * 扩展mvc框架的消息转换器 * @param converters */ protected void extendMessageConverters(List\u003cHttpMessageConverter\u003c?\u003e\u003e converters) { Log.info(\"开始扩展消息转换器...\"); // 创建一个消息转换器对象 MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter(); // 设置对象转换器，可以将Java对象转为json字符串 converter.setObjectMapper(new JacksonObjectMapper()); // 将我们自己的转换器放入Spring MVC框架的容器中 converters.add(0, converter); } 启用禁用员工账号 业务规则：\n可以对状态为”启用“的员工账号进行“禁用”操作 可以对状态为“禁用”的员工账号进行“启用”操作 状态为“禁用”的员工账号不能登录系统 代码开发 /** * 启用禁用员工账号 * @param status * @param id * @return */ @PostMapping(\"status/{status}\") @ApiOperation(\"启用禁用员工账号\") public Result startOrStop(@PathVariable(\"status\") Integer status, Long id){ log.info(\"启用禁用员工账号：{}, {}\", status, id); employeeService.startOrStop(status, id); return Result.success(); } 编辑员工 涉及到两个接口：\n根据id查询员工信息 编辑员工信息 代码开发 @GetMapping(\"/{id}\") @ApiOperation(\"根据id查询员工信息\") public Result\u003cEmployee\u003e getById(@PathVariable Long id) { Employee employee = employeeService.getById(id); return Result.success(employee); } @PutMapping @ApiOperation(\"编辑修改员工信息\") public Result update(@RequestBody EmployeeDTO employeeDTO) { log.info(\"编辑员工信息{}\", employeeDTO); employeeService.update(employeeDTO); return Result.success(); } 导入分类模块功能代码 业务规则：\n分类名称必须是唯一的 分类按照类型可以分为菜品分类和套餐分类 新添加的分类状态默认为“禁用” ",
+  "wordCount" : "1241",
   "inLanguage": "zh",
   "datePublished": "2024-10-13T22:30:13+08:00",
   "dateModified": "2024-10-13T22:20:13+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       苍穹外卖后端开发(Day2)
     </div>
-    <div class="post-meta"><span title='2024-10-13 22:30:13 +0800 CST'>2024-10-13</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1301 字&nbsp;·&nbsp;updated:&nbsp;2024-10-13&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-10-13 22:30:13 +0800 CST'>2024-10-13</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1241 字&nbsp;·&nbsp;updated:&nbsp;2024-10-13&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -415,35 +415,14 @@ document.addEventListener("DOMContentLoaded", function() {
 <p><code>ThreadLocal</code>常用方法：</p>
 <ul>
 <li>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">set</span>(T value) <span style="color:#75715e">//设置当前线程的线程局部变量的值</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">set</span>(T value) <span style="color:#75715e">//设置当前线程的线程局部变量的值</span>
+</span></span></code></pre></div></li>
 <li>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> T <span style="color:#a6e22e">get</span>() <span style="color:#75715e">//返回当前线程所对应的线程局部变量的值</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> T <span style="color:#a6e22e">get</span>() <span style="color:#75715e">//返回当前线程所对应的线程局部变量的值</span>
+</span></span></code></pre></div></li>
 <li>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">remove</span>() <span style="color:#75715e">//移除当前线程的线程局部变量</span>
-</span></span></code></pre></td></tr></table>
-</div>
-</div></li>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">remove</span>() <span style="color:#75715e">//移除当前线程的线程局部变量</span>
+</span></span></code></pre></div></li>
 </ul>
 <h2 id="员工分页查询">员工分页查询<a hidden class="anchor" aria-hidden="true" href="#员工分页查询">#</a></h2>
 <h3 id="需求分析和设计">需求分析和设计<a hidden class="anchor" aria-hidden="true" href="#需求分析和设计">#</a></h3>
@@ -480,23 +459,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </p>
 <h3 id="代码开发-1">代码开发<a hidden class="anchor" aria-hidden="true" href="#代码开发-1">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-12">12</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">/**
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">/**
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 员工分页查询
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param employeePageQueryDTO
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return
@@ -508,48 +471,18 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        PageResult pageResult <span style="color:#f92672">=</span> employeeService.<span style="color:#a6e22e">pageQuery</span>(employeePageQueryDTO);
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>(pageResult);
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>根据分页查询接口设计对应的DTO：</p>
+</span></span></code></pre></div><p>根据分页查询接口设计对应的DTO：</p>
 <p>解决方式：</p>
 <ul>
 <li>方式一：在属性上加入注解，对日期进行格式化</li>
 </ul>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-3">3</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">//更新时间</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">//更新时间</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@JsonFormat</span>(pattern <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;yyyy-MM-dd HH:mm:ss&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> LocalDateTime updateTime;
-</span></span></code></pre></td></tr></table>
-</div>
-</div><ul>
+</span></span></code></pre></div><ul>
 <li>方式二：在<code>WebMvcConfiguration</code>中扩展<code>Spring MVC</code>的消息转换器，统一对日期类型进行格式化处理</li>
 </ul>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-14">14</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-15"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-15">15</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">/**
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">/**
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 扩展mvc框架的消息转换器
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @param converters
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
@@ -564,9 +497,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将我们自己的转换器放入Spring MVC框架的容器中</span>
 </span></span><span style="display:flex;"><span>    converters.<span style="color:#a6e22e">add</span>(0, converter);
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="启用禁用员工账号">启用禁用员工账号<a hidden class="anchor" aria-hidden="true" href="#启用禁用员工账号">#</a></h2>
+</span></span></code></pre></div><h2 id="启用禁用员工账号">启用禁用员工账号<a hidden class="anchor" aria-hidden="true" href="#启用禁用员工账号">#</a></h2>
 <p>业务规则：</p>
 <ul>
 <li>可以对状态为”启用“的员工账号进行“禁用”操作</li>
@@ -587,24 +518,7 @@ document.addEventListener("DOMContentLoaded", function() {
         </a>
     </div>
 </p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-13">13</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">/**
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#75715e">/**
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 启用禁用员工账号
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param status
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param id
@@ -617,9 +531,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        employeeService.<span style="color:#a6e22e">startOrStop</span>(status, id);
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>();
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="编辑员工">编辑员工<a hidden class="anchor" aria-hidden="true" href="#编辑员工">#</a></h2>
+</span></span></code></pre></div><h2 id="编辑员工">编辑员工<a hidden class="anchor" aria-hidden="true" href="#编辑员工">#</a></h2>
 <p>涉及到两个接口：</p>
 <ul>
 <li>根据id查询员工信息</li>
@@ -652,25 +564,7 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </p>
 <h3 id="代码开发-3">代码开发<a hidden class="anchor" aria-hidden="true" href="#代码开发-3">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-1"> 1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-2"> 2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-3"> 3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-4"> 4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-5"> 5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-6"> 6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-7"> 7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-8"> 8</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-9"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-9"> 9</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-10"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-10">10</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-11"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-11">11</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-12"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-12">12</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-13"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-13">13</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-14"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-14">14</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/{id}&#34;</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/{id}&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ApiOperation</span>(<span style="color:#e6db74">&#34;根据id查询员工信息&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Result<span style="color:#f92672">&lt;</span>Employee<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">getById</span>(<span style="color:#a6e22e">@PathVariable</span> Long id) {
 </span></span><span style="display:flex;"><span>        Employee employee <span style="color:#f92672">=</span> employeeService.<span style="color:#a6e22e">getById</span>(id);
@@ -684,9 +578,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        employeeService.<span style="color:#a6e22e">update</span>(employeeDTO);
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>();
 </span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="导入分类模块功能代码">导入分类模块功能代码<a hidden class="anchor" aria-hidden="true" href="#导入分类模块功能代码">#</a></h2>
+</span></span></code></pre></div><h2 id="导入分类模块功能代码">导入分类模块功能代码<a hidden class="anchor" aria-hidden="true" href="#导入分类模块功能代码">#</a></h2>
 <p>业务规则：</p>
 <ul>
 <li>分类名称必须是唯一的</li>

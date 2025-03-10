@@ -135,8 +135,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "Linux笔记"
   ],
-  "articleBody": "Linux扩展磁盘空间大小 sda 在 Linux 中，sda 是系统中常见的块设备名称，用于表示磁盘设备。\nsda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Serial ATA（Advanced Technology Attachment）) 磁盘的标识符，通常代表硬盘或固态硬盘。 在 Linux 系统中，所有的存储设备（如硬盘、SSD、U盘）都会被标记为块设备，使用类似 sdX 的命名规则，其中： sd 表示 SCSI/SATA 设备（尽管现在也适用于大多数现代磁盘，包括 NVMe 磁盘）。 a 表示第一个磁盘，b 是第二个磁盘，c 是第三个磁盘，依此类推。 sda 的分区** 磁盘（如 sda）可以被分成多个分区，每个分区也有自己的标识符。例如：\nsda1：表示 sda 磁盘的第一个分区。 sda2：表示 sda 磁盘的第二个分区。 sda3：表示 sda 磁盘的第三个分区。 查看sda以及其他磁盘信息 lsblk 用于列出所有块设备及其挂载点：\n1 lsblk fdisk 可以查看磁盘分区表：\n1 sudo fdisk -l df 查看每个分区的磁盘使用情况：\n1 df -h du（disk usage）命令用于查看指定目录的磁盘使用情况。常用的命令是：\n1 du -sh /path/to/directory 其他常见的设备命名 名称 说明 sda 第一个 SCSI/SATA 磁盘。 sdb 第二个 SCSI/SATA 磁盘。 nvme0n1 第一个 NVMe 磁盘（用于 NVMe 协议的固态硬盘）。 vda 虚拟磁盘（在虚拟机中常见）。 sr0 光驱设备（如 CD/DVD 驱动器）。 loop 环回设备（如 ISO 文件挂载时生成的虚拟磁盘）。 扩展卷组的可用空间 从你的输出来看，lvextend 命令无法扩展 /dev/centos/root 逻辑卷，因为卷组 centos 中没有足够的空闲空间。需要首先扩展卷组的可用空间，才能继续扩展逻辑卷。\n解决方法： 1. 扩展物理卷（PV） 你可以将 /dev/sda 设备的剩余空间添加到 LVM 卷组 centos 中，首先需要在物理卷上分配剩余的空间。\n1.1创建分区： 使用 fdisk 或 parted 工具在剩余的空间上创建新分区，记住新分区的类型需要设置为 8e（Linux LVM）。\n使用 fdisk：\n1 fdisk /dev/sda 在交互式界面中，创建一个新的分区并将其设置为 8e 类型。\n详细步骤 为了在 /dev/sda 上创建一个新的分区，你可以按照以下步骤使用 fdisk 工具来操作：\n步骤 1：启动 fdisk 工具 首先，运行 fdisk 命令来修改磁盘分区（假设目标磁盘是 /dev/sda）：\n1 fdisk /dev/sda 步骤 2：查看现有分区 输入 p 来显示当前的分区表：\n1 Command (m for help): p 这将显示类似以下的分区信息：\n1 2 3 4 5 6 7 8 Disk /dev/sda: 64.4 GB, 64424509440 bytes, 125829120 sectors Units = sectors of 1 * 512 = 512 bytes Disk label type: dos Disk identifier: 0x000ed922 Device Boot Start End Blocks Id System /dev/sda1 * 2048 411647 204800 83 Linux /dev/sda2 411648 83886079 41737216 8e Linux LVM 步骤 3：创建新分区 输入 n 来创建新分区：\n1 Command (m for help): n 你将被提示选择分区类型：\np 用于主分区。 e 用于扩展分区（如果有需要）。 通常，你选择 p 创建主分区。\n接下来，输入分区号。你可以选择默认的分区号，通常是下一个可用的编号。\n接下来，会要求你指定起始和结束位置。你可以按提示选择默认值，或者手动输入起始和结束扇区。确保选择适当的空间（例如，你可以选择使用磁盘的剩余空间）。\n步骤 4：设置分区类型 输入 t 来设置分区类型：\n1 Command (m for help): t 然后，你需要设置分区类型为 8e，即 Linux LVM 类型：\n1 Hex code (type L to list all codes): 8e 步骤 5：保存并退出 一旦完成分区创建，你可以输入 w 来写入分区表并退出 fdisk：\n1 Command (m for help): w 这将保存更改并退出。\n步骤 6：刷新分区表 执行完 w 后，系统可能需要重新加载分区表。你可以使用以下命令来刷新：\n1 partprobe /dev/sda 步骤 7：创建物理卷（PV） 现在，创建的分区（假设是 /dev/sda3）需要被设置为物理卷。使用 pvcreate 来创建物理卷：\n1 pvcreate /dev/sda3 步骤 8：扩展卷组（VG） 之后，你可以将新的物理卷添加到现有的卷组（假设是 centos）中：\n1 vgextend centos /dev/sda3 1.2、刷新分区表： 在创建新分区后，可以使用以下命令刷新分区表：\n1 partprobe /dev/sda 1.3、创建物理卷： 将新分区（假设是 /dev/sda3）转换为物理卷（PV）：\n1 pvcreate /dev/sda3 1.4、扩展卷组： 将新的物理卷添加到卷组 centos 中：\n1 vgextend centos /dev/sda3 2. 扩展逻辑卷 现在，centos 卷组应该有了足够的空间，可以继续扩展逻辑卷。\n2.1扩展逻辑卷： 假设你想给 /dev/centos/root 增加 10GB，可以使用：\n1 lvextend -L +10G /dev/centos/root 2.2扩展文件系统： 逻辑卷扩展后，还需要扩展文件系统以使用新的空间。假设文件系统是 xfs，可以使用：\n1 xfs_growfs /dev/centos/root 如果是 ext4，则使用：\n1 resize2fs /dev/centos/root 扩展快满的分区（比如 /dev/mapper/centos-root） 1、确保 VMware 已经成功扩展虚拟磁盘的大小 1 fdisk -l 2、使用lvextend扩展LVM分区 查看当前的逻辑卷： 使用 lvdisplay 命令来查看当前的逻辑卷配置：\n1 lvdisplay 扩展逻辑卷： 假设卷组名为 centos，你可以通过 lvextend 命令扩展该逻辑卷。例如，要将 /dev/mapper/centos-root 增加 10G：\n1 lvextend -L +10G /dev/centos/root 扩展到剩余的所有可用空间，可以使用：\n1 lvextend -l +100%FREE /dev/centos/root 3：扩展文件系统 扩展逻辑卷之后，你还需要扩展文件系统以便使用新的空间。如果你的文件系统是 xfs，使用以下命令：\n1 xfs_growfs /dev/centos/root 如果是 ext4 文件系统，可以使用：\n1 resize2fs /dev/centos/root 步骤 4：确认扩展结果 使用 df -h 命令确认分区空间已成功扩展：\n1 df -h ",
-  "wordCount" : "1874",
+  "articleBody": "Linux扩展磁盘空间大小 sda 在 Linux 中，sda 是系统中常见的块设备名称，用于表示磁盘设备。\nsda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Serial ATA（Advanced Technology Attachment）) 磁盘的标识符，通常代表硬盘或固态硬盘。 在 Linux 系统中，所有的存储设备（如硬盘、SSD、U盘）都会被标记为块设备，使用类似 sdX 的命名规则，其中： sd 表示 SCSI/SATA 设备（尽管现在也适用于大多数现代磁盘，包括 NVMe 磁盘）。 a 表示第一个磁盘，b 是第二个磁盘，c 是第三个磁盘，依此类推。 sda 的分区** 磁盘（如 sda）可以被分成多个分区，每个分区也有自己的标识符。例如：\nsda1：表示 sda 磁盘的第一个分区。 sda2：表示 sda 磁盘的第二个分区。 sda3：表示 sda 磁盘的第三个分区。 查看sda以及其他磁盘信息 lsblk 用于列出所有块设备及其挂载点：\nlsblk fdisk 可以查看磁盘分区表：\nsudo fdisk -l df 查看每个分区的磁盘使用情况：\ndf -h du（disk usage）命令用于查看指定目录的磁盘使用情况。常用的命令是：\ndu -sh /path/to/directory 其他常见的设备命名 名称 说明 sda 第一个 SCSI/SATA 磁盘。 sdb 第二个 SCSI/SATA 磁盘。 nvme0n1 第一个 NVMe 磁盘（用于 NVMe 协议的固态硬盘）。 vda 虚拟磁盘（在虚拟机中常见）。 sr0 光驱设备（如 CD/DVD 驱动器）。 loop 环回设备（如 ISO 文件挂载时生成的虚拟磁盘）。 扩展卷组的可用空间 从你的输出来看，lvextend 命令无法扩展 /dev/centos/root 逻辑卷，因为卷组 centos 中没有足够的空闲空间。需要首先扩展卷组的可用空间，才能继续扩展逻辑卷。\n解决方法： 1. 扩展物理卷（PV） 你可以将 /dev/sda 设备的剩余空间添加到 LVM 卷组 centos 中，首先需要在物理卷上分配剩余的空间。\n1.1创建分区： 使用 fdisk 或 parted 工具在剩余的空间上创建新分区，记住新分区的类型需要设置为 8e（Linux LVM）。\n使用 fdisk：\nfdisk /dev/sda 在交互式界面中，创建一个新的分区并将其设置为 8e 类型。\n详细步骤 为了在 /dev/sda 上创建一个新的分区，你可以按照以下步骤使用 fdisk 工具来操作：\n步骤 1：启动 fdisk 工具 首先，运行 fdisk 命令来修改磁盘分区（假设目标磁盘是 /dev/sda）：\nfdisk /dev/sda 步骤 2：查看现有分区 输入 p 来显示当前的分区表：\nCommand (m for help): p 这将显示类似以下的分区信息：\nDisk /dev/sda: 64.4 GB, 64424509440 bytes, 125829120 sectors Units = sectors of 1 * 512 = 512 bytes Disk label type: dos Disk identifier: 0x000ed922 Device Boot Start End Blocks Id System /dev/sda1 * 2048 411647 204800 83 Linux /dev/sda2 411648 83886079 41737216 8e Linux LVM 步骤 3：创建新分区 输入 n 来创建新分区：\nCommand (m for help): n 你将被提示选择分区类型：\np 用于主分区。 e 用于扩展分区（如果有需要）。 通常，你选择 p 创建主分区。\n接下来，输入分区号。你可以选择默认的分区号，通常是下一个可用的编号。\n接下来，会要求你指定起始和结束位置。你可以按提示选择默认值，或者手动输入起始和结束扇区。确保选择适当的空间（例如，你可以选择使用磁盘的剩余空间）。\n步骤 4：设置分区类型 输入 t 来设置分区类型：\nCommand (m for help): t 然后，你需要设置分区类型为 8e，即 Linux LVM 类型：\nHex code (type L to list all codes): 8e 步骤 5：保存并退出 一旦完成分区创建，你可以输入 w 来写入分区表并退出 fdisk：\nCommand (m for help): w 这将保存更改并退出。\n步骤 6：刷新分区表 执行完 w 后，系统可能需要重新加载分区表。你可以使用以下命令来刷新：\npartprobe /dev/sda 步骤 7：创建物理卷（PV） 现在，创建的分区（假设是 /dev/sda3）需要被设置为物理卷。使用 pvcreate 来创建物理卷：\npvcreate /dev/sda3 步骤 8：扩展卷组（VG） 之后，你可以将新的物理卷添加到现有的卷组（假设是 centos）中：\nvgextend centos /dev/sda3 1.2、刷新分区表： 在创建新分区后，可以使用以下命令刷新分区表：\npartprobe /dev/sda 1.3、创建物理卷： 将新分区（假设是 /dev/sda3）转换为物理卷（PV）：\npvcreate /dev/sda3 1.4、扩展卷组： 将新的物理卷添加到卷组 centos 中：\nvgextend centos /dev/sda3 2. 扩展逻辑卷 现在，centos 卷组应该有了足够的空间，可以继续扩展逻辑卷。\n2.1扩展逻辑卷： 假设你想给 /dev/centos/root 增加 10GB，可以使用：\nlvextend -L +10G /dev/centos/root 2.2扩展文件系统： 逻辑卷扩展后，还需要扩展文件系统以使用新的空间。假设文件系统是 xfs，可以使用：\nxfs_growfs /dev/centos/root 如果是 ext4，则使用：\nresize2fs /dev/centos/root 扩展快满的分区（比如 /dev/mapper/centos-root） 1、确保 VMware 已经成功扩展虚拟磁盘的大小 fdisk -l 2、使用lvextend扩展LVM分区 查看当前的逻辑卷： 使用 lvdisplay 命令来查看当前的逻辑卷配置：\nlvdisplay 扩展逻辑卷： 假设卷组名为 centos，你可以通过 lvextend 命令扩展该逻辑卷。例如，要将 /dev/mapper/centos-root 增加 10G：\nlvextend -L +10G /dev/centos/root 扩展到剩余的所有可用空间，可以使用：\nlvextend -l +100%FREE /dev/centos/root 3：扩展文件系统 扩展逻辑卷之后，你还需要扩展文件系统以便使用新的空间。如果你的文件系统是 xfs，使用以下命令：\nxfs_growfs /dev/centos/root 如果是 ext4 文件系统，可以使用：\nresize2fs /dev/centos/root 步骤 4：确认扩展结果 使用 df -h 命令确认分区空间已成功扩展：\ndf -h ",
+  "wordCount" : "1839",
   "inLanguage": "zh",
   "datePublished": "2025-01-04T15:37:01+08:00",
   "dateModified": "2025-02-04T15:37:01+08:00",
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Linux
     </div>
-    <div class="post-meta"><span title='2025-01-04 15:37:01 +0800 CST'>2025-01-04</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1874 字&nbsp;·&nbsp;updated:&nbsp;2025-02-04&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2025-01-04 15:37:01 +0800 CST'>2025-01-04</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1839 字&nbsp;·&nbsp;updated:&nbsp;2025-02-04&nbsp;·&nbsp;ShowGuan
 
 </div>
     
@@ -432,42 +432,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <h2 id="查看sda以及其他磁盘信息">查看sda以及其他磁盘信息<a hidden class="anchor" aria-hidden="true" href="#查看sda以及其他磁盘信息">#</a></h2>
 <p><code>lsblk</code> 用于列出所有块设备及其挂载点：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-0-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-0-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lsblk
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>fdisk</code> 可以查看磁盘分区表：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-1-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-1-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>sudo fdisk -l
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>df</code> 查看每个分区的磁盘使用情况：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-2-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-2-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>df -h
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><code>du</code>（disk usage）命令用于查看指定目录的磁盘使用情况。常用的命令是：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-3-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-3-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>du -sh /path/to/directory
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="其他常见的设备命名"><strong>其他常见的设备命名</strong><a hidden class="anchor" aria-hidden="true" href="#其他常见的设备命名">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lsblk
+</span></span></code></pre></div><p><code>fdisk</code> 可以查看磁盘分区表：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>sudo fdisk -l
+</span></span></code></pre></div><p><code>df</code> 查看每个分区的磁盘使用情况：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>df -h
+</span></span></code></pre></div><p><code>du</code>（disk usage）命令用于查看指定目录的磁盘使用情况。常用的命令是：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>du -sh /path/to/directory
+</span></span></code></pre></div><h3 id="其他常见的设备命名"><strong>其他常见的设备命名</strong><a hidden class="anchor" aria-hidden="true" href="#其他常见的设备命名">#</a></h3>
 <table>
 <thead>
 <tr>
@@ -510,51 +482,18 @@ document.addEventListener("DOMContentLoaded", function() {
 <h5 id="11创建分区">1.1<strong>创建分区</strong>：<a hidden class="anchor" aria-hidden="true" href="#11创建分区">#</a></h5>
 <p>使用 <code>fdisk</code> 或 <code>parted</code> 工具在剩余的空间上创建新分区，记住新分区的类型需要设置为 <code>8e</code>（Linux LVM）。</p>
 <p>使用 <code>fdisk</code>：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-4-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-4-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>fdisk /dev/sda
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>在交互式界面中，创建一个新的分区并将其设置为 <code>8e</code> 类型。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>fdisk /dev/sda
+</span></span></code></pre></div><p>在交互式界面中，创建一个新的分区并将其设置为 <code>8e</code> 类型。</p>
 <h5 id="详细步骤">详细步骤<a hidden class="anchor" aria-hidden="true" href="#详细步骤">#</a></h5>
 <p>为了在 <code>/dev/sda</code> 上创建一个新的分区，你可以按照以下步骤使用 <code>fdisk</code> 工具来操作：</p>
 <h5 id="步骤-1启动-fdisk-工具">步骤 1：启动 <code>fdisk</code> 工具<a hidden class="anchor" aria-hidden="true" href="#步骤-1启动-fdisk-工具">#</a></h5>
 <p>首先，运行 <code>fdisk</code> 命令来修改磁盘分区（假设目标磁盘是 <code>/dev/sda</code>）：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-5-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-5-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>fdisk /dev/sda
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="步骤-2查看现有分区">步骤 2：查看现有分区<a hidden class="anchor" aria-hidden="true" href="#步骤-2查看现有分区">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>fdisk /dev/sda
+</span></span></code></pre></div><h5 id="步骤-2查看现有分区">步骤 2：查看现有分区<a hidden class="anchor" aria-hidden="true" href="#步骤-2查看现有分区">#</a></h5>
 <p>输入 <code>p</code> 来显示当前的分区表：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-6-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-6-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): p
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>这将显示类似以下的分区信息：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-1">1</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-2"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-2">2</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-3"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-3">3</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-4"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-4">4</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-5"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-5">5</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-6"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-6">6</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-7"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-7">7</a>
-</span><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-7-8"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-7-8">8</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Disk /dev/sda: 64.4 GB, 64424509440 bytes, 125829120 sectors
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): p
+</span></span></code></pre></div><p>这将显示类似以下的分区信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Disk /dev/sda: 64.4 GB, 64424509440 bytes, 125829120 sectors
 </span></span><span style="display:flex;"><span>Units = sectors of 1 * 512 = 512 bytes
 </span></span><span style="display:flex;"><span>Disk label type: dos
 </span></span><span style="display:flex;"><span>Disk identifier: 0x000ed922
@@ -562,19 +501,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>   Device Boot      Start         End      Blocks   Id  System
 </span></span><span style="display:flex;"><span>/dev/sda1   *        2048      411647      204800   83  Linux
 </span></span><span style="display:flex;"><span>/dev/sda2          411648    83886079    41737216   8e  Linux LVM
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="步骤-3创建新分区">步骤 3：创建新分区<a hidden class="anchor" aria-hidden="true" href="#步骤-3创建新分区">#</a></h5>
+</span></span></code></pre></div><h5 id="步骤-3创建新分区">步骤 3：创建新分区<a hidden class="anchor" aria-hidden="true" href="#步骤-3创建新分区">#</a></h5>
 <p>输入 <code>n</code> 来创建新分区：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-8-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-8-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): n
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>你将被提示选择分区类型：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): n
+</span></span></code></pre></div><p>你将被提示选择分区类型：</p>
 <ul>
 <li><code>p</code> 用于主分区。</li>
 <li><code>e</code> 用于扩展分区（如果有需要）。</li>
@@ -584,193 +514,60 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>接下来，会要求你指定起始和结束位置。你可以按提示选择默认值，或者手动输入起始和结束扇区。<strong>确保选择适当的空间</strong>（例如，你可以选择使用磁盘的剩余空间）。</p>
 <h5 id="步骤-4设置分区类型">步骤 4：设置分区类型<a hidden class="anchor" aria-hidden="true" href="#步骤-4设置分区类型">#</a></h5>
 <p>输入 <code>t</code> 来设置分区类型：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-9-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-9-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): t
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>然后，你需要设置分区类型为 <code>8e</code>，即 <code>Linux LVM</code> 类型：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-10-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-10-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Hex code (type L to list all codes): 8e
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="步骤-5保存并退出">步骤 5：保存并退出<a hidden class="anchor" aria-hidden="true" href="#步骤-5保存并退出">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): t
+</span></span></code></pre></div><p>然后，你需要设置分区类型为 <code>8e</code>，即 <code>Linux LVM</code> 类型：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Hex code (type L to list all codes): 8e
+</span></span></code></pre></div><h5 id="步骤-5保存并退出">步骤 5：保存并退出<a hidden class="anchor" aria-hidden="true" href="#步骤-5保存并退出">#</a></h5>
 <p>一旦完成分区创建，你可以输入 <code>w</code> 来写入分区表并退出 <code>fdisk</code>：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-11-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-11-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): w
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>这将保存更改并退出。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>Command (m for help): w
+</span></span></code></pre></div><p>这将保存更改并退出。</p>
 <h5 id="步骤-6刷新分区表">步骤 6：刷新分区表<a hidden class="anchor" aria-hidden="true" href="#步骤-6刷新分区表">#</a></h5>
 <p>执行完 <code>w</code> 后，系统可能需要重新加载分区表。你可以使用以下命令来刷新：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-12-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-12-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>partprobe /dev/sda
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="步骤-7创建物理卷pv">步骤 7：创建物理卷（PV）<a hidden class="anchor" aria-hidden="true" href="#步骤-7创建物理卷pv">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>partprobe /dev/sda
+</span></span></code></pre></div><h5 id="步骤-7创建物理卷pv">步骤 7：创建物理卷（PV）<a hidden class="anchor" aria-hidden="true" href="#步骤-7创建物理卷pv">#</a></h5>
 <p>现在，创建的分区（假设是 <code>/dev/sda3</code>）需要被设置为物理卷。使用 <code>pvcreate</code> 来创建物理卷：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-13-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-13-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pvcreate /dev/sda3
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="步骤-8扩展卷组vg">步骤 8：扩展卷组（VG）<a hidden class="anchor" aria-hidden="true" href="#步骤-8扩展卷组vg">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pvcreate /dev/sda3
+</span></span></code></pre></div><h5 id="步骤-8扩展卷组vg">步骤 8：扩展卷组（VG）<a hidden class="anchor" aria-hidden="true" href="#步骤-8扩展卷组vg">#</a></h5>
 <p>之后，你可以将新的物理卷添加到现有的卷组（假设是 <code>centos</code>）中：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-14-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-14-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vgextend centos /dev/sda3
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="12刷新分区表">1.2、<strong>刷新分区表</strong>：<a hidden class="anchor" aria-hidden="true" href="#12刷新分区表">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vgextend centos /dev/sda3
+</span></span></code></pre></div><h5 id="12刷新分区表">1.2、<strong>刷新分区表</strong>：<a hidden class="anchor" aria-hidden="true" href="#12刷新分区表">#</a></h5>
 <p>在创建新分区后，可以使用以下命令刷新分区表：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-15-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-15-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>partprobe /dev/sda
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="13创建物理卷">1.3、<strong>创建物理卷</strong>：<a hidden class="anchor" aria-hidden="true" href="#13创建物理卷">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>partprobe /dev/sda
+</span></span></code></pre></div><h5 id="13创建物理卷">1.3、<strong>创建物理卷</strong>：<a hidden class="anchor" aria-hidden="true" href="#13创建物理卷">#</a></h5>
 <p>将新分区（假设是 <code>/dev/sda3</code>）转换为物理卷（PV）：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-16-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-16-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pvcreate /dev/sda3
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="14扩展卷组">1.4、<strong>扩展卷组</strong>：<a hidden class="anchor" aria-hidden="true" href="#14扩展卷组">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pvcreate /dev/sda3
+</span></span></code></pre></div><h5 id="14扩展卷组">1.4、<strong>扩展卷组</strong>：<a hidden class="anchor" aria-hidden="true" href="#14扩展卷组">#</a></h5>
 <p>将新的物理卷添加到卷组 <code>centos</code> 中：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-17-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-17-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vgextend centos /dev/sda3
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h4 id="2-扩展逻辑卷">2. <strong>扩展逻辑卷</strong><a hidden class="anchor" aria-hidden="true" href="#2-扩展逻辑卷">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>vgextend centos /dev/sda3
+</span></span></code></pre></div><h4 id="2-扩展逻辑卷">2. <strong>扩展逻辑卷</strong><a hidden class="anchor" aria-hidden="true" href="#2-扩展逻辑卷">#</a></h4>
 <p>现在，<code>centos</code> 卷组应该有了足够的空间，可以继续扩展逻辑卷。</p>
 <h5 id="21扩展逻辑卷">2.1<strong>扩展逻辑卷</strong>：<a hidden class="anchor" aria-hidden="true" href="#21扩展逻辑卷">#</a></h5>
 <p>假设你想给 <code>/dev/centos/root</code> 增加 10GB，可以使用：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-18-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-18-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvextend -L +10G /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h5 id="22扩展文件系统">2.2<strong>扩展文件系统</strong>：<a hidden class="anchor" aria-hidden="true" href="#22扩展文件系统">#</a></h5>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvextend -L +10G /dev/centos/root
+</span></span></code></pre></div><h5 id="22扩展文件系统">2.2<strong>扩展文件系统</strong>：<a hidden class="anchor" aria-hidden="true" href="#22扩展文件系统">#</a></h5>
 <p>逻辑卷扩展后，还需要扩展文件系统以使用新的空间。假设文件系统是 <code>xfs</code>，可以使用：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-19-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-19-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>xfs_growfs /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>如果是 <code>ext4</code>，则使用：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-20-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-20-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>resize2fs /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="扩展快满的分区比如-devmappercentos-root">扩展快满的分区（比如 <code>/dev/mapper/centos-root</code>）<a hidden class="anchor" aria-hidden="true" href="#扩展快满的分区比如-devmappercentos-root">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>xfs_growfs /dev/centos/root
+</span></span></code></pre></div><p>如果是 <code>ext4</code>，则使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>resize2fs /dev/centos/root
+</span></span></code></pre></div><h2 id="扩展快满的分区比如-devmappercentos-root">扩展快满的分区（比如 <code>/dev/mapper/centos-root</code>）<a hidden class="anchor" aria-hidden="true" href="#扩展快满的分区比如-devmappercentos-root">#</a></h2>
 <h3 id="1确保-vmware-已经成功扩展虚拟磁盘的大小">1、确保 VMware 已经成功扩展虚拟磁盘的大小<a hidden class="anchor" aria-hidden="true" href="#1确保-vmware-已经成功扩展虚拟磁盘的大小">#</a></h3>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-21-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-21-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>fdisk -l
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="2使用lvextend扩展lvm分区">2、使用<code>lvextend</code>扩展LVM分区<a hidden class="anchor" aria-hidden="true" href="#2使用lvextend扩展lvm分区">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>fdisk -l
+</span></span></code></pre></div><h3 id="2使用lvextend扩展lvm分区">2、使用<code>lvextend</code>扩展LVM分区<a hidden class="anchor" aria-hidden="true" href="#2使用lvextend扩展lvm分区">#</a></h3>
 <p><strong>查看当前的逻辑卷</strong>： 使用 <code>lvdisplay</code> 命令来查看当前的逻辑卷配置：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-22-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-22-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvdisplay
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><strong>扩展逻辑卷</strong>： 假设卷组名为 <code>centos</code>，你可以通过 <code>lvextend</code> 命令扩展该逻辑卷。例如，要将 <code>/dev/mapper/centos-root</code> 增加 10G：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-23-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-23-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvextend -L +10G /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p><strong>扩展到剩余的所有可用空间</strong>，可以使用：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-24-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-24-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvextend -l +100%FREE /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="3扩展文件系统">3：扩展文件系统<a hidden class="anchor" aria-hidden="true" href="#3扩展文件系统">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvdisplay
+</span></span></code></pre></div><p><strong>扩展逻辑卷</strong>： 假设卷组名为 <code>centos</code>，你可以通过 <code>lvextend</code> 命令扩展该逻辑卷。例如，要将 <code>/dev/mapper/centos-root</code> 增加 10G：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvextend -L +10G /dev/centos/root
+</span></span></code></pre></div><p><strong>扩展到剩余的所有可用空间</strong>，可以使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>lvextend -l +100%FREE /dev/centos/root
+</span></span></code></pre></div><h3 id="3扩展文件系统">3：扩展文件系统<a hidden class="anchor" aria-hidden="true" href="#3扩展文件系统">#</a></h3>
 <p>扩展逻辑卷之后，你还需要扩展文件系统以便使用新的空间。如果你的文件系统是 <code>xfs</code>，使用以下命令：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-25-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-25-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>xfs_growfs /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><p>如果是 <code>ext4</code> 文件系统，可以使用：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-26-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-26-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>resize2fs /dev/centos/root
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h3 id="步骤-4确认扩展结果">步骤 4：确认扩展结果<a hidden class="anchor" aria-hidden="true" href="#步骤-4确认扩展结果">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>xfs_growfs /dev/centos/root
+</span></span></code></pre></div><p>如果是 <code>ext4</code> 文件系统，可以使用：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>resize2fs /dev/centos/root
+</span></span></code></pre></div><h3 id="步骤-4确认扩展结果">步骤 4：确认扩展结果<a hidden class="anchor" aria-hidden="true" href="#步骤-4确认扩展结果">#</a></h3>
 <p>使用 <code>df -h</code> 命令确认分区空间已成功扩展：</p>
-<div class="highlight"><div style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">
-<table style="border-spacing:0;padding:0;margin:0;border:0;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f" id="hl-27-1"><a style="outline:none;text-decoration:none;color:inherit" href="#hl-27-1">1</a>
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>df -h
-</span></span></code></pre></td></tr></table>
-</div>
-</div><h2 id="heading"><a hidden class="anchor" aria-hidden="true" href="#heading">#</a></h2>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>df -h
+</span></span></code></pre></div><h2 id="heading"><a hidden class="anchor" aria-hidden="true" href="#heading">#</a></h2>
 
 
   </div>
