@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>ProtoBuf使用 | Kennem&#39;s Blog</title>
+<meta name="keywords" content="ProtoBuf">
+<meta name="description" content="ProtoBuf使用">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+<meta property="og:url" content="https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/">
+  <meta property="og:site_name" content="Kennem&#39;s Blog">
+  <meta property="og:title" content="ProtoBuf使用">
+  <meta property="og:description" content="ProtoBuf使用">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-03-16T10:30:13+08:00">
+    <meta property="article:modified_time" content="2025-03-16T10:40:13+08:00">
+    <meta property="article:tag" content="ProtoBuf">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ProtoBuf使用">
+<meta name="twitter:description" content="ProtoBuf使用">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "ProtoBuf使用",
+      "item": "https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "ProtoBuf使用",
+  "name": "ProtoBuf使用",
+  "description": "ProtoBuf使用",
+  "keywords": [
+    "ProtoBuf"
+  ],
+  "articleBody": "ProtoBuf使用 1. ProtoBuf 简介 Protocol Buffers（简称 ProtoBuf） 是 Google 开发的一种语言无关、平台无关、可扩展的序列化结构化数据的机制。它主要用于数据的高效存储和传输，在分布式系统、RPC 框架、数据持久化等场景中非常常用。\n主要特点 高效性：序列化后数据体积小，传输快。 跨语言支持：支持 C++, Java, Python、Go、C# 等多种语言。 向后兼容：通过字段编号和规则，可在不破坏旧数据的前提下扩展新功能。 2. 环境准备与安装 在使用 ProtoBuf 之前，需要安装编译器 protoc 和对应语言的插件。\n安装步骤 下载编译器：从 Protocol Buffers 官方 GitHub 仓库 下载对应平台的二进制文件。\n安装到系统路径：将 protoc 添加到系统 PATH 中，以便在命令行中直接调用。\n安装语言库：例如使用 Python，可以通过 pip 安装\nprotobuf 包：\npip install protobuf 其他语言如 Java、C++、Go 等请参考各自的安装文档和包管理工具。\n3. 编写 .proto 文件 .proto 文件用于定义数据结构。下面是一个基础示例及说明：\n// 示例：person.proto syntax = \"proto3\"; // 指定语法版本（proto3 是当前主流版本） package tutorial; // 定义包名，可选 // 定义一个消息类型 Person message Person { string name = 1; // 字符串类型字段，编号为 1 int32 id = 2; // 整型字段，编号为 2 string email = 3; // 可选的 email 字段，编号为 3 // 重复字段，用于表示一个数组列表 repeated string phone = 4; } 关键点说明 语法声明：第一行必须声明语法版本。Proto2 与 Proto3 语法有区别，proto3 移除了 required/optional 修饰符，所有字段默认都是 optional（但并非严格意义上的 proto2 中的 optional）。 字段编号：每个字段都需要指定唯一的编号，用于二进制序列化。编号范围建议不超过 2^29 - 1，部分编号保留供系统使用。 包（Package）：类似于编程语言中的命名空间，防止命名冲突。 4. 常用特性 4.1. 枚举类型 枚举用于定义固定值集合。例如：\nenum PhoneType { MOBILE = 0; HOME = 1; WORK = 2; } message PhoneNumber { string number = 1; PhoneType type = 2; } 4.2. 嵌套消息 消息可以嵌套在其他消息中，用于组织复杂结构：\nmessage Person { string name = 1; message Address { string street = 1; string city = 2; } Address address = 5; } 4.3. map 类型 proto3 新增了 map 类型，用于键值对存储：\nmessage PhoneBook { map\u003cstring, Person\u003e contacts = 1; } 4.4. oneof 语法 oneof 允许多个字段共用同一内存区域，表示互斥的字段：\nmessage SearchRequest { oneof query { string query_string = 1; int32 query_id = 2; } } 5. 编译 .proto 文件生成代码 使用 protoc 编译器生成不同语言的代码：\n示例：生成 Python 代码 protoc --python_out=. person.proto 示例：生成 Java 代码 protoc --java_out=. person.proto 生成的代码会包含数据结构、序列化和反序列化方法。\n6. 常见操作示例 以下以 Python 为例展示如何使用生成的代码进行序列化与反序列化：\n6.1. 序列化 from person_pb2 import Person # 创建 Person 对象并赋值 person = Person() person.name = \"张三\" person.id = 123 person.email = \"zhangsan@example.com\" person.phone.append(\"123456789\") # 序列化为二进制字符串 data = person.SerializeToString() # data 可用于网络传输或文件存储 6.2. 反序列化 from person_pb2 import Person # 假设 data 是从网络接收到的二进制数据 person_new = Person() person_new.ParseFromString(data) print(person_new.name) # 输出: 张三 7. 注意事项和最佳实践 向后兼容性：在添加新字段时，请使用新的编号，不要修改或删除已有字段，避免破坏旧数据。 默认值问题：proto3 中默认值由语言决定，例如数字默认值为 0，字符串为空。要特别注意默认值可能带来的逻辑问题。 命名规范：字段名、枚举值等尽量采用统一风格，增强代码可读性。 注释：在 .proto 文件中加入注释，有助于后续维护和理解数据结构。 8. 总结 ProtoBuf 提供了高效的序列化机制，适用于跨平台数据交换和存储。通过定义 .proto 文件，使用 protoc 编译器生成目标语言代码，再进行序列化和反序列化操作，可以大大简化数据处理工作。建议在使用过程中，详细阅读 Protocol Buffers 官方文档 来获取更多细节和进阶用法。\n",
+  "wordCount" : "1354",
+  "inLanguage": "zh",
+  "datePublished": "2025-03-16T10:30:13+08:00",
+  "dateModified": "2025-03-16T10:40:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      ProtoBuf使用
+    </h1>
+    <div class="post-description">
+      ProtoBuf使用
+    </div>
+    <div class="post-meta"><span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1354 字&nbsp;·&nbsp;updated:&nbsp;2025-03-16&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#protobuf%e4%bd%bf%e7%94%a8" aria-label="ProtoBuf使用">ProtoBuf使用</a><ul>
+                            
+                    <li>
+                        <a href="#1-protobuf-%e7%ae%80%e4%bb%8b" aria-label="1. ProtoBuf 简介">1. ProtoBuf 简介</a><ul>
+                            
+                    <li>
+                        <a href="#%e4%b8%bb%e8%a6%81%e7%89%b9%e7%82%b9" aria-label="主要特点">主要特点</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#2-%e7%8e%af%e5%a2%83%e5%87%86%e5%a4%87%e4%b8%8e%e5%ae%89%e8%a3%85" aria-label="2. 环境准备与安装">2. 环境准备与安装</a><ul>
+                            
+                    <li>
+                        <a href="#%e5%ae%89%e8%a3%85%e6%ad%a5%e9%aa%a4" aria-label="安装步骤">安装步骤</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#3-%e7%bc%96%e5%86%99-proto-%e6%96%87%e4%bb%b6" aria-label="3. 编写 .proto 文件">3. 编写 .proto 文件</a><ul>
+                            
+                    <li>
+                        <a href="#%e5%85%b3%e9%94%ae%e7%82%b9%e8%af%b4%e6%98%8e" aria-label="关键点说明">关键点说明</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#4-%e5%b8%b8%e7%94%a8%e7%89%b9%e6%80%a7" aria-label="4. 常用特性">4. 常用特性</a><ul>
+                            
+                    <li>
+                        <a href="#41-%e6%9e%9a%e4%b8%be%e7%b1%bb%e5%9e%8b" aria-label="4.1. 枚举类型">4.1. 枚举类型</a></li>
+                    <li>
+                        <a href="#42-%e5%b5%8c%e5%a5%97%e6%b6%88%e6%81%af" aria-label="4.2. 嵌套消息">4.2. 嵌套消息</a></li>
+                    <li>
+                        <a href="#43-map-%e7%b1%bb%e5%9e%8b" aria-label="4.3. map 类型">4.3. map 类型</a></li>
+                    <li>
+                        <a href="#44-oneof-%e8%af%ad%e6%b3%95" aria-label="4.4. oneof 语法">4.4. oneof 语法</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#5-%e7%bc%96%e8%af%91-proto-%e6%96%87%e4%bb%b6%e7%94%9f%e6%88%90%e4%bb%a3%e7%a0%81" aria-label="5. 编译 .proto 文件生成代码">5. 编译 .proto 文件生成代码</a><ul>
+                            
+                    <li>
+                        <a href="#%e7%a4%ba%e4%be%8b%e7%94%9f%e6%88%90-python-%e4%bb%a3%e7%a0%81" aria-label="示例：生成 Python 代码">示例：生成 Python 代码</a></li>
+                    <li>
+                        <a href="#%e7%a4%ba%e4%be%8b%e7%94%9f%e6%88%90-java-%e4%bb%a3%e7%a0%81" aria-label="示例：生成 Java 代码">示例：生成 Java 代码</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#6-%e5%b8%b8%e8%a7%81%e6%93%8d%e4%bd%9c%e7%a4%ba%e4%be%8b" aria-label="6. 常见操作示例">6. 常见操作示例</a><ul>
+                            
+                    <li>
+                        <a href="#61-%e5%ba%8f%e5%88%97%e5%8c%96" aria-label="6.1. 序列化">6.1. 序列化</a></li>
+                    <li>
+                        <a href="#62-%e5%8f%8d%e5%ba%8f%e5%88%97%e5%8c%96" aria-label="6.2. 反序列化">6.2. 反序列化</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#7-%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9%e5%92%8c%e6%9c%80%e4%bd%b3%e5%ae%9e%e8%b7%b5" aria-label="7. 注意事项和最佳实践">7. 注意事项和最佳实践</a></li>
+                    <li>
+                        <a href="#8-%e6%80%bb%e7%bb%93" aria-label="8. 总结">8. 总结</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="protobuf使用">ProtoBuf使用<a hidden class="anchor" aria-hidden="true" href="#protobuf使用">#</a></h1>
+<h2 id="1-protobuf-简介">1. ProtoBuf 简介<a hidden class="anchor" aria-hidden="true" href="#1-protobuf-简介">#</a></h2>
+<p><strong>Protocol Buffers（简称 ProtoBuf）</strong> 是 Google 开发的一种语言无关、平台无关、可扩展的序列化结构化数据的机制。它主要用于数据的高效存储和传输，在分布式系统、RPC 框架、数据持久化等场景中非常常用。</p>
+<h3 id="主要特点">主要特点<a hidden class="anchor" aria-hidden="true" href="#主要特点">#</a></h3>
+<ul>
+<li><strong>高效性</strong>：序列化后数据体积小，传输快。</li>
+<li><strong>跨语言支持</strong>：支持 C++, Java, Python、Go、C# 等多种语言。</li>
+<li><strong>向后兼容</strong>：通过字段编号和规则，可在不破坏旧数据的前提下扩展新功能。</li>
+</ul>
+<hr>
+<h2 id="2-环境准备与安装">2. 环境准备与安装<a hidden class="anchor" aria-hidden="true" href="#2-环境准备与安装">#</a></h2>
+<p>在使用 ProtoBuf 之前，需要安装编译器 <code>protoc</code> 和对应语言的插件。</p>
+<h3 id="安装步骤">安装步骤<a hidden class="anchor" aria-hidden="true" href="#安装步骤">#</a></h3>
+<ul>
+<li>
+<p><strong>下载编译器</strong>：从 <a href="https://github.com/protocolbuffers/protobuf/releases">Protocol Buffers 官方 GitHub 仓库</a> 下载对应平台的二进制文件。</p>
+</li>
+<li>
+<p><strong>安装到系统路径</strong>：将 <code>protoc</code> 添加到系统 PATH 中，以便在命令行中直接调用。</p>
+</li>
+<li>
+<p>安装语言库：例如使用 Python，可以通过 pip 安装</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>protobuf
+</span></span></code></pre></div><p>包：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install protobuf
+</span></span></code></pre></div></li>
+</ul>
+<p>其他语言如 Java、C++、Go 等请参考各自的安装文档和包管理工具。</p>
+<hr>
+<h2 id="3-编写-proto-文件">3. 编写 .proto 文件<a hidden class="anchor" aria-hidden="true" href="#3-编写-proto-文件">#</a></h2>
+<p>.proto 文件用于定义数据结构。下面是一个基础示例及说明：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-proto" data-lang="proto"><span style="display:flex;"><span><span style="color:#75715e">// 示例：person.proto
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>syntax <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;proto3&#34;</span>;  <span style="color:#75715e">// 指定语法版本（proto3 是当前主流版本）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#f92672">package</span> tutorial;   <span style="color:#75715e">// 定义包名，可选
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#75715e">// 定义一个消息类型 Person
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Person</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> name <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;       <span style="color:#75715e">// 字符串类型字段，编号为 1
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int32</span> id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;          <span style="color:#75715e">// 整型字段，编号为 2
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">string</span> email <span style="color:#f92672">=</span> <span style="color:#ae81ff">3</span>;      <span style="color:#75715e">// 可选的 email 字段，编号为 3
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#75715e">// 重复字段，用于表示一个数组列表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">repeated</span> <span style="color:#66d9ef">string</span> phone <span style="color:#f92672">=</span> <span style="color:#ae81ff">4</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h3 id="关键点说明">关键点说明<a hidden class="anchor" aria-hidden="true" href="#关键点说明">#</a></h3>
+<ul>
+<li><strong>语法声明</strong>：第一行必须声明语法版本。Proto2 与 Proto3 语法有区别，proto3 移除了 required/optional 修饰符，所有字段默认都是 optional（但并非严格意义上的 proto2 中的 optional）。</li>
+<li><strong>字段编号</strong>：每个字段都需要指定唯一的编号，用于二进制序列化。编号范围建议不超过 2^29 - 1，部分编号保留供系统使用。</li>
+<li><strong>包（Package）</strong>：类似于编程语言中的命名空间，防止命名冲突。</li>
+</ul>
+<hr>
+<h2 id="4-常用特性">4. 常用特性<a hidden class="anchor" aria-hidden="true" href="#4-常用特性">#</a></h2>
+<h3 id="41-枚举类型">4.1. 枚举类型<a hidden class="anchor" aria-hidden="true" href="#41-枚举类型">#</a></h3>
+<p>枚举用于定义固定值集合。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-proto" data-lang="proto"><span style="display:flex;"><span><span style="color:#66d9ef">enum</span> PhoneType {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  MOBILE <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  HOME <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  WORK <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">PhoneNumber</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> number <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  PhoneType type <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h3 id="42-嵌套消息">4.2. 嵌套消息<a hidden class="anchor" aria-hidden="true" href="#42-嵌套消息">#</a></h3>
+<p>消息可以嵌套在其他消息中，用于组织复杂结构：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-proto" data-lang="proto"><span style="display:flex;"><span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Person</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">string</span> name <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">message</span> <span style="color:#a6e22e">Address</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> street <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> city <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  }<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  Address address <span style="color:#f92672">=</span> <span style="color:#ae81ff">5</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h3 id="43-map-类型">4.3. map 类型<a hidden class="anchor" aria-hidden="true" href="#43-map-类型">#</a></h3>
+<p>proto3 新增了 map 类型，用于键值对存储：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-proto" data-lang="proto"><span style="display:flex;"><span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">PhoneBook</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  map&lt;<span style="color:#66d9ef">string</span>, Person&gt; contacts <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><h3 id="44-oneof-语法">4.4. oneof 语法<a hidden class="anchor" aria-hidden="true" href="#44-oneof-语法">#</a></h3>
+<p><code>oneof</code> 允许多个字段共用同一内存区域，表示互斥的字段：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-proto" data-lang="proto"><span style="display:flex;"><span><span style="color:#66d9ef">message</span> <span style="color:#a6e22e">SearchRequest</span> {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  <span style="color:#66d9ef">oneof</span> query {<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">string</span> query_string <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>    <span style="color:#66d9ef">int32</span> query_id <span style="color:#f92672">=</span> <span style="color:#ae81ff">2</span>;<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>  }<span style="color:#960050;background-color:#1e0010">
+</span></span></span><span style="display:flex;"><span><span style="color:#960050;background-color:#1e0010"></span>}<span style="color:#960050;background-color:#1e0010">
+</span></span></span></code></pre></div><hr>
+<h2 id="5-编译-proto-文件生成代码">5. 编译 .proto 文件生成代码<a hidden class="anchor" aria-hidden="true" href="#5-编译-proto-文件生成代码">#</a></h2>
+<p>使用 <code>protoc</code> 编译器生成不同语言的代码：</p>
+<h3 id="示例生成-python-代码">示例：生成 Python 代码<a hidden class="anchor" aria-hidden="true" href="#示例生成-python-代码">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>protoc --python_out<span style="color:#f92672">=</span>. person.proto
+</span></span></code></pre></div><h3 id="示例生成-java-代码">示例：生成 Java 代码<a hidden class="anchor" aria-hidden="true" href="#示例生成-java-代码">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>protoc --java_out<span style="color:#f92672">=</span>. person.proto
+</span></span></code></pre></div><p>生成的代码会包含数据结构、序列化和反序列化方法。</p>
+<hr>
+<h2 id="6-常见操作示例">6. 常见操作示例<a hidden class="anchor" aria-hidden="true" href="#6-常见操作示例">#</a></h2>
+<p>以下以 Python 为例展示如何使用生成的代码进行序列化与反序列化：</p>
+<h3 id="61-序列化">6.1. 序列化<a hidden class="anchor" aria-hidden="true" href="#61-序列化">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> person_pb2 <span style="color:#f92672">import</span> Person
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 创建 Person 对象并赋值</span>
+</span></span><span style="display:flex;"><span>person <span style="color:#f92672">=</span> Person()
+</span></span><span style="display:flex;"><span>person<span style="color:#f92672">.</span>name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;张三&#34;</span>
+</span></span><span style="display:flex;"><span>person<span style="color:#f92672">.</span>id <span style="color:#f92672">=</span> <span style="color:#ae81ff">123</span>
+</span></span><span style="display:flex;"><span>person<span style="color:#f92672">.</span>email <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;zhangsan@example.com&#34;</span>
+</span></span><span style="display:flex;"><span>person<span style="color:#f92672">.</span>phone<span style="color:#f92672">.</span>append(<span style="color:#e6db74">&#34;123456789&#34;</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 序列化为二进制字符串</span>
+</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> person<span style="color:#f92672">.</span>SerializeToString()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># data 可用于网络传输或文件存储</span>
+</span></span></code></pre></div><h3 id="62-反序列化">6.2. 反序列化<a hidden class="anchor" aria-hidden="true" href="#62-反序列化">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">from</span> person_pb2 <span style="color:#f92672">import</span> Person
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 假设 data 是从网络接收到的二进制数据</span>
+</span></span><span style="display:flex;"><span>person_new <span style="color:#f92672">=</span> Person()
+</span></span><span style="display:flex;"><span>person_new<span style="color:#f92672">.</span>ParseFromString(data)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>print(person_new<span style="color:#f92672">.</span>name)   <span style="color:#75715e"># 输出: 张三</span>
+</span></span></code></pre></div><hr>
+<h2 id="7-注意事项和最佳实践">7. 注意事项和最佳实践<a hidden class="anchor" aria-hidden="true" href="#7-注意事项和最佳实践">#</a></h2>
+<ul>
+<li><strong>向后兼容性</strong>：在添加新字段时，请使用新的编号，不要修改或删除已有字段，避免破坏旧数据。</li>
+<li><strong>默认值问题</strong>：proto3 中默认值由语言决定，例如数字默认值为 0，字符串为空。要特别注意默认值可能带来的逻辑问题。</li>
+<li><strong>命名规范</strong>：字段名、枚举值等尽量采用统一风格，增强代码可读性。</li>
+<li><strong>注释</strong>：在 .proto 文件中加入注释，有助于后续维护和理解数据结构。</li>
+</ul>
+<hr>
+<h2 id="8-总结">8. 总结<a hidden class="anchor" aria-hidden="true" href="#8-总结">#</a></h2>
+<p>ProtoBuf 提供了高效的序列化机制，适用于跨平台数据交换和存储。通过定义 .proto 文件，使用 protoc 编译器生成目标语言代码，再进行序列化和反序列化操作，可以大大简化数据处理工作。建议在使用过程中，详细阅读 <a href="https://developers.google.com/protocol-buffers">Protocol Buffers 官方文档</a> 来获取更多细节和进阶用法。</p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/protobuf/">ProtoBuf</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/protobuf%E4%BD%BF%E7%94%A8">ProtoBuf使用</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/powershell/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>PowerShell 详细使用</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/conda%E4%BD%BF%E7%94%A8/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>Conda使用</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>

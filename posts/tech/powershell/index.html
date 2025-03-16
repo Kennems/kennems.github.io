@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>PowerShell 详细使用 | Kennem&#39;s Blog</title>
+<meta name="keywords" content="PowerShell">
+<meta name="description" content="PowerShell学习笔记">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/powershell/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/powershell/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+<meta property="og:url" content="https://kennems.github.io/posts/tech/powershell/">
+  <meta property="og:site_name" content="Kennem&#39;s Blog">
+  <meta property="og:title" content="PowerShell 详细使用">
+  <meta property="og:description" content="PowerShell学习笔记">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-03-16T10:30:13+08:00">
+    <meta property="article:modified_time" content="2025-03-16T10:40:13+08:00">
+    <meta property="article:tag" content="PowerShell">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="PowerShell 详细使用">
+<meta name="twitter:description" content="PowerShell学习笔记">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "PowerShell 详细使用",
+      "item": "https://kennems.github.io/posts/tech/powershell/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "PowerShell 详细使用",
+  "name": "PowerShell 详细使用",
+  "description": "PowerShell学习笔记",
+  "keywords": [
+    "PowerShell"
+  ],
+  "articleBody": "PowerShell 详细使用 一、PowerShell 简介 PowerShell 是微软开发的一种命令行外壳和脚本语言，它基于 .NET 框架，不仅适用于 Windows 系统，也在 Linux 和 macOS 上提供支持。与传统的命令提示符相比，PowerShell 处理的是对象而非纯文本，使得数据传递和管理更为灵活高效。无论是日常管理任务还是复杂的自动化操作，PowerShell 都是非常强大的工具。\n二、基本概念和语法 1. Cmdlet（命令单元） 定义：Cmdlet 是 PowerShell 内置的轻量级命令，遵循“动词-名词”命名规则，如 Get-Process、Set-Item。 示例：Get-Process 用于获取当前运行的进程列表。 2. 变量与数据类型 变量声明：使用 $符号，例如：\n$greeting = \"Hello World\" 数据类型：PowerShell 支持字符串、整数、布尔值、数组、哈希表等数据类型。\n3. 管道（Pipeline） 概念：管道符号 | 用于将一个命令的输出传递给下一个命令。\n示例：\nGet-Process | Sort-Object -Property CPU -Descending 上述命令获取进程列表并按 CPU 占用降序排序。\n4. 对象处理 PowerShell 输出的是 .NET 对象，这使得你可以直接访问属性和方法，而不仅仅是文本。例如：\n$process = Get-Process | Where-Object { $_.ProcessName -eq \"notepad\" } $process.Id # 访问进程ID 5. 脚本文件 扩展名：脚本文件以 .ps1 结尾。\n执行方式：在 PowerShell 控制台中执行脚本，例如：\n.\\MyScript.ps1 三、常用命令及使用示例 1. 帮助与命令查找 获取帮助：\nGet-Help Get-Process -Detailed 列出所有命令：\nGet-Command 更新帮助文档：\nUpdate-Help 2. 文件系统管理 列出目录内容（等同于 ls 或 dir）：\nGet-ChildItem -Path C:\\ 切换目录：\nSet-Location -Path C:\\Users 复制文件或文件夹：\nCopy-Item -Path .\\file.txt -Destination D:\\Backup\\ 移动文件或文件夹：\nMove-Item -Path .\\file.txt -Destination D:\\Archive\\ 删除文件或文件夹：\nRemove-Item -Path .\\oldfile.txt 3. 进程与服务管理 获取进程信息：\nGet-Process 停止指定进程：\nStop-Process -Name notepad 查看服务状态：\nGet-Service 管理服务（启动、停止、重启）：\nStart-Service -Name \"wuauserv\" Stop-Service -Name \"wuauserv\" Restart-Service -Name \"wuauserv\" 4. 环境变量管理 查看环境变量：\nGet-ChildItem Env: 设置环境变量：\n$Env:Path = \"$Env:Path;C:\\MyFolder\" 5. 脚本与函数 定义和调用函数：\nfunction Say-Hello { param([string]$Name) Write-Output \"Hello, $Name!\" } Say-Hello -Name \"Alice\" 条件判断与循环：\nif ($x -gt 10) { Write-Output \"大于10\" } else { Write-Output \"小于等于10\" } for ($i = 1; $i -le 5; $i++) { Write-Output \"数字：$i\" } 6. 管道与对象操作 筛选与遍历：\nGet-Service | Where-Object { $_.Status -eq \"Running\" } | ForEach-Object { $_.Name } 排序与格式化：\nGet-Process | Sort-Object -Property CPU -Descending | Format-Table -Property Name, CPU, Id 7. 远程管理 启用远程功能：\nEnable-PSRemoting -Force 进入远程会话：\nEnter-PSSession -ComputerName 执行远程命令：\nInvoke-Command -ComputerName -ScriptBlock { Get-Process } 8. 模块管理 查看已安装模块：\nGet-Module -ListAvailable 导入模块：\nImport-Module ModuleName 安装新模块\n（需安装 PowerShellGet 模块）：\nInstall-Module ModuleName 9. 执行策略（Execution Policy） 查看当前策略：\nGet-ExecutionPolicy 设置执行策略\n（例如 RemoteSigned）：\nSet-ExecutionPolicy RemoteSigned 注意：修改执行策略时要确保了解其安全影响，防止执行未知来源的脚本。\n⭐查看 某个文件的 sha256 哈希值 Get-FileHash \"path\" -Algorithm SHA256 获取小写\n(Get-FileHash \"C:\\path\\to\\your\\file.zip\" -Algorithm SHA256).Hash.ToLower() 1. 更换哈希算法 除了 SHA256，还可以指定其他算法，例如 SHA512、MD5、SHA1 等。示例：\n# 使用 SHA512 算法计算文件哈希值 Get-FileHash \"C:\\path\\to\\your\\file.zip\" -Algorithm SHA512 2. 对比两个文件的哈希值 可用于验证两个文件是否一致：\n$hash1 = (Get-FileHash \"C:\\path\\to\\your\\file1.zip\" -Algorithm SHA256).Hash.ToLower() $hash2 = (Get-FileHash \"C:\\path\\to\\your\\file2.zip\" -Algorithm SHA256).Hash.ToLower() if ($hash1 -eq $hash2) { Write-Output \"两个文件的哈希值相同，文件内容一致。\" } else { Write-Output \"两个文件的哈希值不同，文件内容不一致。\" } 3. 计算文件夹中所有文件的哈希值 结合 Get-ChildItem 和 ForEach-Object 可以批量计算文件夹中所有文件的哈希值：\nGet-ChildItem \"C:\\path\\to\\folder\" -File | ForEach-Object { $fileHash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower() [PSCustomObject]@{ FileName = $_.Name Hash = $fileHash } } | Format-Table -AutoSize 该命令遍历指定目录下的所有文件，并输出文件名与对应的 SHA256 哈希值。\n4. 将哈希值输出到文件 如果需要将哈希值保存到文件中，可使用 Out-File：\n(Get-FileHash \"C:\\path\\to\\your\\file.zip\" -Algorithm SHA256).Hash.ToLower() | Out-File \"C:\\path\\to\\output\\hash.txt\" 5. 验证文件完整性 假设你已有一个已知的预期哈希值，可以将计算得到的哈希值与预期值进行比对，判断文件是否被篡改：\n$expectedHash = \"abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890\" # 请替换为实际的预期哈希值 $actualHash = (Get-FileHash \"C:\\path\\to\\your\\file.zip\" -Algorithm SHA256).Hash.ToLower() if ($expectedHash -eq $actualHash) { Write-Output \"文件完整性验证通过。\" } else { Write-Output \"文件完整性验证失败！\" } 6. 结合脚本批量验证多个文件 如果你需要对多个文件进行完整性验证，可以把文件路径和预期哈希值保存在一个数据结构中，然后遍历验证：\n# 定义待验证的文件及其预期哈希值列表 $files = @( @{ Path = \"C:\\path\\to\\file1.zip\"; ExpectedHash = \"预期哈希值1\" }, @{ Path = \"C:\\path\\to\\file2.zip\"; ExpectedHash = \"预期哈希值2\" } ) foreach ($file in $files) { $actualHash = (Get-FileHash $file.Path -Algorithm SHA256).Hash.ToLower() if ($actualHash -eq $file.ExpectedHash.ToLower()) { Write-Output \"$($file.Path) 验证通过。\" } else { Write-Output \"$($file.Path) 验证失败！\" } } 四、脚本编写与调试技巧 1. 脚本文件 编写与保存：将常用命令写入 .ps1 文件中保存，便于重复使用。\n执行脚本：\n.\\MyScript.ps1 2. 调试方法 输出调试信息：使用 Write-Output 或 Write-Host 输出变量和状态。\n逐步调试：可以启用逐行调试\nSet-PSDebug -Step 错误处理：使用 Try-Catch 结构捕获和处理错误：\ntry { Get-Item \"C:\\nonexistentfile.txt\" } catch { Write-Host \"错误信息：$_\" } 五、PowerShell 高级特性 1. 对象与管道的优势 对象传递：不同于传统命令行将文本传递，PowerShell 传递的是对象，允许你直接操作属性和方法，极大地简化了数据处理流程。 2. 数据格式转换 转换为 JSON 或 XML：\nGet-Process | ConvertTo-Json Get-Service | ConvertTo-XML 输出到文件：\nGet-Process | Out-File -FilePath processes.txt 3. 自动化任务与计划任务 定时执行脚本：可结合 Windows 任务计划程序（Task Scheduler）或 PowerShell 内置的 ScheduledJob 模块实现自动化任务。 批量管理：利用 Invoke-Command 同时管理多台服务器，提高系统管理效率。 4. PowerShell Remoting 远程会话：允许你通过网络远程管理计算机，是系统管理员日常管理服务器的重要工具。 六、结合Office 获取当前最占内存的十个进程，并在Excel生成饼图：\n# create new excel instance $objExcel = New-Object -comobject Excel.Application $objExcel.Visible = $True $objWorkbook = $objExcel.Workbooks.Add() $objWorksheet = $objWorkbook.Worksheets.Item(1) # write information to the excel file $i = 0 $first10 = (ps | sort ws -Descending | select -first 10) $first10 | foreach -Process {$i++; $objWorksheet.Cells.Item($i,1) = $_.name; $objWorksheet.Cells.Item($i,2) = $_.ws} $otherMem = (ps | measure ws -s).Sum - ($first10 | measure ws -s).Sum $objWorksheet.Cells.Item(11,1) = \"Others\"; $objWorksheet.Cells.Item(11,2) = $otherMem # draw the pie chart $objCharts = $objWorksheet.ChartObjects() $objChart = $objCharts.Add(0, 0, 500, 300) $objChart.Chart.SetSourceData($objWorksheet.range(\"A1:B11\"), 2) $objChart.Chart.ChartType = 70 $objChart.Chart.ApplyDataLabels(5) 参考资料：\n微软官方 PowerShell 文档 ",
+  "wordCount" : "2159",
+  "inLanguage": "zh",
+  "datePublished": "2025-03-16T10:30:13+08:00",
+  "dateModified": "2025-03-16T10:40:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/powershell/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      PowerShell 详细使用
+    </h1>
+    <div class="post-description">
+      PowerShell学习笔记
+    </div>
+    <div class="post-meta"><span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2159 字&nbsp;·&nbsp;updated:&nbsp;2025-03-16&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#powershell-%e8%af%a6%e7%bb%86%e4%bd%bf%e7%94%a8" aria-label="PowerShell 详细使用">PowerShell 详细使用</a><ul>
+                            
+                    <li>
+                        <a href="#%e4%b8%80powershell-%e7%ae%80%e4%bb%8b" aria-label="一、PowerShell 简介">一、PowerShell 简介</a></li>
+                    <li>
+                        <a href="#%e4%ba%8c%e5%9f%ba%e6%9c%ac%e6%a6%82%e5%bf%b5%e5%92%8c%e8%af%ad%e6%b3%95" aria-label="二、基本概念和语法">二、基本概念和语法</a><ul>
+                            
+                    <li>
+                        <a href="#1-cmdlet%e5%91%bd%e4%bb%a4%e5%8d%95%e5%85%83" aria-label="1. Cmdlet（命令单元）">1. Cmdlet（命令单元）</a></li>
+                    <li>
+                        <a href="#2-%e5%8f%98%e9%87%8f%e4%b8%8e%e6%95%b0%e6%8d%ae%e7%b1%bb%e5%9e%8b" aria-label="2. 变量与数据类型">2. 变量与数据类型</a></li>
+                    <li>
+                        <a href="#3-%e7%ae%a1%e9%81%93pipeline" aria-label="3. 管道（Pipeline）">3. 管道（Pipeline）</a></li>
+                    <li>
+                        <a href="#4-%e5%af%b9%e8%b1%a1%e5%a4%84%e7%90%86" aria-label="4. 对象处理">4. 对象处理</a></li>
+                    <li>
+                        <a href="#5-%e8%84%9a%e6%9c%ac%e6%96%87%e4%bb%b6" aria-label="5. 脚本文件">5. 脚本文件</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e4%b8%89%e5%b8%b8%e7%94%a8%e5%91%bd%e4%bb%a4%e5%8f%8a%e4%bd%bf%e7%94%a8%e7%a4%ba%e4%be%8b" aria-label="三、常用命令及使用示例">三、常用命令及使用示例</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e5%b8%ae%e5%8a%a9%e4%b8%8e%e5%91%bd%e4%bb%a4%e6%9f%a5%e6%89%be" aria-label="1. 帮助与命令查找">1. 帮助与命令查找</a></li>
+                    <li>
+                        <a href="#2-%e6%96%87%e4%bb%b6%e7%b3%bb%e7%bb%9f%e7%ae%a1%e7%90%86" aria-label="2. 文件系统管理">2. 文件系统管理</a></li>
+                    <li>
+                        <a href="#3-%e8%bf%9b%e7%a8%8b%e4%b8%8e%e6%9c%8d%e5%8a%a1%e7%ae%a1%e7%90%86" aria-label="3. 进程与服务管理">3. 进程与服务管理</a></li>
+                    <li>
+                        <a href="#4-%e7%8e%af%e5%a2%83%e5%8f%98%e9%87%8f%e7%ae%a1%e7%90%86" aria-label="4. 环境变量管理">4. 环境变量管理</a></li>
+                    <li>
+                        <a href="#5-%e8%84%9a%e6%9c%ac%e4%b8%8e%e5%87%bd%e6%95%b0" aria-label="5. 脚本与函数">5. 脚本与函数</a></li>
+                    <li>
+                        <a href="#6-%e7%ae%a1%e9%81%93%e4%b8%8e%e5%af%b9%e8%b1%a1%e6%93%8d%e4%bd%9c" aria-label="6. 管道与对象操作">6. 管道与对象操作</a></li>
+                    <li>
+                        <a href="#7-%e8%bf%9c%e7%a8%8b%e7%ae%a1%e7%90%86" aria-label="7. 远程管理">7. 远程管理</a></li>
+                    <li>
+                        <a href="#8-%e6%a8%a1%e5%9d%97%e7%ae%a1%e7%90%86" aria-label="8. 模块管理">8. 模块管理</a></li>
+                    <li>
+                        <a href="#9-%e6%89%a7%e8%a1%8c%e7%ad%96%e7%95%a5execution-policy" aria-label="9. 执行策略（Execution Policy）">9. 执行策略（Execution Policy）</a></li>
+                    <li>
+                        <a href="#%e6%9f%a5%e7%9c%8b-%e6%9f%90%e4%b8%aa%e6%96%87%e4%bb%b6%e7%9a%84-sha256-%e5%93%88%e5%b8%8c%e5%80%bc" aria-label="⭐查看 某个文件的 sha256 哈希值">⭐查看 某个文件的 sha256 哈希值</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e6%9b%b4%e6%8d%a2%e5%93%88%e5%b8%8c%e7%ae%97%e6%b3%95" aria-label="1. 更换哈希算法">1. 更换哈希算法</a><ul>
+                            
+                    <li>
+                        <a href="#2-%e5%af%b9%e6%af%94%e4%b8%a4%e4%b8%aa%e6%96%87%e4%bb%b6%e7%9a%84%e5%93%88%e5%b8%8c%e5%80%bc" aria-label="2. 对比两个文件的哈希值">2. 对比两个文件的哈希值</a></li>
+                    <li>
+                        <a href="#3-%e8%ae%a1%e7%ae%97%e6%96%87%e4%bb%b6%e5%a4%b9%e4%b8%ad%e6%89%80%e6%9c%89%e6%96%87%e4%bb%b6%e7%9a%84%e5%93%88%e5%b8%8c%e5%80%bc" aria-label="3. 计算文件夹中所有文件的哈希值">3. 计算文件夹中所有文件的哈希值</a></li>
+                    <li>
+                        <a href="#4-%e5%b0%86%e5%93%88%e5%b8%8c%e5%80%bc%e8%be%93%e5%87%ba%e5%88%b0%e6%96%87%e4%bb%b6" aria-label="4. 将哈希值输出到文件">4. 将哈希值输出到文件</a></li>
+                    <li>
+                        <a href="#5-%e9%aa%8c%e8%af%81%e6%96%87%e4%bb%b6%e5%ae%8c%e6%95%b4%e6%80%a7" aria-label="5. 验证文件完整性">5. 验证文件完整性</a></li>
+                    <li>
+                        <a href="#6-%e7%bb%93%e5%90%88%e8%84%9a%e6%9c%ac%e6%89%b9%e9%87%8f%e9%aa%8c%e8%af%81%e5%a4%9a%e4%b8%aa%e6%96%87%e4%bb%b6" aria-label="6. 结合脚本批量验证多个文件">6. 结合脚本批量验证多个文件</a></li></ul>
+                    </li></ul>
+                    </li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e5%9b%9b%e8%84%9a%e6%9c%ac%e7%bc%96%e5%86%99%e4%b8%8e%e8%b0%83%e8%af%95%e6%8a%80%e5%b7%a7" aria-label="四、脚本编写与调试技巧">四、脚本编写与调试技巧</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e8%84%9a%e6%9c%ac%e6%96%87%e4%bb%b6" aria-label="1. 脚本文件">1. 脚本文件</a></li>
+                    <li>
+                        <a href="#2-%e8%b0%83%e8%af%95%e6%96%b9%e6%b3%95" aria-label="2. 调试方法">2. 调试方法</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e4%ba%94powershell-%e9%ab%98%e7%ba%a7%e7%89%b9%e6%80%a7" aria-label="五、PowerShell 高级特性">五、PowerShell 高级特性</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e5%af%b9%e8%b1%a1%e4%b8%8e%e7%ae%a1%e9%81%93%e7%9a%84%e4%bc%98%e5%8a%bf" aria-label="1. 对象与管道的优势">1. 对象与管道的优势</a></li>
+                    <li>
+                        <a href="#2-%e6%95%b0%e6%8d%ae%e6%a0%bc%e5%bc%8f%e8%bd%ac%e6%8d%a2" aria-label="2. 数据格式转换">2. 数据格式转换</a></li>
+                    <li>
+                        <a href="#3-%e8%87%aa%e5%8a%a8%e5%8c%96%e4%bb%bb%e5%8a%a1%e4%b8%8e%e8%ae%a1%e5%88%92%e4%bb%bb%e5%8a%a1" aria-label="3. 自动化任务与计划任务">3. 自动化任务与计划任务</a></li>
+                    <li>
+                        <a href="#4-powershell-remoting" aria-label="4. PowerShell Remoting">4. PowerShell Remoting</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e5%85%ad%e7%bb%93%e5%90%88office" aria-label="六、结合Office">六、结合Office</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="powershell-详细使用">PowerShell 详细使用<a hidden class="anchor" aria-hidden="true" href="#powershell-详细使用">#</a></h1>
+<h2 id="一powershell-简介">一、PowerShell 简介<a hidden class="anchor" aria-hidden="true" href="#一powershell-简介">#</a></h2>
+<p>PowerShell 是微软开发的一种命令行外壳和脚本语言，它基于 .NET 框架，不仅适用于 Windows 系统，也在 Linux 和 macOS 上提供支持。与传统的命令提示符相比，PowerShell 处理的是对象而非纯文本，使得数据传递和管理更为灵活高效。无论是日常管理任务还是复杂的自动化操作，PowerShell 都是非常强大的工具。</p>
+<h2 id="二基本概念和语法">二、基本概念和语法<a hidden class="anchor" aria-hidden="true" href="#二基本概念和语法">#</a></h2>
+<h3 id="1-cmdlet命令单元">1. Cmdlet（命令单元）<a hidden class="anchor" aria-hidden="true" href="#1-cmdlet命令单元">#</a></h3>
+<ul>
+<li><strong>定义</strong>：Cmdlet 是 PowerShell 内置的轻量级命令，遵循“动词-名词”命名规则，如 <code>Get-Process</code>、<code>Set-Item</code>。</li>
+<li><strong>示例</strong>：<code>Get-Process</code> 用于获取当前运行的进程列表。</li>
+</ul>
+<h3 id="2-变量与数据类型">2. 变量与数据类型<a hidden class="anchor" aria-hidden="true" href="#2-变量与数据类型">#</a></h3>
+<ul>
+<li>
+<p>变量声明：使用 <code>$</code>符号，例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>$greeting = <span style="color:#e6db74">&#34;Hello World&#34;</span>
+</span></span></code></pre></div></li>
+<li>
+<p><strong>数据类型</strong>：PowerShell 支持字符串、整数、布尔值、数组、哈希表等数据类型。</p>
+</li>
+</ul>
+<h3 id="3-管道pipeline">3. 管道（Pipeline）<a hidden class="anchor" aria-hidden="true" href="#3-管道pipeline">#</a></h3>
+<ul>
+<li>
+<p><strong>概念</strong>：管道符号 <code>|</code> 用于将一个命令的输出传递给下一个命令。</p>
+</li>
+<li>
+<p>示例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Process | Sort-Object -Property CPU -Descending
+</span></span></code></pre></div><p>上述命令获取进程列表并按 CPU 占用降序排序。</p>
+</li>
+</ul>
+<h3 id="4-对象处理">4. 对象处理<a hidden class="anchor" aria-hidden="true" href="#4-对象处理">#</a></h3>
+<ul>
+<li>
+<p>PowerShell 输出的是 .NET 对象，这使得你可以直接访问属性和方法，而不仅仅是文本。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>$process = Get-Process | Where-Object { $_.ProcessName <span style="color:#f92672">-eq</span> <span style="color:#e6db74">&#34;notepad&#34;</span> }
+</span></span><span style="display:flex;"><span>$process.Id  <span style="color:#75715e"># 访问进程ID</span>
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="5-脚本文件">5. 脚本文件<a hidden class="anchor" aria-hidden="true" href="#5-脚本文件">#</a></h3>
+<ul>
+<li>
+<p><strong>扩展名</strong>：脚本文件以 <code>.ps1</code> 结尾。</p>
+</li>
+<li>
+<p>执行方式：在 PowerShell 控制台中执行脚本，例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>.\MyScript.ps1
+</span></span></code></pre></div></li>
+</ul>
+<h2 id="三常用命令及使用示例">三、常用命令及使用示例<a hidden class="anchor" aria-hidden="true" href="#三常用命令及使用示例">#</a></h2>
+<h3 id="1-帮助与命令查找">1. 帮助与命令查找<a hidden class="anchor" aria-hidden="true" href="#1-帮助与命令查找">#</a></h3>
+<ul>
+<li>
+<p>获取帮助：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Help Get-Process -Detailed
+</span></span></code></pre></div></li>
+<li>
+<p>列出所有命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Command
+</span></span></code></pre></div></li>
+<li>
+<p>更新帮助文档：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Update-Help
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="2-文件系统管理">2. 文件系统管理<a hidden class="anchor" aria-hidden="true" href="#2-文件系统管理">#</a></h3>
+<ul>
+<li>
+<p>列出目录内容（等同于 <code>ls</code> 或 <code>dir</code>）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-ChildItem -Path C:\
+</span></span></code></pre></div></li>
+<li>
+<p>切换目录：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Set-Location -Path C:\Users
+</span></span></code></pre></div></li>
+<li>
+<p>复制文件或文件夹：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Copy-Item -Path .\file.txt -Destination D:\Backup\
+</span></span></code></pre></div></li>
+<li>
+<p>移动文件或文件夹：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Move-Item -Path .\file.txt -Destination D:\Archive\
+</span></span></code></pre></div></li>
+<li>
+<p>删除文件或文件夹：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Remove-Item -Path .\oldfile.txt
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="3-进程与服务管理">3. 进程与服务管理<a hidden class="anchor" aria-hidden="true" href="#3-进程与服务管理">#</a></h3>
+<ul>
+<li>
+<p>获取进程信息：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Process
+</span></span></code></pre></div></li>
+<li>
+<p>停止指定进程：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Stop-Process -Name notepad
+</span></span></code></pre></div></li>
+<li>
+<p>查看服务状态：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Service
+</span></span></code></pre></div></li>
+<li>
+<p>管理服务（启动、停止、重启）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Start-Service -Name <span style="color:#e6db74">&#34;wuauserv&#34;</span>
+</span></span><span style="display:flex;"><span>Stop-Service -Name <span style="color:#e6db74">&#34;wuauserv&#34;</span>
+</span></span><span style="display:flex;"><span>Restart-Service -Name <span style="color:#e6db74">&#34;wuauserv&#34;</span>
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="4-环境变量管理">4. 环境变量管理<a hidden class="anchor" aria-hidden="true" href="#4-环境变量管理">#</a></h3>
+<ul>
+<li>
+<p>查看环境变量：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-ChildItem Env<span style="color:#960050;background-color:#1e0010">:</span>
+</span></span></code></pre></div></li>
+<li>
+<p>设置环境变量：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>$Env:Path = <span style="color:#e6db74">&#34;</span>$Env:Path<span style="color:#e6db74">;C:\MyFolder&#34;</span>
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="5-脚本与函数">5. 脚本与函数<a hidden class="anchor" aria-hidden="true" href="#5-脚本与函数">#</a></h3>
+<ul>
+<li>
+<p>定义和调用函数：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#66d9ef">function</span> Say-Hello {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">param</span>([<span style="color:#66d9ef">string</span>]$Name)
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;Hello, </span>$Name<span style="color:#e6db74">!&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>Say-Hello -Name <span style="color:#e6db74">&#34;Alice&#34;</span>
+</span></span></code></pre></div></li>
+<li>
+<p>条件判断与循环：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#66d9ef">if</span> ($x <span style="color:#f92672">-gt</span> <span style="color:#ae81ff">10</span>) {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;大于10&#34;</span>
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;小于等于10&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> ($i = <span style="color:#ae81ff">1</span>; $i <span style="color:#f92672">-le</span> <span style="color:#ae81ff">5</span>; $i++) {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;数字：</span>$i<span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="6-管道与对象操作">6. 管道与对象操作<a hidden class="anchor" aria-hidden="true" href="#6-管道与对象操作">#</a></h3>
+<ul>
+<li>
+<p>筛选与遍历：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Service | Where-Object { $_.Status <span style="color:#f92672">-eq</span> <span style="color:#e6db74">&#34;Running&#34;</span> } | ForEach-Object { $_.Name }
+</span></span></code></pre></div></li>
+<li>
+<p>排序与格式化：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Process | Sort-Object -Property CPU -Descending | Format-Table -Property Name, CPU, Id
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="7-远程管理">7. 远程管理<a hidden class="anchor" aria-hidden="true" href="#7-远程管理">#</a></h3>
+<ul>
+<li>
+<p>启用远程功能：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Enable-PSRemoting -Force
+</span></span></code></pre></div></li>
+<li>
+<p>进入远程会话：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Enter-PSSession -ComputerName &lt;RemoteComputer&gt;
+</span></span></code></pre></div></li>
+<li>
+<p>执行远程命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Invoke-Command -ComputerName &lt;RemoteComputer&gt; -ScriptBlock { Get-Process }
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="8-模块管理">8. 模块管理<a hidden class="anchor" aria-hidden="true" href="#8-模块管理">#</a></h3>
+<ul>
+<li>
+<p>查看已安装模块：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Module -ListAvailable
+</span></span></code></pre></div></li>
+<li>
+<p>导入模块：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Import-Module ModuleName
+</span></span></code></pre></div></li>
+<li>
+<p>安装新模块</p>
+<p>（需安装 PowerShellGet 模块）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Install-Module ModuleName
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="9-执行策略execution-policy">9. 执行策略（Execution Policy）<a hidden class="anchor" aria-hidden="true" href="#9-执行策略execution-policy">#</a></h3>
+<ul>
+<li>
+<p>查看当前策略：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-ExecutionPolicy
+</span></span></code></pre></div></li>
+<li>
+<p>设置执行策略</p>
+<p>（例如 RemoteSigned）：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Set-ExecutionPolicy RemoteSigned
+</span></span></code></pre></div><blockquote>
+<p>注意：修改执行策略时要确保了解其安全影响，防止执行未知来源的脚本。</p>
+</blockquote>
+</li>
+</ul>
+<h3 id="查看-某个文件的-sha256-哈希值">⭐查看 某个文件的 sha256 哈希值<a hidden class="anchor" aria-hidden="true" href="#查看-某个文件的-sha256-哈希值">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>Get-FileHash <span style="color:#e6db74">&#34;path&#34;</span> -Algorithm SHA256
+</span></span></code></pre></div><p>获取小写</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span><span style="color:#f92672">(</span>Get-FileHash <span style="color:#e6db74">&#34;C:\path\to\your\file.zip&#34;</span> -Algorithm SHA256<span style="color:#f92672">)</span>.Hash.ToLower<span style="color:#f92672">()</span>
+</span></span></code></pre></div><hr>
+<h4 id="1-更换哈希算法">1. 更换哈希算法<a hidden class="anchor" aria-hidden="true" href="#1-更换哈希算法">#</a></h4>
+<p>除了 SHA256，还可以指定其他算法，例如 SHA512、MD5、SHA1 等。示例：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#75715e"># 使用 SHA512 算法计算文件哈希值</span>
+</span></span><span style="display:flex;"><span>Get-FileHash <span style="color:#e6db74">&#34;C:\path\to\your\file.zip&#34;</span> -Algorithm SHA512
+</span></span></code></pre></div><hr>
+<h5 id="2-对比两个文件的哈希值">2. 对比两个文件的哈希值<a hidden class="anchor" aria-hidden="true" href="#2-对比两个文件的哈希值">#</a></h5>
+<p>可用于验证两个文件是否一致：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>$hash1 = (Get-FileHash <span style="color:#e6db74">&#34;C:\path\to\your\file1.zip&#34;</span> -Algorithm SHA256).Hash.ToLower()
+</span></span><span style="display:flex;"><span>$hash2 = (Get-FileHash <span style="color:#e6db74">&#34;C:\path\to\your\file2.zip&#34;</span> -Algorithm SHA256).Hash.ToLower()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> ($hash1 <span style="color:#f92672">-eq</span> $hash2) {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;两个文件的哈希值相同，文件内容一致。&#34;</span>
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;两个文件的哈希值不同，文件内容不一致。&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<h5 id="3-计算文件夹中所有文件的哈希值">3. 计算文件夹中所有文件的哈希值<a hidden class="anchor" aria-hidden="true" href="#3-计算文件夹中所有文件的哈希值">#</a></h5>
+<p>结合 <strong>Get-ChildItem</strong> 和 <strong>ForEach-Object</strong> 可以批量计算文件夹中所有文件的哈希值：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-ChildItem <span style="color:#e6db74">&#34;C:\path\to\folder&#34;</span> <span style="color:#f92672">-File</span> | ForEach-Object {
+</span></span><span style="display:flex;"><span>    $fileHash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower()
+</span></span><span style="display:flex;"><span>    [<span style="color:#66d9ef">PSCustomObject</span>]@{
+</span></span><span style="display:flex;"><span>        FileName = $_.Name
+</span></span><span style="display:flex;"><span>        Hash     = $fileHash
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>} | Format-Table -AutoSize
+</span></span></code></pre></div><p>该命令遍历指定目录下的所有文件，并输出文件名与对应的 SHA256 哈希值。</p>
+<hr>
+<h5 id="4-将哈希值输出到文件">4. 将哈希值输出到文件<a hidden class="anchor" aria-hidden="true" href="#4-将哈希值输出到文件">#</a></h5>
+<p>如果需要将哈希值保存到文件中，可使用 <strong>Out-File</strong>：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>(Get-FileHash <span style="color:#e6db74">&#34;C:\path\to\your\file.zip&#34;</span> -Algorithm SHA256).Hash.ToLower() | Out-File <span style="color:#e6db74">&#34;C:\path\to\output\hash.txt&#34;</span>
+</span></span></code></pre></div><hr>
+<h5 id="5-验证文件完整性">5. 验证文件完整性<a hidden class="anchor" aria-hidden="true" href="#5-验证文件完整性">#</a></h5>
+<p>假设你已有一个已知的预期哈希值，可以将计算得到的哈希值与预期值进行比对，判断文件是否被篡改：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>$expectedHash = <span style="color:#e6db74">&#34;abcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890&#34;</span>  <span style="color:#75715e"># 请替换为实际的预期哈希值</span>
+</span></span><span style="display:flex;"><span>$actualHash = (Get-FileHash <span style="color:#e6db74">&#34;C:\path\to\your\file.zip&#34;</span> -Algorithm SHA256).Hash.ToLower()
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> ($expectedHash <span style="color:#f92672">-eq</span> $actualHash) {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;文件完整性验证通过。&#34;</span>
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>    Write-Output <span style="color:#e6db74">&#34;文件完整性验证失败！&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><hr>
+<h5 id="6-结合脚本批量验证多个文件">6. 结合脚本批量验证多个文件<a hidden class="anchor" aria-hidden="true" href="#6-结合脚本批量验证多个文件">#</a></h5>
+<p>如果你需要对多个文件进行完整性验证，可以把文件路径和预期哈希值保存在一个数据结构中，然后遍历验证：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#75715e"># 定义待验证的文件及其预期哈希值列表</span>
+</span></span><span style="display:flex;"><span>$files = @(
+</span></span><span style="display:flex;"><span>    @{ Path = <span style="color:#e6db74">&#34;C:\path\to\file1.zip&#34;</span>; ExpectedHash = <span style="color:#e6db74">&#34;预期哈希值1&#34;</span> },
+</span></span><span style="display:flex;"><span>    @{ Path = <span style="color:#e6db74">&#34;C:\path\to\file2.zip&#34;</span>; ExpectedHash = <span style="color:#e6db74">&#34;预期哈希值2&#34;</span> }
+</span></span><span style="display:flex;"><span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">foreach</span> ($file <span style="color:#66d9ef">in</span> $files) {
+</span></span><span style="display:flex;"><span>    $actualHash = (Get-FileHash $file.Path -Algorithm SHA256).Hash.ToLower()
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> ($actualHash <span style="color:#f92672">-eq</span> $file.ExpectedHash.ToLower()) {
+</span></span><span style="display:flex;"><span>        Write-Output <span style="color:#e6db74">&#34;</span>$($file.Path)<span style="color:#e6db74"> 验证通过。&#34;</span>
+</span></span><span style="display:flex;"><span>    } <span style="color:#66d9ef">else</span> {
+</span></span><span style="display:flex;"><span>        Write-Output <span style="color:#e6db74">&#34;</span>$($file.Path)<span style="color:#e6db74"> 验证失败！&#34;</span>
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h2 id="四脚本编写与调试技巧">四、脚本编写与调试技巧<a hidden class="anchor" aria-hidden="true" href="#四脚本编写与调试技巧">#</a></h2>
+<h3 id="1-脚本文件">1. 脚本文件<a hidden class="anchor" aria-hidden="true" href="#1-脚本文件">#</a></h3>
+<ul>
+<li>
+<p><strong>编写与保存</strong>：将常用命令写入 <code>.ps1</code> 文件中保存，便于重复使用。</p>
+</li>
+<li>
+<p>执行脚本：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>.\MyScript.ps1
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="2-调试方法">2. 调试方法<a hidden class="anchor" aria-hidden="true" href="#2-调试方法">#</a></h3>
+<ul>
+<li>
+<p><strong>输出调试信息</strong>：使用 <code>Write-Output</code> 或 <code>Write-Host</code> 输出变量和状态。</p>
+</li>
+<li>
+<p>逐步调试：可以启用逐行调试</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Set-PSDebug -Step
+</span></span></code></pre></div></li>
+<li>
+<p>错误处理：使用 Try-Catch 结构捕获和处理错误：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#66d9ef">try</span> {
+</span></span><span style="display:flex;"><span>    Get-Item <span style="color:#e6db74">&#34;C:\nonexistentfile.txt&#34;</span>
+</span></span><span style="display:flex;"><span>} <span style="color:#66d9ef">catch</span> {
+</span></span><span style="display:flex;"><span>    Write-Host <span style="color:#e6db74">&#34;错误信息：</span>$_<span style="color:#e6db74">&#34;</span>
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div></li>
+</ul>
+<h2 id="五powershell-高级特性">五、PowerShell 高级特性<a hidden class="anchor" aria-hidden="true" href="#五powershell-高级特性">#</a></h2>
+<h3 id="1-对象与管道的优势">1. 对象与管道的优势<a hidden class="anchor" aria-hidden="true" href="#1-对象与管道的优势">#</a></h3>
+<ul>
+<li><strong>对象传递</strong>：不同于传统命令行将文本传递，PowerShell 传递的是对象，允许你直接操作属性和方法，极大地简化了数据处理流程。</li>
+</ul>
+<h3 id="2-数据格式转换">2. 数据格式转换<a hidden class="anchor" aria-hidden="true" href="#2-数据格式转换">#</a></h3>
+<ul>
+<li>
+<p>转换为 JSON 或 XML：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Process | ConvertTo-Json
+</span></span><span style="display:flex;"><span>Get-Service | ConvertTo-XML
+</span></span></code></pre></div></li>
+<li>
+<p>输出到文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span>Get-Process | Out-File -FilePath processes.txt
+</span></span></code></pre></div></li>
+</ul>
+<h3 id="3-自动化任务与计划任务">3. 自动化任务与计划任务<a hidden class="anchor" aria-hidden="true" href="#3-自动化任务与计划任务">#</a></h3>
+<ul>
+<li><strong>定时执行脚本</strong>：可结合 Windows 任务计划程序（Task Scheduler）或 PowerShell 内置的 ScheduledJob 模块实现自动化任务。</li>
+<li><strong>批量管理</strong>：利用 <code>Invoke-Command</code> 同时管理多台服务器，提高系统管理效率。</li>
+</ul>
+<h3 id="4-powershell-remoting">4. PowerShell Remoting<a hidden class="anchor" aria-hidden="true" href="#4-powershell-remoting">#</a></h3>
+<ul>
+<li><strong>远程会话</strong>：允许你通过网络远程管理计算机，是系统管理员日常管理服务器的重要工具。</li>
+</ul>
+<h2 id="六结合office">六、结合Office<a hidden class="anchor" aria-hidden="true" href="#六结合office">#</a></h2>
+<p>获取当前最占内存的十个进程，并在Excel生成饼图：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-powershell" data-lang="powershell"><span style="display:flex;"><span><span style="color:#75715e"># create new excel instance</span>
+</span></span><span style="display:flex;"><span> $objExcel = New-Object -comobject Excel.Application
+</span></span><span style="display:flex;"><span> $objExcel.Visible = $True
+</span></span><span style="display:flex;"><span> $objWorkbook = $objExcel.Workbooks.Add()
+</span></span><span style="display:flex;"><span> $objWorksheet = $objWorkbook.Worksheets.Item(<span style="color:#ae81ff">1</span>)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># write information to the excel file</span>
+</span></span><span style="display:flex;"><span>$i = <span style="color:#ae81ff">0</span>
+</span></span><span style="display:flex;"><span>$first10 = (ps | sort ws -Descending | select -first <span style="color:#ae81ff">10</span>)
+</span></span><span style="display:flex;"><span>$first10 | <span style="color:#66d9ef">foreach</span> -Process {$i++; $objWorksheet.Cells.Item($i,<span style="color:#ae81ff">1</span>) = $_.name; $objWorksheet.Cells.Item($i,<span style="color:#ae81ff">2</span>) = $_.ws}
+</span></span><span style="display:flex;"><span>$otherMem = (ps | measure ws -s).Sum - ($first10 | measure ws -s).Sum
+</span></span><span style="display:flex;"><span>$objWorksheet.Cells.Item(<span style="color:#ae81ff">11</span>,<span style="color:#ae81ff">1</span>) = <span style="color:#e6db74">&#34;Others&#34;</span>; $objWorksheet.Cells.Item(<span style="color:#ae81ff">11</span>,<span style="color:#ae81ff">2</span>) = $otherMem
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># draw the pie chart</span>
+</span></span><span style="display:flex;"><span>$objCharts = $objWorksheet.ChartObjects()
+</span></span><span style="display:flex;"><span>$objChart = $objCharts.Add(<span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">500</span>, <span style="color:#ae81ff">300</span>)
+</span></span><span style="display:flex;"><span>$objChart.Chart.SetSourceData($objWorksheet.range(<span style="color:#e6db74">&#34;A1:B11&#34;</span>), <span style="color:#ae81ff">2</span>)
+</span></span><span style="display:flex;"><span>$objChart.Chart.ChartType = <span style="color:#ae81ff">70</span>
+</span></span><span style="display:flex;"><span>$objChart.Chart.ApplyDataLabels(<span style="color:#ae81ff">5</span>)
+</span></span></code></pre></div><p><strong>参考资料：</strong></p>
+<ul>
+<li><a href="https://docs.microsoft.com/zh-cn/powershell/">微软官方 PowerShell 文档</a></li>
+</ul>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/powershell/">PowerShell</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/powershell%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">PowerShell学习笔记</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/nvm/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>NVM使用（Linux）</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>ProtoBuf使用</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>
