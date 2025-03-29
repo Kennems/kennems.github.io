@@ -1,0 +1,775 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>Python包管理 | Kennem&#39;s Blog</title>
+<meta name="keywords" content="Python包">
+<meta name="description" content="Python包管理">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-track {
+                background: 0 0;
+            }
+
+            .list:not(.dark)::-webkit-scrollbar-thumb {
+                border-color: var(--theme);
+            }
+        }
+
+    </style>
+</noscript>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  
+
+<meta property="og:url" content="https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/">
+  <meta property="og:site_name" content="Kennem&#39;s Blog">
+  <meta property="og:title" content="Python包管理">
+  <meta property="og:description" content="Python包管理">
+  <meta property="og:locale" content="zh">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2025-03-22T22:30:13+08:00">
+    <meta property="article:modified_time" content="2024-03-22T22:20:13+08:00">
+    <meta property="article:tag" content="Python包">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Python包管理">
+<meta name="twitter:description" content="Python包管理">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "Python包管理",
+      "item": "https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "Python包管理",
+  "name": "Python包管理",
+  "description": "Python包管理",
+  "keywords": [
+    "Python包"
+  ],
+  "articleBody": "Python包管理 pip 1. 检查是否已安装 在终端中运行以下命令，检查是否已安装 pip：\npip --version 2. 安装 pip 如果未安装，可以根据操作系统选择以下安装方法：\nWindows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS 使用 Homebrew 安装：\nbrew install python Linux 使用包管理器安装：\nsudo apt-get install python3-pip # Debian/Ubuntu sudo dnf install python3-pip # Fedora 基本用法 1. 安装包 pip install package_name 2. 升级包 pip install --upgrade package_name 3. 卸载包 pip uninstall package_name 4. 查看已安装的包 pip list 5. 查看包信息 pip show package_name 6. 搜索包 pip search package_name 四、高级用法 1. 安装特定版本的包 pip install package_name==version 2. 安装多个包 pip install package1 package2 package3 3. 从 requirements 文件安装依赖 pip install -r requirements.txt 4. 安装私有包 pip install git+https://github.com/username/repo.git@branch#egg=package_name 5. 安装本地包 pip install /path/to/local/package 6. 使用虚拟环境 创建虚拟环境 python -m venv myenv 激活虚拟环境 Windows: myenv\\Scripts\\activate macOS/Linux: source myenv/bin/activate 在虚拟环境中安装依赖 pip install -r requirements.txt 7. 忽略缓存安装 pip install --no-cache-dir package_name 8. 显示安装进度 pip install package_name -v 9. 指定安装目录 pip install package_name --target=/path/to/install ⭐10. 使用镜像源 pip install package_name -i https://pypi.tuna.tsinghua.edu.cn/simple requirements.txt 1. 创建 requirements.txt 文件 在项目根目录下创建一个名为 requirements.txt 的文件，列出项目所需的依赖包及其版本。例如：\nnumpy==1.21.2 pandas==1.3.3 requests==2.26.0 2. 安装依赖 使用 pip 命令安装 requirements.txt 文件中指定的依赖：\npip install -r requirements.txt 3. 生成 requirements.txt 文件 在项目开发过程中，可以使用以下命令生成当前环境中已安装的依赖列表：\npip freeze \u003e requirements.txt 4. 更新 requirements.txt 文件 如果项目依赖发生变化，可以使用以下命令更新 requirements.txt 文件：\npip freeze \u003e requirements.txt 5. 使用虚拟环境 为了隔离项目环境，通常会使用虚拟环境。以下是使用虚拟环境的步骤：\n创建虚拟环境 python -m venv myenv 激活虚拟环境 Windows: myenv\\Scripts\\activate macOS/Linux: source myenv/bin/activate 在虚拟环境中安装依赖 pip install -r requirements.txt 6. 安装特定版本的依赖 在 requirements.txt 文件中，可以指定依赖的具体版本。例如：\nnumpy==1.21.2 7. 安装最新版本的依赖 如果想安装依赖的最新版本，可以省略版本号。例如：\nnumpy 8. 使用 requirements 文件安装开发依赖 可以创建一个单独的 dev-requirements.txt 文件，用于安装开发过程中所需的额外依赖。例如：\npytest==6.2.5 flake8==4.0.1 9. 使用 requirements 文件安装可选依赖 如果项目有可选依赖，可以创建一个单独的 optional-requirements.txt 文件。例如：\nmatplotlib==3.4.3 10. 使用 requirements 文件安装私有依赖 如果项目依赖于私有包，可以在 requirements.txt 文件中指定包的 URL 或路径。例如：\ngit+https://github.com/username/repo.git@branch#egg=package_name 11. 使用 requirements 文件安装本地包 如果项目依赖于本地开发的包，可以在 requirements.txt 文件中指定包的路径。例如：\n-e file:///path/to/local/package 12. 使用 requirements 文件安装多个环境的依赖 可以创建多个 requirements 文件，分别用于不同环境。例如：\nrequirements-prod.txt：生产环境依赖 requirements-dev.txt：开发环境依赖 requirements-test.txt：测试环境依赖 13. 使用 requirements 文件安装依赖时忽略缓存 如果想在安装依赖时忽略缓存，可以使用以下命令：\npip install --no-cache-dir -r requirements.txt 14. 使用 requirements 文件安装依赖时升级现有包 如果想在安装依赖时升级现有包，可以使用以下命令：\npip install --upgrade -r requirements.txt 15. 使用 requirements 文件安装依赖时忽略依赖冲突 如果想在安装依赖时忽略依赖冲突，可以使用以下命令：\npip install --ignore-installed -r requirements.txt 16. 使用 requirements 文件安装依赖时指定索引 URL 如果想在安装依赖时指定自定义的包索引 URL，可以使用以下命令：\npip install -r requirements.txt -i https://pypi.org/simple 17. 使用 requirements 文件安装依赖时指定额外的索引 URL 如果想在安装依赖时指定额外的包索引 URL，可以使用以下命令：\npip install -r requirements.txt --extra-index-url https://pypi.org/simple 18. 使用 requirements 文件安装依赖时禁用进度条 如果想在安装依赖时禁用进度条，可以使用以下命令：\npip install -r requirements.txt --progress-bar off 19. 使用 requirements 文件安装依赖时显示详细日志 如果想在安装依赖时显示详细日志，可以使用以下命令：\npip install -r requirements.txt -v 20. 使用 requirements 文件安装依赖时指定用户安装 如果想在安装依赖时指定用户安装，可以使用以下命令：\npip install -r requirements.txt --user ",
+  "wordCount" : "1294",
+  "inLanguage": "zh",
+  "datePublished": "2025-03-22T22:30:13+08:00",
+  "dateModified": "2024-03-22T22:20:13+08:00",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+
+<body class="" id="top">
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.body.classList.add('dark');
+    } else if (localStorage.getItem("pref-theme") === "light") {
+        document.body.classList.remove('dark')
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.body.classList.add('dark');
+    }
+
+</script>
+
+<header class="header">
+    <nav class="nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                    <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg id="sun" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <div class="breadcrumbs"><a href="https://kennems.github.io/">主页</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/">📚文章</a>&nbsp;»&nbsp;<a href="https://kennems.github.io/posts/tech/">💻技术</a></div>
+    <h1 class="post-title entry-hint-parent">
+      Python包管理
+    </h1>
+    <div class="post-description">
+      Python包管理
+    </div>
+    <div class="post-meta"><span title='2025-03-22 22:30:13 +0800 CST'>2025-03-22</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1294 字&nbsp;·&nbsp;updated:&nbsp;2024-03-22&nbsp;·&nbsp;ShowGuan
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+            <summary accesskey="c" title="(Alt + C)">
+                <span class="details">目录</span>
+            </summary>
+
+            <div class="inner"><ul>
+                    <li>
+                        <a href="#python%e5%8c%85%e7%ae%a1%e7%90%86" aria-label="Python包管理">Python包管理</a><ul>
+                            
+                    <li>
+                        <a href="#pip" aria-label="pip">pip</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e6%a3%80%e6%9f%a5%e6%98%af%e5%90%a6%e5%b7%b2%e5%ae%89%e8%a3%85" aria-label="1. 检查是否已安装">1. 检查是否已安装</a></li>
+                    <li>
+                        <a href="#2-%e5%ae%89%e8%a3%85-pip" aria-label="2. 安装 pip">2. 安装 pip</a><ul>
+                            
+                    <li>
+                        <a href="#windows" aria-label="Windows">Windows</a></li>
+                    <li>
+                        <a href="#macos" aria-label="macOS">macOS</a></li>
+                    <li>
+                        <a href="#linux" aria-label="Linux">Linux</a></li></ul>
+                    </li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e5%9f%ba%e6%9c%ac%e7%94%a8%e6%b3%95" aria-label="基本用法">基本用法</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e5%ae%89%e8%a3%85%e5%8c%85" aria-label="1. 安装包">1. 安装包</a></li>
+                    <li>
+                        <a href="#2-%e5%8d%87%e7%ba%a7%e5%8c%85" aria-label="2. 升级包">2. 升级包</a></li>
+                    <li>
+                        <a href="#3-%e5%8d%b8%e8%bd%bd%e5%8c%85" aria-label="3. 卸载包">3. 卸载包</a></li>
+                    <li>
+                        <a href="#4-%e6%9f%a5%e7%9c%8b%e5%b7%b2%e5%ae%89%e8%a3%85%e7%9a%84%e5%8c%85" aria-label="4. 查看已安装的包">4. 查看已安装的包</a></li>
+                    <li>
+                        <a href="#5-%e6%9f%a5%e7%9c%8b%e5%8c%85%e4%bf%a1%e6%81%af" aria-label="5. 查看包信息">5. 查看包信息</a></li>
+                    <li>
+                        <a href="#6-%e6%90%9c%e7%b4%a2%e5%8c%85" aria-label="6. 搜索包">6. 搜索包</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#%e5%9b%9b%e9%ab%98%e7%ba%a7%e7%94%a8%e6%b3%95" aria-label="四、高级用法">四、高级用法</a><ul>
+                            
+                    <li>
+                        <a href="#1-%e5%ae%89%e8%a3%85%e7%89%b9%e5%ae%9a%e7%89%88%e6%9c%ac%e7%9a%84%e5%8c%85" aria-label="1. 安装特定版本的包">1. 安装特定版本的包</a></li>
+                    <li>
+                        <a href="#2-%e5%ae%89%e8%a3%85%e5%a4%9a%e4%b8%aa%e5%8c%85" aria-label="2. 安装多个包">2. 安装多个包</a></li>
+                    <li>
+                        <a href="#3-%e4%bb%8e-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96" aria-label="3. 从 requirements 文件安装依赖">3. 从 requirements 文件安装依赖</a></li>
+                    <li>
+                        <a href="#4-%e5%ae%89%e8%a3%85%e7%a7%81%e6%9c%89%e5%8c%85" aria-label="4. 安装私有包">4. 安装私有包</a></li>
+                    <li>
+                        <a href="#5-%e5%ae%89%e8%a3%85%e6%9c%ac%e5%9c%b0%e5%8c%85" aria-label="5. 安装本地包">5. 安装本地包</a></li>
+                    <li>
+                        <a href="#6-%e4%bd%bf%e7%94%a8%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83" aria-label="6. 使用虚拟环境">6. 使用虚拟环境</a><ul>
+                            
+                    <li>
+                        <a href="#%e5%88%9b%e5%bb%ba%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83" aria-label="创建虚拟环境">创建虚拟环境</a></li>
+                    <li>
+                        <a href="#%e6%bf%80%e6%b4%bb%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83" aria-label="激活虚拟环境">激活虚拟环境</a></li>
+                    <li>
+                        <a href="#%e5%9c%a8%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83%e4%b8%ad%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96" aria-label="在虚拟环境中安装依赖">在虚拟环境中安装依赖</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#7-%e5%bf%bd%e7%95%a5%e7%bc%93%e5%ad%98%e5%ae%89%e8%a3%85" aria-label="7. 忽略缓存安装">7. 忽略缓存安装</a></li>
+                    <li>
+                        <a href="#8-%e6%98%be%e7%a4%ba%e5%ae%89%e8%a3%85%e8%bf%9b%e5%ba%a6" aria-label="8. 显示安装进度">8. 显示安装进度</a></li>
+                    <li>
+                        <a href="#9-%e6%8c%87%e5%ae%9a%e5%ae%89%e8%a3%85%e7%9b%ae%e5%bd%95" aria-label="9. 指定安装目录">9. 指定安装目录</a></li>
+                    <li>
+                        <a href="#10-%e4%bd%bf%e7%94%a8%e9%95%9c%e5%83%8f%e6%ba%90" aria-label="⭐10. 使用镜像源">⭐10. 使用镜像源</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#requirementstxt" aria-label="requirements.txt"><code>requirements.txt</code></a><ul>
+                            
+                    <li>
+                        <a href="#1-%e5%88%9b%e5%bb%ba-requirementstxt-%e6%96%87%e4%bb%b6" aria-label="1. 创建 requirements.txt 文件">1. 创建 requirements.txt 文件</a></li>
+                    <li>
+                        <a href="#2-%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96" aria-label="2. 安装依赖">2. 安装依赖</a></li>
+                    <li>
+                        <a href="#3-%e7%94%9f%e6%88%90-requirementstxt-%e6%96%87%e4%bb%b6" aria-label="3. 生成 requirements.txt 文件">3. 生成 requirements.txt 文件</a></li>
+                    <li>
+                        <a href="#4-%e6%9b%b4%e6%96%b0-requirementstxt-%e6%96%87%e4%bb%b6" aria-label="4. 更新 requirements.txt 文件">4. 更新 requirements.txt 文件</a></li>
+                    <li>
+                        <a href="#5-%e4%bd%bf%e7%94%a8%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83" aria-label="5. 使用虚拟环境">5. 使用虚拟环境</a><ul>
+                            
+                    <li>
+                        <a href="#%e5%88%9b%e5%bb%ba%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83-1" aria-label="创建虚拟环境">创建虚拟环境</a></li>
+                    <li>
+                        <a href="#%e6%bf%80%e6%b4%bb%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83-1" aria-label="激活虚拟环境">激活虚拟环境</a></li>
+                    <li>
+                        <a href="#%e5%9c%a8%e8%99%9a%e6%8b%9f%e7%8e%af%e5%a2%83%e4%b8%ad%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96-1" aria-label="在虚拟环境中安装依赖">在虚拟环境中安装依赖</a></li></ul>
+                    </li>
+                    <li>
+                        <a href="#6-%e5%ae%89%e8%a3%85%e7%89%b9%e5%ae%9a%e7%89%88%e6%9c%ac%e7%9a%84%e4%be%9d%e8%b5%96" aria-label="6. 安装特定版本的依赖">6. 安装特定版本的依赖</a></li>
+                    <li>
+                        <a href="#7-%e5%ae%89%e8%a3%85%e6%9c%80%e6%96%b0%e7%89%88%e6%9c%ac%e7%9a%84%e4%be%9d%e8%b5%96" aria-label="7. 安装最新版本的依赖">7. 安装最新版本的依赖</a></li>
+                    <li>
+                        <a href="#8-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e5%bc%80%e5%8f%91%e4%be%9d%e8%b5%96" aria-label="8. 使用 requirements 文件安装开发依赖">8. 使用 requirements 文件安装开发依赖</a></li>
+                    <li>
+                        <a href="#9-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e5%8f%af%e9%80%89%e4%be%9d%e8%b5%96" aria-label="9. 使用 requirements 文件安装可选依赖">9. 使用 requirements 文件安装可选依赖</a></li>
+                    <li>
+                        <a href="#10-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e7%a7%81%e6%9c%89%e4%be%9d%e8%b5%96" aria-label="10. 使用 requirements 文件安装私有依赖">10. 使用 requirements 文件安装私有依赖</a></li>
+                    <li>
+                        <a href="#11-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e6%9c%ac%e5%9c%b0%e5%8c%85" aria-label="11. 使用 requirements 文件安装本地包">11. 使用 requirements 文件安装本地包</a></li>
+                    <li>
+                        <a href="#12-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e5%a4%9a%e4%b8%aa%e7%8e%af%e5%a2%83%e7%9a%84%e4%be%9d%e8%b5%96" aria-label="12. 使用 requirements 文件安装多个环境的依赖">12. 使用 requirements 文件安装多个环境的依赖</a></li>
+                    <li>
+                        <a href="#13-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e5%bf%bd%e7%95%a5%e7%bc%93%e5%ad%98" aria-label="13. 使用 requirements 文件安装依赖时忽略缓存">13. 使用 requirements 文件安装依赖时忽略缓存</a></li>
+                    <li>
+                        <a href="#14-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e5%8d%87%e7%ba%a7%e7%8e%b0%e6%9c%89%e5%8c%85" aria-label="14. 使用 requirements 文件安装依赖时升级现有包">14. 使用 requirements 文件安装依赖时升级现有包</a></li>
+                    <li>
+                        <a href="#15-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e5%bf%bd%e7%95%a5%e4%be%9d%e8%b5%96%e5%86%b2%e7%aa%81" aria-label="15. 使用 requirements 文件安装依赖时忽略依赖冲突">15. 使用 requirements 文件安装依赖时忽略依赖冲突</a></li>
+                    <li>
+                        <a href="#16-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e6%8c%87%e5%ae%9a%e7%b4%a2%e5%bc%95-url" aria-label="16. 使用 requirements 文件安装依赖时指定索引 URL">16. 使用 requirements 文件安装依赖时指定索引 URL</a></li>
+                    <li>
+                        <a href="#17-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e6%8c%87%e5%ae%9a%e9%a2%9d%e5%a4%96%e7%9a%84%e7%b4%a2%e5%bc%95-url" aria-label="17. 使用 requirements 文件安装依赖时指定额外的索引 URL">17. 使用 requirements 文件安装依赖时指定额外的索引 URL</a></li>
+                    <li>
+                        <a href="#18-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e7%a6%81%e7%94%a8%e8%bf%9b%e5%ba%a6%e6%9d%a1" aria-label="18. 使用 requirements 文件安装依赖时禁用进度条">18. 使用 requirements 文件安装依赖时禁用进度条</a></li>
+                    <li>
+                        <a href="#19-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e6%98%be%e7%a4%ba%e8%af%a6%e7%bb%86%e6%97%a5%e5%bf%97" aria-label="19. 使用 requirements 文件安装依赖时显示详细日志">19. 使用 requirements 文件安装依赖时显示详细日志</a></li>
+                    <li>
+                        <a href="#20-%e4%bd%bf%e7%94%a8-requirements-%e6%96%87%e4%bb%b6%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96%e6%97%b6%e6%8c%87%e5%ae%9a%e7%94%a8%e6%88%b7%e5%ae%89%e8%a3%85" aria-label="20. 使用 requirements 文件安装依赖时指定用户安装">20. 使用 requirements 文件安装依赖时指定用户安装</a>
+                    </li>
+                </ul>
+                </li>
+                </ul>
+                </li>
+                </ul>
+            </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+         
+         activeElement = elements[0];
+         const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+         document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+     }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 && 
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+             const id = encodeURI(element.getAttribute('id')).toLowerCase();
+             if (element === activeElement){
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+             } else {
+                 document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+             }
+         })
+     }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;   
+    }
+</script>
+
+  <div class="post-content"><h1 id="python包管理">Python包管理<a hidden class="anchor" aria-hidden="true" href="#python包管理">#</a></h1>
+<h2 id="pip">pip<a hidden class="anchor" aria-hidden="true" href="#pip">#</a></h2>
+<h3 id="1-检查是否已安装">1. 检查是否已安装<a hidden class="anchor" aria-hidden="true" href="#1-检查是否已安装">#</a></h3>
+<p>在终端中运行以下命令，检查是否已安装 pip：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip --version
+</span></span></code></pre></div><h3 id="2-安装-pip">2. 安装 pip<a hidden class="anchor" aria-hidden="true" href="#2-安装-pip">#</a></h3>
+<p>如果未安装，可以根据操作系统选择以下安装方法：</p>
+<h4 id="windows">Windows<a hidden class="anchor" aria-hidden="true" href="#windows">#</a></h4>
+<ol>
+<li>下载 <a href="https://bootstrap.pypa.io/get-pip.py">get-pip.py</a>。</li>
+<li>运行以下命令安装：</li>
+</ol>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python get-pip.py
+</span></span></code></pre></div><h4 id="macos">macOS<a hidden class="anchor" aria-hidden="true" href="#macos">#</a></h4>
+<p>使用 Homebrew 安装：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>brew install python
+</span></span></code></pre></div><h4 id="linux">Linux<a hidden class="anchor" aria-hidden="true" href="#linux">#</a></h4>
+<p>使用包管理器安装：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt-get install python3-pip  <span style="color:#75715e"># Debian/Ubuntu</span>
+</span></span><span style="display:flex;"><span>sudo dnf install python3-pip      <span style="color:#75715e"># Fedora</span>
+</span></span></code></pre></div><h2 id="基本用法">基本用法<a hidden class="anchor" aria-hidden="true" href="#基本用法">#</a></h2>
+<h3 id="1-安装包">1. 安装包<a hidden class="anchor" aria-hidden="true" href="#1-安装包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install package_name
+</span></span></code></pre></div><h3 id="2-升级包">2. 升级包<a hidden class="anchor" aria-hidden="true" href="#2-升级包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install --upgrade package_name
+</span></span></code></pre></div><h3 id="3-卸载包">3. 卸载包<a hidden class="anchor" aria-hidden="true" href="#3-卸载包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip uninstall package_name
+</span></span></code></pre></div><h3 id="4-查看已安装的包">4. 查看已安装的包<a hidden class="anchor" aria-hidden="true" href="#4-查看已安装的包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip list
+</span></span></code></pre></div><h3 id="5-查看包信息">5. 查看包信息<a hidden class="anchor" aria-hidden="true" href="#5-查看包信息">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip show package_name
+</span></span></code></pre></div><h3 id="6-搜索包">6. 搜索包<a hidden class="anchor" aria-hidden="true" href="#6-搜索包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip search package_name
+</span></span></code></pre></div><h2 id="四高级用法">四、高级用法<a hidden class="anchor" aria-hidden="true" href="#四高级用法">#</a></h2>
+<h3 id="1-安装特定版本的包">1. 安装特定版本的包<a hidden class="anchor" aria-hidden="true" href="#1-安装特定版本的包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install package_name<span style="color:#f92672">==</span>version
+</span></span></code></pre></div><h3 id="2-安装多个包">2. 安装多个包<a hidden class="anchor" aria-hidden="true" href="#2-安装多个包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install package1 package2 package3
+</span></span></code></pre></div><h3 id="3-从-requirements-文件安装依赖">3. 从 requirements 文件安装依赖<a hidden class="anchor" aria-hidden="true" href="#3-从-requirements-文件安装依赖">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt
+</span></span></code></pre></div><h3 id="4-安装私有包">4. 安装私有包<a hidden class="anchor" aria-hidden="true" href="#4-安装私有包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install git+https://github.com/username/repo.git@branch#egg<span style="color:#f92672">=</span>package_name
+</span></span></code></pre></div><h3 id="5-安装本地包">5. 安装本地包<a hidden class="anchor" aria-hidden="true" href="#5-安装本地包">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install /path/to/local/package
+</span></span></code></pre></div><h3 id="6-使用虚拟环境">6. 使用虚拟环境<a hidden class="anchor" aria-hidden="true" href="#6-使用虚拟环境">#</a></h3>
+<h4 id="创建虚拟环境">创建虚拟环境<a hidden class="anchor" aria-hidden="true" href="#创建虚拟环境">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python -m venv myenv
+</span></span></code></pre></div><h4 id="激活虚拟环境">激活虚拟环境<a hidden class="anchor" aria-hidden="true" href="#激活虚拟环境">#</a></h4>
+<ul>
+<li>Windows:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>myenv<span style="color:#ae81ff">\S</span>cripts<span style="color:#ae81ff">\a</span>ctivate
+</span></span></code></pre></div><ul>
+<li>macOS/Linux:</li>
+</ul>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>source myenv/bin/activate
+</span></span></code></pre></div><h4 id="在虚拟环境中安装依赖">在虚拟环境中安装依赖<a hidden class="anchor" aria-hidden="true" href="#在虚拟环境中安装依赖">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt
+</span></span></code></pre></div><h3 id="7-忽略缓存安装">7. 忽略缓存安装<a hidden class="anchor" aria-hidden="true" href="#7-忽略缓存安装">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install --no-cache-dir package_name
+</span></span></code></pre></div><h3 id="8-显示安装进度">8. 显示安装进度<a hidden class="anchor" aria-hidden="true" href="#8-显示安装进度">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install package_name -v
+</span></span></code></pre></div><h3 id="9-指定安装目录">9. 指定安装目录<a hidden class="anchor" aria-hidden="true" href="#9-指定安装目录">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install package_name --target<span style="color:#f92672">=</span>/path/to/install
+</span></span></code></pre></div><h3 id="10-使用镜像源">⭐10. 使用镜像源<a hidden class="anchor" aria-hidden="true" href="#10-使用镜像源">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install package_name -i https://pypi.tuna.tsinghua.edu.cn/simple
+</span></span></code></pre></div><h2 id="requirementstxt"><code>requirements.txt</code><a hidden class="anchor" aria-hidden="true" href="#requirementstxt">#</a></h2>
+<h3 id="1-创建-requirementstxt-文件">1. 创建 requirements.txt 文件<a hidden class="anchor" aria-hidden="true" href="#1-创建-requirementstxt-文件">#</a></h3>
+<p>在项目根目录下创建一个名为 <code>requirements.txt</code> 的文件，列出项目所需的依赖包及其版本。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>numpy==1.21.2
+</span></span><span style="display:flex;"><span>pandas==1.3.3
+</span></span><span style="display:flex;"><span>requests==2.26.0
+</span></span></code></pre></div><h3 id="2-安装依赖">2. 安装依赖<a hidden class="anchor" aria-hidden="true" href="#2-安装依赖">#</a></h3>
+<p>使用 <code>pip</code> 命令安装 <code>requirements.txt</code> 文件中指定的依赖：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt
+</span></span></code></pre></div><h3 id="3-生成-requirementstxt-文件">3. 生成 requirements.txt 文件<a hidden class="anchor" aria-hidden="true" href="#3-生成-requirementstxt-文件">#</a></h3>
+<p>在项目开发过程中，可以使用以下命令生成当前环境中已安装的依赖列表：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip freeze &gt; requirements.txt
+</span></span></code></pre></div><h3 id="4-更新-requirementstxt-文件">4. 更新 requirements.txt 文件<a hidden class="anchor" aria-hidden="true" href="#4-更新-requirementstxt-文件">#</a></h3>
+<p>如果项目依赖发生变化，可以使用以下命令更新 <code>requirements.txt</code> 文件：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip freeze &gt; requirements.txt
+</span></span></code></pre></div><h3 id="5-使用虚拟环境">5. 使用虚拟环境<a hidden class="anchor" aria-hidden="true" href="#5-使用虚拟环境">#</a></h3>
+<p>为了隔离项目环境，通常会使用虚拟环境。以下是使用虚拟环境的步骤：</p>
+<h4 id="创建虚拟环境-1">创建虚拟环境<a hidden class="anchor" aria-hidden="true" href="#创建虚拟环境-1">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>python -m venv myenv
+</span></span></code></pre></div><h4 id="激活虚拟环境-1">激活虚拟环境<a hidden class="anchor" aria-hidden="true" href="#激活虚拟环境-1">#</a></h4>
+<ul>
+<li>Windows:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>myenv<span style="color:#ae81ff">\S</span>cripts<span style="color:#ae81ff">\a</span>ctivate
+</span></span></code></pre></div></li>
+<li>macOS/Linux:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>source myenv/bin/activate
+</span></span></code></pre></div></li>
+</ul>
+<h4 id="在虚拟环境中安装依赖-1">在虚拟环境中安装依赖<a hidden class="anchor" aria-hidden="true" href="#在虚拟环境中安装依赖-1">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt
+</span></span></code></pre></div><h3 id="6-安装特定版本的依赖">6. 安装特定版本的依赖<a hidden class="anchor" aria-hidden="true" href="#6-安装特定版本的依赖">#</a></h3>
+<p>在 <code>requirements.txt</code> 文件中，可以指定依赖的具体版本。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>numpy==1.21.2
+</span></span></code></pre></div><h3 id="7-安装最新版本的依赖">7. 安装最新版本的依赖<a hidden class="anchor" aria-hidden="true" href="#7-安装最新版本的依赖">#</a></h3>
+<p>如果想安装依赖的最新版本，可以省略版本号。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>numpy
+</span></span></code></pre></div><h3 id="8-使用-requirements-文件安装开发依赖">8. 使用 requirements 文件安装开发依赖<a hidden class="anchor" aria-hidden="true" href="#8-使用-requirements-文件安装开发依赖">#</a></h3>
+<p>可以创建一个单独的 <code>dev-requirements.txt</code> 文件，用于安装开发过程中所需的额外依赖。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>pytest==6.2.5
+</span></span><span style="display:flex;"><span>flake8==4.0.1
+</span></span></code></pre></div><h3 id="9-使用-requirements-文件安装可选依赖">9. 使用 requirements 文件安装可选依赖<a hidden class="anchor" aria-hidden="true" href="#9-使用-requirements-文件安装可选依赖">#</a></h3>
+<p>如果项目有可选依赖，可以创建一个单独的 <code>optional-requirements.txt</code> 文件。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>matplotlib==3.4.3
+</span></span></code></pre></div><h3 id="10-使用-requirements-文件安装私有依赖">10. 使用 requirements 文件安装私有依赖<a hidden class="anchor" aria-hidden="true" href="#10-使用-requirements-文件安装私有依赖">#</a></h3>
+<p>如果项目依赖于私有包，可以在 <code>requirements.txt</code> 文件中指定包的 URL 或路径。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>git+https://github.com/username/repo.git@branch#egg=package_name
+</span></span></code></pre></div><h3 id="11-使用-requirements-文件安装本地包">11. 使用 requirements 文件安装本地包<a hidden class="anchor" aria-hidden="true" href="#11-使用-requirements-文件安装本地包">#</a></h3>
+<p>如果项目依赖于本地开发的包，可以在 <code>requirements.txt</code> 文件中指定包的路径。例如：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>-e file:///path/to/local/package
+</span></span></code></pre></div><h3 id="12-使用-requirements-文件安装多个环境的依赖">12. 使用 requirements 文件安装多个环境的依赖<a hidden class="anchor" aria-hidden="true" href="#12-使用-requirements-文件安装多个环境的依赖">#</a></h3>
+<p>可以创建多个 <code>requirements</code> 文件，分别用于不同环境。例如：</p>
+<ul>
+<li><code>requirements-prod.txt</code>：生产环境依赖</li>
+<li><code>requirements-dev.txt</code>：开发环境依赖</li>
+<li><code>requirements-test.txt</code>：测试环境依赖</li>
+</ul>
+<h3 id="13-使用-requirements-文件安装依赖时忽略缓存">13. 使用 requirements 文件安装依赖时忽略缓存<a hidden class="anchor" aria-hidden="true" href="#13-使用-requirements-文件安装依赖时忽略缓存">#</a></h3>
+<p>如果想在安装依赖时忽略缓存，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install --no-cache-dir -r requirements.txt
+</span></span></code></pre></div><h3 id="14-使用-requirements-文件安装依赖时升级现有包">14. 使用 requirements 文件安装依赖时升级现有包<a hidden class="anchor" aria-hidden="true" href="#14-使用-requirements-文件安装依赖时升级现有包">#</a></h3>
+<p>如果想在安装依赖时升级现有包，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install --upgrade -r requirements.txt
+</span></span></code></pre></div><h3 id="15-使用-requirements-文件安装依赖时忽略依赖冲突">15. 使用 requirements 文件安装依赖时忽略依赖冲突<a hidden class="anchor" aria-hidden="true" href="#15-使用-requirements-文件安装依赖时忽略依赖冲突">#</a></h3>
+<p>如果想在安装依赖时忽略依赖冲突，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install --ignore-installed -r requirements.txt
+</span></span></code></pre></div><h3 id="16-使用-requirements-文件安装依赖时指定索引-url">16. 使用 requirements 文件安装依赖时指定索引 URL<a hidden class="anchor" aria-hidden="true" href="#16-使用-requirements-文件安装依赖时指定索引-url">#</a></h3>
+<p>如果想在安装依赖时指定自定义的包索引 URL，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt -i https://pypi.org/simple
+</span></span></code></pre></div><h3 id="17-使用-requirements-文件安装依赖时指定额外的索引-url">17. 使用 requirements 文件安装依赖时指定额外的索引 URL<a hidden class="anchor" aria-hidden="true" href="#17-使用-requirements-文件安装依赖时指定额外的索引-url">#</a></h3>
+<p>如果想在安装依赖时指定额外的包索引 URL，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt --extra-index-url https://pypi.org/simple
+</span></span></code></pre></div><h3 id="18-使用-requirements-文件安装依赖时禁用进度条">18. 使用 requirements 文件安装依赖时禁用进度条<a hidden class="anchor" aria-hidden="true" href="#18-使用-requirements-文件安装依赖时禁用进度条">#</a></h3>
+<p>如果想在安装依赖时禁用进度条，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt --progress-bar off
+</span></span></code></pre></div><h3 id="19-使用-requirements-文件安装依赖时显示详细日志">19. 使用 requirements 文件安装依赖时显示详细日志<a hidden class="anchor" aria-hidden="true" href="#19-使用-requirements-文件安装依赖时显示详细日志">#</a></h3>
+<p>如果想在安装依赖时显示详细日志，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt -v
+</span></span></code></pre></div><h3 id="20-使用-requirements-文件安装依赖时指定用户安装">20. 使用 requirements 文件安装依赖时指定用户安装<a hidden class="anchor" aria-hidden="true" href="#20-使用-requirements-文件安装依赖时指定用户安装">#</a></h3>
+<p>如果想在安装依赖时指定用户安装，可以使用以下命令：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>pip install -r requirements.txt --user
+</span></span></code></pre></div>
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+      <li><a href="https://kennems.github.io/tags/python%E5%8C%85/">Python包</a></li>
+    </ul>
+        
+    
+    <ul id="categories">
+      
+        <li><a href="https://kennems.github.io/categories/ai">AI</a> </li>
+      
+    </ul>
+    
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/pandas/">
+    <span class="title">« 上一页</span>
+    <br>
+    <span>Pandas</span>
+  </a>
+  <a class="next" href="https://kennems.github.io/posts/tech/html-font/">
+    <span class="title">下一页 »</span>
+    <br>
+    <span>HTML 字体</span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2025 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" aria-label="go to top" title="Go to Top (Alt + G)" class="top-link" id="top-link" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 12 6" fill="currentColor">
+        <path d="M12 6H0l6-6z" />
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu')
+    if (menu) {
+        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var mybutton = document.getElementById("top-link");
+    window.onscroll = function () {
+        if (document.body.scrollTop > 800 || document.documentElement.scrollTop > 800) {
+            mybutton.style.visibility = "visible";
+            mybutton.style.opacity = "1";
+        } else {
+            mybutton.style.visibility = "hidden";
+            mybutton.style.opacity = "0";
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        if (document.body.className.includes("dark")) {
+            document.body.classList.remove('dark');
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            document.body.classList.add('dark');
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+<footer class="footer">
+    <script async src="https://busuanzi.sukap.cn/busuanzi.pure.mini.js"></script>
+    <span id="busuanzi_container">
+        <link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+        Visitors: <span id="busuanzi_value_page_uv"></span>
+        Views: <span id="busuanzi_value_page_pv"></span>
+
+        
+    </span>
+</footer>
+
+
+
+</body>
+
+</html>
