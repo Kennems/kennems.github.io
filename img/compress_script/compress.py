@@ -10,7 +10,7 @@ logging.basicConfig(
     format="%(asctime)s - %(levelname)s - %(message)s",
     handlers=[
         logging.FileHandler(
-            "./compress_script/compress_errors.log", mode="w", encoding="utf-8"
+            "./compress_errors.log", mode="w", encoding="utf-8"
         ),
         logging.StreamHandler(),
     ],
