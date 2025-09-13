@@ -75,7 +75,7 @@ def compress_image(filepath, quality=70):
 
 def main():
     input_folder = "./"  # 启动脚本所在目录
-    quality = 70  # 压缩质量（1-100）
+    quality = 50  # 压缩质量（1-100）
 
     logging.info(f"当前工作目录：{os.getcwd()}")
     try:
