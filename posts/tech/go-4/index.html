@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="Go 内存管理与编译器优化">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/go-4/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -41,23 +41,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -82,9 +97,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-
-  
 
 <meta property="og:url" content="https://kennems.github.io/posts/tech/go-4/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
@@ -168,27 +180,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+<body id="top">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -260,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Go 内存管理与编译器优化
     </div>
-    <div class="post-meta"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3196 字&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3196 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;<span>ShowGuan</span>
 
 </div>
     
@@ -436,8 +436,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </li>
 </ol>
 <p><strong>示例：Mark-Sweep GC</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 伪代码：标记-清除算法
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mark</span>(<span style="color:#a6e22e">root</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Object</span>) {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 伪代码：标记-清除算法</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">mark</span>(<span style="color:#a6e22e">root</span> <span style="color:#f92672">*</span><span style="color:#a6e22e">Object</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">root</span> <span style="color:#f92672">==</span> <span style="color:#66d9ef">nil</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">root</span>.<span style="color:#a6e22e">marked</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span>
 </span></span><span style="display:flex;"><span>    }
@@ -591,8 +591,8 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>编译生成的二进制文件变大。</li>
 </ul>
 <p><strong>示例：函数内联</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 内联前
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">add</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 内联前</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">add</span>(<span style="color:#a6e22e">a</span>, <span style="color:#a6e22e">b</span> <span style="color:#66d9ef">int</span>) <span style="color:#66d9ef">int</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">a</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">b</span>
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
@@ -601,8 +601,8 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">result</span>)
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// 内联后
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 内联后</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">main</span>() {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">result</span> <span style="color:#f92672">:=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> <span style="color:#ae81ff">2</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">fmt</span>.<span style="color:#a6e22e">Println</span>(<span style="color:#a6e22e">result</span>)
 </span></span><span style="display:flex;"><span>}
@@ -614,13 +614,13 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>增加逃逸分析的机会，减少堆分配。</li>
 </ul>
 <p><strong>示例：逃逸分析优化</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 优化前：对象逃逸到堆
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createObject</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">Object</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-go" data-lang="go"><span style="display:flex;"><span><span style="color:#75715e">// 优化前：对象逃逸到堆</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createObject</span>() <span style="color:#f92672">*</span><span style="color:#a6e22e">Object</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">Object</span>{}
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// 优化后：对象在栈上分配
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createObject</span>() <span style="color:#a6e22e">Object</span> {
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 优化后：对象在栈上分配</span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">func</span> <span style="color:#a6e22e">createObject</span>() <span style="color:#a6e22e">Object</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Object</span>{}
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><hr>
@@ -682,14 +682,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>, <span style="color:#66d9ef">nil</span>
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 缓存未命中，查询数据库
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">GetUser</span>(<span style="color:#a6e22e">userID</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 缓存未命中，查询数据库</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">err</span> <span style="color:#f92672">:=</span> <span style="color:#a6e22e">db</span>.<span style="color:#a6e22e">GetUser</span>(<span style="color:#a6e22e">userID</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> <span style="color:#a6e22e">err</span> <span style="color:#f92672">!=</span> <span style="color:#66d9ef">nil</span> {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">nil</span>, <span style="color:#a6e22e">err</span>
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将结果写入缓存
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">redisClient</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#a6e22e">cacheKey</span>, <span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 将结果写入缓存</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">redisClient</span>.<span style="color:#a6e22e">Set</span>(<span style="color:#a6e22e">cacheKey</span>, <span style="color:#a6e22e">user</span>, <span style="color:#a6e22e">time</span>.<span style="color:#a6e22e">Hour</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">&amp;</span><span style="color:#a6e22e">user</span>, <span style="color:#66d9ef">nil</span>
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div></li>
@@ -901,9 +901,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -944,11 +949,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

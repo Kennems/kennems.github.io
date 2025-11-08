@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="Python库">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/python%E5%BA%93/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -41,23 +41,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -82,9 +97,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-
-  
 
 <meta property="og:url" content="https://kennems.github.io/posts/tech/python%E5%BA%93/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
@@ -168,27 +180,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+<body id="top">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -260,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Python库
     </div>
-    <div class="post-meta"><span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5616 字&nbsp;·&nbsp;updated:&nbsp;2024-09-23&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5616 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-23&nbsp;·&nbsp;<span>ShowGuan</span>
 
 </div>
     
@@ -714,7 +714,7 @@ $=\sum_{i=2}^4{(a[i]-avg)}  - p[1] $</p>
 </span></span></code></pre></div><h3 id="线段树-1">线段树<a hidden class="anchor" aria-hidden="true" href="#线段树-1">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 定义树节点，l,r, val表示该节点记录的是区间[l, r]的最大值是val</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Tree</span>():
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self):
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>l <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>lazy <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
@@ -838,80 +838,80 @@ $=\sum_{i=2}^4{(a[i]-avg)}  - p[1] $</p>
 <p>设置字体，行号，和使用docs</p>
 <p><strong>快捷键：</strong></p>
 <table>
-<thead>
-<tr>
-<th>快捷键</th>
-<th>功能</th>
-<th>可用窗口</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td>F1</td>
-<td>打开 Python 帮助文档</td>
-<td>Python 文件窗口和 Shell</td>
-</tr>
-<tr>
-<td>Alt+P</td>
-<td>浏览历史命令（上一条）</td>
-<td>仅 Python Shell 窗口</td>
-</tr>
-<tr>
-<td>Alt+N</td>
-<td>浏览历史命令（下一条）</td>
-<td>仅 Python Shell 窗口</td>
-</tr>
-<tr>
-<td>Alt+/</td>
-<td>自动补全前面曾经出现过的单词，如果之前有多个单词具有相同前缀，可以连续按下该快捷键，在多个单词中间循环选择</td>
-<td>Python 文件窗口和 Shell</td>
-</tr>
-<tr>
-<td>Alt+3</td>
-<td>注释代码块</td>
-<td>仅 Python 文件窗口</td>
-</tr>
-<tr>
-<td>Alt+4</td>
-<td>取消代码块注释</td>
-<td>仅 Python 文件窗口</td>
-</tr>
-<tr>
-<td>Alt+g</td>
-<td>转到某一行</td>
-<td>仅 Python 文件窗口</td>
-</tr>
-<tr>
-<td>Ctrl+Z</td>
-<td>撤销一步操作</td>
-<td>Python 文件窗口和 Shell</td>
-</tr>
-<tr>
-<td>Ctrl+Shift+Z</td>
-<td>恢复上—次的撤销操作</td>
-<td>Python 文件窗口和 Shell</td>
-</tr>
-<tr>
-<td>Ctrl+S</td>
-<td>保存文件</td>
-<td>Python 文件窗口和 Shell</td>
-</tr>
-<tr>
-<td>Ctrl+]</td>
-<td>缩进代码块</td>
-<td>仅 Python 文件窗口</td>
-</tr>
-<tr>
-<td>Ctrl+[</td>
-<td>取消代码块缩进</td>
-<td>仅 Python 文件窗口</td>
-</tr>
-<tr>
-<td>Ctrl+F6</td>
-<td>重新启动 Python Shell</td>
-<td>仅 Python Shell 窗口</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th>快捷键</th>
+          <th>功能</th>
+          <th>可用窗口</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>F1</td>
+          <td>打开 Python 帮助文档</td>
+          <td>Python 文件窗口和 Shell</td>
+      </tr>
+      <tr>
+          <td>Alt+P</td>
+          <td>浏览历史命令（上一条）</td>
+          <td>仅 Python Shell 窗口</td>
+      </tr>
+      <tr>
+          <td>Alt+N</td>
+          <td>浏览历史命令（下一条）</td>
+          <td>仅 Python Shell 窗口</td>
+      </tr>
+      <tr>
+          <td>Alt+/</td>
+          <td>自动补全前面曾经出现过的单词，如果之前有多个单词具有相同前缀，可以连续按下该快捷键，在多个单词中间循环选择</td>
+          <td>Python 文件窗口和 Shell</td>
+      </tr>
+      <tr>
+          <td>Alt+3</td>
+          <td>注释代码块</td>
+          <td>仅 Python 文件窗口</td>
+      </tr>
+      <tr>
+          <td>Alt+4</td>
+          <td>取消代码块注释</td>
+          <td>仅 Python 文件窗口</td>
+      </tr>
+      <tr>
+          <td>Alt+g</td>
+          <td>转到某一行</td>
+          <td>仅 Python 文件窗口</td>
+      </tr>
+      <tr>
+          <td>Ctrl+Z</td>
+          <td>撤销一步操作</td>
+          <td>Python 文件窗口和 Shell</td>
+      </tr>
+      <tr>
+          <td>Ctrl+Shift+Z</td>
+          <td>恢复上—次的撤销操作</td>
+          <td>Python 文件窗口和 Shell</td>
+      </tr>
+      <tr>
+          <td>Ctrl+S</td>
+          <td>保存文件</td>
+          <td>Python 文件窗口和 Shell</td>
+      </tr>
+      <tr>
+          <td>Ctrl+]</td>
+          <td>缩进代码块</td>
+          <td>仅 Python 文件窗口</td>
+      </tr>
+      <tr>
+          <td>Ctrl+[</td>
+          <td>取消代码块缩进</td>
+          <td>仅 Python 文件窗口</td>
+      </tr>
+      <tr>
+          <td>Ctrl+F6</td>
+          <td>重新启动 Python Shell</td>
+          <td>仅 Python Shell 窗口</td>
+      </tr>
+  </tbody>
 </table>
 <h2 id="输入输出">输入输出<a hidden class="anchor" aria-hidden="true" href="#输入输出">#</a></h2>
 <p>输出列表：</p>
@@ -1171,66 +1171,66 @@ $=\sum_{i=2}^4{(a[i]-avg)}  - p[1] $</p>
 </span></span><span style="display:flex;"><span>        print(stk[<span style="color:#ae81ff">0</span>])
 </span></span></code></pre></div><h2 id="python-常用内置库">Python 常用内置库<a hidden class="anchor" aria-hidden="true" href="#python-常用内置库">#</a></h2>
 <table>
-<thead>
-<tr>
-<th><a href="https://docs.python.org/3/library/array.html"><code>array</code></a></th>
-<th>定长数组</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td><a href="https://docs.python.org/3/library/argparse.html"><code>argparse</code></a></td>
-<td>命令行参数处理</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/bisect.html"><code>bisect</code></a></td>
-<td>二分查找</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/collections.html"><code>collections</code></a></td>
-<td>有序字典、双端队列等数据结构</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/fractions.html"><code>fractions</code></a></td>
-<td>有理数</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/heapq.html"><code>heapq</code></a></td>
-<td>基于堆的优先级队列</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/io.html"><code>io</code></a></td>
-<td>文件流、内存流</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/itertools.html"><code>itertools</code></a></td>
-<td>迭代器</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/math.html"><code>math</code></a></td>
-<td>数学函数</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/os.html"><code>os.path</code></a></td>
-<td>系统路径等</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/random.html"><code>random</code></a></td>
-<td>随机数</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/re.html"><code>re</code></a></td>
-<td>正则表达式</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/struct.html"><code>struct</code></a></td>
-<td>转换结构体和二进制数据</td>
-</tr>
-<tr>
-<td><a href="https://docs.python.org/3/library/sys.html"><code>sys</code></a></td>
-<td>系统信息</td>
-</tr>
-</tbody>
+  <thead>
+      <tr>
+          <th><a href="https://docs.python.org/3/library/array.html"><code>array</code></a></th>
+          <th>定长数组</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/argparse.html"><code>argparse</code></a></td>
+          <td>命令行参数处理</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/bisect.html"><code>bisect</code></a></td>
+          <td>二分查找</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/collections.html"><code>collections</code></a></td>
+          <td>有序字典、双端队列等数据结构</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/fractions.html"><code>fractions</code></a></td>
+          <td>有理数</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/heapq.html"><code>heapq</code></a></td>
+          <td>基于堆的优先级队列</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/io.html"><code>io</code></a></td>
+          <td>文件流、内存流</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/itertools.html"><code>itertools</code></a></td>
+          <td>迭代器</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/math.html"><code>math</code></a></td>
+          <td>数学函数</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/os.html"><code>os.path</code></a></td>
+          <td>系统路径等</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/random.html"><code>random</code></a></td>
+          <td>随机数</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/re.html"><code>re</code></a></td>
+          <td>正则表达式</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/struct.html"><code>struct</code></a></td>
+          <td>转换结构体和二进制数据</td>
+      </tr>
+      <tr>
+          <td><a href="https://docs.python.org/3/library/sys.html"><code>sys</code></a></td>
+          <td>系统信息</td>
+      </tr>
+  </tbody>
 </table>
 <h3 id="defaultdict">defaultdict()<a hidden class="anchor" aria-hidden="true" href="#defaultdict">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> collections <span style="color:#f92672">import</span> defaultdict
@@ -1493,18 +1493,18 @@ $=\sum_{i=2}^4{(a[i]-avg)}  - p[1] $</p>
 </span></span><span style="display:flex;"><span>print(things)
 </span></span></code></pre></div><h2 id="__init__魔术方法"><code>__init__</code>魔术方法<a hidden class="anchor" aria-hidden="true" href="#__init__魔术方法">#</a></h2>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Fib</span>(object):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self):
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">pass</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __call__(self, num): <span style="color:#75715e"># 将对象作为函数调用时触发</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__call__</span>(self, num): <span style="color:#75715e"># 将对象作为函数调用时触发</span>
 </span></span><span style="display:flex;"><span>        a, b <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>l <span style="color:#f92672">=</span> []
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(num):
 </span></span><span style="display:flex;"><span>            self<span style="color:#f92672">.</span>l<span style="color:#f92672">.</span>append(a)
 </span></span><span style="display:flex;"><span>            a, b <span style="color:#f92672">=</span> b, a<span style="color:#f92672">+</span>b
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>l
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __str__(self): <span style="color:#75715e"># 使用print(对象）或者str (对象)的时候触发</span>
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__str__</span>(self): <span style="color:#75715e"># 使用print(对象）或者str (对象)的时候触发</span>
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> str(self<span style="color:#f92672">.</span>l) <span style="color:#75715e"># 必须返回字符串类型</span>
-</span></span><span style="display:flex;"><span>    __rept__<span style="color:#f92672">=</span>__str__ <span style="color:#75715e"># 使用repr(对象)</span>
+</span></span><span style="display:flex;"><span>    __rept__<span style="color:#f92672">=</span><span style="color:#a6e22e">__str__</span> <span style="color:#75715e"># 使用repr(对象)</span>
 </span></span><span style="display:flex;"><span> 
 </span></span><span style="display:flex;"><span>f <span style="color:#f92672">=</span> Fib()
 </span></span><span style="display:flex;"><span>print(f(<span style="color:#ae81ff">10</span>))
@@ -1597,9 +1597,14 @@ $=\sum_{i=2}^4{(a[i]-avg)}  - p[1] $</p>
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -1640,11 +1645,12 @@ $=\sum_{i=2}^4{(a[i]-avg)}  - p[1] $</p>
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

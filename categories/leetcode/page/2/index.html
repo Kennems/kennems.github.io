@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/categories/leetcode/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -20,7 +20,7 @@
 <link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/categories/leetcode/index.xml">
+<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/categories/leetcode/index.xml" title="rss">
 <link rel="alternate" hreflang="zh" href="https://kennems.github.io/categories/leetcode/">
 <noscript>
     <style>
@@ -42,23 +42,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -84,9 +99,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-
-  
-
 <meta property="og:url" content="https://kennems.github.io/categories/leetcode/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
   <meta property="og:title" content="LeetCode">
@@ -105,27 +117,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
 <body class="list" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -202,9 +202,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode每日一题(2405) 1235. 规划兼职工作 题目大意：给定n份兼职工作，每份工作都有开始时间、结束时间和报酬。任务是选择一些工作，使得...</p>
+      <p>LeetCode每日一题(2405) 1235. 规划兼职工作 题目大意：给定n份兼职工作，每份工作都有开始时间、结束时间和报酬。任务是选择一些工作，使得在不重叠的情况下能够获得最大报酬。
+实现思路：首先对工作按照结束时间进行排序，然后使用动态规划来求解最大报酬。在动态规划的过程中，维护一个数组f，其中f[i]表示在考虑前i个工作时可以获得的最大报酬。遍历每个工作，对于第i个工作，找到在其开始时间之前且结束时间最接近的工作j，然后更新f[i]为f[j] &#43; 第i个工作的报酬。最终返回f[n]即为所求的最大报酬。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1695 字&nbsp;·&nbsp;updated:&nbsp;2024-05-07&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1695 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题(202405)" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202405/"></a>
 </article>
@@ -218,9 +220,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>双周赛20230427 第三/四题3130. 找出所有稳定的二进制数组 II 题目大意：给定三个正整数 zero、one 和 limit，定义一个二进制数组...</p>
+      <p>双周赛20230427 第三/四题3130. 找出所有稳定的二进制数组 II 题目大意：给定三个正整数 zero、one 和 limit，定义一个二进制数组 arr，要求满足以下条件：数组中 0 出现的次数为 zero，1 出现的次数为 one，并且数组中每个长度超过 limit 的子数组都同时包含 0 和 1。求稳定二进制数组的总数目。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;469 字&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>469 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode双周赛129(240427)" href="https://kennems.github.io/posts/tech/%E5%8F%8C%E5%91%A8%E8%B5%9B20230427/"></a>
 </article>
@@ -234,9 +237,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>周赛20230428 第四题134. 找出唯一性数组的中位数 题目大意：给定一个整数数组nums，唯一性数组是一个按元素从小到大排序的数组，包含了...</p>
+      <p>周赛20230428 第四题134. 找出唯一性数组的中位数 题目大意：给定一个整数数组nums，唯一性数组是一个按元素从小到大排序的数组，包含了nums的所有非空子数组中不同元素的个数。要求返回nums唯一性数组的中位数，即有序唯一性数组的中间元素。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;403 字&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>403 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛395(240428)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240428/"></a>
 </article>
@@ -250,9 +254,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>力扣周赛394(20240421) 第三题100290. 使矩阵满足条件的最少操作次数 题目大意：给定一个大小为 m x n 的二维矩形 grid，每次操作...</p>
+      <p>力扣周赛394(20240421) 第三题100290. 使矩阵满足条件的最少操作次数 题目大意：给定一个大小为 m x n 的二维矩形 grid，每次操作可以将任意格子的值修改为任意非负整数。完成所有操作后，需要确保每个格子 grid[i][j] 的值满足以下条件：如果下面相邻格子存在的话，它们的值相等；如果右边相邻格子存在的话，它们的值不相等。返回需要的最少操作次数。 记忆化 实现思路：首先，统计每一列中各个数字的出现次数。然后，使用动态规划的方法，定义函数dfs(i, pre)，表示处理到第i列时，前一列的值为pre时的最大操作次数。在dfs中，对于当前列的每个数字，考虑是否修改当前列的值，然后递归处理下一列。利用缓存来避免重复计算。最后返回总的操作次数。 class Solution: # 如果你想不出来，1、你不知道这个知识点 2、 你知道这个知识点但是方向错了 def minimumOperations(self, g: List[List[int]]) -&gt; int: n, m = len(g), len(g[0]) cnt = [[0]*10 for _ in range(m)] for row in g: for k, v in enumerate(row): cnt[k][v]&#43;=1 @cache def dfs(i, pre): if i&lt;0: return 0 res = 0 for v in range(10): if v!=pre: res = max(res, dfs(i-1, v) &#43; cnt[i][v]) return res return m*n - dfs(m-1, -1) 递推 实现思路：首先，对每一列进行遍历，并统计每列中每个数字的出现次数。然后，通过动态规划的方法，使用两个变量f0和f1分别表示当前列处理时，前一列最大能保留的个数和次大能够保留的个数。接着，通过遍历每列中的每个数字，计算当前列的最大操作次数，并更新f0和f1。最后返回总的操作次数。 class Solution: def minimumOperations(self, grid: List[List[int]]) -&gt; int: n, m = len(grid), len(grid[0]) f0, f1, pre = 0, 0, -1 for col in zip(*grid): mx, mx2, x = f0, f1, -1 for v, c in Counter(col).items(): res = (f0 if v!=pre else f1) &#43; c if res &gt; mx: mx, mx2, x = res, mx, v elif res &gt; mx2: mx2 = res f0, f1, pre = mx, mx2, x return m*n - f0 第四题100276. 最短路径中的边 题目大意：给定一个包含n个节点的无向带权图，节点编号从0到n-1，总共有m条边。对于节点0为出发点，节点n-1为结束点的所有最短路，需要返回一个长度为m的布尔数组，如果edges[i]至少在其中一条最短路上，则answer[i]为true，否则为false。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-21 15:37:01 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;989 字&nbsp;·&nbsp;updated:&nbsp;2024-04-21&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-21 15:37:01 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>989 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240421" href="https://kennems.github.io/posts/tech/%E5%8A%9B%E6%89%A3%E5%91%A8%E8%B5%9B39420240421/"></a>
 </article>
@@ -266,9 +271,13 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode笔记 目标：2500分 HOT100 301. 删除无效的括号 题目大意： 给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字...</p>
+      <p>LeetCode笔记 目标：2500分
+HOT100 301. 删除无效的括号 题目大意：
+给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字符串有效。
+返回所有可能的结果。答案可以按 任意顺序 返回。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;26 分钟&nbsp;·&nbsp;12788 字&nbsp;·&nbsp;updated:&nbsp;2024-10-06&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>26 分钟</span>&nbsp;·&nbsp;<span>12788 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-06&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to  LeetCode笔记" href="https://kennems.github.io/posts/tech/leetcode%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -282,9 +291,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode Hot 100 精练🥸(1) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组heig...</p>
+      <p>LeetCode Hot 100 精练🥸(1) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
+11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;22 分钟&nbsp;·&nbsp;10769 字&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>22 分钟</span>&nbsp;·&nbsp;<span>10769 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(1)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-1/"></a>
 </article>
@@ -298,9 +309,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。...</p>
+      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。
+思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]&#43;n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5983 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5983 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202404）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202404/"></a>
 </article>
@@ -314,9 +327,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。...</p>
+      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。
+思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]&#43;n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5131 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5131 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202404）" href="https://kennems.github.io/posts/tech/%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202404/"></a>
 </article>
@@ -330,9 +345,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>剑指Offer 数据流中的中位数 用两个堆模拟， 左边大顶堆，右边小顶堆，则两个堆顶是最中间的数字。 添加数字时： 如果输入的是第奇数个（比如第一个，...</p>
+      <p>剑指Offer 数据流中的中位数 用两个堆模拟， 左边大顶堆，右边小顶堆，则两个堆顶是最中间的数字。
+添加数字时：
+如果输入的是第奇数个（比如第一个，则N初始化为0，插入后N为1，代表一共有一个数字），则先插入大顶堆，然后把堆顶插入小顶堆。保证小顶堆的任意一个值都比大顶堆大。 同样，如果输入的是第偶数个（第二个），则先插入小顶堆，然后将小顶堆最小值插入大顶堆。同样是保证小顶堆的任意一个值都比大顶堆大。 至于先插入哪一个堆是没有关系的，只要保证交替插入不同的堆即可，并且要确保边界问题（比如在奇数个元素的的中位数， 只有一个数据时应返回先插入的堆顶值， 否则堆为空会报错）。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1359 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1359 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 剑指Offer" href="https://kennems.github.io/posts/tech/%E5%89%91%E6%8C%87offer/"></a>
 </article>
@@ -346,9 +364,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode第 393 场周赛 第三题3116. 单面值组合的第 K 小金额 题目大意： 给定一个整数数组coins表示不同面额的硬币，另给定一个整数k。你...</p>
+      <p>LeetCode第 393 场周赛 第三题3116. 单面值组合的第 K 小金额 题目大意： 给定一个整数数组coins表示不同面额的硬币，另给定一个整数k。你有无限量的每种面额的硬币，但是，你不能组合使用不同面额的硬币。要求返回使用这些硬币能制造的第kth小金额。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-16 15:37:01 +0800 CST'>2024-04-16</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1109 字&nbsp;·&nbsp;updated:&nbsp;2024-04-16&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-16 15:37:01 +0800 CST'>2024-04-16</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1109 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-16&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240414" href="https://kennems.github.io/posts/tech/leetcode%E7%AC%AC-393-%E5%9C%BA%E5%91%A8%E8%B5%9B/"></a>
 </article>
@@ -362,9 +381,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>周赛240407 出师不利，第一题变量名能写错，慢就是快，少就是多，提交之前一定要有万全的检查。 第二题100242. 满足距离约束且字典序最小的...</p>
+      <p>周赛240407 出师不利，第一题变量名能写错，慢就是快，少就是多，提交之前一定要有万全的检查。
+第二题100242. 满足距离约束且字典序最小的字符串 纯思维题，先花时间想清楚基础问题再想后面的问题。吸取教训，代码一定要写的清晰明了，自己才能更好的看懂并写下去。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-07 15:37:01 +0800 CST'>2024-04-07</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;678 字&nbsp;·&nbsp;updated:&nbsp;2024-04-07&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-07 15:37:01 +0800 CST'>2024-04-07</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>678 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛392(240407)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240407/"></a>
 </article>
@@ -378,9 +399,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>VP 周赛 第 389 场周赛 第三题3085. 成为 K 特殊字符串需要删除的最少字符数 双指针优化$O(n)$ 第三题做出来了但做法不优并且错的次数太多了。 题目大...</p>
+      <p>VP 周赛 第 389 场周赛 第三题3085. 成为 K 特殊字符串需要删除的最少字符数 双指针优化$O(n)$
+第三题做出来了但做法不优并且错的次数太多了。
+题目大意：给定一个字符串word和一个整数k，定义特殊字符串为满足|freq(word[i]) - freq(word[j])| &lt;= k对于字符串中所有下标i和j都成立的字符串。其中，freq(x)表示字符x在word中的出现频率，|y|表示y的绝对值。要求计算使word成为k特殊字符串所需删除的字符的最小数量。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-03 15:37:01 +0800 CST'>2024-04-03</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;854 字&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-03 15:37:01 +0800 CST'>2024-04-03</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>854 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛VP389" href="https://kennems.github.io/posts/tech/vp-%E5%91%A8%E8%B5%9B389/"></a>
 </article>
@@ -394,9 +418,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>周赛240331 第四题 100240 最小化曼哈顿距离 题目大意：给定一个二维平面上的点集，求移除其中一个点后，剩余点集中任意两点之间的最大曼哈顿距离的最小...</p>
+      <p>周赛240331 第四题 100240 最小化曼哈顿距离
+题目大意：给定一个二维平面上的点集，求移除其中一个点后，剩余点集中任意两点之间的最大曼哈顿距离的最小值。
+实现思路：首先，对于曼哈顿距离而言，它的定义是两点在各个坐标轴上的差的绝对值之和。所以移除一个点后，影响到最大曼哈顿距离的主要是距离移除点最近的点。我们可以将点的坐标进行转换，将其转换为(x&#43;y)和(x-y)的形式，这样在平面上的曼哈顿距离就可以等效为在转换后的坐标系下的欧几里得距离。然后我们用两个有序集合分别维护x&#43;y和x-y的坐标轴上的值，分别为xset和yset。然后遍历每个点，从点集中移除一个点，更新最大距离，找到最小值。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-03-31 15:37:01 +0800 CST'>2024-03-31</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;340 字&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-03-31 15:37:01 +0800 CST'>2024-03-31</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>340 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240331" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240331/"></a>
 </article>
@@ -410,9 +437,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>周赛 24/3/24 第三题 100258 3092. 最高频率的 ID 题目大意：给定两个长度为n的整数数组nums和freq，nums中的每个元素表示一个ID，对应的freq中的元素...</p>
+      <p>周赛 24/3/24 第三题 100258 3092. 最高频率的 ID 题目大意：给定两个长度为n的整数数组nums和freq，nums中的每个元素表示一个ID，对应的freq中的元素表示这个ID在集合中此次操作后需要增加或者减少的数目。现要求在每一步操作后，返回出现频率最高的ID数目，若集合为空则为0。 SortedList实现
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-03-24 15:37:01 +0800 CST'>2024-03-24</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;989 字&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-03-24 15:37:01 +0800 CST'>2024-03-24</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>989 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240324" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240324/"></a>
 </article>
@@ -441,9 +469,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -484,11 +517,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

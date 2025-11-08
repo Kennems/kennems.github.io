@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/tags/mit6.s081/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -20,7 +20,7 @@
 <link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/tags/mit6.s081/index.xml">
+<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/tags/mit6.s081/index.xml" title="rss">
 <link rel="alternate" hreflang="zh" href="https://kennems.github.io/tags/mit6.s081/">
 <noscript>
     <style>
@@ -42,23 +42,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -84,9 +99,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-
-  
-
 <meta property="og:url" content="https://kennems.github.io/tags/mit6.s081/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
   <meta property="og:title" content="MIT6.S081">
@@ -105,27 +117,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
 <body class="list" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -202,9 +202,13 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(13)-Coordination (sleep&amp;wakeup) plan Re-emphasize a few points about xv6 thread switching sequence coordination sleep &amp; wakeup lost wakeup problem termination Why hold p-&gt;lock across swtch()? this is an important point and affects many situations in xv6 [diagram: P1, STACK1, swtch, STACK_SCHED] yield: acquire(&amp;p-&gt;lock); p-&gt;state = RUNNABLE; swtch(); scheduler: swtch(); release(&amp;p-&gt;lock); the main point of holding p-&gt;lock across swtch(): prevent another core’s scheduler from seeing p-&gt;state == RUNNABLE until after the...</p>
+      <p>MIT6.S081(13)-Coordination (sleep&amp;wakeup) plan Re-emphasize a few points about xv6 thread switching sequence coordination sleep &amp; wakeup lost wakeup problem termination
+Why hold p-&gt;lock across swtch()? this is an important point and affects many situations in xv6 [diagram: P1, STACK1, swtch, STACK_SCHED] yield:
+acquire(&amp;p-&gt;lock); p-&gt;state = RUNNABLE; swtch(); scheduler:
+swtch(); release(&amp;p-&gt;lock); the main point of holding p-&gt;lock across swtch(): prevent another core’s scheduler from seeing p-&gt;state == RUNNABLE until after the original core has stopped executing the thread and after the original core has stopped using the thread’s stack
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-29 19:30:13 +0800 CST'>2024-09-29</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5655 字&nbsp;·&nbsp;updated:&nbsp;2024-10-03&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-29 19:30:13 +0800 CST'>2024-09-29</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5655 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-03&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(13)-Coordination (sleep&wakeup)" href="https://kennems.github.io/posts/tech/mit6.s08113-coordination-sleepwakeup/"></a>
 </article>
@@ -218,9 +222,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(11)- Thread switching Topic: more “under the hood” with xv6 Previously: system calls, interrupts, page tables, locks Today: process/thread switching Why support multiple tasks? Time-sharing: many users and/or many running programs. program structure: prime number sieve. parallel speedup on multi-core hardware. Threads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of...</p>
+      <p>MIT6.S081(11)- Thread switching Topic: more “under the hood” with xv6 Previously: system calls, interrupts, page tables, locks Today: process/thread switching
+Why support multiple tasks? Time-sharing: many users and/or many running programs. program structure: prime number sieve. parallel speedup on multi-core hardware.
+Threads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of multiple threads
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3091 字&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3091 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(11)- Thread switching" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/"></a>
 </article>
@@ -234,9 +241,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, &amp;c) locks help with correct sharing of data locks can limit parallel speedup What goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose...</p>
+      <p>MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, &amp;c) locks help with correct sharing of data locks can limit parallel speedup
+What goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but loose performance (kfree is serialized)
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1303 字&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1303 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(10)-Locking" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/"></a>
 </article>
@@ -250,9 +259,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(9)-Interrupts 6.S081 2020 Lecture 9: Interrupts Interrupts hardware wants attention now! e.g., pkt arrived, clock interrupt software must set aside current work and respond on RISC-V use same trap mechanism as for syscalls and exceptions new issues/complications: asynchronous interrupts running process interrupt handler may not run in context of process who caused interrupt concurrency devices and process run in parallel programming devices device can be difficult to program Where do...</p>
+      <p>MIT6.S081(9)-Interrupts 6.S081 2020 Lecture 9: Interrupts
+Interrupts hardware wants attention now! e.g., pkt arrived, clock interrupt software must set aside current work and respond on RISC-V use same trap mechanism as for syscalls and exceptions new issues/complications: asynchronous interrupts running process interrupt handler may not run in context of process who caused interrupt concurrency devices and process run in parallel programming devices device can be difficult to program
+Where do device interrupts come from? diagram: Fig 1 of SiFive board in FU540-C000-v1.0.pdf CPUs, CLINT, PLIC, devices Fig 3 has more detail for interrupts Section 8 and 9 of FU540-C000-v1.0.pdf UART (universal asynchrnonous receiver/transmitter) See Section 13 of FU540-C000-v1.0.pdf Although the QEMU version is slightly different Follows http://byterunner.com/16550.html the interrupt tells the kernel the device hardware wants attention the driver (in the kernel) knows how to tell the device to do things often the interrupt handler calls the relevant driver but other arrangements are possible (schedule a thread; poll) [diagram: top-half/bottom-half]
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-18 19:30:13 +0800 CST'>2024-09-18</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1303 字&nbsp;·&nbsp;updated:&nbsp;2024-09-18&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-18 19:30:13 +0800 CST'>2024-09-18</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1303 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-18&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(9)-Interrupts" href="https://kennems.github.io/posts/tech/mit6.s0819-interrupts/"></a>
 </article>
@@ -266,9 +278,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(8)-Page faults plan: cool things you can do with vm Better performance/efficiency e.g., one zero-filled page e.g., copy-on-write fork New features e.g., memory-mapped files virtual memory: several views primary purpose: isolation each process has its own address space Virtual memory provides a level-of-indirection provides kernel with opportunity to do cool stuff already some examples: shared trampoline page guard page but more possible… Key idea: change page tables on page fault...</p>
+      <p>MIT6.S081(8)-Page faults plan: cool things you can do with vm
+Better performance/efficiency e.g., one zero-filled page e.g., copy-on-write fork New features e.g., memory-mapped files virtual memory: several views
+primary purpose: isolation each process has its own address space Virtual memory provides a level-of-indirection provides kernel with opportunity to do cool stuff already some examples: shared trampoline page guard page but more possible… Key idea: change page tables on page fault Page fault is a form of a trap (like a system call) Xv6 panics on page fault But you don’t have to panic! Instead: update page table instead of panic restart instruction (see userret() from traps lecture) Combination of page faults and updating page table is powerful!
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-17 19:30:13 +0800 CST'>2024-09-17</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;958 字&nbsp;·&nbsp;updated:&nbsp;2024-09-17&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-17 19:30:13 +0800 CST'>2024-09-17</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>958 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-17&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(8)-Page faults" href="https://kennems.github.io/posts/tech/mit6.s0818-page-faults/"></a>
 </article>
@@ -282,9 +297,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(7)-Q&amp;A Plan: answering your questions Approach: walk through staff solutions start with pgtbl lab because it was the hardest your questions are at bottom of this file Pgtbl lab comments few lines of code, but difficult-to-debug bugs worst case: qemu/xv6 stops running “best” case: kernel panic hard to debug for staff too there are so many possible reasons why you discovered once we hadn’t seen yet likely to be the...</p>
+      <p>MIT6.S081(7)-Q&amp;A Plan: answering your questions Approach: walk through staff solutions start with pgtbl lab because it was the hardest your questions are at bottom of this file
+Pgtbl lab comments few lines of code, but difficult-to-debug bugs
+worst case: qemu/xv6 stops running “best” case: kernel panic hard to debug for staff too there are so many possible reasons why you discovered once we hadn’t seen yet likely to be the most challenging lab historically the first VM lab is hard this year too, even though we made a new lab to provide a gentler intro to VM Part 1 of pgtbl lab Explain vm output in terms of fig 3-4
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-12 19:30:13 +0800 CST'>2024-09-12</span>&nbsp;·&nbsp;6 分钟&nbsp;·&nbsp;2628 字&nbsp;·&nbsp;updated:&nbsp;2024-09-12&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-12 19:30:13 +0800 CST'>2024-09-12</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2628 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-12&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(7)-Q&A" href="https://kennems.github.io/posts/tech/mit6.s0817-qa/"></a>
 </article>
@@ -298,9 +316,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(6)-System Call Entry/Exit Today: user -&gt; kernel transition system calls, faults, interrupts enter the kernel in the same way important for isolation and performance lots of careful design and important detail What needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs...</p>
+      <p>MIT6.S081(6)-System Call Entry/Exit Today: user -&gt; kernel transition system calls, faults, interrupts enter the kernel in the same way important for isolation and performance lots of careful design and important detail
+What needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs to happen? save 32 user registers and pc switch to supervisor mode switch to kernel page table switch to kernel stack jump to kernel C code high-level goals don’t let user code interfere with user-&gt;kernel transition e.g. don’t execute user code in supervisor mode! transparent to user code – resume without disturbing
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3445 字&nbsp;·&nbsp;updated:&nbsp;2024-09-10&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3445 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-10&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(6)-System Call Entry/Exit" href="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"></a>
 </article>
@@ -314,9 +334,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb C code is compiled to machine instructions. How does the machine work at a lower level? How does this translation work? How to interact between C and asm Why this matters: sometimes need to write code not expressible in C And you need this for the syscall lab! RISC-V abstract machine No C-like control flow, no concept of variables, types … Base ISA:...</p>
+      <p>MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb C code is compiled to machine instructions. How does the machine work at a lower level? How does this translation work? How to interact between C and asm Why this matters: sometimes need to write code not expressible in C And you need this for the syscall lab!
+RISC-V abstract machine No C-like control flow, no concept of variables, types … Base ISA: Program counter, 32 general-purpose registers (x0–x31)
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-04 19:30:13 +0800 CST'>2024-09-04</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2064 字&nbsp;·&nbsp;updated:&nbsp;2024-09-04&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-04 19:30:13 +0800 CST'>2024-09-04</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb" href="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/"></a>
 </article>
@@ -330,9 +352,16 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(4)-Virtual Memory Plan: Address spaces Paging hardware xv6 VM code Virtual memory overview Today’s problem: [user/kernel diagram] [memory view: diagram with user processes and kernel in memory] Suppose the shell has a bug: sometimes it writes to a random memory address how can we keep it from wrecking the kernel? and from wrecking other processes? we want isolated address spaces each process has its own memory it can read and...</p>
+      <p>MIT6.S081(4)-Virtual Memory Plan: Address spaces
+Paging hardware
+xv6 VM code
+Virtual memory overview Today’s problem: [user/kernel diagram] [memory view: diagram with user processes and kernel in memory]
+Suppose the shell has a bug:
+sometimes it writes to a random memory address how can we keep it from wrecking the kernel? and from wrecking other processes?
+we want isolated address spaces each process has its own memory it can read and write its own memory it cannot read or write anything else
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5742 字&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5742 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(4)-Virtual Memory" href="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/"></a>
 </article>
@@ -346,9 +375,9 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(1)-O/S overview Class Page Overview 6.S081 goals Understand operating system (O/S) design and implementation Hands-on experience extending a small O/S Hands-on experience writing systems software What is the purpose of an O/S? Abstract the hardware for convenience and portability Multiplex the hardware among many applications Isolate applications in order to contain bugs Allow sharing among cooperating applications Control sharing for security Don’t get in the way of high performance Support...</p>
+      <p>MIT6.S081(1)-O/S overview Class Page Overview 6.S081 goals Understand operating system (O/S) design and implementation Hands-on experience extending a small O/S Hands-on experience writing systems software What is the purpose of an O/S? Abstract the hardware for convenience and portability Multiplex the hardware among many applications Isolate applications in order to contain bugs Allow sharing among cooperating applications Control sharing for security Don’t get in the way of high performance Support a wide range of applications Organization: layered picture user applications: vi, gcc, DB, &amp;c kernel services h/w: CPU, RAM, disk, net, &amp;c we care a lot about the interfaces and internal kernel structure ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5897 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5897 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(1)-O/S overview" href="https://kennems.github.io/posts/tech/mit6.s0811-os-overview/"></a>
 </article>
@@ -362,9 +391,14 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6 OS picture apps: sh, echo, … system call interface (open, close,…) OS Goal of OS run multiple applications isolate them multiplex them share Strawman design: No OS Application directly interacts with hardware CPU cores &amp; registers DRAM chips Disk blocks … OS library perhaps abstracts some of it Strawman design not conducive to...</p>
+      <p>MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6
+OS picture apps: sh, echo, … system call interface (open, close,…) OS
+Goal of OS run multiple applications isolate them multiplex them share
+Strawman design: No OS Application directly interacts with hardware CPU cores &amp; registers DRAM chips Disk blocks … OS library perhaps abstracts some of it
+Strawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1800 字&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1800 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(3)-OS organization" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"></a>
 </article>
@@ -386,9 +420,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -429,11 +468,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

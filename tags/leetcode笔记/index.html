@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/tags/leetcode%E7%AC%94%E8%AE%B0/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -20,7 +20,7 @@
 <link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/tags/leetcode%E7%AC%94%E8%AE%B0/index.xml">
+<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/tags/leetcode%E7%AC%94%E8%AE%B0/index.xml" title="rss">
 <link rel="alternate" hreflang="zh" href="https://kennems.github.io/tags/leetcode%E7%AC%94%E8%AE%B0/">
 <noscript>
     <style>
@@ -42,23 +42,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -84,9 +99,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-
-  
-
 <meta property="og:url" content="https://kennems.github.io/tags/leetcode%E7%AC%94%E8%AE%B0/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
   <meta property="og:title" content="LeetCode笔记">
@@ -105,27 +117,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
 <body class="list" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -202,9 +202,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>每日一题（202502） 0201 81. 搜索旋转排序数组 II 题目大意 给定一个旋转排序数组 nums 和一个目标值 target，判断目标值是否存在于数组中。需要尽可能...</p>
+      <p>每日一题（202502） 0201 81. 搜索旋转排序数组 II 题目大意 给定一个旋转排序数组 nums 和一个目标值 target，判断目标值是否存在于数组中。需要尽可能减少操作步骤。
+解题思路 旋转数组特点：旋转后数组分为两部分，其中一部分是有序的。 使用二分查找： 判断左半部分是否有序，如果有序，判断目标值是否在这部分。 否则，判断右半部分是否有序，并进行类似操作。 处理重复元素：如果 nums[left] == nums[mid] == nums[right]，无法确定哪部分有序，直接移动指针。 代码实现 class Solution: def search(self, nums: List[int], target: int) -&gt; bool: if not nums: return False n = len(nums) if n == 1: return nums[0] == target l, r = 0, n - 1 while l &lt;= r: mid = l &#43; r &gt;&gt; 1 if nums[mid] == target: return True if nums[l] == nums[mid] and nums[mid] == nums[r]: l &#43;= 1 r -= 1 elif nums[l] &lt;= nums[mid]: if nums[l] &lt;= target &lt; nums[mid]: r = mid - 1 else: l = mid &#43; 1 else: if nums[mid] &lt; target &lt;= nums[n - 1]: l = mid &#43; 1 else: r = mid - 1 return False 0202 MarsCode 每日一题 红色格子染色方案数计算 1. 题目大意 有一个长度为 n 的格子，一部分已染红，剩余格子未染色。通过特定的规则（红色格子可以染色左右邻居），我们需要计算将所有格子染红的不同染色顺序。最终返回结果对 10^9 &#43; 7 取模。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-02 15:37:01 +0800 CST'>2025-02-02</span>&nbsp;·&nbsp;2 分钟&nbsp;·&nbsp;730 字&nbsp;·&nbsp;updated:&nbsp;2025-02-02&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2025-02-02 15:37:01 +0800 CST'>2025-02-02</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>730 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-02&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202502）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202502/"></a>
 </article>
@@ -218,9 +220,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>每日一题（202501） 0124 2944. 购买水果需要的最少金币数 1. 题目大意 给定一个整数数组 prices，其中 prices[i] 表示购买第 i 个水果所需的金币数。每购买一个...</p>
+      <p>每日一题（202501） 0124 2944. 购买水果需要的最少金币数 1. 题目大意 给定一个整数数组 prices，其中 prices[i] 表示购买第 i 个水果所需的金币数。每购买一个水果后，可以根据一定的规则免费获得后续水果。规则是：购买第 i 个水果后，可以免费获得下标在 [i&#43;1, i&#43;i] 范围内的水果。你的目标是通过选择购买一些水果，最小化总花费，同时确保获得所有水果。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1298 字&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1298 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202501）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202501/"></a>
 </article>
@@ -234,9 +237,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode Hot 100 精练🥸(2) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。 215. 数组中的第K个最大元素 题目大意： 给定一个整数数组 nums 和一个整...</p>
+      <p>LeetCode Hot 100 精练🥸(2) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
+215. 数组中的第K个最大元素 题目大意： 给定一个整数数组 nums 和一个整数 k，要求返回数组中排序后的第 k 个最大的元素。你必须设计一个时间复杂度为 O(n) 的算法来解决此问题。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-08 15:37:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2176 字&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-12-08 15:37:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2176 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(2)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-2-/"></a>
 </article>
@@ -250,9 +255,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode每日一题(2405) 1235. 规划兼职工作 题目大意：给定n份兼职工作，每份工作都有开始时间、结束时间和报酬。任务是选择一些工作，使得...</p>
+      <p>LeetCode每日一题(2405) 1235. 规划兼职工作 题目大意：给定n份兼职工作，每份工作都有开始时间、结束时间和报酬。任务是选择一些工作，使得在不重叠的情况下能够获得最大报酬。
+实现思路：首先对工作按照结束时间进行排序，然后使用动态规划来求解最大报酬。在动态规划的过程中，维护一个数组f，其中f[i]表示在考虑前i个工作时可以获得的最大报酬。遍历每个工作，对于第i个工作，找到在其开始时间之前且结束时间最接近的工作j，然后更新f[i]为f[j] &#43; 第i个工作的报酬。最终返回f[n]即为所求的最大报酬。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1695 字&nbsp;·&nbsp;updated:&nbsp;2024-05-07&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1695 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题(202405)" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202405/"></a>
 </article>
@@ -266,9 +273,13 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode笔记 目标：2500分 HOT100 301. 删除无效的括号 题目大意： 给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字...</p>
+      <p>LeetCode笔记 目标：2500分
+HOT100 301. 删除无效的括号 题目大意：
+给你一个由若干括号和字母组成的字符串 s ，删除最小数量的无效括号，使得输入的字符串有效。
+返回所有可能的结果。答案可以按 任意顺序 返回。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;26 分钟&nbsp;·&nbsp;12788 字&nbsp;·&nbsp;updated:&nbsp;2024-10-06&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>26 分钟</span>&nbsp;·&nbsp;<span>12788 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-06&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to  LeetCode笔记" href="https://kennems.github.io/posts/tech/leetcode%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -282,9 +293,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode Hot 100 精练🥸(1) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组heig...</p>
+      <p>LeetCode Hot 100 精练🥸(1) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
+11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;22 分钟&nbsp;·&nbsp;10769 字&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>22 分钟</span>&nbsp;·&nbsp;<span>10769 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(1)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-1/"></a>
 </article>
@@ -298,9 +311,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。...</p>
+      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。
+思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]&#43;n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;12 分钟&nbsp;·&nbsp;5983 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5983 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202404）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202404/"></a>
 </article>
@@ -314,9 +329,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。...</p>
+      <p>每日一题（202404） 2009. 使数组连续的最少操作数 题意：给定一个可能有重复元素的数组，可以修改数组中值为任意其他值，问使数组连续的最小操作数。
+思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]&#43;n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5131 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5131 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202404）" href="https://kennems.github.io/posts/tech/%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202404/"></a>
 </article>
@@ -330,9 +347,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>剑指Offer 数据流中的中位数 用两个堆模拟， 左边大顶堆，右边小顶堆，则两个堆顶是最中间的数字。 添加数字时： 如果输入的是第奇数个（比如第一个，...</p>
+      <p>剑指Offer 数据流中的中位数 用两个堆模拟， 左边大顶堆，右边小顶堆，则两个堆顶是最中间的数字。
+添加数字时：
+如果输入的是第奇数个（比如第一个，则N初始化为0，插入后N为1，代表一共有一个数字），则先插入大顶堆，然后把堆顶插入小顶堆。保证小顶堆的任意一个值都比大顶堆大。 同样，如果输入的是第偶数个（第二个），则先插入小顶堆，然后将小顶堆最小值插入大顶堆。同样是保证小顶堆的任意一个值都比大顶堆大。 至于先插入哪一个堆是没有关系的，只要保证交替插入不同的堆即可，并且要确保边界问题（比如在奇数个元素的的中位数， 只有一个数据时应返回先插入的堆顶值， 否则堆为空会报错）。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1359 字&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1359 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 剑指Offer" href="https://kennems.github.io/posts/tech/%E5%89%91%E6%8C%87offer/"></a>
 </article>
@@ -354,9 +374,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -397,11 +422,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -20,7 +20,7 @@
 <link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
 <meta name="theme-color" content="#2e2e33">
 <meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/posts/tech/index.xml">
+<link rel="alternate" type="application/rss+xml" href="https://kennems.github.io/posts/tech/index.xml" title="rss">
 <link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/">
 <noscript>
     <style>
@@ -42,23 +42,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -83,9 +98,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-
-  
 
 <meta property="og:url" content="https://kennems.github.io/posts/tech/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
@@ -126,27 +138,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
 <body class="list" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -223,9 +223,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>Kotlin协程(3) 操作符 过渡流操作符 可以使用操作符转换符，就像使用集合与序列一样 过渡操作符应用于上游流，并返回下游流。 这些操作符也是冷操...</p>
+      <p>Kotlin协程(3) 操作符 过渡流操作符 可以使用操作符转换符，就像使用集合与序列一样 过渡操作符应用于上游流，并返回下游流。 这些操作符也是冷操作符，就像流一样。这类操作符本身不是挂起函数。 它运行的速度很快，返回新的转换流的定义。 transform() // 定义一个挂起函数，模拟发送请求并返回响应 suspend fun performRequest(request: Int): String { delay(1000) // 模拟网络延迟，延迟 1000 毫秒（1 秒） return &#34;response $request&#34; // 返回一个响应字符串 } // 测试函数，使用 JUnit 测试框架 @Test fun `test transform flow operator`() = runBlocking { // 将整数范围转换为 Flow (1..3).asFlow() .transform { request -&gt; // 使用 transform 运算符转换流的元素 emit(&#34;Making request $request&#34;) // 发射一个字符串，表示正在发送请求 emit(performRequest(request)) // 发射 performRequest 的返回值 } .collect { v -&gt; // 收集流的元素 println(v) // 打印收集到的元素 } } take() // 定义一个简单的 Flow，产生 Int 类型的值 fun numbers() = flow&lt;Int&gt; { try { emit(1) // 发射第一个整数 1 emit(2) // 发射第二个整数 2 println(&#34;This line will not execute&#34;) // 这一行代码不会被执行，因为 collect 操作会提前中止 Flow emit(3) // 发射第三个整数 3（不会执行） } finally { // 在 Flow 被收集完成或取消时执行 println(&#34;Finally in numbers&#34;) // 打印 &#34;Finally in numbers&#34;，表示 finally 块的执行 } } // 测试函数，使用 JUnit 测试框架 @Test fun `test limit length operator`() = runBlocking { // 调用 numbers 函数，限制收集的元素数量为 2 numbers() .take(2) // 使用 take 运算符，只收集前 2 个元素 .collect { v -&gt; // 收集 Flow 中的元素 println(v) // 打印每个收集到的元素 } } 末端操作符 末端操作符是在流上用于启动流收集的挂起函数。collect是最基础的末端操作符，但是还有另外一些更方便使用的末端操作符 转化为各种集合，例如toList和toSet 获取第一个（first）值与确保流发射单个（single）值的操作符 使用reduce与fold将流规约到单个值 组合多个流 就像Kotlin标准库中的Sequence.zip拓展函数一样，流拥有一个zip操作符用于组合两个流中的相关值 @Test fun `test zip2`() = runBlocking { // 创建一个整数流，发射 1 到 3 的数字，每个数字发射之间延迟 300 毫秒 val numbs = (1..3).asFlow().onEach { delay(300) // 模拟延迟 } // 创建一个字符串流，发射 &#34;one&#34;、&#34;two&#34; 和 &#34;three&#34; 的字符串，每个字符串发射之间延迟 400 毫秒 val strs = flowOf(&#34;one&#34;, &#34;two&#34;, &#34;three&#34;).onEach { delay(400) // 模拟延迟 } // 记录测试开始时间 val startTime = System.currentTimeMillis() // 使用 zip 操作符将两个流的元素配对 numbs.zip(strs) { a, b -&gt; &#34;$a -&gt; $b&#34; } // 将 numbs 和 strs 的每对元素组合成字符串 .collect { v -&gt; // 收集配对后的元素 // 打印配对后的元素和从测试开始到当前时间的时间差 println(&#34;$v, consume time : ${System.currentTimeMillis() - startTime} ms &#34;) } } 展平流 流表示异步接收的值序列，所以很容易遇到这样的情况：每个值都会触发对另一个值序列的请求，然而，由于流具有异步的性质，因此需要不同的展平模式，为此，存在一系列的流展平操作符： flatMapConcat 连接模式 flatMapMerge 合并模式 flatMapLatest 最新展平模式 // 使用 flatMapConcat 操作符的测试函数 @Test fun `test flatMapConcat`() = runBlocking&lt;Unit&gt; { val startTime = System.currentTimeMillis() // 记录开始时间 // 创建一个流，包含数字 1 到 3 (1..3) .asFlow() // 将数字转换为流 .onEach { delay(100) } // 在每个元素上施加 100 毫秒的延迟 // 使用 flatMapConcat 将每个元素转换为新的流并串联 .flatMapConcat { requestFlow(it) } .collect { v -&gt; // 收集并打印每个元素的值以及从开始到现在的消耗时间 println(&#34;$v, consume time : ${System.currentTimeMillis() - startTime} ms &#34;) } } // 使用 flatMapMerge 操作符的测试函数 @Test fun `test flatMapMerge`() = runBlocking&lt;Unit&gt; { val startTime = System.currentTimeMillis() // 记录开始时间 // 创建一个流，包含数字 1 到 3 (1..3) .asFlow() // 将数字转换为流 .onEach { delay(100) } // 在每个元素上施加 100 毫秒的延迟 // 使用 flatMapMerge 将每个元素转换为新的流并并发执行 .flatMapMerge { requestFlow(it) } .collect { v -&gt; // 收集并打印每个元素的值以及从开始到现在的消耗时间 println(&#34;$v, consume time : ${System.currentTimeMillis() - startTime} ms &#34;) } } // 使用 flatMapLatest 操作符的测试函数 @Test fun `test flatMapLatest`() = runBlocking&lt;Unit&gt; { val startTime = System.currentTimeMillis() // 记录开始时间 // 创建一个流，包含数字 1 到 3 (1..3) .asFlow() // 将数字转换为流 .onEach { delay(100) } // 在每个元素上施加 100 毫秒的延迟 // 使用 flatMapLatest 将每个元素转换为新的流，仅保留最新流 .flatMapLatest { requestFlow(it) } .collect { v -&gt; // 收集并打印每个元素的值以及从开始到现在的消耗时间 println(&#34;$v, consume time : ${System.currentTimeMillis() - startTime} ms &#34;) } } 流的异常处理 当运算符中的发射器或代码抛出异常时，有几种处理异常的方法： try/catch块 catch函数 /** * 测试用例 `test exception1`： * 使用 runBlocking 启动协程，收集 simpleFlow 的值。 * 如果值大于 1，则抛出异常并捕获。 */ @Test fun `test exception1`() = runBlocking&lt;Unit&gt; { try { simpleFlow().collect { v -&gt; println(v) check(v &lt;= 1) { &#34;Collected $v&#34; } } } catch (e: Throwable) { println(&#34;Caught $e&#34;) } } /** * 测试用例 `test exception2`： * 创建一个流，发射一个值后抛出异常。 * 使用 catch 操作符处理异常。 */ @Test fun `test exception2`() = runBlocking&lt;Unit&gt; { flow { emit(1) throw ArithmeticException(&#34;Div 0&#34;) } .catch { e: Throwable -&gt; println(&#34;Caught: $e&#34;) } .flowOn(Dispatchers.IO) .collect { println(it) } } 流的完成 当流收集完成时（普通情况或异常情况），它可能需要执行一个动作 命令是finally块 onCompletion声明式处理 // 定义一个函数，返回1到3的值作为 Flow fun simpleFlow2() = (1..3).asFlow() @Test // 测试在 finally 块中完成流的处理 fun `test flow complete in finally`() = runBlocking { try { // 收集 simpleFlow2 流中的每个值 simpleFlow2().collect { println(it) } } finally { // 无论流的收集过程是否成功，这条消息都会在最后打印 println(&#34;Done!&#34;) } } // 定义一个函数，返回一个 Flow&lt;Int&gt; 类型的流 fun simpleFlow3() = flow&lt;Int&gt; { // 发射（emit）第一个值 emit(1) // 发射一个异常来中断流 throw RuntimeException() } @Test // 测试使用 onCompletion 操作符处理流完成 fun `test flow complete in onCompletion`() = runBlocking { simpleFlow3() // 在流完成时调用的操作符 .onCompletion { exception -&gt; if (exception != null) { // 如果有异常，打印流以异常方式完成 println(&#34;Flow completed exceptionally&#34;) } } // 捕获流中的异常 .catch { exception -&gt; println(&#34;Caught $exception&#34;) } // 收集 simpleFlow3 流中的每个值 .collect { println(it) } } 通道-多路复用-并发安全 Channel Channel是一个并发安全的队列，它可以用来连接协程，实现不同协程的通信。 @Test fun `test know channel`() = runBlocking&lt;Unit&gt; { // 创建一个整数类型的通道，用于在不同的协程之间传递数据 val channel = Channel&lt;Int&gt;() // 在全局范围内启动一个生产者协程，负责向通道发送数据 val producer = GlobalScope.launch { var i = 0 while (true) { // 每次发送前暂停1秒钟 delay(1000) // 递增计数器并将值发送到通道 channel.send(&#43;&#43;i) println(&#34;send $i&#34;) } } // 在全局范围内启动一个消费者协程，负责从通道接收数据 val consumer = GlobalScope.launch { while (true) { // 接收通道中的数据 val element = channel.receive() println(&#34;receive $element&#34;) } } // 等待生产者和消费者协程结束 joinAll(producer, consumer) } Channel的容量 Channel实际上就是一个队列，队列中一定存在缓冲区，一旦这个缓冲区满了，并且一直没有人调用receive并取走函数，send就需要挂起。故意让接收端的节奏放慢，发现send总是会挂起，直到receive之后才会继续往下执行。 迭代channel produce 与 actor 构造生产者与消费者的便捷方法 可以通过produce方法启动一个生产者协程，并返回一个ReceiveChannel， 其他协程就可以用这个Channel来接收数据了。反之，可以用actor启动一个消费者协程。 @OptIn(DelicateCoroutinesApi::class) @Test fun `test fast consumer channel`() = runBlocking { // 创建一个发送通道，它通过actor协程进行数据接收和处理 val sendChannel: SendChannel&lt;Int&gt; = GlobalScope.actor { while (true) { // 接收并处理通道中的数据 val element = receive() println(element) } } // 在全局范围内启动一个生产者协程，负责向通道发送数据 val producer = GlobalScope.launch { for (i in 0..3) { // 向通道发送数据 sendChannel.send(i) } } // 等待生产者协程完成 producer.join() } Channel的关闭 produce和actor返回的Channel都会随着对应的协程执行完毕而关闭，也正是这样，Channel才被称为热数据流。 对于Channel，如果我们调用了它的close方法，它会立即停止接收新元素，也就是说这是它的isClosedForSend会立即返回true。而由于Channel缓冲区的存在，这时候可能还有一些元素没有被处理完，因此要等所有的元素都被读取之后isClosedForSend才会返回true。 Channel的生命周期最好由主导方来维护，建议由主导的一方实现关闭。 @Test fun `test close channel`() = runBlocking { // 创建一个无界限的整数类型的通道，用于在不同的协程之间传递数据 val channel = Channel&lt;Int&gt;(Channel.UNLIMITED) // 在全局范围内启动一个生产者协程，负责向通道发送数据 val producer = GlobalScope.launch { List(3) { channel.send(it) println(&#34;send $it&#34;) } // 发送完成后关闭通道 channel.close() // 打印通道的关闭状态 println( &#34;&#34;&#34;close channel. | -ClosedForSend : ${channel.isClosedForSend} | -ClosedForReceive: ${channel.isClosedForReceive} &#34;&#34;&#34;.trimMargin() ) } // 在全局范围内启动一个消费者协程，负责从通道接收数据 val consumer = GlobalScope.launch { for (element in channel) { println(&#34;receive $element&#34;) delay(1000) } // 消费完成后打印通道的关闭状态 println( &#34;&#34;&#34;close channel. | -ClosedForSend : ${channel.isClosedForSend} | -ClosedForReceive: ${channel.isClosedForReceive} &#34;&#34;&#34;.trimMargin() ) } // 等待生产者和消费者协程结束 joinAll(producer, consumer) } BroadcastChannel 发送端和接收端在Channel中存在一对多的情形，从数据处理本身来讲，虽然有多个接收端，但是同一个元素只会被一个接收端读到。广播则不然，多个接收端不存在互斥行为。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-13 22:30:13 +0800 CST'>2024-08-13</span>&nbsp;·&nbsp;10 分钟&nbsp;·&nbsp;4549 字&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-13 22:30:13 +0800 CST'>2024-08-13</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4549 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Kotlin协程(3)" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B3/"></a>
 </article>
@@ -239,9 +240,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>Kotlin协程(2) 异常处理的必要性 @OptIn(ExperimentalStdlibApi::class) // 标记该代码使用了实验性标准库 API @Test // 表示这是一个测试函数 fun `test CoroutineContext extend2`() = runBlocking { // 使用 runBlocking 启动协程 // 创建一个协程...</p>
+      <p>Kotlin协程(2) 异常处理的必要性 @OptIn(ExperimentalStdlibApi::class) // 标记该代码使用了实验性标准库 API @Test // 表示这是一个测试函数 fun `test CoroutineContext extend2`() = runBlocking { // 使用 runBlocking 启动协程 // 创建一个协程异常处理器，用于捕获协程中的异常 val coroutineExceptionHandler = CoroutineExceptionHandler { _, exception -&gt; println(&#34;Caught : $exception&#34;) // 打印捕获到的异常 } // 创建一个协程作用域，包含一个 Job，使用主线程调度器和异常处理器 val scope = CoroutineScope( Job() &#43; Dispatchers.Main &#43; coroutineExceptionHandler // Job() 用于管理协程的生命周期 ) // 在 IO 线程上启动一个新的协程 val job = scope.launch(Dispatchers.IO) { // 获取当前协程上下文中的调度器 val dispatcher = coroutineContext[CoroutineDispatcher] // 打印当前使用的调度器 println(&#34;Current dispatcher: $dispatcher&#34;) } // 等待协程完成 job.join() // 确保主协程在子协程完成后再继续 } 异常的传播 协程构建器有两种形式：1、自动传播异常（launch与actor）2、向用户暴露异常（async与produce）， 当这些构建器用于创建一个根协程时（该协程不是另一个协程的子协程），前者这类构建器，异常会在它发生的第一时间被抛出，而后者则依赖用户来最终消费异常，例如通过await或receive。 // 根协程 @Test @OptIn(DelicateCoroutinesApi::class) fun `test exception propagation`() = runBlocking&lt;Unit&gt; { // 在 GlobalScope 中启动一个新协程，返回一个 Job 对象 val job = GlobalScope.launch { try { // 在协程中抛出一个 IndexOutOfBoundsException throw IndexOutOfBoundsException() } catch (e: Exception) { // 捕获异常并打印一条消息，指示捕获了 IndexOutOfBoundsException println(&#34;IndexOutOfBoundsException&#34;) // 如果需要可以选择打印堆栈轨迹 // e.printStackTrace() } } // 等待协程完成 job.join() // 在 GlobalScope 中启动一个新协程，并返回一个 Deferred 对象 val deffer = GlobalScope.async { // 在协程中抛出一个 ArithmeticException throw ArithmeticException() } try { // 等待异步任务完成并获取结果，如果任务抛出异常，这里会重新抛出异常 deffer.await() } catch (e: Exception) { // 捕获异常并打印一条消息，指示捕获了 ArithmeticException println(&#34;ArithmeticException&#34;) // 如果需要可以选择打印堆栈轨迹 // e.printStackTrace() } } 非根协程的异常 其他协程所创建的协程中，产生的异常总是会被传播 /* 非根协程，job是scope内的子协程，所以会直接消费掉异常 */ @Test fun `test exception propagation2`() = runBlocking { // 创建一个新的 CoroutineScope，使用 Job 作为其上下文元素 val scope = CoroutineScope(Job()) // 在 scope 中启动一个新协程，返回一个 Job 对象 val job = scope.launch { // 在协程中启动一个异步任务 async { // 在异步任务中抛出一个 IllegalArgumentException throw IllegalArgumentException() } } // 等待 launch 启动的协程完成 job.join() } 异常的传播特性 当一个协程由于一个异常而运行失败时，它会传播这个异常并传递给它的父级。接下来，父级会进行下面几步操作： 取消它自己的子级 取消它自己 将异常传播并传递给它的父级 SupervisorJob 使用SupervisorJob时，一个子协程的运行失败不会影响其他子协程，SupervisorJob不会传播异常给它的父级，它会让子协程自己处理异常。 需求：在作用域内定义作业的UI组件，如果任何一个UI的子作业执行失败了，它并不总是有必要取消整个UI组件，但是如果UI组件被销毁了，由于它的结果不再被需要了，它就有必要使所有的子作业执行失败。 @Test fun `test supervisorJob`() = runBlocking&lt;Unit&gt; { // 创建一个新的 CoroutineScope，使用 SupervisorJob 作为其上下文元素 val supervisor = CoroutineScope(SupervisorJob()) // 如果使用普通的 Job，注释掉上一行并启用以下行 // val supervisor = CoroutineScope(Job()) // 在 supervisor 作用域中启动第一个子协程，返回一个 Job 对象 val job1 = supervisor.launch { // 延迟 100 毫秒以模拟一些工作 delay(100) println(&#34;child 1&#34;) // 在第一个子协程中抛出一个 IllegalArgumentException throw IllegalArgumentException() } // 在 supervisor 作用域中启动第二个子协程，返回一个 Job 对象 val job2 = supervisor.launch { try { // 无限延迟以模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当协程取消时，最终会打印 &#34;child 2 finished&#34; println(&#34;child 2 finished&#34;) } } // 以下是可选部分，如果需要，可以取消注释 // 延迟 200 毫秒后取消 supervisor 作用域内的所有协程 // delay(200) // supervisor.cancel() // 等待 job1 和 job2 都完成 joinAll(job1, job2) } SupervisorScope 当作业自身执行失败的时候，所以子作业将会被全部取消 @Test fun `test supervisorScope`() = runBlocking&lt;Unit&gt; { // 使用 supervisorScope 启动一个新的协程作用域 supervisorScope { // 在 supervisorScope 中启动一个子协程，返回一个 Job 对象 launch { // 延迟 100 毫秒以模拟一些工作 delay(100) // 输出 &#34;child 1&#34;，表示子协程已完成其任务 println(&#34;child 1&#34;) // 在协程中抛出一个 IllegalArgumentException，以测试异常传播 throw IllegalArgumentException() } // 在 supervisorScope 中启动另一个协程 try { // 延迟一个非常长的时间，模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当 supervisorScope 被取消时（由于异常），最终会打印 &#34;child 2 finished.&#34; println(&#34;child 2 finished.&#34;) } } } @Test fun `test supervisorScope2`() = runBlocking&lt;Unit&gt; { // 使用 supervisorScope 来启动一个协程作用域 supervisorScope { // 在 supervisorScope 中启动一个子协程 val child = launch { try { // 输出 &#34;The child is sleeping&#34; 表示子协程进入睡眠状态 println(&#34;The child is sleeping&#34;) // 延迟无限长的时间，模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当子协程被取消时，最终会打印 &#34;The child is cancelled&#34; println(&#34;The child is cancelled&#34;) } } // 让出线程以确保子协程启动并进入延迟状态 yield() // 在 supervisorScope 中抛出一个异常 println(&#34;Throwing an exception from the scope&#34;) throw AssertionError() // 抛出一个断言错误，用于测试作用域的异常处理 } } 异常的捕获 使用CoroutineExcepitonHandler对协程的异常进行捕获 以下的条件被满足时，异常就会被捕获： 时机：异常是被自动抛出异常的协程所抛出的（使用launch，而不是async时）； 位置：在CoroutineScope的CoroutineContext中或在一个根协程（CoroutineScope或者supervisorScope的直接子协程）中。 Android中全局异常处理 全局异常处理器可以获取到所有协程未处理的未捕获异常，不过它并不能对异常进行捕获，虽然不能阻止程序崩溃，全局异常处理器在程序调试和异常上报等场景中仍然有非常大的用处。 我们需要在classpath下面创建META-INF/services目录，并在其中创建一个名为kotlinx.coroutines.CoroutineExceptionHandler的文件，文件内容就是我们的全局异常处理器的全类名。 取消与异常 取消与异常紧密相关，协程内部使用CancellationExcepiton来进行取消，这个异常会被忽略。 当子协程被取消时，不会取消它的父协程 如果一个协程遇到了CancellationExcepiton以外的异常，它将使用该异常取消它的父协程。当父协程的所有子协程都结束后，异常才会被父协程处理。 @Test fun `test cancel and exception`() = runBlocking&lt;Unit&gt; { // 启动一个协程作为父协程 val job = launch { // 在父协程中启动一个子协程 val child = launch { try { // 子协程尝试延迟执行，模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 当子协程被取消时，执行此块 println(&#34;Child is cancelled&#34;) } } // 让父协程暂时让出线程，给其他协程执行的机会 yield() println(&#34;Cancelling child&#34;) // 取消子协程，并等待其执行完 finally 块 child.cancelAndJoin() // 再次让出线程 yield() println(&#34;Parent is not cancelled&#34;) } // 等待父协程完成执行 job.join() } @Test fun `test cancel and exception2`() = runBlocking&lt;Unit&gt; { // 定义一个 CoroutineExceptionHandler 来处理未捕获的异常 val handler = CoroutineExceptionHandler { _, exception -&gt; println(&#34;Caught: $exception&#34;) } // 使用 GlobalScope 启动一个顶层协程，并应用异常处理器 val job = GlobalScope.launch(handler) { // 第一个子协程，模拟一个需要很长时间的任务 launch { try { // 使用一个很长的延迟来模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 确保在协程被取消时，执行以下代码 withContext(NonCancellable) { println(&#34;Children are cancelled, but exceptions are not handled&#34;) delay(100) // 确保输出语句有机会执行 println(&#34;The first child finished its non cancellable block&#34;) } } } // 第二个子协程，在短暂延迟后抛出一个异常 launch { delay(10) println(&#34;Second child throws an exception&#34;) throw ArithmeticException() // 抛出一个异常来测试异常处理 } } // 等待父协程完成 job.join() } 异常聚合 当协程的多个子协程因为异常而失败时，一般情况下取第一个异常进行处理。在第一异常之后发生的所有其他异常，都将绑定到第一个异常之上。 @Test fun `test exception aggregation`() = runBlocking&lt;Unit&gt; { // 定义一个 CoroutineExceptionHandler 来处理未捕获的异常 val handler = CoroutineExceptionHandler { _, exception -&gt; // 输出被捕获的主异常和抑制的异常（如果有） println(&#34;Caught: $exception, Suppressed: ${exception.suppressed.contentToString()}&#34;) } // 使用 GlobalScope 启动一个顶层协程，并应用异常处理器 val job = GlobalScope.launch(handler) { // 第一个子协程 launch { try { // 模拟长时间运行的任务 delay(Long.MAX_VALUE) } finally { // 在取消时抛出 ArithmeticException throw ArithmeticException() } } // 第二个子协程 launch { try { // 进行短暂的延迟 delay(100) } finally { // 在取消时抛出 IOException throw IOException() } } // 第三个子协程 launch { try { // 进行更短暂的延迟 delay(10) } finally { // 在取消时抛出 IndexOutOfBoundsException throw IndexOutOfBoundsException() } } } // 等待父协程完成，确保所有子协程的异常都被处理 job.join() } Flow-异步流 // 定义一个名为 simpleFlow 的挂起函数，返回一个 Flow&lt;Int&gt; suspend fun simpleFlow() = flow&lt;Int&gt; { // 使用 for 循环遍历从 1 到 100 的整数 for (i in 1..100) { delay(1000) // 延迟 1 秒钟，模拟异步任务的延迟 emit(i) // 向下游发射当前整数 } } // 这是一个测试函数，演示了异步、非阻塞式的行为 @Test fun `test multiple values3`() = runBlocking&lt;Unit&gt; { // 启动一个新的协程，不阻塞主线程 launch { // 使用 for 循环打印信息，展示主线程没有被阻塞 for (k in 1..3) { println(&#34;I am not blocked $k&#34;) delay(1500) // 延迟 1.5 秒钟 } } // 收集 simpleFlow() 发射的值 simpleFlow().collect { value -&gt; println(value) // 打印每个收集到的值 } } 冷流 Flow是一种类似于序列的冷流，flow构建器中的代码直到流被收集的时候才运行 // 测试函数，演示 Flow 是冷流的概念 @Test fun `test flow is cold`() = runBlocking { // 创建一个新的 Flow 实例 val flow = simpleFlow2() // 首次调用 collect，开始收集 Flow 发射的值 println(&#34;Calling collect...&#34;) flow.collect { value -&gt; println(value) // 打印每个收集到的值 } // 再次调用 collect，重新收集 Flow 发射的值 println(&#34;Calling collect again...&#34;) flow.collect { value -&gt; println(value) // 打印每个收集到的值 } } 流的连续性 流的每次单独收集都是按顺序执行的，除非使用特殊操作符 从上游到下游每个过渡操作符都会处理每个发射出的值，然后再交给末端操作符。 // 测试函数，演示流的连续操作 @Test fun `test flow continuation`() = runBlocking { // 将 1 到 5 的整数转换成流 (1..5).asFlow() // 过滤流，只保留偶数 .filter { it % 2 == 0 } // 将每个整数转换为字符串 .map { &#34;String $it&#34; } // 收集流中的每个元素 .collect { value -&gt; println(&#34;Collect $value&#34;) // 打印收集到的每个元素 } } 流构建器 flowOf构建器定义了一个发射固定值集的流。 @Test fun `test flow continuation`() = runBlocking { // 将 1 到 5 的整数转换成流 (1..5).asFlow() // 过滤流，只保留偶数 .filter { it % 2 == 0 } // 将每个整数转换为字符串 .map { &#34;String $it&#34; } // 收集流中的每个元素 .collect { value -&gt; println(&#34;Collect $value&#34;) // 打印收集到的每个元素 } } 使用.asFlow()扩展函数，可以将各种集合与序列转换为流。 @Test fun `test flow builder2`() = runBlocking&lt;Unit&gt; { // 创建一个包含三个字符串元素的 Flow：&#34;one&#34;、&#34;two&#34; 和 &#34;three&#34; flowOf(&#34;one&#34;, &#34;two&#34;, &#34;three&#34;) // 对 Flow 中的每个元素，应用 1000 毫秒（1 秒）的延迟 .onEach { delay(1000) } // 收集 Flow 中的每个元素，并将其打印到控制台 .collect { v -&gt; println(v) } // 将整数范围从 1 到 3 转换为 Flow 并收集每个元素 (1..3).asFlow() .collect { println(it) // 将每个收集到的整数打印到控制台 } } 流的上下文 流的收集总是在调用协程的上下文中发生，流的该属性称为上下文保存 flow{...}构建器中的代码必须遵循上下文保存属性，并且不允许从其他上下文中发射（emit） flowOn操作符，该函数用于更改流发射的上下文。 // 定义一个简单的 Flow，返回 Int 类型的值 fun simpleFlow5() = flow&lt;Int&gt; { // 打印当前线程的名称，表明 Flow 开始执行 println(&#34;Flow started ${Thread.currentThread().name}&#34;) // 生成从 1 到 3 的整数 for (i in 1..3) { // 延迟 1000 毫秒（1 秒）模拟耗时操作 delay(1000) // 发射（emit）当前整数 emit(i) } // 设置 Flow 在默认的调度器（Dispatcher）上运行 }.flowOn(Dispatchers.Default) // 测试函数，使用 JUnit 测试框架 @Test fun `test flow context3`() = runBlocking&lt;Unit&gt; { // 收集 Flow 中发射的值 simpleFlow5().collect { v -&gt; // 打印当前线程的名称和收集到的值 println(&#34;Collected $v ${Thread.currentThread().name}&#34;) } } 启动流 使用launchIn替换collect，可以在单独的协程中启动流的收集
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-09 22:30:13 +0800 CST'>2024-08-09</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5211 字&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-09 22:30:13 +0800 CST'>2024-08-09</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5211 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Kotlin协程(2)" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B2/"></a>
 </article>
@@ -255,9 +257,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>Kotlin协程(1) 看明白，讲清楚。 协程处理的问题： 处理耗时任务， 这种任务常常会阻塞主线程 保证主线程安全，即确保安全的从主线程调用任何su...</p>
+      <p>Kotlin协程(1) 看明白，讲清楚。
+协程处理的问题：
+处理耗时任务， 这种任务常常会阻塞主线程 保证主线程安全，即确保安全的从主线程调用任何suspend函数 异步任务 协程让异步逻辑同步化，杜绝回调地狱 协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复 协程的挂起与恢复 常规函数基础操作包括 ： invoke(call) 和 return, 协程新增了 suspend 和 resume ； suspend —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量 resume——用于让已暂停的协程从其暂停处继续执行 挂起函数 使用suspend关键字修饰的函数叫做挂起函数 挂起函数只能在协程体内或其他挂起函数内调用 Kotlin协程的两部分 基础设施层次，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持 业务框架层，协程的上层框架支持 调度器 所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;10 分钟&nbsp;·&nbsp;4864 字&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4864 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Kotlin协程(1)" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/"></a>
 </article>
@@ -271,9 +276,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>Kotlin协程(5) Binding 视图绑定 View Binding: 通过View Binding， Android 会为每个XML布局文件自动生成一个绑定类。在这个类中，每个View都有一个...</p>
+      <p>Kotlin协程(5) Binding 视图绑定
+View Binding: 通过View Binding， Android 会为每个XML布局文件自动生成一个绑定类。在这个类中，每个View都有一个直接对应的属性，可以避免findViewById的使用，从而减少了手动查找视图和类型转换的工作。提高代码的安全性和可读性。 val binding = ActivityMainBinding.inflate(layoutInflater) setContentView(binding.root) binding.textView.text = &#34;Hello World&#34; Data Binding: 功能比View Binding 更为强大，允许在布局文件中直接绑定UI组件到数据源（如ViewModel），这样，数据的变化会自动更新UI &lt;data&gt; &lt;variable name=&#34;user&#34; type=&#34;com.example.User&#34;/&gt; &lt;/data&gt; &lt;TextView android:text=&#34;@{user.name}&#34;/&gt; Activity 中：
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2116 字&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2116 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-13&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Kotlin协程(5)" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B5/"></a>
 </article>
@@ -287,9 +294,14 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>Hugo配置与使用 下载PaperMod主题： git clone https://github.com/adityatelange/hugo-PaperMod themes/PaperMod --depth=1 生成public内容时清空文件夹 hugo -F --cleanDestinationDir 新建post hugo new content posts/my-first-post.md 完成Git push流程 echo &#34;# showguan.github.io&#34;...</p>
+      <p>Hugo配置与使用 下载PaperMod主题：
+git clone https://github.com/adityatelange/hugo-PaperMod themes/PaperMod --depth=1 生成public内容时清空文件夹
+hugo -F --cleanDestinationDir 新建post
+hugo new content posts/my-first-post.md 完成Git push流程
+echo &#34;# showguan.github.io&#34; &gt;&gt; README.md git init git add README.md git commit -m &#34;first commit&#34; git branch -M main git remote add origin https://github.com/showguan/showguan.github.io.git git push -u origin main git remote add origin https://github.com/showguan/showguan.github.io.git git branch -M main git push -u origin main 强制push到仓库
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-03 22:30:13 +0800 CST'>2024-08-03</span>&nbsp;·&nbsp;5 分钟&nbsp;·&nbsp;2366 字&nbsp;·&nbsp;updated:&nbsp;2024-09-01&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-03 22:30:13 +0800 CST'>2024-08-03</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2366 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-01&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Hugo配置与使用" href="https://kennems.github.io/posts/tech/hugo/"></a>
 </article>
@@ -303,9 +315,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>Kotlin基础 val &amp; var const 编译时常量只能在函数之外定义，因为编译时常量必须在编译时赋值， 而函数都是在运行时才调用， 函数内的变量也是在运行时赋值...</p>
+      <p>Kotlin基础 val &amp; var const 编译时常量只能在函数之外定义，因为编译时常量必须在编译时赋值， 而函数都是在运行时才调用， 函数内的变量也是在运行时赋值，编译时常量要在这些变量赋值前就已经存在。 函数参数 fun main(){ println(doSomething(1, false)) println(fix(&#34;Jack&#34;)) println(fix(age=10, name=&#34;Rose&#34;)) } private fun doSomething(age:Int, flag:Boolean):String{ return &#34;result&#34; } fun fix(name:String, age:Int = 2){ println(name &#43; &#34; &#34; &#43; age) } 函数没有返回类型时默认返回Unit
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-03 22:30:13 +0800 CST'>2024-08-03</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5496 字&nbsp;·&nbsp;updated:&nbsp;2024-08-03&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-08-03 22:30:13 +0800 CST'>2024-08-03</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5496 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-03&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Kotlin基础" href="https://kennems.github.io/posts/tech/kotlin%E5%9F%BA%E7%A1%80/"></a>
 </article>
@@ -319,9 +332,12 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第十二天笔记 SW 屏幕适配 Handler实现通信。 代码可维护，精简</p>
+      <p>第十二天笔记 SW 屏幕适配
+Handler实现通信。
+代码可维护，精简
+</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-17 22:30:13 +0800 CST'>2024-07-17</span>&nbsp;·&nbsp;1 分钟&nbsp;·&nbsp;31 字&nbsp;·&nbsp;updated:&nbsp;2024-07-17&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-17 22:30:13 +0800 CST'>2024-07-17</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>31 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-17&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第十二天笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E5%8D%81%E4%BA%8C%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -335,9 +351,11 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第十一天笔记 Kotlin 讲义总结 1. 包的定义与导入 1) 包的声明 包的声明在代码文件的开头，格式为 package 包名。 包名是工程根目录下的子目录，如 com.jetbrai...</p>
+      <p>第十一天笔记 Kotlin 讲义总结 1. 包的定义与导入 1) 包的声明
+包的声明在代码文件的开头，格式为 package 包名。 包名是工程根目录下的子目录，如 com.jetbrains。 在根目录下创建 com.jetbrains 包，并在此包下创建 Demo1.kt 文件，文件第一行声明包名：package com.jetbrains。 2) 包的导入
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-16 22:30:13 +0800 CST'>2024-07-16</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3018 字&nbsp;·&nbsp;updated:&nbsp;2024-07-16&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-16 22:30:13 +0800 CST'>2024-07-16</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3018 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-16&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第十一天笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E5%8D%81%E4%B8%80%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -351,9 +369,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第十天笔记 内存泄漏 1. Java垃圾回收机制 1.1 什么是垃圾回收 垃圾回收（GC）是由Java虚拟机（JVM）垃圾回收器提供的一种内存回收机制。 当内存...</p>
+      <p>第十天笔记 内存泄漏 1. Java垃圾回收机制 1.1 什么是垃圾回收 垃圾回收（GC）是由Java虚拟机（JVM）垃圾回收器提供的一种内存回收机制。 当内存空间或内存占用过高时，系统会回收那些没有引用的对象。 JVM内存模型 运行时数据区域：包括方法区、堆、栈、本地方法栈和程序计数器等。 堆内存： 新生代（Young Generation）：分为Eden区和两个Survivor区（S0、S1）。 老年代（Old Generation）。 方法区（MetaSpace）：存储类元数据、方法信息等。 1.2 判断对象是否是垃圾的算法 1.2.1 引用计数算法 对象被创建后，系统为其初始化引用计数器。 每当对象被引用时，计数器加1，引用失效时，计数器减1。 当计数器为0时，对象不再被引用，可以进行回收。 优点：判断简单，效率高。 缺点：无法避免循环引用。 1.2.2 可达性分析法 从GC Roots出发，逐步遍历到所有可达的对象。 这些对象称为可达对象，不可达的对象则被标记为垃圾，需要回收。 GC Roots包括的对象： 虚拟机栈中引用的对象（栈帧中的本地变量表）。 方法区中类静态属性引用的对象。 方法区中常量引用的对象。 本地方法栈中JNI（Native方法）引用的对象。 Java中的对象引用 Java中的对象引用主要分为四种类型：
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-15 22:30:13 +0800 CST'>2024-07-15</span>&nbsp;·&nbsp;3 分钟&nbsp;·&nbsp;1411 字&nbsp;·&nbsp;updated:&nbsp;2024-07-15&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-15 22:30:13 +0800 CST'>2024-07-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1411 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第十天笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E5%8D%81%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -367,9 +386,14 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第九天笔记 权限与网络请求课程预习 1. 有哪些权限，具体权限的介绍 普通权限 网络权限：允许设备访问网络 &lt;uses-permission android:name=&#34;android.permission.INTERNET&#34; /&gt; 获取网络的状态：如是否有网 &lt;uses-permission android:name=&#34;android.permission.ACCESS_NETWORK_STATE&#34; /&gt; 读取手机...</p>
+      <p>第九天笔记 权限与网络请求课程预习 1. 有哪些权限，具体权限的介绍 普通权限 网络权限：允许设备访问网络
+&lt;uses-permission android:name=&#34;android.permission.INTERNET&#34; /&gt; 获取网络的状态：如是否有网
+&lt;uses-permission android:name=&#34;android.permission.ACCESS_NETWORK_STATE&#34; /&gt; 读取手机状态：如IMEI等信息
+&lt;uses-permission android:name=&#34;android.permission.READ_PHONE_STATE&#34; /&gt; 获取WiFi的状态
+&lt;uses-permission android:name=&#34;android.permission.ACCESS_WIFI_STATE&#34; /&gt; 敏感权限 写入SDK权限：文件下载、图片下载
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-14 22:30:13 +0800 CST'>2024-07-14</span>&nbsp;·&nbsp;7 分钟&nbsp;·&nbsp;3076 字&nbsp;·&nbsp;updated:&nbsp;2024-07-14&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-14 22:30:13 +0800 CST'>2024-07-14</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3076 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-14&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第九天笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E4%B9%9D%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -383,9 +407,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第八天笔记 自定义控件的实现 View 绘制过程 Activity 和 View 的关系 Window 类：负责在 Activity 中展示内容（具体实现为 PhoneWindow 类） DecorView：Window 创建出根布局 Dec...</p>
+      <p>第八天笔记 自定义控件的实现 View 绘制过程 Activity 和 View 的关系 Window 类：负责在 Activity 中展示内容（具体实现为 PhoneWindow 类） DecorView：Window 创建出根布局 DecorView（继承自 FrameLayout） 单个 View 的绘制步骤 系统根据布局树完成界面绘制，单个 View 需要经过三个步骤：
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-13 22:30:13 +0800 CST'>2024-07-13</span>&nbsp;·&nbsp;11 分钟&nbsp;·&nbsp;5178 字&nbsp;·&nbsp;updated:&nbsp;2024-07-13&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-13 22:30:13 +0800 CST'>2024-07-13</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5178 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-13&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第八天笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E5%85%AB%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -399,9 +424,9 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第七天笔记 Android 动画 帧动画 作用对象 视图控件 (View) 例如 Android 的 TextView、Button 等等 不可作用于 View 组件的属性，如：颜色、背景、长度等等 使用 资源文...</p>
+      <p>第七天笔记 Android 动画 帧动画 作用对象 视图控件 (View) 例如 Android 的 TextView、Button 等等 不可作用于 View 组件的属性，如：颜色、背景、长度等等 使用 资源文件方式 代码方式 资源文件方式 基本信息介绍 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-12 22:30:13 +0800 CST'>2024-07-12</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1600 字&nbsp;·&nbsp;updated:&nbsp;2024-07-12&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-12 22:30:13 +0800 CST'>2024-07-12</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1600 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-12&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第七天笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E4%B8%83%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -415,9 +440,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第六天笔记 组件库笔记 1. 组件库依赖、发布和使用 依赖方式对比 2.x版本 3.x版本 说明 apk runtimeOnly apk 功能同 runtimeOnly。只在生成 apk 时参与打包，编...</p>
+      <p>第六天笔记 组件库笔记 1. 组件库依赖、发布和使用 依赖方式对比 2.x版本 3.x版本 说明 apk runtimeOnly apk 功能同 runtimeOnly。只在生成 apk 时参与打包，编译时不会参与。Gradle 只会将依赖项添加到构建输出，以便在运行时使用。 provided compileOnly provided 功能同 compileOnly。只在编译时有效，不会参与打包至 apk。 compile api compile 功能同 api。该依赖方式会传递所依赖的库，当其他 module 依赖了该 module 时，可以使用该 module 下使用 api 依赖的库。 - implementation 该依赖方式所依赖的库不会传递，只会在当前 module 中生效。 格式介绍 格式 介绍 差异 AAR AAR 文件包含了 Android 库项目的代码、资源文件和清单文件等信息，可以被其他 Android 应用程序引用和使用。 Android 特有的归档文件格式，主要用于打包 Android 库项目。 JAR JAR 文件包含了 Java 类文件、资源文件和清单文件等信息，可以被其他 Java 应用程序引用和使用。 Java 中常用的归档文件格式，用于打包 Java 类库和应用程序。 依赖添加方式 本地依赖
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-11 22:30:13 +0800 CST'>2024-07-11</span>&nbsp;·&nbsp;6 分钟&nbsp;·&nbsp;2894 字&nbsp;·&nbsp;updated:&nbsp;2024-07-11&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-11 22:30:13 +0800 CST'>2024-07-11</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2894 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-11&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第六天学习笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E5%85%AD%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -431,9 +457,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第四天笔记 Android UI 课程重点知识笔记 1. 了解Android控件常用属性 Android:id 任何 View 对象均可拥有与之关联的整型 ID，用于在结构树中对 View 对象进行唯一标识。 系...</p>
+      <p>第四天笔记 Android UI 课程重点知识笔记 1. 了解Android控件常用属性 Android:id 任何 View 对象均可拥有与之关联的整型 ID，用于在结构树中对 View 对象进行唯一标识。 系统会以整型形式引用此 ID。 在布局 XML 文件中，系统通常以字符串的形式在 android:id 属性中指定该 ID。 // 使用系统资源 android:id=&#34;@android:id/androidView&#34; // 使用自己创建的资源 android:id=&#34;@&#43;id/myView&#34; // 标识创建一个新资源 android:id=&#34;@id/myView&#34; // 使用现有资源 android:layout_width 和 android:layout_height android:layout_width 和 android:layout_height 分别表示控件的宽度和高度。 取值为 wrap_content、match_parent 和具体的数值（如 40dp）。 wrap_content：表示控件宽度/高度由内容决定。 match_parent：表示控件宽度/高度为父view允许的最大值。 &lt;View android:layout_width=&#34;wrap_content&#34; // 设置宽 android:layout_height=&#34;wrap_content&#34; // 设置高 /&gt; 2. 了解文本框 TextView TextView 介绍 &lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt; &lt;LinearLayout xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34; android:layout_width=&#34;match_parent&#34; android:layout_height=&#34;match_parent&#34; android:gravity=&#34;center&#34;&gt; &lt;TextView android:layout_width=&#34;wrap_content&#34; // 设置文字 android:layout_height=&#34;wrap_content&#34; android:background=&#34;@color/teal_200&#34; // 设置背景颜色 android:text=&#34;Hello World&#34; // 设置文本内容 android:textSize=&#34;20dp&#34; // 设置文字大小 android:textColor=&#34;#FAFA02&#34; // 设置文字颜色 android:textStyle=&#34;bold&#34;/&gt; // 设置文字样式（normal, bold, italic） &lt;/LinearLayout&gt; 3. 了解按钮 Button Button 介绍 Button：在 UI 上生成一个按钮，用户点击时触发 onclick 事件。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-10 22:30:13 +0800 CST'>2024-07-10</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1802 字&nbsp;·&nbsp;updated:&nbsp;2024-07-10&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-10 22:30:13 +0800 CST'>2024-07-10</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1802 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-10&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第四天学习笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E5%9B%9B%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -447,9 +474,10 @@ document.addEventListener("DOMContentLoaded", function() {
       </h2>
     </header>
     <div class="entry-content">
-      <p>第五天笔记 Android 布局与优化 基本布局 公共属性 布局类型 共有属性 layout_gravity: 控件相对于父控件的对齐方式 gravity: 控件内部的对齐方式 padding: 内间距 paddingTop: 上间距 paddingBottom: 下间距 paddingLeft: 左间距~ paddingRight: 右...</p>
+      <p>第五天笔记 Android 布局与优化 基本布局 公共属性 布局类型 共有属性 layout_gravity: 控件相对于父控件的对齐方式 gravity: 控件内部的对齐方式 padding: 内间距 paddingTop: 上间距 paddingBottom: 下间距 paddingLeft: 左间距~ paddingRight: 右间距 layout_width: 控件的宽度 layout_height: 控件的高度 layout_margin: 外间距 layout_marginLeft: 控件的左间距 layout_marginRight: 控件的右间距 layout_marginTop: 控件的上间距 layout_marginBottom: 控件的下间距 示例代码 &lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt; &lt;FrameLayout xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34; android:layout_width=&#34;match_parent&#34; android:layout_height=&#34;match_parent&#34;&gt; &lt;TextView android:layout_width=&#34;300dp&#34; android:layout_height=&#34;300dp&#34; android:layout_weight=&#34;1&#34; android:gravity=&#34;bottom&#34; android:text=&#34;AA&#34; android:textSize=&#34;30sp&#34; android:background=&#34;@color/colorPrimary&#34; /&gt; &lt;TextView android:layout_width=&#34;200dp&#34; android:layout_height=&#34;200dp&#34; android:layout_weight=&#34;2&#34; android:gravity=&#34;bottom&#34; android:text=&#34;BB&#34; android:textSize=&#34;30sp&#34; android:background=&#34;@color/colorAccent&#34; /&gt; &lt;TextView android:layout_width=&#34;100dp&#34; android:layout_height=&#34;100dp&#34; android:layout_weight=&#34;3&#34; android:gravity=&#34;bottom&#34; android:text=&#34;CC&#34; android:textSize=&#34;30sp&#34; android:background=&#34;@color/colorPrimaryDark&#34; /&gt; &lt;/FrameLayout&gt; 基本布局 FrameLayout 特点：FrameLayout 允许子视图堆叠在一起，只显示最后添加的子视图。 示例代码 &lt;?xml version=&#34;1.0&#34; encoding=&#34;utf-8&#34;?&gt; &lt;FrameLayout xmlns:android=&#34;http://schemas.android.com/apk/res/android&#34; android:layout_width=&#34;match_parent&#34; android:layout_height=&#34;match_parent&#34;&gt; &lt;TextView android:layout_width=&#34;300dp&#34; android:layout_height=&#34;300dp&#34; android:layout_weight=&#34;1&#34; android:gravity=&#34;bottom&#34; android:text=&#34;AA&#34; android:textSize=&#34;30sp&#34; android:background=&#34;@color/colorPrimary&#34; /&gt; &lt;TextView android:layout_width=&#34;200dp&#34; android:layout_height=&#34;200dp&#34; android:layout_weight=&#34;2&#34; android:gravity=&#34;bottom&#34; android:text=&#34;BB&#34; android:textSize=&#34;30sp&#34; android:background=&#34;@color/colorAccent&#34; /&gt; &lt;TextView android:layout_width=&#34;100dp&#34; android:layout_height=&#34;100dp&#34; android:layout_weight=&#34;3&#34; android:gravity=&#34;bottom&#34; android:text=&#34;CC&#34; android:textSize=&#34;30sp&#34; android:background=&#34;@color/colorPrimaryDark&#34; /&gt; &lt;/FrameLayout&gt; 效果：如右侧预览图所示，三个TextView控件堆叠在一起，显示最上层的控件内容。 LinearLayout 特点：LinearLayout 以线性排列子视图，可以设置为水平或垂直布局。 属性介绍 orientation：排列方式 horizontal：水平布局 vertical：垂直布局 layout_weight：权重 使用比例的方式来指定控件的大小 属性关系图 属性 ├─ orientation 排列方式 │ ├─ horizontal 水平布局 │ └─ vertical 垂直布局 └─ layout_weight 权重：使用比例的方式来指定控件的大小 以上为Android布局中的FrameLayout和LinearLayout的基本概念与属性介绍。
+...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-07-10 22:30:13 +0800 CST'>2024-07-10</span>&nbsp;·&nbsp;4 分钟&nbsp;·&nbsp;1941 字&nbsp;·&nbsp;updated:&nbsp;2024-07-10&nbsp;·&nbsp;ShowGuan</footer>
+    <footer class="entry-footer"><span title='2024-07-10 22:30:13 +0800 CST'>2024-07-10</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1941 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-07-10&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 训练营第五天学习笔记" href="https://kennems.github.io/posts/tech/%E7%AC%AC%E4%BA%94%E5%A4%A9%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -480,9 +508,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -523,11 +556,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })

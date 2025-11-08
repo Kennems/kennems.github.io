@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh" dir="auto">
+<html lang="zh" dir="auto" data-theme="auto">
 
 <head><meta charset="utf-8">
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -12,7 +12,7 @@
 <meta name="description" content="算法笔记（二）——数据结构(Python实现)">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%BA%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84python%E5%AE%9E%E7%8E%B0/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.1a7bc7e6d01b82c8ca2b2e53cfcf7e33d2fd9058f6b28245f94da0d91447c6a0.css" integrity="sha256-GnvH5tAbgsjKKy5Tz89&#43;M9L9kFj2soJF&#43;U2g2RRHxqA=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.fb554ce462a8cf4bfbab3304ed6ddda4f3012ffbf48cafa446cf54deb19876a7.css" integrity="sha256-&#43;1VM5GKoz0v7qzME7W3dpPMBL/v0jK&#43;kRs9U3rGYdqc=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -41,23 +41,38 @@
                 --code-block-bg: rgb(46, 46, 51);
                 --code-bg: rgb(55, 56, 62);
                 --border: rgb(51, 51, 51);
+                color-scheme: dark;
             }
 
             .list {
                 background: var(--theme);
             }
 
-            .list:not(.dark)::-webkit-scrollbar-track {
-                background: 0 0;
+            .toc {
+                background: var(--entry);
             }
+        }
 
-            .list:not(.dark)::-webkit-scrollbar-thumb {
-                border-color: var(--theme);
+        @media (prefers-color-scheme: light) {
+            .list::-webkit-scrollbar-thumb {
+                border-color: var(--code-bg);
             }
         }
 
     </style>
 </noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
 
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
 
@@ -82,9 +97,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-
-  
 
 <meta property="og:url" content="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%BA%8C%E6%95%B0%E6%8D%AE%E7%BB%93%E6%9E%84python%E5%AE%9E%E7%8E%B0/">
   <meta property="og:site_name" content="Kennem&#39;s Blog">
@@ -169,27 +181,15 @@ document.addEventListener("DOMContentLoaded", function() {
 
 
 </head>
-
-<body class="" id="top">
-<script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.body.classList.add('dark');
-    } else if (localStorage.getItem("pref-theme") === "light") {
-        document.body.classList.remove('dark')
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.body.classList.add('dark');
-    }
-
-</script>
-
-<header class="header">
+<body id="top">
+    <header class="header">
     <nav class="nav">
         <div class="logo">
             <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
                 <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
-                <button id="theme-toggle" accesskey="t" title="(Alt + T)">
+                <button id="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
                     <svg id="moon" xmlns="http://www.w3.org/2000/svg" width="24" height="18" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
@@ -261,7 +261,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       算法笔记（二）——数据结构(Python实现)
     </div>
-    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;15 分钟&nbsp;·&nbsp;7176 字&nbsp;·&nbsp;updated:&nbsp;2024-04-09&nbsp;·&nbsp;ShowGuan
+    <div class="post-meta"><span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;<span>15 分钟</span>&nbsp;·&nbsp;<span>7176 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-09&nbsp;·&nbsp;<span>ShowGuan</span>
 
 </div>
     
@@ -324,20 +324,20 @@ document.addEventListener("DOMContentLoaded", function() {
                     <li>
                         <a href="#%e6%a5%bc%e5%85%b0%e5%9b%be%e8%85%be" aria-label="楼兰图腾">楼兰图腾</a></li>
                     <li>
-                        <a href="#3676-%e7%a2%97%e5%ad%90%e6%95%b0%e7%bb%84%e7%9a%84%e6%95%b0%e7%9b%aehttpsleetcodecnproblemscount-bowl-subarrays" aria-label="3676. 碗子数组的数目"><a href="https://leetcode.cn/problems/count-bowl-subarrays/">3676. 碗子数组的数目</a></a></li></ul>
+                        <a href="#3676-%e7%a2%97%e5%ad%90%e6%95%b0%e7%bb%84%e7%9a%84%e6%95%b0%e7%9b%ae" aria-label="3676. 碗子数组的数目"><a href="https://leetcode.cn/problems/count-bowl-subarrays/">3676. 碗子数组的数目</a></a></li></ul>
                     </li>
                     <li>
                         <a href="#%e7%ba%bf%e6%ae%b5%e6%a0%91" aria-label="线段树">线段树</a></li>
                     <li>
-                        <a href="#1265-%e6%95%b0%e6%98%9f%e6%98%9fhttpswwwacwingcomproblemcontentdescription1267" aria-label="\1265. 数星星"><a href="https://www.acwing.com/problem/content/description/1267/">\1265. 数星星</a></a></li>
+                        <a href="#1265-%e6%95%b0%e6%98%9f%e6%98%9f" aria-label="\1265. 数星星"><a href="https://www.acwing.com/problem/content/description/1267/">\1265. 数星星</a></a></li>
                     <li>
                         <a href="#%e6%9c%80%e5%a4%a7%e6%95%b0" aria-label="最大数">最大数</a></li>
                     <li>
-                        <a href="#243-%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e7%9a%84%e6%95%b4%e6%95%b0%e9%97%ae%e9%a2%982httpswwwacwingcomproblemcontentdescription244" aria-label="\243. 一个简单的整数问题2"><a href="https://www.acwing.com/problem/content/description/244/">\243. 一个简单的整数问题2</a></a></li>
+                        <a href="#243-%e4%b8%80%e4%b8%aa%e7%ae%80%e5%8d%95%e7%9a%84%e6%95%b4%e6%95%b0%e9%97%ae%e9%a2%982" aria-label="\243. 一个简单的整数问题2"><a href="https://www.acwing.com/problem/content/description/244/">\243. 一个简单的整数问题2</a></a></li>
                     <li>
-                        <a href="#%e7%bb%b4%e6%8a%a4%e5%ba%8f%e5%88%97httpswwwluogucomcnproblemp2023" aria-label="维护序列"><a href="https://www.luogu.com.cn/problem/P2023">维护序列</a></a></li>
+                        <a href="#%e7%bb%b4%e6%8a%a4%e5%ba%8f%e5%88%97" aria-label="维护序列"><a href="https://www.luogu.com.cn/problem/P2023">维护序列</a></a></li>
                     <li>
-                        <a href="#246-%e5%8c%ba%e9%97%b4%e6%9c%80%e5%a4%a7%e5%85%ac%e7%ba%a6%e6%95%b0httpswwwacwingcomproblemcontentdescription247" aria-label="\246. 区间最大公约数"><a href="https://www.acwing.com/problem/content/description/247/">\246. 区间最大公约数</a></a></li>
+                        <a href="#246-%e5%8c%ba%e9%97%b4%e6%9c%80%e5%a4%a7%e5%85%ac%e7%ba%a6%e6%95%b0" aria-label="\246. 区间最大公约数"><a href="https://www.acwing.com/problem/content/description/247/">\246. 区间最大公约数</a></a></li>
                     <li>
                         <a href="#%e7%b1%bb%e5%ae%9e%e7%8e%b0%e7%ba%bf%e6%ae%b5%e6%a0%91" aria-label="类实现线段树">类实现线段树</a></li></ul>
                     </li>
@@ -354,7 +354,7 @@ document.addEventListener("DOMContentLoaded", function() {
                         <a href="#bfs" aria-label="BFS">BFS</a><ul>
                             
                     <li>
-                        <a href="#p1038-noip2003-%e6%8f%90%e9%ab%98%e7%bb%84-%e7%a5%9e%e7%bb%8f%e7%bd%91%e7%bb%9chttpswwwluogucomcnproblemp1038" aria-label="P1038 [NOIP2003 提高组] 神经网络"><a href="https://www.luogu.com.cn/problem/P1038">P1038 [NOIP2003 提高组] 神经网络</a></a>
+                        <a href="#p1038-" aria-label="P1038 [NOIP2003 提高组] 神经网络"><a href="https://www.luogu.com.cn/problem/P1038">P1038 [NOIP2003 提高组] 神经网络</a></a>
                     </li>
                 </ul>
                 </li>
@@ -1163,9 +1163,9 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    add(y,<span style="color:#ae81ff">1</span>)
 </span></span><span style="display:flex;"><span>    
 </span></span><span style="display:flex;"><span>print(sumg, suml)
-</span></span></code></pre></div><h4 id="3676-碗子数组的数目httpsleetcodecnproblemscount-bowl-subarrays"><a href="https://leetcode.cn/problems/count-bowl-subarrays/">3676. 碗子数组的数目</a><a hidden class="anchor" aria-hidden="true" href="#3676-碗子数组的数目httpsleetcodecnproblemscount-bowl-subarrays">#</a></h4>
+</span></span></code></pre></div><h4 id="3676-碗子数组的数目"><a href="https://leetcode.cn/problems/count-bowl-subarrays/">3676. 碗子数组的数目</a><a hidden class="anchor" aria-hidden="true" href="#3676-碗子数组的数目">#</a></h4>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Fenwick</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self, n):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self, n):
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>n <span style="color:#f92672">=</span> n
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>tr <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>] <span style="color:#f92672">*</span> (n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
 </span></span><span style="display:flex;"><span>
@@ -1222,7 +1222,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>            f<span style="color:#f92672">.</span>add(idx, <span style="color:#ae81ff">1</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> res
 </span></span></code></pre></div><h3 id="线段树">线段树<a hidden class="anchor" aria-hidden="true" href="#线段树">#</a></h3>
-<h3 id="1265-数星星httpswwwacwingcomproblemcontentdescription1267"><a href="https://www.acwing.com/problem/content/description/1267/">\1265. 数星星</a><a hidden class="anchor" aria-hidden="true" href="#1265-数星星httpswwwacwingcomproblemcontentdescription1267">#</a></h3>
+<h3 id="1265-数星星"><a href="https://www.acwing.com/problem/content/description/1267/">\1265. 数星星</a><a hidden class="anchor" aria-hidden="true" href="#1265-数星星">#</a></h3>
 <p><strong>题目大意</strong>：给定一些星星的坐标，以平面直角坐标系表示，需要统计每个星星的等级，即在该星星左下方（含正左、正下）的星星数量。</p>
 <p><strong>实现思路</strong>：</p>
 <ol>
@@ -1342,7 +1342,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
 </span></span><span style="display:flex;"><span>        n <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>        modify(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, m, n, (x<span style="color:#f92672">+</span>pre)<span style="color:#f92672">%</span>p)
-</span></span></code></pre></div><h3 id="243-一个简单的整数问题2httpswwwacwingcomproblemcontentdescription244"><a href="https://www.acwing.com/problem/content/description/244/">\243. 一个简单的整数问题2</a><a hidden class="anchor" aria-hidden="true" href="#243-一个简单的整数问题2httpswwwacwingcomproblemcontentdescription244">#</a></h3>
+</span></span></code></pre></div><h3 id="243-一个简单的整数问题2"><a href="https://www.acwing.com/problem/content/description/244/">\243. 一个简单的整数问题2</a><a hidden class="anchor" aria-hidden="true" href="#243-一个简单的整数问题2">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
 </span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
 </span></span><span style="display:flex;"><span>
@@ -1420,7 +1420,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        modify(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>, n<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, l, r, val)  <span style="color:#75715e"># 修改区间的值</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span><span style="color:#f92672">.</span>join(res))  <span style="color:#75715e"># 输出查询结果</span>
-</span></span></code></pre></div><h3 id="维护序列httpswwwluogucomcnproblemp2023"><a href="https://www.luogu.com.cn/problem/P2023">维护序列</a><a hidden class="anchor" aria-hidden="true" href="#维护序列httpswwwluogucomcnproblemp2023">#</a></h3>
+</span></span></code></pre></div><h3 id="维护序列"><a href="https://www.luogu.com.cn/problem/P2023">维护序列</a><a hidden class="anchor" aria-hidden="true" href="#维护序列">#</a></h3>
 <p><strong>题目大意</strong>：给定一个长度为 <code>n</code> 的数列 <code>𝑎𝑖</code>，有三种操作：1. 格式<code>1 t g c</code>，将区间 <code>[t, g]</code> 内的数乘以 <code>c</code>；2. 格式<code>2 t g c</code>，将区间 <code>[t, g]</code> 内的数加上 <code>c</code>；3. 格式3 t g，求区间 <code>[t, g]</code> 内数的和，并输出结果模 <code>p</code> 的值。</p>
 <p><strong>实现思路</strong>：</p>
 <ol>
@@ -1518,7 +1518,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        res<span style="color:#f92672">.</span>append(str(query(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">1</span>, n, l, r)))
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>print(<span style="color:#f92672">*</span>res, sep<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>)
-</span></span></code></pre></div><h3 id="246-区间最大公约数httpswwwacwingcomproblemcontentdescription247"><a href="https://www.acwing.com/problem/content/description/247/">\246. 区间最大公约数</a><a hidden class="anchor" aria-hidden="true" href="#246-区间最大公约数httpswwwacwingcomproblemcontentdescription247">#</a></h3>
+</span></span></code></pre></div><h3 id="246-区间最大公约数"><a href="https://www.acwing.com/problem/content/description/247/">\246. 区间最大公约数</a><a hidden class="anchor" aria-hidden="true" href="#246-区间最大公约数">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">from</span> math <span style="color:#f92672">import</span> gcd
 </span></span><span style="display:flex;"><span><span style="color:#f92672">from</span> sys <span style="color:#f92672">import</span> stdin
 </span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> stdin<span style="color:#f92672">.</span>readline
@@ -1588,7 +1588,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></code></pre></div><h3 id="类实现线段树">类实现线段树<a hidden class="anchor" aria-hidden="true" href="#类实现线段树">#</a></h3>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 定义树节点，l,r, val表示该节点记录的是区间[l, r]的最大值是val</span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Tree</span>():
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> __init__(self):
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">__init__</span>(self):
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>l <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
 </span></span><span style="display:flex;"><span>        self<span style="color:#f92672">.</span>lazy <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
@@ -1835,7 +1835,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> lower:val<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
 </span></span><span style="display:flex;"><span>print(pek, val)
 </span></span></code></pre></div><h3 id="bfs">BFS<a hidden class="anchor" aria-hidden="true" href="#bfs">#</a></h3>
-<h4 id="p1038-noip2003-提高组-神经网络httpswwwluogucomcnproblemp1038"><a href="https://www.luogu.com.cn/problem/P1038">P1038 [NOIP2003 提高组] 神经网络</a><a hidden class="anchor" aria-hidden="true" href="#p1038-noip2003-提高组-神经网络httpswwwluogucomcnproblemp1038">#</a></h4>
+<h4 id="p1038-"><a href="https://www.luogu.com.cn/problem/P1038">P1038 [NOIP2003 提高组] 神经网络</a><a hidden class="anchor" aria-hidden="true" href="#p1038-">#</a></h4>
 <ul>
 <li>
 <p>题目大意：兰兰提出了一个神经网络模型，该模型可以表示为一个有向图，图中的节点称为神经元，节点之间的连接代表神经元之间的联系。神经元按照一定的顺序排列，构成整个神经网络。每个神经元都有一个状态和阈值，当神经元处于兴奋状态时，会向其他神经元传送信号。</p>
@@ -1954,9 +1954,14 @@ document.addEventListener("DOMContentLoaded", function() {
 </a>
 
 <script>
-    let menu = document.getElementById('menu')
+    let menu = document.getElementById('menu');
     if (menu) {
-        menu.scrollLeft = localStorage.getItem("menu-scroll-position");
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -1997,11 +2002,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </script>
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
-        if (document.body.className.includes("dark")) {
-            document.body.classList.remove('dark');
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
             localStorage.setItem("pref-theme", 'light');
         } else {
-            document.body.classList.add('dark');
+            html.dataset.theme = 'dark';
             localStorage.setItem("pref-theme", 'dark');
         }
     })
