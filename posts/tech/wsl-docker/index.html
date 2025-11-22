@@ -150,7 +150,7 @@ document.addEventListener("DOMContentLoaded", function() {
     "Wsl"
   ],
   "articleBody": "Wsl Docker 安装 Docker（使用官方推荐方式） 1. 卸载旧版本（如果有） sudo apt-get remove -y docker docker-engine docker.io containerd runc || true 2. 安装依赖 sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y 3. 添加官方 GPG 密钥 sudo mkdir -p /usr/share/keyrings curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce-archive-keyring.gpg 4. 添加 Docker 软件源（可切换为国内镜像） 官方源：\necho \\ \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \\ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" \\ | sudo tee /etc/apt/sources.list.d/docker.list \u003e /dev/null 国内镜像源（推荐）：\necho \\ \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-ce-archive-keyring.gpg] \\ https://mirrors.aliyun.com/docker-ce/linux/ubuntu jammy stable\" \\ | sudo tee /etc/apt/sources.list.d/docker.list 5. 安装 Docker sudo apt update sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 6. 验证安装 docker --version docker compose version sudo systemctl enable --now docker 安装 Docker Compose（独立版本） 简便安装方式：sudo apt install docker-compose\n说明：如果已通过上面的步骤安装了 docker-compose-plugin，可以直接使用 docker compose 命令，无需再安装独立版。 若需要传统的 docker-compose 可执行文件，请按以下步骤安装。\n1. 下载最新版本 先查询最新版本号（或直接使用稳定版本）：\nDOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '\"' -f 4) 下载并安装：\nsudo curl -L \"https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" \\ -o /usr/local/bin/docker-compose 若下载缓慢，可使用国内镜像：\nsudo curl -L \"https://get.daocloud.io/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" \\ -o /usr/local/bin/docker-compose 2. 赋予执行权限 sudo chmod +x /usr/local/bin/docker-compose 3. 验证安装是否成功 docker-compose --version 4. （可选）启用命令自动补全 sudo curl -L https://raw.githubusercontent.com/docker/compose/${DOCKER_COMPOSE_VERSION}/contrib/completion/bash/docker-compose \\ -o /etc/bash_completion.d/docker-compose 5. 使用方式 独立版 Compose 使用命令：\ndocker-compose up -d 插件版（推荐）使用命令：\ndocker compose up -d 配置 Docker Hub 镜像加速器 Docker Hub 默认从国外下载，建议添加国内加速器：\n添加加速器列表（推荐组合） sudo mkdir -p /etc/docker sudo tee /etc/docker/daemon.json \u003c",
-  "wordCount" : "2061",
+  "wordCount" : "2064",
   "inLanguage": "zh",
   "datePublished": "2025-10-23T10:00:01+08:00",
   "dateModified": "2025-11-09T10:00:01+08:00",
@@ -260,7 +260,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       Wsl初始化
     </div>
-    <div class="post-meta"><span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2061 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-09&nbsp;·&nbsp;<span>ShowGuan</span>
+    <div class="post-meta"><span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-09&nbsp;·&nbsp;<span>ShowGuan</span>
 
 </div>
     
@@ -394,10 +394,15 @@ document.addEventListener("DOMContentLoaded", function() {
                     <li>
                         <a href="#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2-elasticsearch%e5%8f%af%e9%80%89" aria-label="使用 Docker Compose 部署 Elasticsearch（可选）">使用 Docker Compose 部署 Elasticsearch（可选）</a></li>
                     <li>
-                        <a href="#%e7%ab%af%e5%8f%a3%e5%86%b2%e7%aa%81%e4%b8%8e%e6%9d%83%e9%99%90%e6%b3%a8%e6%84%8f" aria-label="端口冲突与权限注意">端口冲突与权限注意</a>
+                        <a href="#%e7%ab%af%e5%8f%a3%e5%86%b2%e7%aa%81%e4%b8%8e%e6%9d%83%e9%99%90%e6%b3%a8%e6%84%8f" aria-label="端口冲突与权限注意">端口冲突与权限注意</a></li></ul>
                     </li>
-                </ul>
-                </li>
+                    <li>
+                        <a href="#tomcat" aria-label="Tomcat">Tomcat</a></li>
+                    <li>
+                        <a href="#nginx" aria-label="Nginx">Nginx</a></li>
+                    <li>
+                        <a href="#rabbitmq" aria-label="RabbitMq">RabbitMq</a>
+                    </li>
                 </ul>
                 </li>
                 </ul>
@@ -967,7 +972,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </li>
 </ol>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>-p 9201:9200 -p 9301:9300
-</span></span></code></pre></div>
+</span></span></code></pre></div><h2 id="tomcat">Tomcat<a hidden class="anchor" aria-hidden="true" href="#tomcat">#</a></h2>
+<h2 id="nginx">Nginx<a hidden class="anchor" aria-hidden="true" href="#nginx">#</a></h2>
+<h2 id="rabbitmq">RabbitMq<a hidden class="anchor" aria-hidden="true" href="#rabbitmq">#</a></h2>
+
 
   </div>
 
