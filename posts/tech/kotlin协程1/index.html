@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
   <meta property="og:site_name" content="Kennem&#39;s Blog">
   <meta property="og:title" content="Kotlin协程(1)">
   <meta property="og:description" content="Kotlin协程(1)">
-  <meta property="og:locale" content="zh">
+  <meta property="og:locale" content="zh-cn">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2024-08-06T22:30:13+08:00">
@@ -500,122 +500,122 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <h2 id="协程使用">协程使用<a hidden class="anchor" aria-hidden="true" href="#协程使用">#</a></h2>
 <h4 id="retrofit-api">retrofit API<a hidden class="anchor" aria-hidden="true" href="#retrofit-api">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// 定义 UserServiceApi 接口，用于声明与用户相关的API请求
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">UserServiceApi</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// 定义 UserServiceApi 接口，用于声明与用户相关的API请求
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">UserServiceApi</span> {
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个 GET 请求，用于加载指定名称的用户信息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// @Query 注解表示请求中的查询参数 &#34;name&#34;，会附加到URL中
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 返回类型是 Call&lt;User&gt;，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// @Query 注解表示请求中的查询参数 &#34;name&#34;，会附加到URL中
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 返回类型是 Call&lt;User&gt;，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行
+</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">loadUser</span>(<span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;name&#34;</span>) name: String): Call&lt;User&gt;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个 GET 请求，使用 Kotlin 的协程机制
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// suspend 关键字表示这是一个挂起函数，可以在协程中被调用
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 返回类型是 User，表示直接返回解析后的用户对象
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// suspend 关键字表示这是一个挂起函数，可以在协程中被调用
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 返回类型是 User，表示直接返回解析后的用户对象
+</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(<span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;name&#34;</span>) name: String): User
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">val</span> userServiceApi: UserServiceApi <span style="color:#66d9ef">by</span> lazy {
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">val</span> userServiceApi: UserServiceApi <span style="color:#66d9ef">by</span> lazy {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 Retrofit.Builder 构建 Retrofit 实例
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">val</span> retrofit = retrofit2.<span style="color:#a6e22e">Retrofit</span>.Builder()
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> retrofit = retrofit2.<span style="color:#a6e22e">Retrofit</span>.Builder()
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置 API 请求的基础 URL
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .baseUrl(<span style="color:#e6db74">&#34;https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/&#34;</span>)
+</span></span></span><span style="display:flex;"><span>        .baseUrl(<span style="color:#e6db74">&#34;https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/&#34;</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .addConverterFactory(<span style="color:#a6e22e">MoshiConverterFactory</span>.create())
+</span></span></span><span style="display:flex;"><span>        .addConverterFactory(<span style="color:#a6e22e">MoshiConverterFactory</span>.create())
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 构建 Retrofit 实例
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        .build()
+</span></span></span><span style="display:flex;"><span>        .build()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建并返回 UserServiceApi 的具体实现
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    retrofit.create(UserServiceApi<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java)
+</span></span></span><span style="display:flex;"><span>    retrofit.create(UserServiceApi<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java)
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="user">User<a hidden class="anchor" aria-hidden="true" href="#user">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span>(<span style="color:#66d9ef">val</span> name: String, <span style="color:#66d9ef">val</span> address: String)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span>(<span style="color:#66d9ef">val</span> name: String, <span style="color:#66d9ef">val</span> address: String)
 </span></span></code></pre></div><h4 id="userrepositorykt">UserRepository.kt<a hidden class="anchor" aria-hidden="true" href="#userrepositorykt">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserRepository</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserRepository</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个挂起函数 getUser，用于获取用户信息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 该函数在协程中执行
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(name: String): User {
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 该函数在协程中执行
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(name: String): User {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> userServiceApi.getUser(name)
+</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> userServiceApi.getUser(name)
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="mainviewmodelkt">MainViewModel.kt<a hidden class="anchor" aria-hidden="true" href="#mainviewmodelkt">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainViewModel</span> : ViewModel() {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainViewModel</span> : ViewModel() {
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// MutableLiveData 用于存储和观察用户数据的 LiveData
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">val</span> userLiveData = MutableLiveData&lt;User&gt;()
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> userLiveData = MutableLiveData&lt;User&gt;()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建 UserRepository 实例，用于获取用户数据
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> userRepository = UserRepository()
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> userRepository = UserRepository()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(name: String) {
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(name: String) {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        viewModelScope.launch {
+</span></span></span><span style="display:flex;"><span>        viewModelScope.launch {
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 调用 UserRepository 的 getUser 方法，获取用户信息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#75715e">// 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            userLiveData.<span style="color:#66d9ef">value</span> = userRepository.getUser(name)
+</span></span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI
+</span></span></span><span style="display:flex;"><span>            userLiveData.<span style="color:#66d9ef">value</span> = userRepository.getUser(name)
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="activity">Activity<a hidden class="anchor" aria-hidden="true" href="#activity">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// MainActivity7 继承自 AppCompatActivity，用于显示主界面
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainActivity7</span> : AppCompatActivity() {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// MainActivity7 继承自 AppCompatActivity，用于显示主界面
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainActivity7</span> : AppCompatActivity() {
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 viewModels 委托来获取 MainViewModel 实例
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> mainViewModel: MainViewModel <span style="color:#66d9ef">by</span> viewModels()
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> mainViewModel: MainViewModel <span style="color:#66d9ef">by</span> viewModels()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 存储对 TextView 的引用（可选，后续可以用来更新 UI）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">var</span> nameTextView: TextView? = <span style="color:#66d9ef">null</span>
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">var</span> nameTextView: TextView? = <span style="color:#66d9ef">null</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建一个 MainScope 实例，用于管理协程生命周期
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#75715e">// 工厂设计模式实例化 MainScope
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> mainScope = MainScope()
+</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 工厂设计模式实例化 MainScope
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> mainScope = MainScope()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@SuppressLint</span>(<span style="color:#e6db74">&#34;StaticFieldLeak&#34;</span>) <span style="color:#75715e">// SuppressLint 注解用于忽略静态字段泄漏警告
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>(savedInstanceState: Bundle?) {
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>(savedInstanceState: Bundle?) {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onCreate(savedInstanceState)
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启用边缘到边缘模式，以使布局填充整个屏幕
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        enableEdgeToEdge()
+</span></span></span><span style="display:flex;"><span>        enableEdgeToEdge()
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置活动的布局
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        setContentView(<span style="color:#a6e22e">R</span>.layout.activity_main7)
+</span></span></span><span style="display:flex;"><span>        setContentView(<span style="color:#a6e22e">R</span>.layout.activity_main7)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#a6e22e">ViewCompat</span>.setOnApplyWindowInsetsListener(findViewById(<span style="color:#a6e22e">R</span>.id.main)) { v, insets <span style="color:#f92672">-&gt;</span>
+</span></span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ViewCompat</span>.setOnApplyWindowInsetsListener(findViewById(<span style="color:#a6e22e">R</span>.id.main)) { v, insets <span style="color:#f92672">-&gt;</span>
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 获取系统窗口的内边距
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">val</span> systemBars = insets.getInsets(<span style="color:#a6e22e">WindowInsetsCompat</span>.<span style="color:#a6e22e">Type</span>.systemBars())
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">val</span> systemBars = insets.getInsets(<span style="color:#a6e22e">WindowInsetsCompat</span>.<span style="color:#a6e22e">Type</span>.systemBars())
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 设置视图的内边距，避免被系统窗口遮挡
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+</span></span></span><span style="display:flex;"><span>            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 返回处理后的 insets
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            insets
+</span></span></span><span style="display:flex;"><span>            insets
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 DataBindingUtil 绑定布局文件与视图模型
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> binding =
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> binding =
 </span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">DataBindingUtil</span>.setContentView&lt;ActivityMain7Binding&gt;(<span style="color:#66d9ef">this</span>, <span style="color:#a6e22e">R</span>.layout.activity_main7)
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将 ViewModel 绑定到布局
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        binding.viewModel = mainViewModel
+</span></span></span><span style="display:flex;"><span>        binding.viewModel = mainViewModel
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置生命周期所有者，使数据绑定可以观察 LiveData
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        binding.lifecycleOwner = <span style="color:#66d9ef">this</span>
+</span></span></span><span style="display:flex;"><span>        binding.lifecycleOwner = <span style="color:#66d9ef">this</span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置提交按钮的点击监听器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        binding.submitButton.setOnClickListener(<span style="color:#a6e22e">View</span>.OnClickListener {
+</span></span></span><span style="display:flex;"><span>        binding.submitButton.setOnClickListener(<span style="color:#a6e22e">View</span>.OnClickListener {
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 当按钮被点击时，调用 ViewModel 的 getUser 方法
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#75715e">// 这里使用 &#34;ken&#34; 作为查询参数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            mainViewModel.getUser(<span style="color:#e6db74">&#34;ken&#34;</span>)
+</span></span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 这里使用 &#34;ken&#34; 作为查询参数
+</span></span></span><span style="display:flex;"><span>            mainViewModel.getUser(<span style="color:#e6db74">&#34;ken&#34;</span>)
 </span></span><span style="display:flex;"><span>        })
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 活动销毁时取消协程，释放资源
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onDestroy</span>() {
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onDestroy</span>() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onDestroy()
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消所有在 MainScope 中启动的协程
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        mainScope.cancel()
+</span></span></span><span style="display:flex;"><span>        mainScope.cancel()
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h2 id="协程构建器">协程构建器<a hidden class="anchor" aria-hidden="true" href="#协程构建器">#</a></h2>
@@ -640,7 +640,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态</li>
 <li>UNDISPATCHED：协程创建后立即在<strong>当前函数调用栈</strong>中执行，直到遇到第一个真正挂起的点</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> kotlinx.coroutines.*
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> kotlinx.coroutines.*
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">main</span>() = runBlocking {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> job1 = launch(start = <span style="color:#a6e22e">CoroutineStart</span>.DEFAULT) {
@@ -686,126 +686,126 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <h3 id="job的生命周期">Job的生命周期<a hidden class="anchor" aria-hidden="true" href="#job的生命周期">#</a></h3>
 <p>如果协程处于活跃状态，协程运行出错或者调用 <code>job.cancel()</code> 都会将当前任务置为取消中（<code>Cancelling</code>）状态（<code>isActive = false</code>, <code>isCancelled = true</code>）。当所有的子协程都完成后，协程会进入已取消（<code>Cancelled</code>）。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test scope cancel`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个 CoroutineScope，指定使用 Default 调度器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.Default)
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.Default)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第一个协程，延迟 1000 毫秒后打印 &#34;job 1&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        scope.launch {
+</span></span></span><span style="display:flex;"><span>        scope.launch {
 </span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
 </span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 1&#34;</span>)
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第二个协程，延迟 1000 毫秒后打印 &#34;job 2&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        scope.launch {
+</span></span></span><span style="display:flex;"><span>        scope.launch {
 </span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
 </span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 2&#34;</span>)
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 100 毫秒，确保前面两个协程有时间启动
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//        delay(100)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 取消 scope 中的所有协程
+</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 scope 中的所有协程
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//        scope.cancel() // 两个均不打印
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        delay(<span style="color:#ae81ff">1500</span>) <span style="color:#75715e">// 两个可以正常打印
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话）
+</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1500</span>) <span style="color:#75715e">// 两个可以正常打印
+</span></span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test brother cancel`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个 CoroutineScope，指定使用 Default 调度器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.Default)
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.Default)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第一个协程，延迟 1000 毫秒后打印 &#34;job 1&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job1 = scope.launch {
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job1 = scope.launch {
 </span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
 </span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 1&#34;</span>)
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第二个协程，延迟 1000 毫秒后打印 &#34;job 2&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job2 = scope.launch {
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job2 = scope.launch {
 </span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
 </span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 2&#34;</span>)
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 100 毫秒，确保前面两个协程有时间启动
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        delay(<span style="color:#ae81ff">100</span>)
+</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">100</span>)
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 job1，但不取消 job2
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job1.cancel()
+</span></span></span><span style="display:flex;"><span>        job1.cancel()
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1500 毫秒，确保可以看到 job2 的输出
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        delay(<span style="color:#ae81ff">1500</span>)
+</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1500</span>)
 </span></span><span style="display:flex;"><span>    }
 </span></span></code></pre></div><h2 id="取消协程">取消协程<a hidden class="anchor" aria-hidden="true" href="#取消协程">#</a></h2>
 <p>在<code>cancel()</code>后保证协程被取消</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel cpu task by isActive`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前时间的毫秒数，用于计算任务执行的时间点
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个协程，运行在默认调度器上（通常是后台线程）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = launch(<span style="color:#a6e22e">Dispatchers</span>.Default) {
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch(<span style="color:#a6e22e">Dispatchers</span>.Default) {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> nextPrintTime = startTime <span style="color:#75715e">// 下次打印信息的时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">var</span> i = <span style="color:#ae81ff">0</span> <span style="color:#75715e">// 计数器，用于限制任务执行次数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> i = <span style="color:#ae81ff">0</span> <span style="color:#75715e">// 计数器，用于限制任务执行次数
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 循环执行，直到达到5次或协程被取消
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">while</span> (i &lt; <span style="color:#ae81ff">5</span> <span style="color:#f92672">&amp;&amp;</span> isActive) {
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (i &lt; <span style="color:#ae81ff">5</span> <span style="color:#f92672">&amp;&amp;</span> isActive) {
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 检查是否到达下一个打印时间点
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#f92672">&gt;=</span> nextPrintTime) {
+</span></span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#f92672">&gt;=</span> nextPrintTime) {
 </span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 打印当前状态和计数器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">${i++}</span><span style="color:#e6db74">&#34;</span>)
+</span></span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">${i++}</span><span style="color:#e6db74">&#34;</span>)
 </span></span><span style="display:flex;"><span>                    nextPrintTime <span style="color:#f92672">+=</span> <span style="color:#ae81ff">500</span> <span style="color:#75715e">// 更新下次打印的时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                }
+</span></span></span><span style="display:flex;"><span>                }
 </span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1300 毫秒，模拟主线程的等待时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        delay(<span style="color:#ae81ff">1300</span>)
+</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示等待的时间结束
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
+</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 job 协程并等待其完全结束
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.cancelAndJoin()
+</span></span></span><span style="display:flex;"><span>        job.cancelAndJoin()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示可以退出了
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
+</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel cpu task by ensureActive`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前时间的毫秒数，用于计算任务执行的时间点
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个协程，运行在默认调度器上（通常是后台线程）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = launch(<span style="color:#a6e22e">Dispatchers</span>.Default) {
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch(<span style="color:#a6e22e">Dispatchers</span>.Default) {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> nextPrintTime = startTime <span style="color:#75715e">// 下次打印信息的时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">var</span> i = <span style="color:#ae81ff">0</span> <span style="color:#75715e">// 计数器，用于限制任务执行次数
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> i = <span style="color:#ae81ff">0</span> <span style="color:#75715e">// 计数器，用于限制任务执行次数
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 循环执行，直到达到5次
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">while</span> (i &lt; <span style="color:#ae81ff">5</span>) {
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (i &lt; <span style="color:#ae81ff">5</span>) {
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                ensureActive()
+</span></span></span><span style="display:flex;"><span>                ensureActive()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 检查是否到达下一个打印时间点
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#f92672">&gt;=</span> nextPrintTime) {
+</span></span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#f92672">&gt;=</span> nextPrintTime) {
 </span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 打印当前状态和计数器
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">${i++}</span><span style="color:#e6db74">&#34;</span>)
+</span></span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">${i++}</span><span style="color:#e6db74">&#34;</span>)
 </span></span><span style="display:flex;"><span>                    nextPrintTime <span style="color:#f92672">+=</span> <span style="color:#ae81ff">500</span> <span style="color:#75715e">// 更新下次打印的时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                }
+</span></span></span><span style="display:flex;"><span>                }
 </span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1300 毫秒，模拟主线程的等待时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        delay(<span style="color:#ae81ff">1300</span>)
+</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示等待的时间结束
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
+</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 job 协程并等待其完全结束
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.cancelAndJoin()
+</span></span></span><span style="display:flex;"><span>        job.cancelAndJoin()
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示可以退出了
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
+</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
 </span></span><span style="display:flex;"><span>    }
 </span></span></code></pre></div><h3 id="cpu密集型任务取消">CPU密集型任务取消<a hidden class="anchor" aria-hidden="true" href="#cpu密集型任务取消">#</a></h3>
 <ul>
@@ -825,7 +825,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>在finally中释放资源。</p>
 <ul>
 <li>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test release resources`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
@@ -837,7 +837,7 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">catch</span> (e: Exception) {
 </span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Job: I&#39;m running finally&#34;</span>)
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 释放资源
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
@@ -852,18 +852,18 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。</p>
 <ul>
 <li>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test use function`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 use 函数自动管理资源
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#75715e">// use 函数会自动关闭资源，无需手动调用 close
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        BufferedReader(FileReader(<span style="color:#e6db74">&#34;D:</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">test</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">test.txt&#34;</span>)).use {
+</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// use 函数会自动关闭资源，无需手动调用 close
+</span></span></span><span style="display:flex;"><span>        BufferedReader(FileReader(<span style="color:#e6db74">&#34;D:</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">test</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">test.txt&#34;</span>)).use {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> line: String?
 </span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 无限循环读取文件内容，直到文件末尾
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
+</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 读取一行内容，如果为 null（文件末尾），则退出循环
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                line = <span style="color:#66d9ef">it</span>.readLine() <span style="color:#f92672">?:</span> <span style="color:#66d9ef">break</span>
+</span></span></span><span style="display:flex;"><span>                line = <span style="color:#66d9ef">it</span>.readLine() <span style="color:#f92672">?:</span> <span style="color:#66d9ef">break</span>
 </span></span><span style="display:flex;"><span>                println(line) <span style="color:#75715e">// 打印每一行内容
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
 </span></span></code></pre></div></li>
@@ -871,64 +871,64 @@ document.addEventListener("DOMContentLoaded", function() {
 <h3 id="不能被取消的任务">不能被取消的任务<a hidden class="anchor" aria-hidden="true" href="#不能被取消的任务">#</a></h3>
 </li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel with NonCancellable`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个新的协程
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> job = launch {
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch {
 </span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 在协程中重复执行任务1000次
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                repeat(<span style="color:#ae81ff">1000</span>) { <span style="color:#66d9ef">it</span> <span style="color:#f92672">-&gt;</span>
+</span></span></span><span style="display:flex;"><span>                repeat(<span style="color:#ae81ff">1000</span>) { <span style="color:#66d9ef">it</span> <span style="color:#f92672">-&gt;</span>
 </span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job : I&#39;m sleeping </span><span style="color:#e6db74">$it</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 暂停500毫秒
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                }
+</span></span></span><span style="display:flex;"><span>                    delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 暂停500毫秒
+</span></span></span><span style="display:flex;"><span>                }
 </span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">finally</span> {
 </span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 这里的代码块在协程取消时执行
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                <span style="color:#75715e">// 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                withContext(NonCancellable) {
+</span></span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消
+</span></span></span><span style="display:flex;"><span>                withContext(NonCancellable) {
 </span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m running finally&#34;</span>)  <span style="color:#75715e">// 打印消息，表示进入了 finally 部分
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    delay(<span style="color:#ae81ff">1000L</span>)  <span style="color:#75715e">// 这里的延迟不会被取消，即使协程已经被取消
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                    println(<span style="color:#e6db74">&#34;job: And I&#39;ve just delayed for 1 sec &#34;</span>)  <span style="color:#75715e">// 打印延迟后的消息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                }
+</span></span></span><span style="display:flex;"><span>                    delay(<span style="color:#ae81ff">1000L</span>)  <span style="color:#75715e">// 这里的延迟不会被取消，即使协程已经被取消
+</span></span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: And I&#39;ve just delayed for 1 sec &#34;</span>)  <span style="color:#75715e">// 打印延迟后的消息
+</span></span></span><span style="display:flex;"><span>                }
 </span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主协程延迟1300毫秒，给子协程足够的时间运行
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        delay(<span style="color:#ae81ff">1300</span>)
+</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
 </span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main: I&#39;m tired of waiting!&#34;</span>)  <span style="color:#75715e">// 打印主协程等待的消息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消子协程并等待它完成
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        job.cancelAndJoin()
+</span></span></span><span style="display:flex;"><span>        job.cancelAndJoin()
 </span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main: Now I can quit.&#34;</span>)  <span style="color:#75715e">// 打印主协程完成后的消息
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    }
+</span></span></span><span style="display:flex;"><span>    }
 </span></span></code></pre></div><h2 id="超时任务">超时任务<a hidden class="anchor" aria-hidden="true" href="#超时任务">#</a></h2>
 <ul>
 <li>取消协程的理由是有可能超时</li>
 <li><code>withTimeoutOrNull</code> 通过返回null来进行超时操作，从而替代抛出一个异常</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test deal with timeout`</span>() = runBlocking {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 withTimeout 函数设置超时时间
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        withTimeout(<span style="color:#ae81ff">1300L</span>) {  <span style="color:#75715e">// 设置最大执行时间为1300毫秒
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            repeat(<span style="color:#ae81ff">1000</span>) { i <span style="color:#f92672">-&gt;</span>  <span style="color:#75715e">// 计划执行1000次任务
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">$i</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 每个任务暂停500毫秒
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span></span><span style="display:flex;"><span>        withTimeout(<span style="color:#ae81ff">1300L</span>) {  <span style="color:#75715e">// 设置最大执行时间为1300毫秒
+</span></span></span><span style="display:flex;"><span>            repeat(<span style="color:#ae81ff">1000</span>) { i <span style="color:#f92672">-&gt;</span>  <span style="color:#75715e">// 计划执行1000次任务
+</span></span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">$i</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
+</span></span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 每个任务暂停500毫秒
+</span></span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test deal with timeout return null`</span>() = runBlocking {
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        <span style="color:#66d9ef">val</span> result = withTimeoutOrNull(<span style="color:#ae81ff">1300L</span>) {  <span style="color:#75715e">// 设置最大执行时间为1300毫秒
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            repeat(<span style="color:#ae81ff">1000</span>) { i <span style="color:#f92672">-&gt;</span>  <span style="color:#75715e">// 计划执行1000次任务
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">$i</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>                delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 每个任务暂停500毫秒
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>            }
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> result = withTimeoutOrNull(<span style="color:#ae81ff">1300L</span>) {  <span style="color:#75715e">// 设置最大执行时间为1300毫秒
+</span></span></span><span style="display:flex;"><span>            repeat(<span style="color:#ae81ff">1000</span>) { i <span style="color:#f92672">-&gt;</span>  <span style="color:#75715e">// 计划执行1000次任务
+</span></span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">$i</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
+</span></span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 每个任务暂停500毫秒
+</span></span></span><span style="display:flex;"><span>            }
 </span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;Done&#34;</span>  <span style="color:#75715e">// 如果在1300毫秒内完成所有任务，将返回 &#34;Done&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        }
+</span></span></span><span style="display:flex;"><span>        }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 打印 result 结果，如果任务在超时时间内完成，则 result 为 &#34;Done&#34;，否则为 null
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>        println(<span style="color:#e6db74">&#34;Result is </span><span style="color:#e6db74">$result</span><span style="color:#e6db74">&#34;</span>)
+</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;Result is </span><span style="color:#e6db74">$result</span><span style="color:#e6db74">&#34;</span>)
 </span></span><span style="display:flex;"><span>    }
 </span></span></code></pre></div><h2 id="协程上下文">协程上下文<a hidden class="anchor" aria-hidden="true" href="#协程上下文">#</a></h2>
 <p><code>CoroutineContext</code>是一组用于定义协程行为的元素，它由如下几项构成：</p>
@@ -942,7 +942,7 @@ document.addEventListener("DOMContentLoaded", function() {
 <ul>
 <li>有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。</li>
 </ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test CoroutineContext`</span>() = runBlocking&lt;Unit&gt; {
 </span></span><span style="display:flex;"><span>        launch(<span style="color:#a6e22e">Dispatchers</span>.Default + CoroutineName(<span style="color:#e6db74">&#34;test&#34;</span>)) {
 </span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;I&#39;m working in thread </span><span style="color:#e6db74">${Thread.currentThread().name}</span><span style="color:#e6db74">&#34;</span>)

@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
   <meta property="og:site_name" content="Kennem&#39;s Blog">
   <meta property="og:title" content="MIT6.S081(13)-Coordination (sleep&wakeup)">
   <meta property="og:description" content="MIT6.S081(13)-Coordination (sleep&amp;wakeup)">
-  <meta property="og:locale" content="zh">
+  <meta property="og:locale" content="zh-cn">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2024-09-29T19:30:13+08:00">
@@ -469,11 +469,11 @@ termination</p>
 <p>this is an important point and affects many situations in xv6
 [diagram: P1, STACK1, swtch, STACK_SCHED]
 <strong>yield:</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>     <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>     <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
 </span></span><span style="display:flex;"><span>     p<span style="color:#f92672">-&gt;</span>state <span style="color:#f92672">=</span> RUNNABLE;
 </span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">swtch</span>();
 </span></span></code></pre></div><p><strong>scheduler:</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>     <span style="color:#a6e22e">swtch</span>();
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>     <span style="color:#a6e22e">swtch</span>();
 </span></span><span style="display:flex;"><span>     <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
 </span></span></code></pre></div><p>the main point of holding <code>p-&gt;lock</code> across <code>swtch()</code>:
 prevent another core&rsquo;s scheduler from seeing <code>p-&gt;state</code> == <code>RUNNABLE</code>
@@ -483,7 +483,7 @@ and after the original core has stopped using the thread&rsquo;s stack</p>
 <p>(other than <code>p-&gt;lock</code>)
 i.e. <code>sched()</code> checks that <code>noff == 1</code>
 on a single-core machine, imagine this:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>     P1           P2
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>     P1           P2
 </span></span><span style="display:flex;"><span>     acq(L)
 </span></span><span style="display:flex;"><span>     sched()
 </span></span><span style="display:flex;"><span>                  acq(L)
@@ -502,10 +502,10 @@ wait for any child to exit</p>
 but (like locks) subject to rules that sometimes present difficult puzzles.</p>
 <h2 id="why-not-just-have-a-while-loop-that-spins-until-event-happens">why not just have a while-loop that spins until event happens?<a hidden class="anchor" aria-hidden="true" href="#why-not-just-have-a-while-loop-that-spins-until-event-happens">#</a></h2>
 <p><strong>pipe read</strong>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    while buffer is empty {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    while buffer is empty {
 </span></span><span style="display:flex;"><span>    }
 </span></span></code></pre></div><p><strong>pipe write</strong>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    put data in buffer
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    put data in buffer
 </span></span></code></pre></div><p><strong>better solution</strong>: coordination primitives that yield the CPU</p>
 <p>there are a bunch e.g. <code>barriers</code>, <code>semaphores</code>, <code>event queues</code>.
 xv6 uses <code>sleep &amp; wakeup</code></p>
@@ -538,17 +538,17 @@ here&rsquo;s the story</p>
 <code>broken_sleep(chan)</code>
 sleeps on a &ldquo;channel&rdquo;, a number/address
 identifies the condition/event we are waiting for</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    p-&gt;state = SLEEPING;
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    p-&gt;state = SLEEPING;
 </span></span><span style="display:flex;"><span>    p-&gt;chan = chan;
 </span></span><span style="display:flex;"><span>    sched();
 </span></span><span style="display:flex;"><span>  wakeup(chan)
 </span></span></code></pre></div><p>​    wakeup wakes up all threads sleeping on chan
 ​    may wake up more than one thread</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    for each p:
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    for each p:
 </span></span><span style="display:flex;"><span>      if p-&gt;state == SLEEPING &amp;&amp; p-&gt;chan == chan:
 </span></span><span style="display:flex;"><span>        p-&gt;state = RUNNABLE
 </span></span></code></pre></div><h2 id="how-would-uart-code-use-this-broken-sleepwakeup">how would uart code use this (broken) sleep/wakeup?<a hidden class="anchor" aria-hidden="true" href="#how-would-uart-code-use-this-broken-sleepwakeup">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> done
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> done
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">uartwrite</span>(buf)<span style="color:#f92672">:</span>
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> each <span style="color:#66d9ef">char</span> c:
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">while</span> not done:
@@ -568,7 +568,7 @@ should <code>uartwrite()</code> hold a lock for the whole sequence?
 no: then <code>uartintr()</code> can&rsquo;t get lock and set done
 maybe <code>uartwrite()</code> could release the lock before <code>sleep()</code>?
 let&rsquo;s try it &ndash; modify <code>uart.c</code> to call <code>broken_sleep()</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">broken_sleep</span>(<span style="color:#f92672">&amp;</span>tx_chan);
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>uart_tx_lock);
 </span></span></code></pre></div><h3 id="what-goes-wrong-when-uartwrite-releases-the-lock-before-broken_sleep">what goes wrong when uartwrite() releases the lock before broken_sleep()?<a hidden class="anchor" aria-hidden="true" href="#what-goes-wrong-when-uartwrite-releases-the-lock-before-broken_sleep">#</a></h3>
@@ -638,7 +638,7 @@ e.g. its struct context, which it may need to call <code>swtch()</code></p>
 <h2 id="ordinary-case-process-voluntarily-quits-with-exit-system-call">ordinary case: process voluntarily quits with exit() system call<a hidden class="anchor" aria-hidden="true" href="#ordinary-case-process-voluntarily-quits-with-exit-system-call">#</a></h2>
 <p>some freeing in <code>exit()</code>, some in parent&rsquo;s <code>wait()</code>
 <code>exit()</code> in <code>proc.c</code>:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    close open files
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    close open files
 </span></span><span style="display:flex;"><span>    change parent of children to PID 1 (init)
 </span></span><span style="display:flex;"><span>    wake up wait()ing parent
 </span></span><span style="display:flex;"><span>    p-&gt;state = ZOMBIE
@@ -760,7 +760,7 @@ termination is a pain in threading systems</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> {
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> spinlock lock[NCPU];
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>freelist[NCPU];
 </span></span><span style="display:flex;"><span>} kmem;
@@ -792,21 +792,21 @@ termination is a pain in threading systems</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">kalloc</span>(<span style="color:#66d9ef">void</span>)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> id <span style="color:#f92672">=</span> <span style="color:#a6e22e">cpuid</span>();
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">push_off</span>(); <span style="color:#75715e">// 关闭中断，防止竞态
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>kmem.lock[id]);
+</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>kmem.lock[id]);
 </span></span><span style="display:flex;"><span>  r <span style="color:#f92672">=</span> kmem.freelist[id]; <span style="color:#75715e">// 从当前CPU的空闲列表中分配
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">if</span> (r)
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (r)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    kmem.freelist[id] <span style="color:#f92672">=</span> r<span style="color:#f92672">-&gt;</span>next;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果当前CPU空闲列表为空，尝试从其他CPU窃取内存
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>kmem.lock[id]);
+</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>kmem.lock[id]);
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (r <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NCPU; i<span style="color:#f92672">++</span>)
@@ -830,7 +830,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (r)
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">memset</span>((<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)r, <span style="color:#ae81ff">5</span>, PGSIZE); <span style="color:#75715e">// fill with junk
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)r;
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)r;
 </span></span><span style="display:flex;"><span>}
 </span></span></code></pre></div><h4 id="4修改kfree函数-将释放的内存块放入当前cpu的自由列表并使用当前cpu的锁保护">4、修改<code>kfree</code>函数： 将释放的内存块放入当前CPU的自由列表，并使用当前CPU的锁保护：<a hidden class="anchor" aria-hidden="true" href="#4修改kfree函数-将释放的内存块放入当前cpu的自由列表并使用当前cpu的锁保护">#</a></h4>
 <p>
@@ -847,7 +847,7 @@ termination is a pain in threading systems</p>
     </div>
 </p>
 <h4 id="5之前第3步中已经包括下面的代码实现实现偷取机制-在kalloc函数中当当前cpu的自由列表为空时遍历其他cpu的自由列表并偷取内存块具体逻辑可能如下">5、(之前第3步中已经包括下面的代码实现）实现“偷取”机制： 在<code>kalloc</code>函数中，当当前CPU的自由列表为空时，遍历其他CPU的自由列表并“偷取”内存块，具体逻辑可能如下：<a hidden class="anchor" aria-hidden="true" href="#5之前第3步中已经包括下面的代码实现实现偷取机制-在kalloc函数中当当前cpu的自由列表为空时遍历其他cpu的自由列表并偷取内存块具体逻辑可能如下">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NCPU; i<span style="color:#f92672">++</span>)
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NCPU; i<span style="color:#f92672">++</span>)
 </span></span><span style="display:flex;"><span>    {
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (i <span style="color:#f92672">!=</span> id)
 </span></span><span style="display:flex;"><span>      {
@@ -905,7 +905,7 @@ termination is a pain in threading systems</p>
 </li>
 </ol>
 <p>usertests不通过</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Buffer cache.
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Buffer cache.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// The buffer cache is a linked list of buf structures holding
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// cached copies of disk block contents.  Caching disk blocks
@@ -919,7 +919,7 @@ termination is a pain in threading systems</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// * Do not use the buffer after calling brelse.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// * Only one process at a time can use a buffer,
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     so do not keep them longer than necessary.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;types.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;param.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;spinlock.h&#34;</span><span style="color:#75715e">
@@ -928,22 +928,22 @@ termination is a pain in threading systems</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;defs.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;fs.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;buf.h&#34;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#define NBUCKETS 23 </span><span style="color:#75715e">// 哈希桶数量，使用质数以减少冲突
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span>
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> spinlock lock;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf buf[NBUF]; <span style="color:#75715e">// 实际的缓存块
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span>
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span>
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>head;     <span style="color:#75715e">// 每个桶的缓存块链表
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">struct</span> spinlock lock; <span style="color:#75715e">// 每个桶的锁
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  } buckets[NBUCKETS];
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> spinlock lock; <span style="color:#75715e">// 每个桶的锁
+</span></span></span><span style="display:flex;"><span>  } buckets[NBUCKETS];
 </span></span><span style="display:flex;"><span>} bcache;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// 计算块号和设备号的哈希值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> uint
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> uint
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">hash</span>(uint dev, uint blockno)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (dev <span style="color:#f92672">^</span> blockno) <span style="color:#f92672">%</span> NBUCKETS;
@@ -956,14 +956,14 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>bcache.lock, <span style="color:#e6db74">&#34;bcache&#34;</span>);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 初始化每个桶的锁
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NBUCKETS; i<span style="color:#f92672">++</span>)
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> NBUCKETS; i<span style="color:#f92672">++</span>)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">initlock</span>(<span style="color:#f92672">&amp;</span>bcache.buckets[i].lock, <span style="color:#e6db74">&#34;bcache.bucket&#34;</span>);
 </span></span><span style="display:flex;"><span>    bcache.buckets[i].head <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 初始化缓存块
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bcache.buf; b <span style="color:#f92672">&lt;</span> bcache.buf <span style="color:#f92672">+</span> NBUF; b<span style="color:#f92672">++</span>)
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bcache.buf; b <span style="color:#f92672">&lt;</span> bcache.buf <span style="color:#f92672">+</span> NBUF; b<span style="color:#f92672">++</span>)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">initsleeplock</span>(<span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>lock, <span style="color:#e6db74">&#34;buffer&#34;</span>);
 </span></span><span style="display:flex;"><span>    b<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -972,11 +972,11 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// 修改 bget 函数进行哈希表查找
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     为了使用哈希表，bget 函数需要进行以下修改：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">//         计算块号的哈希值，确定所在桶。
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//         获取桶的锁，并在桶中查找块。
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//         如果未找到块，则选择一个未使用或最近最少使用的块进行替换。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">bget</span>(uint dev, uint blockno)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b;
@@ -985,7 +985,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bcache.buckets[h].lock);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 在桶中查找块
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bcache.buckets[h].head; b; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next)
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bcache.buckets[h].head; b; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (b<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">==</span> dev <span style="color:#f92672">&amp;&amp;</span> b<span style="color:#f92672">-&gt;</span>blockno <span style="color:#f92672">==</span> blockno)
 </span></span><span style="display:flex;"><span>    {
@@ -997,7 +997,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 如果未找到块，尝试找到一个未使用的块或替换最近最少使用的块
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>lru <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>lru <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bcache.buf; b <span style="color:#f92672">&lt;</span> bcache.buf <span style="color:#f92672">+</span> NBUF; b<span style="color:#f92672">++</span>)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (b<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> (lru <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> b<span style="color:#f92672">-&gt;</span>lastuse <span style="color:#f92672">&lt;</span> lru<span style="color:#f92672">-&gt;</span>lastuse))
@@ -1009,7 +1009,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>bcache.buckets[h].lock);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从旧桶中移除块
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  h <span style="color:#f92672">=</span> <span style="color:#a6e22e">hash</span>(lru<span style="color:#f92672">-&gt;</span>dev, lru<span style="color:#f92672">-&gt;</span>blockno);
+</span></span></span><span style="display:flex;"><span>  h <span style="color:#f92672">=</span> <span style="color:#a6e22e">hash</span>(lru<span style="color:#f92672">-&gt;</span>dev, lru<span style="color:#f92672">-&gt;</span>blockno);
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bcache.buckets[h].lock);
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">**</span>prev <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>bcache.buckets[h].head;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bcache.buckets[h].head; b; prev <span style="color:#f92672">=</span> <span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>next, b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next)
@@ -1022,7 +1022,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将新块插入适当的桶
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  lru<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">=</span> dev;
+</span></span></span><span style="display:flex;"><span>  lru<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">=</span> dev;
 </span></span><span style="display:flex;"><span>  lru<span style="color:#f92672">-&gt;</span>blockno <span style="color:#f92672">=</span> blockno;
 </span></span><span style="display:flex;"><span>  lru<span style="color:#f92672">-&gt;</span>valid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  lru<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
@@ -1039,7 +1039,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Return a locked buf with the contents of the indicated block.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">bread</span>(uint dev, uint blockno)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b;
@@ -1054,7 +1054,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Write b&#39;s contents to disk.  Must be locked.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bwrite</span>(<span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">bwrite</span>(<span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">holdingsleep</span>(<span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>lock))
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;bwrite&#34;</span>);
@@ -1063,7 +1063,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Release a locked buffer.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Move to the head of the most-recently-used list.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">brelse</span>(<span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">brelse</span>(<span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span><span style="color:#a6e22e">holdingsleep</span>(<span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>lock))
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;brelse&#34;</span>);
@@ -1077,7 +1077,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (b<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 块不再被使用，更新时间戳
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    b<span style="color:#f92672">-&gt;</span>lastuse <span style="color:#f92672">=</span> ticks;
+</span></span></span><span style="display:flex;"><span>    b<span style="color:#f92672">-&gt;</span>lastuse <span style="color:#f92672">=</span> ticks;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>bcache.buckets[h].lock);
@@ -1098,7 +1098,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  b<span style="color:#f92672">-&gt;</span>refcnt<span style="color:#f92672">--</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>bcache.buckets[h].lock);
 </span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Buffer cache.
+</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// Buffer cache.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// The buffer cache is a linked list of buf structures holding
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// cached copies of disk block contents.  Caching disk blocks
@@ -1112,7 +1112,7 @@ termination is a pain in threading systems</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// * Do not use the buffer after calling brelse.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// * Only one process at a time can use a buffer,
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">//     so do not keep them longer than necessary.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;types.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;param.h&#34;</span><span style="color:#75715e">
@@ -1122,11 +1122,11 @@ termination is a pain in threading systems</p>
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;defs.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;fs.h&#34;</span><span style="color:#75715e">
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;buf.h&#34;</span><span style="color:#75715e">
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#define NBUCKET 13
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#undef NBUF
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define NBUF (NBUCKET * 3)
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>
+</span></span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> {
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> spinlock lock;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf buf[NBUF];
@@ -1169,30 +1169,30 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Look through buffer cache for block on device dev.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// If not found, allocate a buffer.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// In either case, return locked buffer.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> buf<span style="color:#f92672">*</span>
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> buf<span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">bget</span>(uint dev, uint blockno)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// printf(&#34;dev: %d blockno: %d Status: &#34;, dev, blockno);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b;
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> idx <span style="color:#f92672">=</span> <span style="color:#a6e22e">hash</span>(dev, blockno);
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> bucket<span style="color:#f92672">*</span> bucket <span style="color:#f92672">=</span> hashtable <span style="color:#f92672">+</span> idx;
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bucket<span style="color:#f92672">-&gt;</span>lock);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Is the block already cached?
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span>(b <span style="color:#f92672">=</span> bucket<span style="color:#f92672">-&gt;</span>head.next; b <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next){
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(b <span style="color:#f92672">=</span> bucket<span style="color:#f92672">-&gt;</span>head.next; b <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next){
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(b<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">==</span> dev <span style="color:#f92672">&amp;&amp;</span> b<span style="color:#f92672">-&gt;</span>blockno <span style="color:#f92672">==</span> blockno){
 </span></span><span style="display:flex;"><span>      b<span style="color:#f92672">-&gt;</span>refcnt<span style="color:#f92672">++</span>;
 </span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>bucket<span style="color:#f92672">-&gt;</span>lock);
 </span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">acquiresleep</span>(<span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>lock);
 </span></span><span style="display:flex;"><span>      <span style="color:#75715e">// printf(&#34;Cached %p\n&#34;, b);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>      <span style="color:#66d9ef">return</span> b;
+</span></span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">return</span> b;
 </span></span><span style="display:flex;"><span>    }
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Not cached.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#75715e">// First try to find in current bucket.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">int</span> min_time <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x8fffffff</span>;
+</span></span></span><span style="display:flex;"><span>  <span style="color:#75715e">// First try to find in current bucket.
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> min_time <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x8fffffff</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf<span style="color:#f92672">*</span> replace_buf <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(b <span style="color:#f92672">=</span> bucket<span style="color:#f92672">-&gt;</span>head.next; b <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next){
@@ -1203,11 +1203,11 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(replace_buf) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// printf(&#34;Local %d %p\n&#34;, idx, replace_buf);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">goto</span> find;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> find;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Try to find in other bucket.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bcache.lock);
+</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bcache.lock);
 </span></span><span style="display:flex;"><span>  refind:
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span>(b <span style="color:#f92672">=</span> bcache.buf; b <span style="color:#f92672">&lt;</span> bcache.buf <span style="color:#f92672">+</span> NBUF; b<span style="color:#f92672">++</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(b<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> b<span style="color:#f92672">-&gt;</span>timestamp <span style="color:#f92672">&lt;</span> min_time) {
@@ -1217,10 +1217,10 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (replace_buf) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// remove from old bucket
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">int</span> ridx <span style="color:#f92672">=</span> <span style="color:#a6e22e">hash</span>(replace_buf<span style="color:#f92672">-&gt;</span>dev, replace_buf<span style="color:#f92672">-&gt;</span>blockno);
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> ridx <span style="color:#f92672">=</span> <span style="color:#a6e22e">hash</span>(replace_buf<span style="color:#f92672">-&gt;</span>dev, replace_buf<span style="color:#f92672">-&gt;</span>blockno);
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>hashtable[ridx].lock);
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span>(replace_buf<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>)  <span style="color:#75715e">// be used in another bucket&#39;s local find between finded and acquire
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    {
+</span></span></span><span style="display:flex;"><span>    {
 </span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>hashtable[ridx].lock);
 </span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">goto</span> refind;
 </span></span><span style="display:flex;"><span>    }
@@ -1233,11 +1233,11 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>    pre<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>next;
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>hashtable[ridx].lock);
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// add to current bucket
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    replace_buf<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> hashtable[idx].head.next;
+</span></span></span><span style="display:flex;"><span>    replace_buf<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> hashtable[idx].head.next;
 </span></span><span style="display:flex;"><span>    hashtable[idx].head.next <span style="color:#f92672">=</span> replace_buf;
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>bcache.lock);
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// printf(&#34;Global %d -&gt; %d %p\n&#34;, ridx, idx, replace_buf);
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    <span style="color:#66d9ef">goto</span> find;
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">goto</span> find;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">else</span> {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">panic</span>(<span style="color:#e6db74">&#34;bget: no buffers&#34;</span>);
@@ -1254,7 +1254,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Return a locked buf with the contents of the indicated block.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">struct</span> buf<span style="color:#f92672">*</span>
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> buf<span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">bread</span>(uint dev, uint blockno)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b;
@@ -1268,7 +1268,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>}
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Write b&#39;s contents to disk.  Must be locked.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">bwrite</span>(<span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">holdingsleep</span>(<span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>lock))
@@ -1278,7 +1278,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// Release a locked buffer.
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// Move to the head of the most-recently-used list.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span><span style="color:#66d9ef">void</span>
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">brelse</span>(<span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span>(<span style="color:#f92672">!</span><span style="color:#a6e22e">holdingsleep</span>(<span style="color:#f92672">&amp;</span>b<span style="color:#f92672">-&gt;</span>lock))
@@ -1292,7 +1292,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  b<span style="color:#f92672">-&gt;</span>refcnt<span style="color:#f92672">--</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (b<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) {
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// no one is waiting for it.
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    b<span style="color:#f92672">-&gt;</span>timestamp <span style="color:#f92672">=</span> ticks;
+</span></span></span><span style="display:flex;"><span>    b<span style="color:#f92672">-&gt;</span>timestamp <span style="color:#f92672">=</span> ticks;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>hashtable[idx].lock);
@@ -1370,7 +1370,7 @@ termination is a pain in threading systems</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> 
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> 
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">binit</span>(<span style="color:#66d9ef">void</span>)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>b;
@@ -1411,7 +1411,7 @@ termination is a pain in threading systems</p>
         </a>
     </div>
 </p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>
 </span></span><span style="display:flex;"><span><span style="color:#a6e22e">find_replacement_in_bucket</span>(<span style="color:#66d9ef">struct</span> bucket <span style="color:#f92672">*</span>bucket, uint <span style="color:#f92672">*</span>min_time)
 </span></span><span style="display:flex;"><span>{
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>replace_buf <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
@@ -1466,7 +1466,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>hashtable[ridx].lock);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// Add to current bucket
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    replace_buf<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> hashtable[idx].head.next;
+</span></span></span><span style="display:flex;"><span>    replace_buf<span style="color:#f92672">-&gt;</span>next <span style="color:#f92672">=</span> hashtable[idx].head.next;
 </span></span><span style="display:flex;"><span>    hashtable[idx].head.next <span style="color:#f92672">=</span> replace_buf;
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">else</span>
@@ -1484,7 +1484,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bucket<span style="color:#f92672">-&gt;</span>lock);
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Check if block is already cached 桶内寻找
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bucket<span style="color:#f92672">-&gt;</span>head.next; b <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next)
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">for</span> (b <span style="color:#f92672">=</span> bucket<span style="color:#f92672">-&gt;</span>head.next; b <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span>; b <span style="color:#f92672">=</span> b<span style="color:#f92672">-&gt;</span>next)
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (b<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">==</span> dev <span style="color:#f92672">&amp;&amp;</span> b<span style="color:#f92672">-&gt;</span>blockno <span style="color:#f92672">==</span> blockno)
 </span></span><span style="display:flex;"><span>    {
@@ -1496,7 +1496,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Not cached, find replacement buffer 桶内的空白buf
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  uint min_time <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span></span><span style="display:flex;"><span>  uint min_time <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> buf <span style="color:#f92672">*</span>replace_buf;
 </span></span><span style="display:flex;"><span>  replace_buf <span style="color:#f92672">=</span> <span style="color:#a6e22e">find_replacement_in_bucket</span>(bucket, <span style="color:#f92672">&amp;</span>min_time);
 </span></span><span style="display:flex;"><span>
@@ -1504,7 +1504,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  {
 </span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">acquire</span>(<span style="color:#f92672">&amp;</span>bcache.lock);
 </span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 寻找桶外的空白buf
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>    replace_buf <span style="color:#f92672">=</span> <span style="color:#a6e22e">find_replacement_in_global</span>(replace_buf, <span style="color:#f92672">&amp;</span>min_time);
+</span></span></span><span style="display:flex;"><span>    replace_buf <span style="color:#f92672">=</span> <span style="color:#a6e22e">find_replacement_in_global</span>(replace_buf, <span style="color:#f92672">&amp;</span>min_time);
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (replace_buf)
 </span></span><span style="display:flex;"><span>    {
 </span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">move_buf_to_bucket</span>(replace_buf, h);
@@ -1518,7 +1518,7 @@ termination is a pain in threading systems</p>
 </span></span><span style="display:flex;"><span>  }
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Initialize and return the replacement buffer
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"></span>  replace_buf<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">=</span> dev;
+</span></span></span><span style="display:flex;"><span>  replace_buf<span style="color:#f92672">-&gt;</span>dev <span style="color:#f92672">=</span> dev;
 </span></span><span style="display:flex;"><span>  replace_buf<span style="color:#f92672">-&gt;</span>blockno <span style="color:#f92672">=</span> blockno;
 </span></span><span style="display:flex;"><span>  replace_buf<span style="color:#f92672">-&gt;</span>valid <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
 </span></span><span style="display:flex;"><span>  replace_buf<span style="color:#f92672">-&gt;</span>refcnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;

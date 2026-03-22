@@ -102,7 +102,7 @@ document.addEventListener("DOMContentLoaded", function() {
   <meta property="og:site_name" content="Kennem&#39;s Blog">
   <meta property="og:title" content="MIT6.S081(11)- Thread switching">
   <meta property="og:description" content="MIT6.S081(11)- Thread switching">
-  <meta property="og:locale" content="zh">
+  <meta property="og:locale" content="zh-cn">
   <meta property="og:type" content="article">
     <meta property="article:section" content="posts">
     <meta property="article:published_time" content="2024-09-21T19:30:13+08:00">
@@ -466,7 +466,7 @@ we&rsquo;ll use &ldquo;process&rdquo; and &ldquo;kernel thread&rdquo; and &ldquo
     </div>
   [diagram: P1, TF1, STACK1, swtch(), CTX1;
 CTXs, swtch(), STACKs, scheduler(), &amp;c]</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  TF = trapframe = saved user registers
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  TF = trapframe = saved user registers
 </span></span><span style="display:flex;"><span>  CTX = context = saved RISC-V registers
 </span></span></code></pre></div><p>getting from one process to another involves multiple transitions:</p>
 <ul>
@@ -504,7 +504,7 @@ p-&gt;lock protects p-&gt;state (and other things&hellip;)</p>
 user/spin.c &ndash; two CPU-bound processes
 my qemu has only one CPU
 let&rsquo;s watch xv6 switch between them</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make qemu-gdb
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span>make qemu-gdb
 </span></span><span style="display:flex;"><span>gdb
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> c
 </span></span><span style="display:flex;"><span>show user/spin.c
@@ -513,39 +513,39 @@ let&rsquo;s watch xv6 switch between them</p>
 xv6 is switching its one CPU between the two processes.
 how does the switching work?</p>
 <p>I&rsquo;m going to cause a break-point at the timer interrupt.</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b trap.c:207
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> b trap.c:207
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> c
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> finish
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> where
 </span></span></code></pre></div><p>we&rsquo;re in <code>usertrap()</code>, handling a device interrupt from the timer
 (<code>timerinit()</code> in <code>kernel/start.c</code> configures the RISC-V timer hardware).</p>
 <p>what was running when the timer interrupt happened?</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;name
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;name
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;pid
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print/x *<span style="color:#f92672">(</span>p-&gt;trapframe<span style="color:#f92672">)</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print/x p-&gt;trapframe-&gt;epc
 </span></span></code></pre></div><p>let&rsquo;s look for the saved epc in user/spin.asm
 timer interrupted user code in the increment loop, no surprise</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> step ... into yield<span style="color:#f92672">()</span> in proc.c
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> step ... into yield<span style="color:#f92672">()</span> in proc.c
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> next
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;state
 </span></span></code></pre></div><p>change <code>p-&gt;state</code> from <code>RUNNING</code> to <code>RUNNABLE</code> <code>-&gt;</code> give up CPU but want to run again.
 note: <code>yield()</code> acquires <code>p-&gt;lock</code>
 since modifying <code>p-&gt;state</code>
 and to prevent another CPU from running this <code>RUNNABLE</code> thread!</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> next <span style="color:#ae81ff">2</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> next <span style="color:#ae81ff">2</span>
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> step <span style="color:#f92672">(</span>into sched<span style="color:#f92672">())</span>
 </span></span></code></pre></div><p><code>sched()</code> makes some sanity checks, then calls <code>swtch()</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> next <span style="color:#ae81ff">7</span>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> next <span style="color:#ae81ff">7</span>
 </span></span></code></pre></div><p>this is the context switch from a process&rsquo;s kernel thread to the scheduler thread
 <code>swtch</code> will save the current RISC-V registers in first argument (<code>p-&gt;context</code>)
 and restore previously-saved registers from 2nd argument (<code>c-&gt;context</code>)
 let&rsquo;s see what register values <code>swtch()</code> will restore</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print/x cpus<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>.context
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print/x cpus<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>.context
 </span></span></code></pre></div><p>where is <code>cpus[0].context.ra</code>?
 i.e. where will swtch() return to?
 <code>kernel.asm</code> says it&rsquo;s in the <code>scheduler()</code> function in proc.c</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> tbreak swtch
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> tbreak swtch
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> c
 </span></span></code></pre></div><p>we&rsquo;re in kernel/swtch.S
 a0 is the first argument, <code>p-&gt;context</code>
@@ -562,11 +562,11 @@ t0-t6, a0-a7
 note we&rsquo;re talking about kernel thread registers
 all 32 user register have already been saved in the trapframe</p>
 <p>registers at start of swtch:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $pc  -- swtch
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $pc  -- swtch
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $ra  -- sched
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $sp
 </span></span></code></pre></div><p>registers at end of swtch:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> stepi <span style="color:#ae81ff">28</span>   -- <span style="color:#66d9ef">until</span> ret
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> stepi <span style="color:#ae81ff">28</span>   -- <span style="color:#66d9ef">until</span> ret
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $pc  -- swtch
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $ra  -- scheduler
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $sp  -- stack0+??? -- entry.S set this up at boot
@@ -579,7 +579,7 @@ it made that call a while ago, to switch to our process&rsquo;s kernel thread
 that previous call saved <code>scheduler()</code>&rsquo;s registers
 our processes&rsquo;s call to <code>swtch()</code> restored scheduler()&rsquo;s saved registers
 p here refers to the interrupted process</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;name
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;name
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;pid
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;state
 </span></span></code></pre></div><p>remember <code>yield()</code> acquired the process&rsquo;s lock
@@ -611,21 +611,21 @@ makes these steps atomic:</p>
 keeps looping until it finds something &ndash; may be idle for a while
 in this demo, will find the other spin process
 let&rsquo;s fast-forward to when scheduler() finds a RUNNABLE process</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> tbreak proc.c:474
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> tbreak proc.c:474
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> c
 </span></span></code></pre></div><p>scheduler() locked the new process, then set state to RUNNING
 now another CPUs&rsquo; scheduler won&rsquo;t run it</p>
 <p>it&rsquo;s the other &ldquo;spin&rdquo; process:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;name
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;name
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;pid
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print p-&gt;state
 </span></span></code></pre></div><p>let&rsquo;s see where the new thread will start executing after swtch()
 by looking at $ra (return address) in its context</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print/x p-&gt;context
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print/x p-&gt;context
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> x/4i p-&gt;context-&gt;ra
 </span></span></code></pre></div><p>new thread will return into <code>sched()</code></p>
 <p>look at kernel/swtch.S (again)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> tbreak swtch
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-sh" data-lang="sh"><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> tbreak swtch
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> c
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> stepi <span style="color:#ae81ff">28</span> -- now just about to execute swtch<span style="color:#f92672">()</span><span style="color:#960050;background-color:#1e0010">&#39;</span>s ret
 </span></span><span style="display:flex;"><span><span style="color:#f92672">(</span>gdb<span style="color:#f92672">)</span> print $ra
@@ -856,7 +856,7 @@ next lecture: mechanisms for threads to wait for each other</p>
 <li>确保解决断言错误并通过测试。</li>
 </ol>
 <p>在每一个thread中调用barrier， 记录所有到达的thread数量， 如果数量等于设置的线程数，则开始下一<code>round</code>，否则将此线程执行此操作 ：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;"><code class="language-cc" data-lang="cc"><span style="display:flex;"><span>pthread_cond_wait(<span style="color:#f92672">&amp;</span>bstate.barrier_cond, <span style="color:#f92672">&amp;</span>bstate.barrier_mutex); <span style="color:#75715e">// Release mutex and wait
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cc" data-lang="cc"><span style="display:flex;"><span>pthread_cond_wait(<span style="color:#f92672">&amp;</span>bstate.barrier_cond, <span style="color:#f92672">&amp;</span>bstate.barrier_mutex); <span style="color:#75715e">// Release mutex and wait
 </span></span></span></code></pre></div><p>保证该线程处于等待状态，等待所有线程都完成此<code>round</code>。</p>
 <p>
 
