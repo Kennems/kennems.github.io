@@ -275,17 +275,52 @@ n 和 m 的数位长度相同； 可以对 n的数位执行以下操作： 将 n
 <article class="post-entry">
   <div class="post-info">
     <header class="entry-header">
-      <h2>LeetCode Hot 100 精练🥸(2)
+      <h2>LeetCode Hot 100 精练🥸(3)
       </h2>
     </header>
     <div class="entry-content">
-      <p>LeetCode Hot 100 精练🥸(2) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
+      <p>LeetCode Hot 100 精练🥸(3) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
 (41) 309. 买卖股票的最佳时机含冷冻期 class Solution: def maxProfit(self, prices: List[int]) -&gt; int: n = len(prices) prices = [0] &#43; prices f = [[-inf] * 3 for _ in range(n &#43; 2)] # f[i][j] 第i天 距离上次卖出后第j天 f[1][2] = 0 # 入口，合法的情况 for i in range(1, n &#43; 1): f[i][0] = max(f[i - 1][0], f[i][2] - prices[i]) # 第i天持有 f[i][1] = f[i - 1][0] &#43; prices[i] # 今天买入，进入冷冻期 f[i &#43; 1][2] = max(f[i - 1][1], f[i][2]) # 明天能达到非冷冻期的状态 return max(f[n][1], f[n &#43; 1][2]) # 买股票后第一天，买股票后第大于等于2天 func maxProfit(prices []int) int { n := len(prices) f := make([][]int, n&#43;2) inf := 0x3f3f3f3f for i := 0; i &lt;= n&#43;1; i &#43;= 1 { f[i] = make([]int, 3) for j := 0; j &lt; 3; j &#43;= 1 { f[i][j] = -inf } } f[1][2] = 0 for i, p := range prices { f[i&#43;1][0] = max(f[i][0], f[i&#43;1][2]-p) f[i&#43;1][1] = f[i][0] &#43; p f[i&#43;2][2] = max(f[i&#43;1][2], f[i][1]) } return max(f[n][1], f[n&#43;1][2]) } func max(a, b int) int { if a &gt; b { return a } return b } (42)301. 删除无效的括号 class Solution: def removeInvalidParentheses(self, s: str) -&gt; List[str]: res = [] def check(st): cnt = 0 for c in st: if c == &#34;(&#34;: cnt &#43;= 1 elif c == &#34;)&#34;: if cnt == 0: return False cnt -= 1 return cnt == 0 cur = set([s]) while True: for st in cur: if check(st): res.append(st) if len(res): break nxt = set() for st in cur: for i in range(len(st)): if i &gt; 0 and st[i] == st[i - 1]: continue if st[i] == &#34;(&#34; or st[i] == &#34;)&#34;: nxt.add(st[:i] &#43; st[i &#43; 1 :]) cur = nxt return res (43)300. 最长递增子序列 class Solution: def lengthOfLIS(self, nums: List[int]) -&gt; int: n = len(nums) f = [1] * (n &#43; 1) for i in range(n): for j in range(i, n): if nums[j] &gt; nums[i]: f[j] = max(f[j], f[i] &#43; 1) return max(f) (44)297. 二叉树的序列化与反序列化 class Codec: def serialize(self, root): if not root: return &#34;#&#34; return ( str(root.val) &#43; &#34; &#34; &#43; self.serialize(root.left) &#43; &#34; &#34; &#43; self.serialize(root.right) ) def deserialize(self, data): self.s = data return self.DerWork() def DerWork(self): if len(self.s) == 0: return None try: idx = self.s.index(&#34; &#34;) except: idx = -1 node = self.s if idx == -1 else self.s[:idx] self.s = &#34;&#34; if idx == -1 else self.s[idx &#43; 1 :] if node == &#34;#&#34;: return None t = TreeNode(int(node)) t.left = self.DerWork() t.right = self.DerWork() return t (45)287. 寻找重复数 class Solution: def findDuplicate(self, nums: List[int]) -&gt; int: l, r = 0, len(nums) - 1 while l &lt; r: mid = l &#43; r &gt;&gt; 1 s = 0 for num in nums: if num &gt; mid and num &lt;= r: s &#43;= 1 if s &gt; r - mid: l = mid &#43; 1 else: r = mid return l (46)283. 移动零 class Solution: def moveZeroes(self, nums: List[int]) -&gt; None: &#34;&#34;&#34; Do not return anything, modify nums in-place instead. &#34;&#34;&#34; i, j = 0, 0 while j &lt; len(nums): if nums[j]: if i != j: nums[i], nums[j] = nums[j], nums[i] i &#43;= 1 j &#43;= 1 (47)279. 完全平方数 class Solution: def numSquares(self, n: int) -&gt; int: ls = [] i = 1 while True: if i**2 &gt; n: break ls.append(i**2) i &#43;= 1 l = len(ls) f = [0] &#43; [inf] * n for i in range(l): for j in range(ls[i], n &#43; 1): f[j] = min(f[j], f[j - ls[i]] &#43; 1) return f[n] (48)会议室 II class Solution: &#34;&#34;&#34; @param intervals: an array of meeting time intervals @return: the minimum number of conference rooms required &#34;&#34;&#34; def min_meeting_rooms(self, intervals: List[Interval]) -&gt; int: # Write your code here d = defaultdict(int) #diff差分数组 for inter in intervals: s, e = inter.start, inter.end d[s] &#43;= 1 d[e] -= 1 s, res = 0, 0 for k, v in sorted(d.items()): s &#43;= v res = max(res, s) return res (49)240. 搜索二维矩阵 II class Solution: def searchMatrix(self, matrix: List[List[int]], target: int) -&gt; bool: m, n = len(matrix), len(matrix[0]) i, j = 0, n - 1 while i &lt; m and j &gt;= 0: if matrix[i][j] == target: return True if matrix[i][j] &gt; target: j -= 1 elif matrix[i][j] &lt; target: i &#43;= 1 return False (50)239. 滑动窗口最大值 class Solution: def maxSlidingWindow(self, nums: List[int], k: int) -&gt; List[int]: n = len(nums) q = deque() res = [] for i in range(n): while q and i - q[0] &#43; 1 &gt; k: q.popleft() while q and nums[q[-1]] &lt;= nums[i]: q.pop() q.append(i) if i &#43; 1 &gt;= k: res.append(nums[q[0]]) return res (51)22. 括号生成 class Solution: def generateParenthesis(self, n: int) -&gt; List[str]: res = [] ls = [] n *= 2 def dfs(i, l, r): if l &gt; n // 2 or r &gt; n // 2: return if i == n and l == r: res.append(&#34;&#34;.join(ls)) return ls.append(&#34;(&#34;) dfs(i &#43; 1, l &#43; 1, r) ls.pop() if r &lt; l: ls.append(&#34;)&#34;) dfs(i &#43; 1, l, r &#43; 1) ls.pop() dfs(0, 0, 0) return res (52)49. 字母异位词分组 (53)48. 旋转图像 (54)46. 全排列 (55)42. 接雨水 (56)39. 组合总和 (57)543. 二叉树的直径 (58)34. 在排序数组中查找元素的第一个和最后一个位置 (59)33. 搜索旋转排序数组 (60)32. 最长有效括号 class Solution: &#34;&#34;&#34; @param intervals: an array of meeting time intervals @return: the minimum number of conference rooms required &#34;&#34;&#34; def min_meeting_rooms(self, intervals: List[Interval]) -&gt; int: # Write your code here d = defaultdict(int) #diff差分数组 for inter in intervals: s, e = inter.start, inter.end d[s] &#43;= 1 d[e] -= 1 s, res = 0, 0 for k, v in sorted(d.items()): s &#43;= v res = max(res, s) return res func MinMeetingRooms(intervals []*Interval) int { // 差分数组：key 是时间点，value 是变化量 diff := make(map[int]int) for _, inter := range intervals { diff[inter.Start]&#43;&#43; diff[inter.End]-- } // 把时间点取出来排序 times := make([]int, 0, len(diff)) for t := range diff { times = append(times, t) } sort.Ints(times) cur, res := 0, 0 for _, t := range times { cur &#43;= diff[t] if cur &gt; res { res = cur } } return res } 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。
 ...</p>
     </div>
     <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>23 分钟</span>&nbsp;·&nbsp;<span>11368 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-12-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
-  <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(2)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-3-/"></a>
+  <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(3)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-3-/"></a>
+</article>
+
+
+
+<article class="post-entry">
+  <div class="post-info">
+    <header class="entry-header">
+      <h2>LeetCode Hot 100 精练🥸(4)
+      </h2>
+    </header>
+    <div class="entry-content">
+      <p>LeetCode Hot 100 精练🥸(4) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
+(41) 309. 买卖股票的最佳时机含冷冻期 class Solution: def maxProfit(self, prices: List[int]) -&gt; int: n = len(prices) prices = [0] &#43; prices f = [[-inf] * 3 for _ in range(n &#43; 2)] # f[i][j] 第i天 距离上次卖出后第j天 f[1][2] = 0 # 入口，合法的情况 for i in range(1, n &#43; 1): f[i][0] = max(f[i - 1][0], f[i][2] - prices[i]) # 第i天持有 f[i][1] = f[i - 1][0] &#43; prices[i] # 今天买入，进入冷冻期 f[i &#43; 1][2] = max(f[i - 1][1], f[i][2]) # 明天能达到非冷冻期的状态 return max(f[n][1], f[n &#43; 1][2]) # 买股票后第一天，买股票后第大于等于2天 func maxProfit(prices []int) int { n := len(prices) f := make([][]int, n&#43;2) inf := 0x3f3f3f3f for i := 0; i &lt;= n&#43;1; i &#43;= 1 { f[i] = make([]int, 3) for j := 0; j &lt; 3; j &#43;= 1 { f[i][j] = -inf } } f[1][2] = 0 for i, p := range prices { f[i&#43;1][0] = max(f[i][0], f[i&#43;1][2]-p) f[i&#43;1][1] = f[i][0] &#43; p f[i&#43;2][2] = max(f[i&#43;1][2], f[i][1]) } return max(f[n][1], f[n&#43;1][2]) } func max(a, b int) int { if a &gt; b { return a } return b } (42)301. 删除无效的括号 class Solution: def removeInvalidParentheses(self, s: str) -&gt; List[str]: res = [] def check(st): cnt = 0 for c in st: if c == &#34;(&#34;: cnt &#43;= 1 elif c == &#34;)&#34;: if cnt == 0: return False cnt -= 1 return cnt == 0 cur = set([s]) while True: for st in cur: if check(st): res.append(st) if len(res): break nxt = set() for st in cur: for i in range(len(st)): if i &gt; 0 and st[i] == st[i - 1]: continue if st[i] == &#34;(&#34; or st[i] == &#34;)&#34;: nxt.add(st[:i] &#43; st[i &#43; 1 :]) cur = nxt return res (43)300. 最长递增子序列 class Solution: def lengthOfLIS(self, nums: List[int]) -&gt; int: n = len(nums) f = [1] * (n &#43; 1) for i in range(n): for j in range(i, n): if nums[j] &gt; nums[i]: f[j] = max(f[j], f[i] &#43; 1) return max(f) (44)297. 二叉树的序列化与反序列化 class Codec: def serialize(self, root): if not root: return &#34;#&#34; return ( str(root.val) &#43; &#34; &#34; &#43; self.serialize(root.left) &#43; &#34; &#34; &#43; self.serialize(root.right) ) def deserialize(self, data): self.s = data return self.DerWork() def DerWork(self): if len(self.s) == 0: return None try: idx = self.s.index(&#34; &#34;) except: idx = -1 node = self.s if idx == -1 else self.s[:idx] self.s = &#34;&#34; if idx == -1 else self.s[idx &#43; 1 :] if node == &#34;#&#34;: return None t = TreeNode(int(node)) t.left = self.DerWork() t.right = self.DerWork() return t (45)287. 寻找重复数 class Solution: def findDuplicate(self, nums: List[int]) -&gt; int: l, r = 0, len(nums) - 1 while l &lt; r: mid = l &#43; r &gt;&gt; 1 s = 0 for num in nums: if num &gt; mid and num &lt;= r: s &#43;= 1 if s &gt; r - mid: l = mid &#43; 1 else: r = mid return l (46)283. 移动零 class Solution: def moveZeroes(self, nums: List[int]) -&gt; None: &#34;&#34;&#34; Do not return anything, modify nums in-place instead. &#34;&#34;&#34; i, j = 0, 0 while j &lt; len(nums): if nums[j]: if i != j: nums[i], nums[j] = nums[j], nums[i] i &#43;= 1 j &#43;= 1 (47)279. 完全平方数 class Solution: def numSquares(self, n: int) -&gt; int: ls = [] i = 1 while True: if i**2 &gt; n: break ls.append(i**2) i &#43;= 1 l = len(ls) f = [0] &#43; [inf] * n for i in range(l): for j in range(ls[i], n &#43; 1): f[j] = min(f[j], f[j - ls[i]] &#43; 1) return f[n] (48)会议室 II class Solution: &#34;&#34;&#34; @param intervals: an array of meeting time intervals @return: the minimum number of conference rooms required &#34;&#34;&#34; def min_meeting_rooms(self, intervals: List[Interval]) -&gt; int: # Write your code here d = defaultdict(int) #diff差分数组 for inter in intervals: s, e = inter.start, inter.end d[s] &#43;= 1 d[e] -= 1 s, res = 0, 0 for k, v in sorted(d.items()): s &#43;= v res = max(res, s) return res (49)240. 搜索二维矩阵 II class Solution: def searchMatrix(self, matrix: List[List[int]], target: int) -&gt; bool: m, n = len(matrix), len(matrix[0]) i, j = 0, n - 1 while i &lt; m and j &gt;= 0: if matrix[i][j] == target: return True if matrix[i][j] &gt; target: j -= 1 elif matrix[i][j] &lt; target: i &#43;= 1 return False (50)239. 滑动窗口最大值 class Solution: def maxSlidingWindow(self, nums: List[int], k: int) -&gt; List[int]: n = len(nums) q = deque() res = [] for i in range(n): while q and i - q[0] &#43; 1 &gt; k: q.popleft() while q and nums[q[-1]] &lt;= nums[i]: q.pop() q.append(i) if i &#43; 1 &gt;= k: res.append(nums[q[0]]) return res (51)22. 括号生成 class Solution: def generateParenthesis(self, n: int) -&gt; List[str]: res = [] ls = [] n *= 2 def dfs(i, l, r): if l &gt; n // 2 or r &gt; n // 2: return if i == n and l == r: res.append(&#34;&#34;.join(ls)) return ls.append(&#34;(&#34;) dfs(i &#43; 1, l &#43; 1, r) ls.pop() if r &lt; l: ls.append(&#34;)&#34;) dfs(i &#43; 1, l, r &#43; 1) ls.pop() dfs(0, 0, 0) return res (52)49. 字母异位词分组 (53)48. 旋转图像 (54)46. 全排列 (55)42. 接雨水 (56)39. 组合总和 (57)543. 二叉树的直径 (58)34. 在排序数组中查找元素的第一个和最后一个位置 (59)33. 搜索旋转排序数组 (60)32. 最长有效括号 class Solution: &#34;&#34;&#34; @param intervals: an array of meeting time intervals @return: the minimum number of conference rooms required &#34;&#34;&#34; def min_meeting_rooms(self, intervals: List[Interval]) -&gt; int: # Write your code here d = defaultdict(int) #diff差分数组 for inter in intervals: s, e = inter.start, inter.end d[s] &#43;= 1 d[e] -= 1 s, res = 0, 0 for k, v in sorted(d.items()): s &#43;= v res = max(res, s) return res func MinMeetingRooms(intervals []*Interval) int { // 差分数组：key 是时间点，value 是变化量 diff := make(map[int]int) for _, inter := range intervals { diff[inter.Start]&#43;&#43; diff[inter.End]-- } // 把时间点取出来排序 times := make([]int, 0, len(diff)) for t := range diff { times = append(times, t) } sort.Ints(times) cur, res := 0, 0 for _, t := range times { cur &#43;= diff[t] if cur &gt; res { res = cur } } return res } 11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。
+...</p>
+    </div>
+    <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>23 分钟</span>&nbsp;·&nbsp;<span>11368 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-12-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+  </div> 
+  <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(4)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-4-/"></a>
+</article>
+
+
+
+<article class="post-entry">
+  <div class="post-info">
+    <header class="entry-header">
+      <h2>LeetCode Hot 100 精练🥸(5)
+      </h2>
+    </header>
+    <div class="entry-content">
+      <p>LeetCode Hot 100 精练🥸(5) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。
+</p>
+    </div>
+    <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>40 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-12-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+  </div> 
+  <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(5)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-5-/"></a>
 </article>
 
 
@@ -457,41 +492,6 @@ cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式�
     <footer class="entry-footer"><span title='2024-10-21 22:30:13 +0800 CST'>2024-10-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>799 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day10)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day10/"></a>
-</article>
-
-
-
-<article class="post-entry">
-  <div class="post-info">
-    <header class="entry-header">
-      <h2>苍穹外卖后端开发(Day7)
-      </h2>
-    </header>
-    <div class="entry-content">
-      <p>苍穹外卖后端开发(Day7) 缓存菜品 用户端小程序展示的菜品数据都是通过查询数据库获得，如果用户端访问量比较大，数据库访问的压力随之增大。
-实现思路 通过Redis来缓存菜品数据，减少数据库查询操作。
-...</p>
-    </div>
-    <footer class="entry-footer"><span title='2024-10-18 22:30:13 +0800 CST'>2024-10-18</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>836 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-18&nbsp;·&nbsp;<span>ShowGuan</span></footer>
-  </div> 
-  <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day7)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day7/"></a>
-</article>
-
-
-
-<article class="post-entry">
-  <div class="post-info">
-    <header class="entry-header">
-      <h2>苍穹外卖后端开发(Day6)
-      </h2>
-    </header>
-    <div class="entry-content">
-      <p>苍穹外卖后端开发(Day6) HttpClient HttpClient是 Apache Jakarta Common 下的子项目，可以用来提供高效的、最新的、功能丰富的支持HTTP协议的客户端编程工具包，并且它支持HTTP协议最新的版本和建议。
-...</p>
-    </div>
-    <footer class="entry-footer"><span title='2024-10-17 22:30:13 +0800 CST'>2024-10-17</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1020 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-17&nbsp;·&nbsp;<span>ShowGuan</span></footer>
-  </div> 
-  <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day6)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day6/"></a>
 </article>
 <footer class="page-footer">
   <nav class="pagination">
