@@ -12,7 +12,7 @@
 <meta name="description" content="MIT6.S081(10)-Locks">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.b72eecac0a3a9ba591bef019a99dbcd872ca402e346ebce57f8d01de95473598.css" integrity="sha256-ty7srAo6m6WRvvAZqZ282HLKQC40brzlf40B3pVHNZg=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -144,8 +144,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "MIT6.S081"
   ],
-  "articleBody": "MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but loose performance (kfree is serialized)\nThe lock abstraction:\nlock l acquire(l) x = x + 1 -- \"critical section\" release(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\nrename(\"d1/x\", \"d2/y\"): lock d1, erase x, unlock d1 lock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\nlock d1 ; lock d2 erase x, add y unlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\ncore A core B rename(d1/x, d2/y) rename(d2/a, d1/b) lock d1 lock d2 lock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\nwhy not: struct lock { int locked; } acquire(l) { while(1){ if(l-\u003elocked == 0){ // A l-\u003elocked = 1; // B return; } } } oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\na5 = 1 s1 = \u0026lk-\u003elocked amoswap.w.aq a5, a5, (s1) does this in hardware:\nlock addr globally (other cores cannot use it) temp = *s5 *addr = a5 a5 = temp unlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swamp to run one at a time, not interleaved\nLook at xv6 spinlock implementation\nacquire(l){ while(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0) } if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\nCore A: Core B: locked = 1 x = x + 1 while(locked == 1) locked = 0 ... locked = 1 x = x + 1 locked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\nlocked = 1 locked = 0 x = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) ",
-  "wordCount" : "1303",
+  "articleBody": "MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but lose performance (kfree is serialized)\nThe lock abstraction:\nlock l acquire(l) x = x + 1 -- \"critical section\" release(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\nrename(\"d1/x\", \"d2/y\"): lock d1, erase x, unlock d1 lock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\nlock d1 ; lock d2 erase x, add y unlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\ncore A core B rename(d1/x, d2/y) rename(d2/a, d1/b) lock d1 lock d2 lock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\nwhy not: struct lock { int locked; } acquire(l) { while(1){ if(l-\u003elocked == 0){ // A l-\u003elocked = 1; // B return; } } } oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\na5 = 1 s1 = \u0026lk-\u003elocked amoswap.w.aq a5, a5, (s1) does this in hardware:\nlock addr globally (other cores cannot use it) temp = *s5 *addr = a5 a5 = temp unlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swap to run one at a time, not interleaved\nLook at xv6 spinlock implementation\nacquire(l){ while(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0) } if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\nCore A: Core B: locked = 1 x = x + 1 while(locked == 1) locked = 0 ... locked = 1 x = x + 1 locked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\nlocked = 1 locked = 0 x = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) 在 xv6 内核中实现写时复制（Copy-on-Write）的 fork。完成要求后，内核需成功通过 cowtest 和 usertests 测试。\n关键要求：\n修改 uvmcopy() 实现父子进程共享物理页，不分配新页，并清除 PTE_W。 在 usertrap() 处理写时复制的页面错误，分配新页并拷贝旧页数据。 实现物理页引用计数，确保页在最后一次引用解除后才被释放。 修改 copyout() 处理 COW 页面。 1.添加reference数组，记录页面的引用计数。 2.初始化引用计数 3.分配时将页面计数置为1 4.实现计数 +1 -1 5.trap中出现未分配的page时判断是否是cow 6.添加cow标记位 7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数 8.实现is_cow() 和 cow_alloc() // 模仿 walkaddr 根据虚拟地址返回物理地址 int is_cow(pagetable_t pagetable, uint64 va) { pte_t *pte; if (va \u003e= MAXVA) { return 0; } if ((pte = walk(pagetable, va, 0)) == 0) { return 0; } if ((*pte \u0026 PTE_V) == 0) { return 0; } if ((*pte \u0026 PTE_U) == 0) { return 0; } return 1; } // cow_alloc: 处理写时复制（COW, Copy-On-Write）操作 // 输入参数： // - pagetable: 页表指针，用于定位虚拟地址所对应的页表项 // - va: 虚拟地址 (virtual address)，需要被复制的页 // 返回值： // - 成功时返回新分配的物理页地址 // - 失败时返回 0 uint64 cow_alloc(pagetable_t pagetable, uint64 va) { // 将虚拟地址对齐到页边界（向下取整），因为内存页通常按页大小分配 va = PGROUNDDOWN(va); // 获取虚拟地址 va 对应的页表项指针，如果失败返回 0 pte_t *pte = walk(pagetable, va, 0); // 为新的物理页分配内存 char *mem = kalloc(); if (mem == 0) { // 内存分配失败，返回 0 return 0; } // 获取当前页表项中存储的物理地址 uint64 pa = PTE2PA(*pte); // 将原物理页的数据复制到新分配的物理页 mem 中，保证内容一致 memmove(mem, (char *)pa, PGSIZE); // 获取页表项中的标志位信息（权限信息） uint flags = PTE_FLAGS(*pte); // 将新分配的物理页地址和原先的标志位一起设置到页表项 (*pte) = PA2PTE((uint64)mem) | flags; // 为新的页表项添加写权限（PTE_W），因为 COW 后需要进行写操作 (*pte) |= PTE_W; // 清除 COW 标志（PTE_C），表示这个页不再是共享的 COW 页 (*pte) \u0026= ~PTE_C; // 释放原先的物理页，原物理页在没有其他进程使用后可以被回收 kfree((void *)pa); // 返回新分配的物理页地址 return (uint64)mem; } 9.copyout()中判断是否是cow(), 并执行cow_alloc， 分配内存 10.defs.h中进行函数声明\n",
+  "wordCount" : "2151",
   "inLanguage": "zh",
   "datePublished": "2024-09-19T19:30:13+08:00",
   "dateModified": "2024-09-19T19:20:13+08:00",
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       MIT6.S081(10)-Locks
     </div>
-    <div class="post-meta"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1303 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;<span>ShowGuan</span>
+    <div class="post-meta"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;<span>ShowGuan</span>
 
 </div>
     
@@ -309,8 +309,29 @@ document.addEventListener("DOMContentLoaded", function() {
                     <a href="#lab-copy-on-write-fork-for-xv6" aria-label="Lab: Copy-on-Write Fork for xv6"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a></a><ul>
                         
                 <li>
-                    <a href="#implement-copy-on-writehard" aria-label="Implement copy-on write(hard)">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)</a>
+                    <a href="#implement-copy-on-writehard" aria-label="Implement copy-on write(hard)">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)</a><ul>
+                        
+                <li>
+                    <a href="#1%e6%b7%bb%e5%8a%a0reference%e6%95%b0%e7%bb%84%e8%ae%b0%e5%bd%95%e9%a1%b5%e9%9d%a2%e7%9a%84%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0" aria-label="1.添加reference数组，记录页面的引用计数。">1.添加reference数组，记录页面的引用计数。</a></li>
+                <li>
+                    <a href="#2%e5%88%9d%e5%a7%8b%e5%8c%96%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0" aria-label="2.初始化引用计数">2.初始化引用计数</a></li>
+                <li>
+                    <a href="#3%e5%88%86%e9%85%8d%e6%97%b6%e5%b0%86%e9%a1%b5%e9%9d%a2%e8%ae%a1%e6%95%b0%e7%bd%ae%e4%b8%ba1" aria-label="3.分配时将页面计数置为1">3.分配时将页面计数置为1</a></li>
+                <li>
+                    <a href="#4%e5%ae%9e%e7%8e%b0%e8%ae%a1%e6%95%b0-1--1" aria-label="4.实现计数 &#43;1 -1">4.实现计数 <code>+1</code> <code>-1</code></a></li>
+                <li>
+                    <a href="#5trap%e4%b8%ad%e5%87%ba%e7%8e%b0%e6%9c%aa%e5%88%86%e9%85%8d%e7%9a%84page%e6%97%b6%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%98%afcow" aria-label="5.trap中出现未分配的page时判断是否是cow">5.trap中出现未分配的page时判断是否是cow</a></li>
+                <li>
+                    <a href="#6%e6%b7%bb%e5%8a%a0cow%e6%a0%87%e8%ae%b0%e4%bd%8d" aria-label="6.添加cow标记位">6.添加cow标记位</a></li>
+                <li>
+                    <a href="#7kalloc%e6%97%b6%e6%a0%87%e8%ae%b0cow%e6%a0%87%e5%bf%97%e4%bd%8d-%e8%80%8c%e4%b8%8d%e6%98%af%e7%ab%8b%e5%88%bb%e5%88%86%e9%85%8d%e7%a9%ba%e9%97%b4-%e6%b7%bb%e5%8a%a0%e9%a1%b5%e9%9d%a2%e7%9a%84%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0" aria-label="7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数">7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数</a></li>
+                <li>
+                    <a href="#8%e5%ae%9e%e7%8e%b0is_cow-%e5%92%8c-cow_alloc" aria-label="8.实现is_cow() 和 cow_alloc()">8.实现<code>is_cow()</code> 和 <code>cow_alloc()</code></a></li>
+                <li>
+                    <a href="#9copyout%e4%b8%ad%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%98%afcow-%e5%b9%b6%e6%89%a7%e8%a1%8ccow_alloc-%e5%88%86%e9%85%8d%e5%86%85%e5%ad%98" aria-label="9.copyout()中判断是否是cow(), 并执行cow_alloc， 分配内存">9.copyout()中判断是否是<code>cow()</code>, 并执行<code>cow_alloc</code>， 分配内存</a>
                 </li>
+            </ul>
+            </li>
             </ul>
             </li>
             </ul>
@@ -397,7 +418,7 @@ picture of shared-memory multiprocessor
 race between two cores calling <code>kfree()</code>
 BUMMER:
 we need locks for correctness
-but loose performance (kfree is serialized)</p>
+but lose performance (kfree is serialized)</p>
 <p><strong>The lock abstraction:</strong></p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  lock l
 </span></span><span style="display:flex;"><span>  acquire(l)
@@ -531,7 +552,7 @@ different CPUs have had different implementations
 diagram: cores, bus, RAM, lock thing
 so we are really pushing the problem down to the hardware
 h/w implements at granularity of cache-line or entire bus
-memory lock forces concurrent swamp to run one at a time, not interleaved</p>
+memory lock forces concurrent swap to run one at a time, not interleaved</p>
 <p>Look at xv6 spinlock implementation</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  acquire(l){
 </span></span><span style="display:flex;"><span>    while(__sync_lock_test_and_set(&amp;lk-&gt;locked, 1) != 0)
@@ -589,6 +610,238 @@ use fine-grained locks only as needed for parallel performance
 use an automated race detector</p>
 <h1 id="lab-copy-on-write-fork-for-xv6"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a><a hidden class="anchor" aria-hidden="true" href="#lab-copy-on-write-fork-for-xv6">#</a></h1>
 <h2 id="implement-copy-on-writehard">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#implement-copy-on-writehard">#</a></h2>
+<p>在 xv6 内核中实现写时复制（Copy-on-Write）的 <code>fork</code>。完成要求后，内核需成功通过 <code>cowtest</code> 和 <code>usertests</code> 测试。</p>
+<p>关键要求：</p>
+<ol>
+<li>修改 <code>uvmcopy()</code> 实现父子进程共享物理页，不分配新页，并清除 PTE_W。</li>
+<li>在 <code>usertrap()</code> 处理写时复制的页面错误，分配新页并拷贝旧页数据。</li>
+<li>实现物理页引用计数，确保页在最后一次引用解除后才被释放。</li>
+<li>修改 <code>copyout()</code> 处理 COW 页面。</li>
+</ol>
+<h3 id="1添加reference数组记录页面的引用计数">1.添加reference数组，记录页面的引用计数。<a hidden class="anchor" aria-hidden="true" href="#1添加reference数组记录页面的引用计数">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121105036.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121105036.png" alt="image-20240926121105036"  />
+        </a>
+    </div>
+</p>
+<h3 id="2初始化引用计数">2.初始化引用计数<a hidden class="anchor" aria-hidden="true" href="#2初始化引用计数">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121219046.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121219046.png" alt="image-20240926121219046"  />
+        </a>
+    </div>
+</p>
+<h3 id="3分配时将页面计数置为1">3.分配时将页面计数置为1<a hidden class="anchor" aria-hidden="true" href="#3分配时将页面计数置为1">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121301072.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121301072.png" alt="image-20240926121301072"  />
+        </a>
+    </div>
+</p>
+<h3 id="4实现计数-1--1">4.实现计数 <code>+1</code> <code>-1</code><a hidden class="anchor" aria-hidden="true" href="#4实现计数-1--1">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121415398.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121415398.png" alt="image-20240926121415398"  />
+        </a>
+    </div>
+</p>
+<h3 id="5trap中出现未分配的page时判断是否是cow">5.trap中出现未分配的page时判断是否是cow<a hidden class="anchor" aria-hidden="true" href="#5trap中出现未分配的page时判断是否是cow">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121558069.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121558069.png" alt="image-20240926121558069"  />
+        </a>
+    </div>
+</p>
+<h3 id="6添加cow标记位">6.添加cow标记位<a hidden class="anchor" aria-hidden="true" href="#6添加cow标记位">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121645097.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121645097.png" alt="image-20240926121645097"  />
+        </a>
+    </div>
+</p>
+<h3 id="7kalloc时标记cow标志位-而不是立刻分配空间-添加页面的引用计数">7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数<a hidden class="anchor" aria-hidden="true" href="#7kalloc时标记cow标志位-而不是立刻分配空间-添加页面的引用计数">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121743881.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121743881.png" alt="image-20240926121743881"  />
+        </a>
+    </div>
+</p>
+<h3 id="8实现is_cow-和-cow_alloc">8.实现<code>is_cow()</code> 和 <code>cow_alloc()</code><a hidden class="anchor" aria-hidden="true" href="#8实现is_cow-和-cow_alloc">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121857988.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121857988.png" alt="image-20240926121857988"  />
+        </a>
+    </div>
+</p>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121927248.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121927248.png" alt="image-20240926121927248"  />
+        </a>
+    </div>
+</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 模仿 walkaddr 根据虚拟地址返回物理地址
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">is_cow</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (va <span style="color:#f92672">&gt;=</span> MAXVA)
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(pagetable, va, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_U) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// cow_alloc: 处理写时复制（COW, Copy-On-Write）操作
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 输入参数：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - pagetable: 页表指针，用于定位虚拟地址所对应的页表项
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - va: 虚拟地址 (virtual address)，需要被复制的页
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 返回值：
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - 成功时返回新分配的物理页地址
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - 失败时返回 0
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>uint64 <span style="color:#a6e22e">cow_alloc</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va)
+</span></span><span style="display:flex;"><span>{
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将虚拟地址对齐到页边界（向下取整），因为内存页通常按页大小分配
+</span></span></span><span style="display:flex;"><span>  va <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDDOWN</span>(va);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取虚拟地址 va 对应的页表项指针，如果失败返回 0
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(pagetable, va, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 为新的物理页分配内存
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem <span style="color:#f92672">=</span> <span style="color:#a6e22e">kalloc</span>();
+</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (mem <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
+</span></span><span style="display:flex;"><span>  {
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 内存分配失败，返回 0
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>  }
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取当前页表项中存储的物理地址
+</span></span></span><span style="display:flex;"><span>  uint64 pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将原物理页的数据复制到新分配的物理页 mem 中，保证内容一致
+</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">memmove</span>(mem, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)pa, PGSIZE);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取页表项中的标志位信息（权限信息）
+</span></span></span><span style="display:flex;"><span>  uint flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将新分配的物理页地址和原先的标志位一起设置到页表项
+</span></span></span><span style="display:flex;"><span>  (<span style="color:#f92672">*</span>pte) <span style="color:#f92672">=</span> <span style="color:#a6e22e">PA2PTE</span>((uint64)mem) <span style="color:#f92672">|</span> flags;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 为新的页表项添加写权限（PTE_W），因为 COW 后需要进行写操作
+</span></span></span><span style="display:flex;"><span>  (<span style="color:#f92672">*</span>pte) <span style="color:#f92672">|=</span> PTE_W;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 清除 COW 标志（PTE_C），表示这个页不再是共享的 COW 页
+</span></span></span><span style="display:flex;"><span>  (<span style="color:#f92672">*</span>pte) <span style="color:#f92672">&amp;=</span> <span style="color:#f92672">~</span>PTE_C;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 释放原先的物理页，原物理页在没有其他进程使用后可以被回收
+</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">kfree</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)pa);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 返回新分配的物理页地址
+</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (uint64)mem;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h3 id="9copyout中判断是否是cow-并执行cow_alloc-分配内存">9.copyout()中判断是否是<code>cow()</code>, 并执行<code>cow_alloc</code>， 分配内存<a hidden class="anchor" aria-hidden="true" href="#9copyout中判断是否是cow-并执行cow_alloc-分配内存">#</a></h3>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122208524.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122208524.png" alt="image-20240926122208524"  />
+        </a>
+    </div>
+</p>
+<p>10.<code>defs.h</code>中进行函数声明</p>
+<p>
+
+
+
+
+
+
+    <div class="post-img-view">
+        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122504380.png">
+            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122504380.png" alt="image-20240926122504380"  />
+        </a>
+    </div>
+</p>
 
 
   </div>

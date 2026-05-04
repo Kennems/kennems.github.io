@@ -12,7 +12,7 @@
 <meta name="description" content="LeetCode 周赛 415(250915)">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240915/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.b72eecac0a3a9ba591bef019a99dbcd872ca402e346ebce57f8d01de95473598.css" integrity="sha256-ty7srAo6m6WRvvAZqZ282HLKQC40brzlf40B3pVHNZg=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -144,7 +144,7 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "LeetCode周赛"
   ],
-  "articleBody": "周赛250915 时隔多日再才重新开启周赛。这场DP居多。\nT2-3290. 最高乘法得分 题目大意： 给定两个数组 a 和 b，数组 a 长度为 4，数组 b 长度至少为 4。需要从 b 中选择 4 个递增下标 i0 \u003c i1 \u003c i2 \u003c i3，计算 a[0] * b[i0] + a[1] * b[i1] + a[2] * b[i2] + a[3] * b[i3]，并返回最大得分。\n代码实现思路： 使用动态规划的思想解决问题。定义 f[i][j] 表示在前 i 个元素中选择了 j 个数时的最大得分。 初始化 f[0][0] = 0，表示在没有元素的情况下选择 0 个数时得分为 0，其余情况初始化为负无穷大。 遍历数组 b，对于每一个位置 i，我们可以选择保留当前状态（即不选第 i 个元素，继承上一个状态的值），或者选择第 i 个元素（更新当前状态，计算乘积并加到上一个状态 f[i-1][j-1] 中）。 最后，结果就是从长度为 4 的选择中得到的最大得分 max(f[i][4])。 class Solution: def maxScore(self, a: List[int], b: List[int]) -\u003e int: n = len(b) f = [[-inf]*5 for _ in range(n + 1)] # f[i][j] 表示 b 中 前 i 个数字(不包括i)中选 j 个可以获得的最大得分 f[0][0] = 0 for i in range(1, n + 1): for j in range(min(4, i) + 1): f[i][j] = f[i-1][j] if j: f[i][j] = max(f[i][j], f[i-1][j-1] + a[j - 1] * b[i - 1]) return max(f[i][4] for i in range(4, n + 1)) T3\u00264-3291. 形成目标字符串需要的最少字符串数 I 题目大意： 给定一个字符串数组 words 和一个目标字符串 target，需要通过连接 words 中的有效前缀字符串组成目标字符串 target。要求计算连接有效字符串形成 target 所需的最少字符串数量。如果无法组成 target，返回 -1。\n代码实现思路： 使用 Z 函数 计算 words 中每个字符串与 target 对应位置的最长匹配前缀，得到每个位置能匹配的最大长度 nxt 数组。 动态规划数组 f[i] 表示到达 target 的第 i 个字符所需的最少字符串数量，初始时 f[0] = 0，表示到达初始位置需要 0 个字符串。 遍历 target，如果某个位置无法通过前面的组合到达，则返回 -1；否则根据前面的匹配情况不断更新 f 数组，记录当前能够延伸的最长有效前缀 last。 在遍历过程中，如果找到一个位置 i，可以用更少的字符串覆盖更长的前缀，则更新 f 数组和 last。 最后返回 f[n]，即完整匹配 target 所需的最少字符串数。 def z_function(s): n = len(s) z = [0] * n l, r = 0, 0 for i in range(1, n): if i\u003c=r and z[i - l] \u003c r - i + 1: z[i] = z[i-l] else: z[i] = max(0, r - i + 1) while i + z[i] \u003c n and s[z[i]] == s[i + z[i]]: z[i] += 1 if i + z[i] - 1 \u003e r: l, r = i, i + z[i] - 1 return z class Solution: def minValidStrings(self, words: List[str], target: str) -\u003e int: n = len(target) nxt = [0] * n for w in words: s = w + '#' + target z = z_function(s) for i in range(n): nxt[i] = max(nxt[i], z[i + len(w) + 1]) f = [-1] * (n + 1) f[0] = 0 last = 0 # 所有 words 可以拓展到的target的最长长度 for i in range(n): if f[i] == -1: continue if i \u003e last: return -1 nx = nxt[i] if i + nx \u003e last: for j in range(last + 1, i + nx + 1): f[j] = f[i] + 1 last = i + nx if last == n: break return f[n] ",
+  "articleBody": "周赛240915 时隔多日再才重新开启周赛。这场DP居多。\nT2-3290. 最高乘法得分 题目大意： 给定两个数组 a 和 b，数组 a 长度为 4，数组 b 长度至少为 4。需要从 b 中选择 4 个递增下标 i0 \u003c i1 \u003c i2 \u003c i3，计算 a[0] * b[i0] + a[1] * b[i1] + a[2] * b[i2] + a[3] * b[i3]，并返回最大得分。\n代码实现思路： 使用动态规划的思想解决问题。定义 f[i][j] 表示在前 i 个元素中选择了 j 个数时的最大得分。 初始化 f[0][0] = 0，表示在没有元素的情况下选择 0 个数时得分为 0，其余情况初始化为负无穷大。 遍历数组 b，对于每一个位置 i，我们可以选择保留当前状态（即不选第 i 个元素，继承上一个状态的值），或者选择第 i 个元素（更新当前状态，计算乘积并加到上一个状态 f[i-1][j-1] 中）。 最后，结果就是从长度为 4 的选择中得到的最大得分 max(f[i][4])。 class Solution: def maxScore(self, a: List[int], b: List[int]) -\u003e int: n = len(b) f = [[-inf]*5 for _ in range(n + 1)] # f[i][j] 表示 b 中 前 i 个数字(不包括i)中选 j 个可以获得的最大得分 f[0][0] = 0 for i in range(1, n + 1): for j in range(min(4, i) + 1): f[i][j] = f[i-1][j] if j: f[i][j] = max(f[i][j], f[i-1][j-1] + a[j - 1] * b[i - 1]) return max(f[i][4] for i in range(4, n + 1)) T3\u00264-3291. 形成目标字符串需要的最少字符串数 I 题目大意： 给定一个字符串数组 words 和一个目标字符串 target，需要通过连接 words 中的有效前缀字符串组成目标字符串 target。要求计算连接有效字符串形成 target 所需的最少字符串数量。如果无法组成 target，返回 -1。\n代码实现思路： 使用 Z 函数 计算 words 中每个字符串与 target 对应位置的最长匹配前缀，得到每个位置能匹配的最大长度 nxt 数组。 动态规划数组 f[i] 表示到达 target 的第 i 个字符所需的最少字符串数量，初始时 f[0] = 0，表示到达初始位置需要 0 个字符串。 遍历 target，如果某个位置无法通过前面的组合到达，则返回 -1；否则根据前面的匹配情况不断更新 f 数组，记录当前能够延伸的最长有效前缀 last。 在遍历过程中，如果找到一个位置 i，可以用更少的字符串覆盖更长的前缀，则更新 f 数组和 last。 最后返回 f[n]，即完整匹配 target 所需的最少字符串数。 def z_function(s): n = len(s) z = [0] * n l, r = 0, 0 for i in range(1, n): if i\u003c=r and z[i - l] \u003c r - i + 1: z[i] = z[i-l] else: z[i] = max(0, r - i + 1) while i + z[i] \u003c n and s[z[i]] == s[i + z[i]]: z[i] += 1 if i + z[i] - 1 \u003e r: l, r = i, i + z[i] - 1 return z class Solution: def minValidStrings(self, words: List[str], target: str) -\u003e int: n = len(target) nxt = [0] * n for w in words: s = w + '#' + target z = z_function(s) for i in range(n): nxt[i] = max(nxt[i], z[i + len(w) + 1]) f = [-1] * (n + 1) f[0] = 0 last = 0 # 所有 words 可以拓展到的target的最长长度 for i in range(n): if f[i] == -1: continue if i \u003e last: return -1 nx = nxt[i] if i + nx \u003e last: for j in range(last + 1, i + nx + 1): f[j] = f[i] + 1 last = i + nx if last == n: break return f[n] ",
   "wordCount" : "997",
   "inLanguage": "zh",
   "datePublished": "2024-09-17T15:37:01+08:00",
@@ -282,7 +282,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
         <div class="inner"><ul>
                 <li>
-                    <a href="#%e5%91%a8%e8%b5%9b250915" aria-label="周赛250915">周赛250915</a><ul>
+                    <a href="#%e5%91%a8%e8%b5%9b240915" aria-label="周赛240915">周赛240915</a><ul>
                         
                 <li>
                     <a href="#t2-3290-%e6%9c%80%e9%ab%98%e4%b9%98%e6%b3%95%e5%be%97%e5%88%86" aria-label="T2-3290. 最高乘法得分"><a href="https://leetcode.cn/problems/maximum-multiplication-score/">T2-3290. 最高乘法得分</a></a><ul>
@@ -369,7 +369,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 </script>
 
-  <div class="post-content md-content"><h1 id="周赛250915">周赛250915<a hidden class="anchor" aria-hidden="true" href="#周赛250915">#</a></h1>
+  <div class="post-content md-content"><h1 id="周赛240915">周赛240915<a hidden class="anchor" aria-hidden="true" href="#周赛240915">#</a></h1>
 <p>时隔多日再才重新开启周赛。这场DP居多。</p>
 <h2 id="t2-3290-最高乘法得分"><a href="https://leetcode.cn/problems/maximum-multiplication-score/">T2-3290. 最高乘法得分</a><a hidden class="anchor" aria-hidden="true" href="#t2-3290-最高乘法得分">#</a></h2>
 <h3 id="题目大意"><strong>题目大意：</strong><a hidden class="anchor" aria-hidden="true" href="#题目大意">#</a></h3>
