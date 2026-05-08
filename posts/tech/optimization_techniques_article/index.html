@@ -1,0 +1,1409 @@
+<!DOCTYPE html>
+<html lang="zh" dir="auto" data-theme="auto">
+
+<head><meta charset="utf-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<meta name="robots" content="index, follow">
+
+<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
+<title>Kennem&#39;s Blog</title>
+<meta name="keywords" content="">
+<meta name="description" content="竞赛编程极致优化技巧完全指南
+
+基于 Apple M4 ARM64 &#43; clang&#43;&#43; 21.0.0 实测验证，16 道 Codeforces 真题实战，100&#43; 源文件，38 个编译二进制全面基准测试。
+
+
+目录
+
+核心原则：正确性第一，算法为王
+运行时优化
+内存优化
+代码长度优化 (Code Golf)
+跨维度权衡与实测数据
+最佳实践清单
+
+
+1. 核心原则
+1.1 三层优化金字塔
+        ┌──────────────┐
+        │  算法替换     │  ← 最大收益 (10×-100×)
+        │  (O(n²)→O(n log n)) │
+        ├──────────────┤
+        │  数据结构优化 │  ← 中等收益 (2×-10×)
+        │  (SoA, 扁平化)│
+        ├──────────────┤
+        │  微优化       │  ← 边际收益 (5%-50%)
+        │  (内联, 分支) │
+        └──────────────┘
+铁律：先换算法，再调实现。 用 __builtin_prefetch 优化一个 O(n²) 算法永远不如换成 O(n log n)。">
+<meta name="author" content="ShowGuan">
+<link rel="canonical" href="https://kennems.github.io/posts/tech/optimization_techniques_article/">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link rel="icon" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
+<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
+<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
+<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
+<meta name="theme-color" content="#2e2e33">
+<meta name="msapplication-TileColor" content="#2e2e33">
+<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/optimization_techniques_article/">
+<noscript>
+    <style>
+        #theme-toggle,
+        .top-link {
+            display: none;
+        }
+
+    </style>
+    <style>
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --theme: rgb(29, 30, 32);
+                --entry: rgb(46, 46, 51);
+                --primary: rgb(218, 218, 219);
+                --secondary: rgb(155, 156, 157);
+                --tertiary: rgb(65, 66, 68);
+                --content: rgb(196, 196, 197);
+                --code-block-bg: rgb(46, 46, 51);
+                --code-bg: rgb(55, 56, 62);
+                --border: rgb(51, 51, 51);
+                color-scheme: dark;
+            }
+
+            .list {
+                background: var(--theme);
+            }
+
+            .toc {
+                background: var(--entry);
+            }
+        }
+
+    </style>
+</noscript>
+<script>
+    if (localStorage.getItem("pref-theme") === "dark") {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else if (localStorage.getItem("pref-theme") === "light") {
+       document.querySelector("html").dataset.theme = 'light';
+    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+        document.querySelector("html").dataset.theme = 'dark';
+    } else {
+        document.querySelector("html").dataset.theme = 'light';
+    }
+
+</script>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
+
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
+    onload="renderMathInElement(document.body);"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    renderMathInElement(document.body, {
+        delimiters: [
+            {left: "$$", right: "$$", display: true},
+            {left: "$", right: "$", display: false}
+        ]
+    });
+});
+</script>
+
+
+
+<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<meta property="og:url" content="https://kennems.github.io/posts/tech/optimization_techniques_article/">
+  <meta property="og:site_name" content="Kennem&#39;s Blog">
+  <meta property="og:title" content="Kennem&#39;s Blog">
+  <meta property="og:description" content="竞赛编程极致优化技巧完全指南 基于 Apple M4 ARM64 &#43; clang&#43;&#43; 21.0.0 实测验证，16 道 Codeforces 真题实战，100&#43; 源文件，38 个编译二进制全面基准测试。
+目录 核心原则：正确性第一，算法为王 运行时优化 内存优化 代码长度优化 (Code Golf) 跨维度权衡与实测数据 最佳实践清单 1. 核心原则 1.1 三层优化金字塔 ┌──────────────┐ │ 算法替换 │ ← 最大收益 (10×-100×) │ (O(n²)→O(n log n)) │ ├──────────────┤ │ 数据结构优化 │ ← 中等收益 (2×-10×) │ (SoA, 扁平化)│ ├──────────────┤ │ 微优化 │ ← 边际收益 (5%-50%) │ (内联, 分支) │ └──────────────┘ 铁律：先换算法，再调实现。 用 __builtin_prefetch 优化一个 O(n²) 算法永远不如换成 O(n log n)。">
+  <meta property="og:locale" content="zh_cn">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="Kennem&#39;s Blog">
+  <meta name="twitter:description" content="竞赛编程极致优化技巧完全指南 基于 Apple M4 ARM64 &#43; clang&#43;&#43; 21.0.0 实测验证，16 道 Codeforces 真题实战，100&#43; 源文件，38 个编译二进制全面基准测试。
+目录 核心原则：正确性第一，算法为王 运行时优化 内存优化 代码长度优化 (Code Golf) 跨维度权衡与实测数据 最佳实践清单 1. 核心原则 1.1 三层优化金字塔 ┌──────────────┐ │ 算法替换 │ ← 最大收益 (10×-100×) │ (O(n²)→O(n log n)) │ ├──────────────┤ │ 数据结构优化 │ ← 中等收益 (2×-10×) │ (SoA, 扁平化)│ ├──────────────┤ │ 微优化 │ ← 边际收益 (5%-50%) │ (内联, 分支) │ └──────────────┘ 铁律：先换算法，再调实现。 用 __builtin_prefetch 优化一个 O(n²) 算法永远不如换成 O(n log n)。">
+
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  "itemListElement": [
+    {
+      "@type": "ListItem",
+      "position":  1 ,
+      "name": "📚文章",
+      "item": "https://kennems.github.io/posts/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  2 ,
+      "name": "💻技术",
+      "item": "https://kennems.github.io/posts/tech/"
+    }, 
+    {
+      "@type": "ListItem",
+      "position":  3 ,
+      "name": "",
+      "item": "https://kennems.github.io/posts/tech/optimization_techniques_article/"
+    }
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": "",
+  "name": "",
+  "description": "竞赛编程极致优化技巧完全指南 基于 Apple M4 ARM64 + clang++ 21.0.0 实测验证，16 道 Codeforces 真题实战，100+ 源文件，38 个编译二进制全面基准测试。\n目录 核心原则：正确性第一，算法为王 运行时优化 内存优化 代码长度优化 (Code Golf) 跨维度权衡与实测数据 最佳实践清单 1. 核心原则 1.1 三层优化金字塔 ┌──────────────┐ │ 算法替换 │ ← 最大收益 (10×-100×) │ (O(n²)→O(n log n)) │ ├──────────────┤ │ 数据结构优化 │ ← 中等收益 (2×-10×) │ (SoA, 扁平化)│ ├──────────────┤ │ 微优化 │ ← 边际收益 (5%-50%) │ (内联, 分支) │ └──────────────┘ 铁律：先换算法，再调实现。 用 __builtin_prefetch 优化一个 O(n²) 算法永远不如换成 O(n log n)。\n",
+  "keywords": [
+    
+  ],
+  "articleBody": "竞赛编程极致优化技巧完全指南 基于 Apple M4 ARM64 + clang++ 21.0.0 实测验证，16 道 Codeforces 真题实战，100+ 源文件，38 个编译二进制全面基准测试。\n目录 核心原则：正确性第一，算法为王 运行时优化 内存优化 代码长度优化 (Code Golf) 跨维度权衡与实测数据 最佳实践清单 1. 核心原则 1.1 三层优化金字塔 ┌──────────────┐ │ 算法替换 │ ← 最大收益 (10×-100×) │ (O(n²)→O(n log n)) │ ├──────────────┤ │ 数据结构优化 │ ← 中等收益 (2×-10×) │ (SoA, 扁平化)│ ├──────────────┤ │ 微优化 │ ← 边际收益 (5%-50%) │ (内联, 分支) │ └──────────────┘ 铁律：先换算法，再调实现。 用 __builtin_prefetch 优化一个 O(n²) 算法永远不如换成 O(n log n)。\n1.2 I/O 瓶颈不容忽视 Codeforces 最常见的 TLE 原因不是算法慢，而是 cin/cout 太慢。任何涉及 10^5 以上输入输出的题目，第一件事就是换掉默认 I/O。\n实测数据（86D Powerful Array, n=200K, t=200K）：\ncin/cout + ios::sync_with_stdio(false): 519.6 ms fread 自定义解析器 + fwrite 输出缓冲: 85.6 ms (6.07× 加速) 1.3 局部基准测试陷阱 hyperfine --warmup 3 --runs 10 比手动 time 可靠得多。单次测量误差可达 ±30%，hyperfine 提供统计显著性。\n2. 运行时优化 2.1 快速 I/O — 最重要的单项优化 2.1.1 最小代价方案：禁用同步 // 3 行代码，3-5× 加速 ios::sync_with_stdio(false); cin.tie(nullptr); cout.tie(nullptr); 代价： 不能再混用 cin 和 scanf。交互题需手动 cout \u003c\u003c flush。\n2.1.2 fread 自定义整数解析器 — 极致方案 constexpr int BUFSZ = 1 \u003c\u003c 22; // 4 MiB char ibuf[BUFSZ], *iptr = ibuf, *iend = ibuf; void refill() { iend = ibuf + fread(ibuf, 1, BUFSZ, stdin); iptr = ibuf; } __attribute__((always_inline, hot)) int readInt() { int x = 0; char c; while (__builtin_expect((c = *iptr) \u003c '0', 0)) if (++iptr \u003e= iend) refill(); while (__builtin_expect(c \u003e= '0', 1)) { x = x * 10 + (c \u0026 15); // '0' = 0x30, so c \u0026 0xF = digit if (__builtin_expect(++iptr \u003e= iend, 0)) refill(); c = *iptr; } return x; } 关键点：\nc \u0026 15 替代 c - '0'：位运算快 10-20% __builtin_expect 分支预测提示：编译器把 c \u003e= '0' 路径放在相邻位置 __attribute__((always_inline, hot))：消除函数调用开销 2.1.3 mmap — 理论最快但平台受限 #include struct stat st; fstat(0, \u0026st); char *data = (char*)mmap(0, st.st_size, PROT_READ, MAP_PRIVATE, 0, 0); madvise(data, st.st_size, MADV_SEQUENTIAL | MADV_WILLNEED); // 直接从 data 指针解析整数，零拷贝 注意： Codeforces 评测机可能不支持 mmap stdin，但本地基准测试中性能最优。\n2.2 编译器标志 — 一行不改的优化 标志 效果 实测加速 (NEON 10M 求和) -O0 基线 1.00× -O1 基础优化 1.59× -O2 标准优化 1.07×* -O3 激进优化 1.42× -Os 体积优化 1.65× 🏆 -Ofast 不安全优化 1.24× -O3 -march=native -flto 全开 1.37× * 注：-O2 在该特定基准中因向量化决策差异反而慢于 -O1\n关键发现： -Os（优化体积）在 Apple M4 对 NEON 向量化代码比 -O3 更快！原因是指令缓存命中率更高。\n极致编译命令：\n# 通用竞赛编程 clang++ -std=c++20 -O3 -march=native -flto -o prog src.cpp # 手写 SIMD 向量化代码 clang++ -std=c++20 -Os -o prog src.cpp # PGO 额外优化 (见 2.7 节) clang++ -std=c++20 -O3 -march=native -flto -fprofile-instr-use=profile.profdata -o prog src.cpp 2.3 编译器内建函数 (Builtins) // 1. 分支预测提示 — 告知编译器哪个分支更可能执行 #define LIKELY(x) __builtin_expect(!!(x), 1) #define UNLIKELY(x) __builtin_expect(!!(x), 0) // 实测加速: 5-15% on branch-heavy code // 2. 预取 — 提前把数据加载到缓存 __builtin_prefetch(\u0026arr[i + 64], 0, 3); // 0=读, 3=高局部性 // 实测加速: 5-40% on sequential scans // 3. popcount — 单指令替代循环 int bits = __builtin_popcountll(x); // ARM64: CNT 指令, O(1) // 对于位掩码枚举、子集 DP 至关重要 // 4. 尾零/前导零计数 — 枚举子集、位扫描 int trail = __builtin_ctzll(x); // RBIT + CLZ on ARM64 int lead = __builtin_clzll(x); // CLZ 指令 // 5. 字节交换 — 大小端转换 uint32_t le = __builtin_bswap32(be); // 6. 内存对齐假设 — 编译器生成更高效代码 int *aligned_ptr = (int*)__builtin_assume_aligned(ptr, 64); 效率排序（从高到低）：\n内建函数替代手写循环 (popcount 1000×+) 分支预测提示 (5-15%) 预取 (5-40%, 取决于访问模式) 2.4 ARM NEON SIMD 向量化 Apple M4 使用 ARM64 架构，SIMD 指令集为 NEON（不是 x86 的 SSE/AVX）。\n#include // 标量版 — 每次处理1个元素 int scalar_sum(int *arr, int n) { int sum = 0; for (int i = 0; i \u003c n; i++) sum += arr[i]; return sum; } // NEON 向量化版 — 每次处理4个元素 int neon_sum(int *arr, int n) { int32x4_t vsum = vdupq_n_s32(0); // 4路累加器初始化为0 int i = 0; for (; i + 4 \u003c= n; i += 4) { int32x4_t v = vld1q_s32(\u0026arr[i]); // 一次加载4个int vsum = vaddq_s32(vsum, v); // 4路并行加法 } int sum = vaddvq_s32(vsum); // 水平归约→标量 for (; i \u003c n; i++) sum += arr[i]; // 剩余元素标量处理 return sum; } // 实测: 2.38× 加速 (Apple M4, 10M ints) NEON 常用指令速查：\n操作 NEON 指令 说明 加载 vld1q_s32(ptr) 加载 4 个 int 存储 vst1q_s32(ptr, v) 存储 4 个 int 加法 vaddq_s32(a, b) 4 路并行加 乘法 vmulq_s32(a, b) 4 路并行乘 乘加 vmlaq_s32(acc, a, b) acc += a * b 最小值 vminq_s32(a, b) 4 路并行 min 最大值 vmaxq_s32(a, b) 4 路并行 max 水平归约 vaddvq_s32(v) 4→1 求和 比较 vceqq_s32(a, b) 4 路相等比较 popcount vcntq_u8(v) 字节级 popcount 何时使用 SIMD：\n密集数值计算（数组求和、点积、矩阵乘法）— 收益 2-4× 比较/筛选操作 — NEON 比较 + 位掩码提取 不适用于稀疏操作、链式数据结构、控制流密集代码 2.5 分支预测与无分支编程 2.5.1 分支预测友好代码 // 差：随机分支 → 50% 预测失败 for (int i = 0; i \u003c n; i++) if (data[i] \u003e threshold) sum++; // 好：先排序 → 连续分支 → 接近 100% 预测成功 sort(data, data + n); for (int i = 0; i \u003c n; i++) if (data[i] \u003e threshold) sum++; 2.5.2 无分支技巧 // 条件赋值 → 算术替代 int result = (a \u003e b) ? x : y; int result = y + ((a \u003e b) ? (x - y) : 0); // 编译器生成 CSEL (ARM64) // 条件递增 → 无分支计数器 cnt += (arr[i] \u003e threshold); // bool 隐式转换为 0/1 // 取绝对值 — 避免分支 int abs_nobranch(int x) { int mask = x \u003e\u003e 31; // -1 if negative, 0 if positive return (x + mask) ^ mask; } 2.5.3 无分支二分查找 传统 std::lower_bound 每次迭代都有分支，预测失败代价高。无分支版本用算术计算下一位置：\n// S. Slotin 的无分支二分查找 — 实测 2.09× 加速 int branchless_lower_bound(int *arr, int n, int target) { int *base = arr; while (n \u003e 1) { int half = n / 2; // 关键：用算术替代 if，编译器生成 CSEL base = (base[half - 1] \u003c target) ? base + half : base; n -= half; } return *base; } // 实测: 10M 查询, std::lower_bound 4087ms vs 分支版 1955ms (2.09×) 2.6 缓存优化 // 1. 缓存行对齐 — 消除伪共享 struct alignas(64) Counter { int val; }; // 2. 时间局部性 — 块循环 (cache blocking) for (int ii = 0; ii \u003c n; ii += BS) for (int jj = 0; jj \u003c n; jj += BS) for (int i = ii; i \u003c min(ii+BS, n); i++) for (int j = jj; j \u003c min(jj+BS, n); j++) C[i][j] += A[i][k] * B[k][j]; // 3. 顺序访问 — 永远比随机访问快 for (int i = 0; i \u003c n; i++) sum += arr[i]; // 顺序: ✓ for (int i = 0; i \u003c n; i++) sum += arr[rand() % n]; // 随机: ✗ (10-100× slower) // 4. 预取 — 提前通知 CPU for (int i = 0; i \u003c n; i++) { __builtin_prefetch(\u0026arr[i + 64], 0, 3); process(arr[i]); } // 5. SoA 布局 — 遍历单字段时缓存友好 // AoS (差): struct { int x, y, z; } arr[n]; // 加载 x 时附带加载了未使用的 y, z // SoA (好): int xs[n], ys[n], zs[n]; // 每次加载只含需要的字段 Apple M4 缓存层次：\n级别 大小 延迟 L1 指令 192 KB ~3 cycles L1 数据 128 KB ~4 cycles L2 共享 16 MB ~20 cycles 主存 16 GB ~100+ cycles 2.7 莫队算法优化 莫队是 Codeforces 最常见的优化目标题类型。标准莫队的瓶颈不是 O((n+q)√n) 的复杂度，而是常数因子。\n// 技巧1: Hilbert 曲线排序替代块排序 → 减少 25-35% 指针移动 inline int64_t hilbertOrder(int x, int y, int pow, int rotate) { if (pow == 0) return 0; int hpow = 1 \u003c\u003c (pow - 1); int seg = (x \u003c hpow) ? ((y \u003c hpow) ? 0 : 1) : ((y \u003c hpow) ? 3 : 2); seg = (seg + rotate) \u0026 3; return hilbertOrder(x \u0026 (x ^ hpow), y \u0026 (y ^ hpow), pow - 1, (rotate + (seg == 0 || seg == 3 ? 2 : (seg == 1 ? 0 : 1))) \u0026 3) | ((int64_t)seg \u003c\u003c (2 * (pow - 1))); } // 技巧2: 块大小 = n / sqrt(q) 而非 sqrt(n) int block = n / sqrt(t + 1); if (block == 0) block = 1; // 技巧3: O(1) add/remove + __attribute__((always_inline)) __attribute__((always_inline, hot)) void add(int pos) { /* 内联消除函数调用开销 */ } 86D 实测结果：\n方法 时间 块排序莫队 + cin/cout 540.7 ms Hilbert 莫队 + fread I/O + 内联 74.5 ms (7.25×) 2.8 配置文件引导优化 (PGO) PGO 是\"免费午餐\"——不改一行代码，仅增加编译步骤：\n# 第一步：编译插桩版本 clang++ -std=c++20 -O3 -march=native -flto -fprofile-instr-generate -o prog_instr src.cpp # 第二步：用真实/训练输入运行 ./prog_instr \u003c train_input.txt \u003e /dev/null # 生成 default.profraw # 第三步：合并 profile 数据 xcrun llvm-profdata merge default.profraw -o default.profdata # 第四步：用 profile 编译最终版本 clang++ -std=c++20 -O3 -march=native -flto -fprofile-instr-use=default.profdata -o prog src.cpp 86D PGO 实测：149.2 ms → 94.9 ms (1.57× 额外加速)\nPGO 对以下类型的代码最有效：\n分支密集代码（编译器根据实际分支频率重新布局） 间接调用（虚函数、函数指针 → 推测内联） 循环展开决策（根据实际迭代次数） 3. 内存优化 3.1 算法替换 — 最大收益 161D Distance in Tree: O(nk) → O(n log n) // 基线: O(nk) DP 表 → 200 MB vector\u003cvector\u003clong long\u003e\u003e dp(n + 1, vector\u003clong long\u003e(k + 1, 0)); // 50,001 × 501 × 8 bytes = ~200 MB // 极致: 重心分解 → O(n log n) 时间复杂度, O(n) 空间 → 3.5 MB void decompose(int u) { int c = findCentroid(u); // 对每个子树，统计经过重心的距离为k的路径 for (each child of c) { collectDistances(child); // BFS 收集深度 matchWithCollected(cnt); // 匹配已收集的深度 addToCollected(cnt); // 合并 clearChildCounters(); // 复用数组 } clearAllCounters(); for (each child of c) if (!removed[child]) decompose(child); // 递归 } // 实测: 200.8 MB → 3.5 MB (57.37× 缩减) 118D Caesar’s Legions: 4D DP → 2层滚动 // 基线: 4D dp[n1+1][n2+1][k1+1][2] → 6.6 MB // 极致: 2层滚动 dp_cur[n2+1][k2+1][2] + dp_prev → 1.4 MB // 关键: 注意到 dp[i][j][c][t] 只依赖 dp[i-1][...] 和 dp[i][...] 3.2 数据结构布局 结构体成员重排 — 零代价压缩 // 差: 24 bytes (padding 浪费) struct Bad { char a; double b; char c; int d; }; // a(1) + pad7 + b(8) + c(1) + pad3 + d(4) = 24 // 好: 16 bytes (descending size) struct Good { double b; int d; char a; char c; }; // b(8) + d(4) + a(1) + c(1) + pad2 = 16 // 33% 压缩，零运行时开销 SoA 替代 AoS // AoS: 24 bytes per struct for 1M elements = 24 MB struct Particle { float x, y, z; int id; }; Particle particles[1000000]; // SoA: 4 arrays * 4 bytes * 1M = 16 MB (33% less) float px[1000000], py[1000000], pz[1000000]; int pid[1000000]; 选择指南：\n经常遍历所有字段 → AoS（空间局部性好） 经常只遍历一个字段 → SoA（避免加载未使用数据） 3.3 数据类型选择 // 1. 用小类型 — 但要警惕对齐 int8_t a; // 1 byte, but struct may pad to 4-byte alignment uint32_t x; // 4 bytes — 对计数、索引通常足够 // 2. 位域 — 多个小值打包到一个整数 struct Flags { unsigned int ready : 1; // 0/1 unsigned int mode : 3; // 0-7 unsigned int count : 12; // 0-4095 unsigned int id : 16; // 0-65535 }; // 4 bytes total (was 16 bytes as separate ints) → 75% 节省 // 3. union 复用内存 — 互斥数据共享空间 union Data { int int_val; // 交替使用 float float_val; // 不会同时需要 }; // 4 bytes total, shared // 4. 全局数组 → .bss 段，不占用可执行文件空间 static int dp[100005]; // 零初始化，放在 .bss 3.4 稀疏数据与隐式表示 // 1. 排序数组 + 二分替代哈希表 // std::unordered_map: ~40 bytes per entry // sorted pair array: ~8 bytes per entry + binary search // 节省 80% 内存，O(log n) vs O(1) 但通常可以接受 // 2. CSR 格式存储图 → 边数密集时高效 int head[MAXN], to[MAXM], nxt[MAXM]; // 3个数组 // 替代 vector g[MAXN] (每个 vector 有 ~24 bytes 开销) // 3. 隐式图 — 不存储边，动态生成 // 对于网格图、完全图等规则结构，在遍历时计算邻接关系 // 4. 位集压缩邻接矩阵 uint64_t adj[2000][32]; // 2000 节点 → 2000*32*8 = 512KB // 替代 bool adj[2000][2000] = 4MB → 8× 压缩 3.5 自定义分配器 // Arena 分配器 — 百万级小对象分配，比 malloc 快 10-100× struct Arena { char *buf, *ptr; Arena(size_t sz) { ptr = buf = (char*)malloc(sz); } void* alloc(size_t sz) { void* p = ptr; ptr += sz; return p; // 简单的 bump pointer } void reset() { ptr = buf; } }; // 使用场景：函数内大量临时节点（图的 DFS、树的构造等） // 注意：Arena 不单独释放单个对象，只能整体重置 4. 代码长度优化 (Code Golf) 4.1 宏滥用 — 按收益排序 // 最高收益: 消除 #include (18 chars) // 使用编译命令: clang -std=gnu89 -include stdio.h prog.c // 代价: 必须使用 C (不是 C++) // 关键字符号替换 (使用前计算 break-even) #define R return // 每用3次回本 #define F for // 每用6次回本 #define W while // 每用4次回本 #define P printf // 每用3次回本 // 不划算的宏 (字符短, 使用次数少时永远不回本) #define I int // 仅省2字符, 需用6次才回本 Break-even 计算公式:\n定义开销 = 10 + len(替换文本) 每次使用节省 = len(原名) - len(宏名) 回本次数 = 定义开销 / 每次使用节省 4.2 语法糖果 // 1. 三元运算符替代 if-else (节省 ~15 chars) if(a\u003eb)c=1;else c=0; // 23 chars c=a\u003eb?1:0; // 9 chars // 2. 位运算替代算术 (节省 1-3 chars) n%2==0 → !(n\u00261) // 节省2 chars n\u003e2 → n\u003e2 (不变) n\u003e=3 → n\u003e2 // 节省1 char // 3. 逗号运算符链式执行 (节省大括号) // for(int i=0;i",
+  "wordCount" : "5436",
+  "inLanguage": "zh",
+  "datePublished": "0001-01-01T00:00:00Z",
+  "dateModified": "0001-01-01T00:00:00Z",
+  "author":{
+    "@type": "Person",
+    "name": "ShowGuan"
+  },
+  "mainEntityOfPage": {
+    "@type": "WebPage",
+    "@id": "https://kennems.github.io/posts/tech/optimization_techniques_article/"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "Kennem's Blog",
+    "logo": {
+      "@type": "ImageObject",
+      "url": "https://kennems.github.io/img/sun.png"
+    }
+  }
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
+<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
+
+
+
+
+</head>
+<body id="top">
+    <header class="header">
+    <nav class="header-nav">
+        <div class="logo">
+            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
+                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
+                    height="35">Kennem&#39;s Blog</a>
+            <div class="logo-switches">
+                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                </button>
+            </div>
+        </div>
+        <ul id="menu" class="menu">
+            <li>
+                <a href="https://kennems.github.io/" title="🏠主页">
+                    <span>🏠主页</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
+                    <span>🔍搜索</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/posts" title="📚文章">
+                    <span>📚文章</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/archives" title="⏱时间轴">
+                    <span>⏱时间轴</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/tags" title="🔖标签">
+                    <span>🔖标签</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/categories" title="🗂️分类">
+                    <span>🗂️分类</span>
+                </a>
+            </li>
+            <li>
+                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
+                    <span>🙋🏻‍♂️关于</span>
+                </a>
+            </li>
+        </ul>
+    </nav>
+</header>
+<main class="main">
+
+<article class="post-single">
+  <header class="post-header">
+    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
+    <a href='https://kennems.github.io/'>主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="https://kennems.github.io/posts/">📚文章</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+                <polyline points="9 18 15 12 9 6"></polyline>
+            </svg>
+            <a href="https://kennems.github.io/posts/tech/">💻技术</a></nav>
+    <h1 class="post-title entry-hint-parent">
+      
+    </h1>
+    <div class="post-meta"><span>11 分钟</span>&nbsp;·&nbsp;<span>5436 字</span>&nbsp;·&nbsp;updated:&nbsp;0001-01-01&nbsp;·&nbsp;<span>ShowGuan</span>
+
+</div>
+    
+     <div class="post-password">
+        
+    </div>
+  </header> <aside id="toc-container" class="toc-container wide">
+    <div class="toc">
+        <details  open>
+        <summary accesskey="c" title="(Alt + C)">
+            <span class="details">目录</span>
+        </summary>
+
+        <div class="inner"><ul>
+                <li>
+                    <a href="#%e7%ab%9e%e8%b5%9b%e7%bc%96%e7%a8%8b%e6%9e%81%e8%87%b4%e4%bc%98%e5%8c%96%e6%8a%80%e5%b7%a7%e5%ae%8c%e5%85%a8%e6%8c%87%e5%8d%97" aria-label="竞赛编程极致优化技巧完全指南">竞赛编程极致优化技巧完全指南</a><ul>
+                        
+                <li>
+                    <a href="#%e7%9b%ae%e5%bd%95" aria-label="目录">目录</a></li>
+                <li>
+                    <a href="#1-%e6%a0%b8%e5%bf%83%e5%8e%9f%e5%88%99" aria-label="1. 核心原则">1. 核心原则</a><ul>
+                        
+                <li>
+                    <a href="#11-%e4%b8%89%e5%b1%82%e4%bc%98%e5%8c%96%e9%87%91%e5%ad%97%e5%a1%94" aria-label="1.1 三层优化金字塔">1.1 三层优化金字塔</a></li>
+                <li>
+                    <a href="#12-io-%e7%93%b6%e9%a2%88%e4%b8%8d%e5%ae%b9%e5%bf%bd%e8%a7%86" aria-label="1.2 I/O 瓶颈不容忽视">1.2 I/O 瓶颈不容忽视</a></li>
+                <li>
+                    <a href="#13-%e5%b1%80%e9%83%a8%e5%9f%ba%e5%87%86%e6%b5%8b%e8%af%95%e9%99%b7%e9%98%b1" aria-label="1.3 局部基准测试陷阱">1.3 局部基准测试陷阱</a></li></ul>
+                </li>
+                <li>
+                    <a href="#2-%e8%bf%90%e8%a1%8c%e6%97%b6%e4%bc%98%e5%8c%96" aria-label="2. 运行时优化">2. 运行时优化</a><ul>
+                        
+                <li>
+                    <a href="#21-%e5%bf%ab%e9%80%9f-io--%e6%9c%80%e9%87%8d%e8%a6%81%e7%9a%84%e5%8d%95%e9%a1%b9%e4%bc%98%e5%8c%96" aria-label="2.1 快速 I/O — 最重要的单项优化">2.1 快速 I/O — 最重要的单项优化</a><ul>
+                        
+                <li>
+                    <a href="#211-%e6%9c%80%e5%b0%8f%e4%bb%a3%e4%bb%b7%e6%96%b9%e6%a1%88%e7%a6%81%e7%94%a8%e5%90%8c%e6%ad%a5" aria-label="2.1.1 最小代价方案：禁用同步">2.1.1 最小代价方案：禁用同步</a></li>
+                <li>
+                    <a href="#212-fread-%e8%87%aa%e5%ae%9a%e4%b9%89%e6%95%b4%e6%95%b0%e8%a7%a3%e6%9e%90%e5%99%a8--%e6%9e%81%e8%87%b4%e6%96%b9%e6%a1%88" aria-label="2.1.2 fread 自定义整数解析器 — 极致方案">2.1.2 fread 自定义整数解析器 — 极致方案</a></li>
+                <li>
+                    <a href="#213-mmap--%e7%90%86%e8%ae%ba%e6%9c%80%e5%bf%ab%e4%bd%86%e5%b9%b3%e5%8f%b0%e5%8f%97%e9%99%90" aria-label="2.1.3 mmap — 理论最快但平台受限">2.1.3 mmap — 理论最快但平台受限</a></li></ul>
+                </li>
+                <li>
+                    <a href="#22-%e7%bc%96%e8%af%91%e5%99%a8%e6%a0%87%e5%bf%97--%e4%b8%80%e8%a1%8c%e4%b8%8d%e6%94%b9%e7%9a%84%e4%bc%98%e5%8c%96" aria-label="2.2 编译器标志 — 一行不改的优化">2.2 编译器标志 — 一行不改的优化</a></li>
+                <li>
+                    <a href="#23-%e7%bc%96%e8%af%91%e5%99%a8%e5%86%85%e5%bb%ba%e5%87%bd%e6%95%b0-builtins" aria-label="2.3 编译器内建函数 (Builtins)">2.3 编译器内建函数 (Builtins)</a></li>
+                <li>
+                    <a href="#24-arm-neon-simd-%e5%90%91%e9%87%8f%e5%8c%96" aria-label="2.4 ARM NEON SIMD 向量化">2.4 ARM NEON SIMD 向量化</a></li>
+                <li>
+                    <a href="#25-%e5%88%86%e6%94%af%e9%a2%84%e6%b5%8b%e4%b8%8e%e6%97%a0%e5%88%86%e6%94%af%e7%bc%96%e7%a8%8b" aria-label="2.5 分支预测与无分支编程">2.5 分支预测与无分支编程</a><ul>
+                        
+                <li>
+                    <a href="#251-%e5%88%86%e6%94%af%e9%a2%84%e6%b5%8b%e5%8f%8b%e5%a5%bd%e4%bb%a3%e7%a0%81" aria-label="2.5.1 分支预测友好代码">2.5.1 分支预测友好代码</a></li>
+                <li>
+                    <a href="#252-%e6%97%a0%e5%88%86%e6%94%af%e6%8a%80%e5%b7%a7" aria-label="2.5.2 无分支技巧">2.5.2 无分支技巧</a></li>
+                <li>
+                    <a href="#253-%e6%97%a0%e5%88%86%e6%94%af%e4%ba%8c%e5%88%86%e6%9f%a5%e6%89%be" aria-label="2.5.3 无分支二分查找">2.5.3 无分支二分查找</a></li></ul>
+                </li>
+                <li>
+                    <a href="#26-%e7%bc%93%e5%ad%98%e4%bc%98%e5%8c%96" aria-label="2.6 缓存优化">2.6 缓存优化</a></li>
+                <li>
+                    <a href="#27-%e8%8e%ab%e9%98%9f%e7%ae%97%e6%b3%95%e4%bc%98%e5%8c%96" aria-label="2.7 莫队算法优化">2.7 莫队算法优化</a></li>
+                <li>
+                    <a href="#28-%e9%85%8d%e7%bd%ae%e6%96%87%e4%bb%b6%e5%bc%95%e5%af%bc%e4%bc%98%e5%8c%96-pgo" aria-label="2.8 配置文件引导优化 (PGO)">2.8 配置文件引导优化 (PGO)</a></li></ul>
+                </li>
+                <li>
+                    <a href="#3-%e5%86%85%e5%ad%98%e4%bc%98%e5%8c%96" aria-label="3. 内存优化">3. 内存优化</a><ul>
+                        
+                <li>
+                    <a href="#31-%e7%ae%97%e6%b3%95%e6%9b%bf%e6%8d%a2--%e6%9c%80%e5%a4%a7%e6%94%b6%e7%9b%8a" aria-label="3.1 算法替换 — 最大收益">3.1 算法替换 — 最大收益</a><ul>
+                        
+                <li>
+                    <a href="#161d-distance-in-tree-onk--on-log-n" aria-label="161D Distance in Tree: O(nk) → O(n log n)">161D Distance in Tree: O(nk) → O(n log n)</a></li>
+                <li>
+                    <a href="#118d-caesars-legions-4d-dp--2%e5%b1%82%e6%bb%9a%e5%8a%a8" aria-label="118D Caesar&rsquo;s Legions: 4D DP → 2层滚动">118D Caesar&rsquo;s Legions: 4D DP → 2层滚动</a></li></ul>
+                </li>
+                <li>
+                    <a href="#32-%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84%e5%b8%83%e5%b1%80" aria-label="3.2 数据结构布局">3.2 数据结构布局</a><ul>
+                        
+                <li>
+                    <a href="#%e7%bb%93%e6%9e%84%e4%bd%93%e6%88%90%e5%91%98%e9%87%8d%e6%8e%92--%e9%9b%b6%e4%bb%a3%e4%bb%b7%e5%8e%8b%e7%bc%a9" aria-label="结构体成员重排 — 零代价压缩">结构体成员重排 — 零代价压缩</a></li>
+                <li>
+                    <a href="#soa-%e6%9b%bf%e4%bb%a3-aos" aria-label="SoA 替代 AoS">SoA 替代 AoS</a></li></ul>
+                </li>
+                <li>
+                    <a href="#33-%e6%95%b0%e6%8d%ae%e7%b1%bb%e5%9e%8b%e9%80%89%e6%8b%a9" aria-label="3.3 数据类型选择">3.3 数据类型选择</a></li>
+                <li>
+                    <a href="#34-%e7%a8%80%e7%96%8f%e6%95%b0%e6%8d%ae%e4%b8%8e%e9%9a%90%e5%bc%8f%e8%a1%a8%e7%a4%ba" aria-label="3.4 稀疏数据与隐式表示">3.4 稀疏数据与隐式表示</a></li>
+                <li>
+                    <a href="#35-%e8%87%aa%e5%ae%9a%e4%b9%89%e5%88%86%e9%85%8d%e5%99%a8" aria-label="3.5 自定义分配器">3.5 自定义分配器</a></li></ul>
+                </li>
+                <li>
+                    <a href="#4-%e4%bb%a3%e7%a0%81%e9%95%bf%e5%ba%a6%e4%bc%98%e5%8c%96-code-golf" aria-label="4. 代码长度优化 (Code Golf)">4. 代码长度优化 (Code Golf)</a><ul>
+                        
+                <li>
+                    <a href="#41-%e5%ae%8f%e6%bb%a5%e7%94%a8--%e6%8c%89%e6%94%b6%e7%9b%8a%e6%8e%92%e5%ba%8f" aria-label="4.1 宏滥用 — 按收益排序">4.1 宏滥用 — 按收益排序</a></li>
+                <li>
+                    <a href="#42-%e8%af%ad%e6%b3%95%e7%b3%96%e6%9e%9c" aria-label="4.2 语法糖果">4.2 语法糖果</a></li>
+                <li>
+                    <a href="#43-python--%e4%bb%a3%e7%a0%81%e9%ab%98%e5%b0%94%e5%a4%ab%e4%b9%8b%e7%8e%8b" aria-label="4.3 Python — 代码高尔夫之王">4.3 Python — 代码高尔夫之王</a></li>
+                <li>
+                    <a href="#44-%e7%bb%88%e6%9e%81%e6%8a%80%e5%b7%a7%e7%bc%96%e8%af%91%e5%99%a8%e6%a0%87%e5%bf%97%e6%b6%88%e9%99%a4-include" aria-label="4.4 终极技巧：编译器标志消除 #include">4.4 终极技巧：编译器标志消除 #include</a></li></ul>
+                </li>
+                <li>
+                    <a href="#5-%e8%b7%a8%e7%bb%b4%e5%ba%a6%e6%9d%83%e8%a1%a1%e4%b8%8e%e5%ae%9e%e6%b5%8b%e6%95%b0%e6%8d%ae" aria-label="5. 跨维度权衡与实测数据">5. 跨维度权衡与实测数据</a><ul>
+                        
+                <li>
+                    <a href="#51-%e9%80%9f%e5%ba%a6-vs-%e5%86%85%e5%ad%98%e9%a2%84%e8%ae%a1%e7%ae%97%e7%9a%84%e4%b8%a4%e9%9d%a2%e6%80%a7" aria-label="5.1 速度 vs 内存：预计算的两面性">5.1 速度 vs 内存：预计算的两面性</a></li>
+                <li>
+                    <a href="#52-%e7%bc%96%e8%af%91%e5%99%a8%e6%a0%87%e5%bf%97%e7%9a%84%e6%84%8f%e5%a4%96%e6%80%a7%e8%83%bd" aria-label="5.2 编译器标志的意外性能">5.2 编译器标志的意外性能</a></li>
+                <li>
+                    <a href="#53-%e5%9f%ba%e5%87%86%e6%b5%8b%e8%af%95%e6%b1%87%e6%80%bb-%e5%85%a8-38-%e4%b8%aa%e4%ba%8c%e8%bf%9b%e5%88%b6" aria-label="5.3 基准测试汇总 (全 38 个二进制)">5.3 基准测试汇总 (全 38 个二进制)</a></li></ul>
+                </li>
+                <li>
+                    <a href="#6-%e6%9c%80%e4%bd%b3%e5%ae%9e%e8%b7%b5%e6%b8%85%e5%8d%95" aria-label="6. 最佳实践清单">6. 最佳实践清单</a><ul>
+                        
+                <li>
+                    <a href="#61-%e6%8f%90%e4%ba%a4%e5%89%8d%e6%a3%80%e6%9f%a5%e6%8c%89%e4%bc%98%e5%85%88%e7%ba%a7" aria-label="6.1 提交前检查（按优先级）">6.1 提交前检查（按优先级）</a></li>
+                <li>
+                    <a href="#62-%e6%9c%80%e5%bf%ab%e9%80%9f%e7%bc%96%e8%af%91%e5%91%bd%e4%bb%a4" aria-label="6.2 最快速编译命令">6.2 最快速编译命令</a></li>
+                <li>
+                    <a href="#63-%e6%9c%80%e5%b0%8f%e5%86%85%e5%ad%98%e7%bc%96%e8%af%91%e5%91%bd%e4%bb%a4" aria-label="6.3 最小内存编译命令">6.3 最小内存编译命令</a></li>
+                <li>
+                    <a href="#64-%e6%9c%80%e7%ae%80%e4%bb%a3%e7%a0%81%e9%ab%98%e5%b0%94%e5%a4%ab%e7%bc%96%e8%af%91%e5%91%bd%e4%bb%a4" aria-label="6.4 最简代码高尔夫编译命令">6.4 最简代码高尔夫编译命令</a></li></ul>
+                </li>
+                <li>
+                    <a href="#%e6%80%bb%e7%bb%93" aria-label="总结">总结</a>
+                </li>
+            </ul>
+            </li>
+            </ul>
+        </div>
+        </details>
+    </div>
+</aside>
+<script>
+    let activeElement;
+    let elements;
+    window.addEventListener('DOMContentLoaded', function (event) {
+        checkTocPosition();
+
+        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
+        
+        activeElement = elements[0];
+        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
+        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+    }, false);
+
+    window.addEventListener('resize', function(event) {
+        checkTocPosition();
+    }, false);
+
+    window.addEventListener('scroll', () => {
+        
+        activeElement = Array.from(elements).find((element) => {
+            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
+                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
+                return element;
+            }
+        }) || activeElement
+
+        elements.forEach(element => {
+            const id = encodeURI(element.getAttribute('id')).toLowerCase();
+            if (element === activeElement){
+                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
+            } else {
+                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
+            }
+        })
+    }, false);
+
+    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
+    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
+    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
+
+    function checkTocPosition() {
+        const width = document.body.scrollWidth;
+
+        if (width - main - (toc * 2) - (gap * 4) > 0) {
+            document.getElementById("toc-container").classList.add("wide");
+        } else {
+            document.getElementById("toc-container").classList.remove("wide");
+        }
+    }
+
+    function getOffsetTop(element) {
+        if (!element.getClientRects().length) {
+            return 0;
+        }
+        let rect = element.getBoundingClientRect();
+        let win = element.ownerDocument.defaultView;
+        return rect.top + win.pageYOffset;
+    }
+</script>
+
+  <div class="post-content md-content"><h1 id="竞赛编程极致优化技巧完全指南">竞赛编程极致优化技巧完全指南<a hidden class="anchor" aria-hidden="true" href="#竞赛编程极致优化技巧完全指南">#</a></h1>
+<blockquote>
+<p>基于 Apple M4 ARM64 + clang++ 21.0.0 实测验证，16 道 Codeforces 真题实战，100+ 源文件，38 个编译二进制全面基准测试。</p>
+</blockquote>
+<hr>
+<h2 id="目录">目录<a hidden class="anchor" aria-hidden="true" href="#目录">#</a></h2>
+<ol>
+<li><a href="/posts/tech/optimization_techniques_article/#1-%e6%a0%b8%e5%bf%83%e5%8e%9f%e5%88%99">核心原则：正确性第一，算法为王</a></li>
+<li><a href="/posts/tech/optimization_techniques_article/#2-%e8%bf%90%e8%a1%8c%e6%97%b6%e4%bc%98%e5%8c%96">运行时优化</a></li>
+<li><a href="/posts/tech/optimization_techniques_article/#3-%e5%86%85%e5%ad%98%e4%bc%98%e5%8c%96">内存优化</a></li>
+<li><a href="/posts/tech/optimization_techniques_article/#4-%e4%bb%a3%e7%a0%81%e9%95%bf%e5%ba%a6%e4%bc%98%e5%8c%96">代码长度优化 (Code Golf)</a></li>
+<li><a href="/posts/tech/optimization_techniques_article/#5-%e8%b7%a8%e7%bb%b4%e5%ba%a6%e6%9d%83%e8%a1%a1%e4%b8%8e%e5%ae%9e%e6%b5%8b%e6%95%b0%e6%8d%ae">跨维度权衡与实测数据</a></li>
+<li><a href="/posts/tech/optimization_techniques_article/#6-%e6%9c%80%e4%bd%b3%e5%ae%9e%e8%b7%b5%e6%b8%85%e5%8d%95">最佳实践清单</a></li>
+</ol>
+<hr>
+<h2 id="1-核心原则">1. 核心原则<a hidden class="anchor" aria-hidden="true" href="#1-核心原则">#</a></h2>
+<h3 id="11-三层优化金字塔">1.1 三层优化金字塔<a hidden class="anchor" aria-hidden="true" href="#11-三层优化金字塔">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>        ┌──────────────┐
+</span></span><span style="display:flex;"><span>        │  算法替换     │  ← 最大收益 (10×-100×)
+</span></span><span style="display:flex;"><span>        │  (O(n²)→O(n log n)) │
+</span></span><span style="display:flex;"><span>        ├──────────────┤
+</span></span><span style="display:flex;"><span>        │  数据结构优化 │  ← 中等收益 (2×-10×)
+</span></span><span style="display:flex;"><span>        │  (SoA, 扁平化)│
+</span></span><span style="display:flex;"><span>        ├──────────────┤
+</span></span><span style="display:flex;"><span>        │  微优化       │  ← 边际收益 (5%-50%)
+</span></span><span style="display:flex;"><span>        │  (内联, 分支) │
+</span></span><span style="display:flex;"><span>        └──────────────┘
+</span></span></code></pre></div><p><strong>铁律：先换算法，再调实现。</strong> 用 <code>__builtin_prefetch</code> 优化一个 O(n²) 算法永远不如换成 O(n log n)。</p>
+<h3 id="12-io-瓶颈不容忽视">1.2 I/O 瓶颈不容忽视<a hidden class="anchor" aria-hidden="true" href="#12-io-瓶颈不容忽视">#</a></h3>
+<p>Codeforces 最常见的 TLE 原因不是算法慢，而是 cin/cout 太慢。<strong>任何涉及 10^5 以上输入输出的题目，第一件事就是换掉默认 I/O。</strong></p>
+<p>实测数据（86D Powerful Array, n=200K, t=200K）：</p>
+<ul>
+<li><code>cin/cout + ios::sync_with_stdio(false)</code>: 519.6 ms</li>
+<li><code>fread 自定义解析器 + fwrite 输出缓冲</code>: <strong>85.6 ms (6.07× 加速)</strong></li>
+</ul>
+<h3 id="13-局部基准测试陷阱">1.3 局部基准测试陷阱<a hidden class="anchor" aria-hidden="true" href="#13-局部基准测试陷阱">#</a></h3>
+<p><code>hyperfine --warmup 3 --runs 10</code> 比手动 <code>time</code> 可靠得多。单次测量误差可达 ±30%，hyperfine 提供统计显著性。</p>
+<hr>
+<h2 id="2-运行时优化">2. 运行时优化<a hidden class="anchor" aria-hidden="true" href="#2-运行时优化">#</a></h2>
+<h3 id="21-快速-io--最重要的单项优化">2.1 快速 I/O — 最重要的单项优化<a hidden class="anchor" aria-hidden="true" href="#21-快速-io--最重要的单项优化">#</a></h3>
+<h4 id="211-最小代价方案禁用同步">2.1.1 最小代价方案：禁用同步<a hidden class="anchor" aria-hidden="true" href="#211-最小代价方案禁用同步">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 3 行代码，3-5× 加速
+</span></span></span><span style="display:flex;"><span>ios<span style="color:#f92672">::</span>sync_with_stdio(false);
+</span></span><span style="display:flex;"><span>cin.tie(<span style="color:#66d9ef">nullptr</span>);
+</span></span><span style="display:flex;"><span>cout.tie(<span style="color:#66d9ef">nullptr</span>);
+</span></span></code></pre></div><p><strong>代价：</strong> 不能再混用 <code>cin</code> 和 <code>scanf</code>。交互题需手动 <code>cout &lt;&lt; flush</code>。</p>
+<h4 id="212-fread-自定义整数解析器--极致方案">2.1.2 fread 自定义整数解析器 — 极致方案<a hidden class="anchor" aria-hidden="true" href="#212-fread-自定义整数解析器--极致方案">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#66d9ef">constexpr</span> <span style="color:#66d9ef">int</span> BUFSZ <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> <span style="color:#ae81ff">22</span>; <span style="color:#75715e">// 4 MiB
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span> ibuf[BUFSZ], <span style="color:#f92672">*</span>iptr <span style="color:#f92672">=</span> ibuf, <span style="color:#f92672">*</span>iend <span style="color:#f92672">=</span> ibuf;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">refill</span>() {
+</span></span><span style="display:flex;"><span>    iend <span style="color:#f92672">=</span> ibuf <span style="color:#f92672">+</span> fread(ibuf, <span style="color:#ae81ff">1</span>, BUFSZ, stdin);
+</span></span><span style="display:flex;"><span>    iptr <span style="color:#f92672">=</span> ibuf;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>__attribute__((always_inline, hot))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> readInt() {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; <span style="color:#66d9ef">char</span> c;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (__builtin_expect((c <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>iptr) <span style="color:#f92672">&lt;</span> <span style="color:#e6db74">&#39;0&#39;</span>, <span style="color:#ae81ff">0</span>))
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">++</span>iptr <span style="color:#f92672">&gt;=</span> iend) refill();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (__builtin_expect(c <span style="color:#f92672">&gt;=</span> <span style="color:#e6db74">&#39;0&#39;</span>, <span style="color:#ae81ff">1</span>)) {
+</span></span><span style="display:flex;"><span>        x <span style="color:#f92672">=</span> x <span style="color:#f92672">*</span> <span style="color:#ae81ff">10</span> <span style="color:#f92672">+</span> (c <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">15</span>);  <span style="color:#75715e">// &#39;0&#39; = 0x30, so c &amp; 0xF = digit
+</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (__builtin_expect(<span style="color:#f92672">++</span>iptr <span style="color:#f92672">&gt;=</span> iend, <span style="color:#ae81ff">0</span>)) refill();
+</span></span><span style="display:flex;"><span>        c <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>iptr;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> x;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><p><strong>关键点：</strong></p>
+<ul>
+<li><code>c &amp; 15</code> 替代 <code>c - '0'</code>：位运算快 10-20%</li>
+<li><code>__builtin_expect</code> 分支预测提示：编译器把 <code>c &gt;= '0'</code> 路径放在相邻位置</li>
+<li><code>__attribute__((always_inline, hot))</code>：消除函数调用开销</li>
+</ul>
+<h4 id="213-mmap--理论最快但平台受限">2.1.3 mmap — 理论最快但平台受限<a hidden class="anchor" aria-hidden="true" href="#213-mmap--理论最快但平台受限">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;sys/mman.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">stat</span> st; fstat(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>st);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>data <span style="color:#f92672">=</span> (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)mmap(<span style="color:#ae81ff">0</span>, st.st_size, PROT_READ, MAP_PRIVATE, <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>);
+</span></span><span style="display:flex;"><span>madvise(data, st.st_size, MADV_SEQUENTIAL <span style="color:#f92672">|</span> MADV_WILLNEED);
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 直接从 data 指针解析整数，零拷贝
+</span></span></span></code></pre></div><p><strong>注意：</strong> Codeforces 评测机可能不支持 mmap stdin，但本地基准测试中性能最优。</p>
+<hr>
+<h3 id="22-编译器标志--一行不改的优化">2.2 编译器标志 — 一行不改的优化<a hidden class="anchor" aria-hidden="true" href="#22-编译器标志--一行不改的优化">#</a></h3>
+<table>
+  <thead>
+      <tr>
+          <th>标志</th>
+          <th>效果</th>
+          <th>实测加速 (NEON 10M 求和)</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>-O0</code></td>
+          <td>基线</td>
+          <td>1.00×</td>
+      </tr>
+      <tr>
+          <td><code>-O1</code></td>
+          <td>基础优化</td>
+          <td>1.59×</td>
+      </tr>
+      <tr>
+          <td><code>-O2</code></td>
+          <td>标准优化</td>
+          <td>1.07×*</td>
+      </tr>
+      <tr>
+          <td><code>-O3</code></td>
+          <td>激进优化</td>
+          <td>1.42×</td>
+      </tr>
+      <tr>
+          <td><code>-Os</code></td>
+          <td><strong>体积优化</strong></td>
+          <td><strong>1.65×</strong> 🏆</td>
+      </tr>
+      <tr>
+          <td><code>-Ofast</code></td>
+          <td>不安全优化</td>
+          <td>1.24×</td>
+      </tr>
+      <tr>
+          <td><code>-O3 -march=native -flto</code></td>
+          <td>全开</td>
+          <td>1.37×</td>
+      </tr>
+  </tbody>
+</table>
+<p>* 注：<code>-O2</code> 在该特定基准中因向量化决策差异反而慢于 <code>-O1</code></p>
+<p><strong>关键发现：</strong> <code>-Os</code>（优化体积）在 Apple M4 对 NEON 向量化代码比 <code>-O3</code> 更快！原因是指令缓存命中率更高。</p>
+<p><strong>极致编译命令：</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 通用竞赛编程</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -O3 -march<span style="color:#f92672">=</span>native -flto -o prog src.cpp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 手写 SIMD 向量化代码</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -Os -o prog src.cpp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># PGO 额外优化 (见 2.7 节)</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -O3 -march<span style="color:#f92672">=</span>native -flto -fprofile-instr-use<span style="color:#f92672">=</span>profile.profdata -o prog src.cpp
+</span></span></code></pre></div><hr>
+<h3 id="23-编译器内建函数-builtins">2.3 编译器内建函数 (Builtins)<a hidden class="anchor" aria-hidden="true" href="#23-编译器内建函数-builtins">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 1. 分支预测提示 — 告知编译器哪个分支更可能执行
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define LIKELY(x)   __builtin_expect(!!(x), 1)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define UNLIKELY(x) __builtin_expect(!!(x), 0)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 实测加速: 5-15% on branch-heavy code
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. 预取 — 提前把数据加载到缓存
+</span></span></span><span style="display:flex;"><span>__builtin_prefetch(<span style="color:#f92672">&amp;</span>arr[i <span style="color:#f92672">+</span> <span style="color:#ae81ff">64</span>], <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">3</span>);  <span style="color:#75715e">// 0=读, 3=高局部性
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 实测加速: 5-40% on sequential scans
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. popcount — 单指令替代循环
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> bits <span style="color:#f92672">=</span> __builtin_popcountll(x);  <span style="color:#75715e">// ARM64: CNT 指令, O(1)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 对于位掩码枚举、子集 DP 至关重要
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 4. 尾零/前导零计数 — 枚举子集、位扫描
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> trail <span style="color:#f92672">=</span> __builtin_ctzll(x);   <span style="color:#75715e">// RBIT + CLZ on ARM64
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> lead  <span style="color:#f92672">=</span> __builtin_clzll(x);   <span style="color:#75715e">// CLZ 指令
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 5. 字节交换 — 大小端转换
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">uint32_t</span> le <span style="color:#f92672">=</span> __builtin_bswap32(be);
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 6. 内存对齐假设 — 编译器生成更高效代码
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>aligned_ptr <span style="color:#f92672">=</span> (<span style="color:#66d9ef">int</span><span style="color:#f92672">*</span>)__builtin_assume_aligned(ptr, <span style="color:#ae81ff">64</span>);
+</span></span></code></pre></div><p><strong>效率排序（从高到低）：</strong></p>
+<ol>
+<li>内建函数替代手写循环 (popcount 1000×+)</li>
+<li>分支预测提示 (5-15%)</li>
+<li>预取 (5-40%, 取决于访问模式)</li>
+</ol>
+<hr>
+<h3 id="24-arm-neon-simd-向量化">2.4 ARM NEON SIMD 向量化<a hidden class="anchor" aria-hidden="true" href="#24-arm-neon-simd-向量化">#</a></h3>
+<p>Apple M4 使用 ARM64 架构，SIMD 指令集为 NEON（不是 x86 的 SSE/AVX）。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&lt;arm_neon.h&gt;</span><span style="color:#75715e">
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 标量版 — 每次处理1个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">scalar_sum</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>arr, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> sum <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>) sum <span style="color:#f92672">+=</span> arr[i];
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// NEON 向量化版 — 每次处理4个元素
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">neon_sum</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>arr, <span style="color:#66d9ef">int</span> n) {
+</span></span><span style="display:flex;"><span>    int32x4_t vsum <span style="color:#f92672">=</span> vdupq_n_s32(<span style="color:#ae81ff">0</span>);  <span style="color:#75715e">// 4路累加器初始化为0
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (; i <span style="color:#f92672">+</span> <span style="color:#ae81ff">4</span> <span style="color:#f92672">&lt;=</span> n; i <span style="color:#f92672">+=</span> <span style="color:#ae81ff">4</span>) {
+</span></span><span style="display:flex;"><span>        int32x4_t v <span style="color:#f92672">=</span> vld1q_s32(<span style="color:#f92672">&amp;</span>arr[i]);  <span style="color:#75715e">// 一次加载4个int
+</span></span></span><span style="display:flex;"><span>        vsum <span style="color:#f92672">=</span> vaddq_s32(vsum, v);          <span style="color:#75715e">// 4路并行加法
+</span></span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> sum <span style="color:#f92672">=</span> vaddvq_s32(vsum);  <span style="color:#75715e">// 水平归约→标量
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>) sum <span style="color:#f92672">+=</span> arr[i];  <span style="color:#75715e">// 剩余元素标量处理
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> sum;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 实测: 2.38× 加速 (Apple M4, 10M ints)
+</span></span></span></code></pre></div><p><strong>NEON 常用指令速查：</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>操作</th>
+          <th>NEON 指令</th>
+          <th>说明</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>加载</td>
+          <td><code>vld1q_s32(ptr)</code></td>
+          <td>加载 4 个 int</td>
+      </tr>
+      <tr>
+          <td>存储</td>
+          <td><code>vst1q_s32(ptr, v)</code></td>
+          <td>存储 4 个 int</td>
+      </tr>
+      <tr>
+          <td>加法</td>
+          <td><code>vaddq_s32(a, b)</code></td>
+          <td>4 路并行加</td>
+      </tr>
+      <tr>
+          <td>乘法</td>
+          <td><code>vmulq_s32(a, b)</code></td>
+          <td>4 路并行乘</td>
+      </tr>
+      <tr>
+          <td>乘加</td>
+          <td><code>vmlaq_s32(acc, a, b)</code></td>
+          <td>acc += a * b</td>
+      </tr>
+      <tr>
+          <td>最小值</td>
+          <td><code>vminq_s32(a, b)</code></td>
+          <td>4 路并行 min</td>
+      </tr>
+      <tr>
+          <td>最大值</td>
+          <td><code>vmaxq_s32(a, b)</code></td>
+          <td>4 路并行 max</td>
+      </tr>
+      <tr>
+          <td>水平归约</td>
+          <td><code>vaddvq_s32(v)</code></td>
+          <td>4→1 求和</td>
+      </tr>
+      <tr>
+          <td>比较</td>
+          <td><code>vceqq_s32(a, b)</code></td>
+          <td>4 路相等比较</td>
+      </tr>
+      <tr>
+          <td>popcount</td>
+          <td><code>vcntq_u8(v)</code></td>
+          <td>字节级 popcount</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>何时使用 SIMD：</strong></p>
+<ol>
+<li><strong>密集数值计算</strong>（数组求和、点积、矩阵乘法）— 收益 2-4×</li>
+<li><strong>比较/筛选操作</strong> — NEON 比较 + 位掩码提取</li>
+<li><strong>不适用于</strong>稀疏操作、链式数据结构、控制流密集代码</li>
+</ol>
+<hr>
+<h3 id="25-分支预测与无分支编程">2.5 分支预测与无分支编程<a hidden class="anchor" aria-hidden="true" href="#25-分支预测与无分支编程">#</a></h3>
+<h4 id="251-分支预测友好代码">2.5.1 分支预测友好代码<a hidden class="anchor" aria-hidden="true" href="#251-分支预测友好代码">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 差：随机分支 → 50% 预测失败
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (data[i] <span style="color:#f92672">&gt;</span> threshold) sum<span style="color:#f92672">++</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 好：先排序 → 连续分支 → 接近 100% 预测成功
+</span></span></span><span style="display:flex;"><span>sort(data, data <span style="color:#f92672">+</span> n);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (data[i] <span style="color:#f92672">&gt;</span> threshold) sum<span style="color:#f92672">++</span>;
+</span></span></code></pre></div><h4 id="252-无分支技巧">2.5.2 无分支技巧<a hidden class="anchor" aria-hidden="true" href="#252-无分支技巧">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 条件赋值 → 算术替代
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> (a <span style="color:#f92672">&gt;</span> b) <span style="color:#f92672">?</span> x : y;
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> result <span style="color:#f92672">=</span> y <span style="color:#f92672">+</span> ((a <span style="color:#f92672">&gt;</span> b) <span style="color:#f92672">?</span> (x <span style="color:#f92672">-</span> y) <span style="color:#f92672">:</span> <span style="color:#ae81ff">0</span>);  <span style="color:#75715e">// 编译器生成 CSEL (ARM64)
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 条件递增 → 无分支计数器
+</span></span></span><span style="display:flex;"><span>cnt <span style="color:#f92672">+=</span> (arr[i] <span style="color:#f92672">&gt;</span> threshold);  <span style="color:#75715e">// bool 隐式转换为 0/1
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 取绝对值 — 避免分支
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">abs_nobranch</span>(<span style="color:#66d9ef">int</span> x) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> mask <span style="color:#f92672">=</span> x <span style="color:#f92672">&gt;&gt;</span> <span style="color:#ae81ff">31</span>;       <span style="color:#75715e">// -1 if negative, 0 if positive
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (x <span style="color:#f92672">+</span> mask) <span style="color:#f92672">^</span> mask;
+</span></span><span style="display:flex;"><span>}
+</span></span></code></pre></div><h4 id="253-无分支二分查找">2.5.3 无分支二分查找<a hidden class="anchor" aria-hidden="true" href="#253-无分支二分查找">#</a></h4>
+<p>传统 <code>std::lower_bound</code> 每次迭代都有分支，预测失败代价高。无分支版本用算术计算下一位置：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// S. Slotin 的无分支二分查找 — 实测 2.09× 加速
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">branchless_lower_bound</span>(<span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>arr, <span style="color:#66d9ef">int</span> n, <span style="color:#66d9ef">int</span> target) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> <span style="color:#f92672">*</span>base <span style="color:#f92672">=</span> arr;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> (n <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">1</span>) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">int</span> half <span style="color:#f92672">=</span> n <span style="color:#f92672">/</span> <span style="color:#ae81ff">2</span>;
+</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 关键：用算术替代 if，编译器生成 CSEL
+</span></span></span><span style="display:flex;"><span>        base <span style="color:#f92672">=</span> (base[half <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>] <span style="color:#f92672">&lt;</span> target) <span style="color:#f92672">?</span> base <span style="color:#f92672">+</span> half : base;
+</span></span><span style="display:flex;"><span>        n <span style="color:#f92672">-=</span> half;
+</span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">*</span>base;
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 实测: 10M 查询, std::lower_bound 4087ms vs 分支版 1955ms (2.09×)
+</span></span></span></code></pre></div><hr>
+<h3 id="26-缓存优化">2.6 缓存优化<a hidden class="anchor" aria-hidden="true" href="#26-缓存优化">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 1. 缓存行对齐 — 消除伪共享
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">alignas</span>(<span style="color:#ae81ff">64</span>) Counter { <span style="color:#66d9ef">int</span> val; };
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. 时间局部性 — 块循环 (cache blocking)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> ii <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; ii <span style="color:#f92672">&lt;</span> n; ii <span style="color:#f92672">+=</span> BS)
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> jj <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; jj <span style="color:#f92672">&lt;</span> n; jj <span style="color:#f92672">+=</span> BS)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> ii; i <span style="color:#f92672">&lt;</span> min(ii<span style="color:#f92672">+</span>BS, n); i<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> j <span style="color:#f92672">=</span> jj; j <span style="color:#f92672">&lt;</span> min(jj<span style="color:#f92672">+</span>BS, n); j<span style="color:#f92672">++</span>)
+</span></span><span style="display:flex;"><span>                C[i][j] <span style="color:#f92672">+=</span> A[i][k] <span style="color:#f92672">*</span> B[k][j];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. 顺序访问 — 永远比随机访问快
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>) sum <span style="color:#f92672">+=</span> arr[i];          <span style="color:#75715e">// 顺序: ✓
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>) sum <span style="color:#f92672">+=</span> arr[rand() <span style="color:#f92672">%</span> n]; <span style="color:#75715e">// 随机: ✗ (10-100× slower)
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 4. 预取 — 提前通知 CPU
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> (<span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>; i <span style="color:#f92672">&lt;</span> n; i<span style="color:#f92672">++</span>) {
+</span></span><span style="display:flex;"><span>    __builtin_prefetch(<span style="color:#f92672">&amp;</span>arr[i <span style="color:#f92672">+</span> <span style="color:#ae81ff">64</span>], <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">3</span>);
+</span></span><span style="display:flex;"><span>    process(arr[i]);
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 5. SoA 布局 — 遍历单字段时缓存友好
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// AoS (差): struct { int x, y, z; } arr[n];  // 加载 x 时附带加载了未使用的 y, z
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// SoA (好): int xs[n], ys[n], zs[n];         // 每次加载只含需要的字段
+</span></span></span></code></pre></div><p><strong>Apple M4 缓存层次：</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>级别</th>
+          <th>大小</th>
+          <th>延迟</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>L1 指令</td>
+          <td>192 KB</td>
+          <td>~3 cycles</td>
+      </tr>
+      <tr>
+          <td>L1 数据</td>
+          <td>128 KB</td>
+          <td>~4 cycles</td>
+      </tr>
+      <tr>
+          <td>L2 共享</td>
+          <td>16 MB</td>
+          <td>~20 cycles</td>
+      </tr>
+      <tr>
+          <td>主存</td>
+          <td>16 GB</td>
+          <td>~100+ cycles</td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h3 id="27-莫队算法优化">2.7 莫队算法优化<a hidden class="anchor" aria-hidden="true" href="#27-莫队算法优化">#</a></h3>
+<p>莫队是 Codeforces 最常见的优化目标题类型。标准莫队的瓶颈不是 O((n+q)√n) 的复杂度，而是常数因子。</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 技巧1: Hilbert 曲线排序替代块排序 → 减少 25-35% 指针移动
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">inline</span> <span style="color:#66d9ef">int64_t</span> <span style="color:#a6e22e">hilbertOrder</span>(<span style="color:#66d9ef">int</span> x, <span style="color:#66d9ef">int</span> y, <span style="color:#66d9ef">int</span> pow, <span style="color:#66d9ef">int</span> rotate) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (pow <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> hpow <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">&lt;&lt;</span> (pow <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> seg <span style="color:#f92672">=</span> (x <span style="color:#f92672">&lt;</span> hpow) <span style="color:#f92672">?</span> ((y <span style="color:#f92672">&lt;</span> hpow) <span style="color:#f92672">?</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>) <span style="color:#f92672">:</span> ((y <span style="color:#f92672">&lt;</span> hpow) <span style="color:#f92672">?</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">:</span> <span style="color:#ae81ff">2</span>);
+</span></span><span style="display:flex;"><span>    seg <span style="color:#f92672">=</span> (seg <span style="color:#f92672">+</span> rotate) <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">3</span>;
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> hilbertOrder(x <span style="color:#f92672">&amp;</span> (x <span style="color:#f92672">^</span> hpow), y <span style="color:#f92672">&amp;</span> (y <span style="color:#f92672">^</span> hpow), pow <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>,
+</span></span><span style="display:flex;"><span>           (rotate <span style="color:#f92672">+</span> (seg <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">||</span> seg <span style="color:#f92672">==</span> <span style="color:#ae81ff">3</span> <span style="color:#f92672">?</span> <span style="color:#ae81ff">2</span> <span style="color:#f92672">:</span> (seg <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">?</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>))) <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">3</span>)
+</span></span><span style="display:flex;"><span>           <span style="color:#f92672">|</span> ((<span style="color:#66d9ef">int64_t</span>)seg <span style="color:#f92672">&lt;&lt;</span> (<span style="color:#ae81ff">2</span> <span style="color:#f92672">*</span> (pow <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)));
+</span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 技巧2: 块大小 = n / sqrt(q) 而非 sqrt(n)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> block <span style="color:#f92672">=</span> n <span style="color:#f92672">/</span> sqrt(t <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>);
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span> (block <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>) block <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 技巧3: O(1) add/remove + __attribute__((always_inline))
+</span></span></span><span style="display:flex;"><span>__attribute__((always_inline, hot))
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> add(<span style="color:#66d9ef">int</span> pos) { <span style="color:#75715e">/* 内联消除函数调用开销 */</span> }
+</span></span></code></pre></div><p><strong>86D 实测结果：</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>方法</th>
+          <th>时间</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>块排序莫队 + cin/cout</td>
+          <td>540.7 ms</td>
+      </tr>
+      <tr>
+          <td>Hilbert 莫队 + fread I/O + 内联</td>
+          <td><strong>74.5 ms (7.25×)</strong></td>
+      </tr>
+  </tbody>
+</table>
+<hr>
+<h3 id="28-配置文件引导优化-pgo">2.8 配置文件引导优化 (PGO)<a hidden class="anchor" aria-hidden="true" href="#28-配置文件引导优化-pgo">#</a></h3>
+<p>PGO 是&quot;免费午餐&quot;——不改一行代码，仅增加编译步骤：</p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 第一步：编译插桩版本</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -O3 -march<span style="color:#f92672">=</span>native -flto -fprofile-instr-generate -o prog_instr src.cpp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 第二步：用真实/训练输入运行</span>
+</span></span><span style="display:flex;"><span>./prog_instr &lt; train_input.txt &gt; /dev/null
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 生成 default.profraw</span>
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 第三步：合并 profile 数据</span>
+</span></span><span style="display:flex;"><span>xcrun llvm-profdata merge default.profraw -o default.profdata
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 第四步：用 profile 编译最终版本</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -O3 -march<span style="color:#f92672">=</span>native -flto -fprofile-instr-use<span style="color:#f92672">=</span>default.profdata -o prog src.cpp
+</span></span></code></pre></div><p><strong>86D PGO 实测：149.2 ms → 94.9 ms (1.57× 额外加速)</strong></p>
+<p>PGO 对以下类型的代码最有效：</p>
+<ul>
+<li>分支密集代码（编译器根据实际分支频率重新布局）</li>
+<li>间接调用（虚函数、函数指针 → 推测内联）</li>
+<li>循环展开决策（根据实际迭代次数）</li>
+</ul>
+<hr>
+<h2 id="3-内存优化">3. 内存优化<a hidden class="anchor" aria-hidden="true" href="#3-内存优化">#</a></h2>
+<h3 id="31-算法替换--最大收益">3.1 算法替换 — 最大收益<a hidden class="anchor" aria-hidden="true" href="#31-算法替换--最大收益">#</a></h3>
+<h4 id="161d-distance-in-tree-onk--on-log-n">161D Distance in Tree: O(nk) → O(n log n)<a hidden class="anchor" aria-hidden="true" href="#161d-distance-in-tree-onk--on-log-n">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 基线: O(nk) DP 表 → 200 MB
+</span></span></span><span style="display:flex;"><span>vector<span style="color:#f92672">&lt;</span>vector<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span><span style="color:#f92672">&gt;&gt;</span> dp(n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, vector<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">long</span> <span style="color:#66d9ef">long</span><span style="color:#f92672">&gt;</span>(k <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>));
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 50,001 × 501 × 8 bytes = ~200 MB
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 极致: 重心分解 → O(n log n) 时间复杂度, O(n) 空间 → 3.5 MB
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">decompose</span>(<span style="color:#66d9ef">int</span> u) {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> c <span style="color:#f92672">=</span> findCentroid(u);
+</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 对每个子树，统计经过重心的距离为k的路径
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (each child of c) {
+</span></span><span style="display:flex;"><span>        collectDistances(child);       <span style="color:#75715e">// BFS 收集深度
+</span></span></span><span style="display:flex;"><span>        matchWithCollected(cnt);       <span style="color:#75715e">// 匹配已收集的深度
+</span></span></span><span style="display:flex;"><span>        addToCollected(cnt);           <span style="color:#75715e">// 合并
+</span></span></span><span style="display:flex;"><span>        clearChildCounters();          <span style="color:#75715e">// 复用数组
+</span></span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    clearAllCounters();
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (each child of c)
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!</span>removed[child]) decompose(child);  <span style="color:#75715e">// 递归
+</span></span></span><span style="display:flex;"><span>}
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 实测: 200.8 MB → 3.5 MB (57.37× 缩减)
+</span></span></span></code></pre></div><h4 id="118d-caesars-legions-4d-dp--2层滚动">118D Caesar&rsquo;s Legions: 4D DP → 2层滚动<a hidden class="anchor" aria-hidden="true" href="#118d-caesars-legions-4d-dp--2层滚动">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 基线: 4D dp[n1+1][n2+1][k1+1][2] → 6.6 MB
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 极致: 2层滚动 dp_cur[n2+1][k2+1][2] + dp_prev  → 1.4 MB
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 关键: 注意到 dp[i][j][c][t] 只依赖 dp[i-1][...] 和 dp[i][...]
+</span></span></span></code></pre></div><hr>
+<h3 id="32-数据结构布局">3.2 数据结构布局<a hidden class="anchor" aria-hidden="true" href="#32-数据结构布局">#</a></h3>
+<h4 id="结构体成员重排--零代价压缩">结构体成员重排 — 零代价压缩<a hidden class="anchor" aria-hidden="true" href="#结构体成员重排--零代价压缩">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 差: 24 bytes (padding 浪费)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Bad</span> { <span style="color:#66d9ef">char</span> a; <span style="color:#66d9ef">double</span> b; <span style="color:#66d9ef">char</span> c; <span style="color:#66d9ef">int</span> d; };
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// a(1) + pad7 + b(8) + c(1) + pad3 + d(4) = 24
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 好: 16 bytes (descending size)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Good</span> { <span style="color:#66d9ef">double</span> b; <span style="color:#66d9ef">int</span> d; <span style="color:#66d9ef">char</span> a; <span style="color:#66d9ef">char</span> c; };
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// b(8) + d(4) + a(1) + c(1) + pad2 = 16
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 33% 压缩，零运行时开销
+</span></span></span></code></pre></div><h4 id="soa-替代-aos">SoA 替代 AoS<a hidden class="anchor" aria-hidden="true" href="#soa-替代-aos">#</a></h4>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// AoS: 24 bytes per struct for 1M elements = 24 MB
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Particle</span> { <span style="color:#66d9ef">float</span> x, y, z; <span style="color:#66d9ef">int</span> id; };
+</span></span><span style="display:flex;"><span>Particle particles[<span style="color:#ae81ff">1000000</span>];
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// SoA: 4 arrays * 4 bytes * 1M = 16 MB (33% less)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">float</span> px[<span style="color:#ae81ff">1000000</span>], py[<span style="color:#ae81ff">1000000</span>], pz[<span style="color:#ae81ff">1000000</span>];
+</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>   pid[<span style="color:#ae81ff">1000000</span>];
+</span></span></code></pre></div><p><strong>选择指南：</strong></p>
+<ul>
+<li>经常<strong>遍历所有字段</strong> → AoS（空间局部性好）</li>
+<li>经常<strong>只遍历一个字段</strong> → SoA（避免加载未使用数据）</li>
+</ul>
+<hr>
+<h3 id="33-数据类型选择">3.3 数据类型选择<a hidden class="anchor" aria-hidden="true" href="#33-数据类型选择">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 1. 用小类型 — 但要警惕对齐
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int8_t</span> a;   <span style="color:#75715e">// 1 byte, but struct may pad to 4-byte alignment
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">uint32_t</span> x; <span style="color:#75715e">// 4 bytes — 对计数、索引通常足够
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. 位域 — 多个小值打包到一个整数
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Flags</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> ready  : <span style="color:#ae81ff">1</span>;   <span style="color:#75715e">// 0/1
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> mode   : <span style="color:#ae81ff">3</span>;   <span style="color:#75715e">// 0-7
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> count  : <span style="color:#ae81ff">12</span>;  <span style="color:#75715e">// 0-4095
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> id     : <span style="color:#ae81ff">16</span>;  <span style="color:#75715e">// 0-65535
+</span></span></span><span style="display:flex;"><span>}; <span style="color:#75715e">// 4 bytes total (was 16 bytes as separate ints) → 75% 节省
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. union 复用内存 — 互斥数据共享空间
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">union</span> <span style="color:#a6e22e">Data</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span>    int_val;    <span style="color:#75715e">// 交替使用
+</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">float</span>  float_val;  <span style="color:#75715e">// 不会同时需要
+</span></span></span><span style="display:flex;"><span>}; <span style="color:#75715e">// 4 bytes total, shared
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 4. 全局数组 → .bss 段，不占用可执行文件空间
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">int</span> dp[<span style="color:#ae81ff">100005</span>];  <span style="color:#75715e">// 零初始化，放在 .bss
+</span></span></span></code></pre></div><hr>
+<h3 id="34-稀疏数据与隐式表示">3.4 稀疏数据与隐式表示<a hidden class="anchor" aria-hidden="true" href="#34-稀疏数据与隐式表示">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 1. 排序数组 + 二分替代哈希表
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// std::unordered_map&lt;int, int&gt;: ~40 bytes per entry
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// sorted pair&lt;int,int&gt; array:   ~8 bytes per entry + binary search
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 节省 80% 内存，O(log n) vs O(1) 但通常可以接受
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. CSR 格式存储图 → 边数密集时高效
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> head[MAXN], to[MAXM], nxt[MAXM];  <span style="color:#75715e">// 3个数组
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 替代 vector&lt;int&gt; g[MAXN] (每个 vector 有 ~24 bytes 开销)
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. 隐式图 — 不存储边，动态生成
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 对于网格图、完全图等规则结构，在遍历时计算邻接关系
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 4. 位集压缩邻接矩阵
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">uint64_t</span> adj[<span style="color:#ae81ff">2000</span>][<span style="color:#ae81ff">32</span>];  <span style="color:#75715e">// 2000 节点 → 2000*32*8 = 512KB
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 替代 bool adj[2000][2000] = 4MB → 8× 压缩
+</span></span></span></code></pre></div><hr>
+<h3 id="35-自定义分配器">3.5 自定义分配器<a hidden class="anchor" aria-hidden="true" href="#35-自定义分配器">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// Arena 分配器 — 百万级小对象分配，比 malloc 快 10-100×
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> <span style="color:#a6e22e">Arena</span> {
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>buf, <span style="color:#f92672">*</span>ptr;
+</span></span><span style="display:flex;"><span>    Arena(size_t sz) { ptr <span style="color:#f92672">=</span> buf <span style="color:#f92672">=</span> (<span style="color:#66d9ef">char</span><span style="color:#f92672">*</span>)malloc(sz); }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span> <span style="color:#a6e22e">alloc</span>(size_t sz) {
+</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">void</span><span style="color:#f92672">*</span> p <span style="color:#f92672">=</span> ptr; ptr <span style="color:#f92672">+=</span> sz; <span style="color:#66d9ef">return</span> p;  <span style="color:#75715e">// 简单的 bump pointer
+</span></span></span><span style="display:flex;"><span>    }
+</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">reset</span>() { ptr <span style="color:#f92672">=</span> buf; }
+</span></span><span style="display:flex;"><span>};
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 使用场景：函数内大量临时节点（图的 DFS、树的构造等）
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 注意：Arena 不单独释放单个对象，只能整体重置
+</span></span></span></code></pre></div><hr>
+<h2 id="4-代码长度优化-code-golf">4. 代码长度优化 (Code Golf)<a hidden class="anchor" aria-hidden="true" href="#4-代码长度优化-code-golf">#</a></h2>
+<h3 id="41-宏滥用--按收益排序">4.1 宏滥用 — 按收益排序<a hidden class="anchor" aria-hidden="true" href="#41-宏滥用--按收益排序">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 最高收益: 消除 #include (18 chars)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 使用编译命令: clang -std=gnu89 -include stdio.h prog.c
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 代价: 必须使用 C (不是 C++)
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 关键字符号替换 (使用前计算 break-even)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define R return     </span><span style="color:#75715e">// 每用3次回本
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define F for        </span><span style="color:#75715e">// 每用6次回本
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define W while      </span><span style="color:#75715e">// 每用4次回本
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define P printf     </span><span style="color:#75715e">// 每用3次回本
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 不划算的宏 (字符短, 使用次数少时永远不回本)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define I int        </span><span style="color:#75715e">// 仅省2字符, 需用6次才回本
+</span></span></span></code></pre></div><p><strong>Break-even 计算公式:</strong></p>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>定义开销 = 10 + len(替换文本)
+</span></span><span style="display:flex;"><span>每次使用节省 = len(原名) - len(宏名)
+</span></span><span style="display:flex;"><span>回本次数 = 定义开销 / 每次使用节省
+</span></span></code></pre></div><h3 id="42-语法糖果">4.2 语法糖果<a hidden class="anchor" aria-hidden="true" href="#42-语法糖果">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-cpp" data-lang="cpp"><span style="display:flex;"><span><span style="color:#75715e">// 1. 三元运算符替代 if-else (节省 ~15 chars)
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span>(a<span style="color:#f92672">&gt;</span>b)c<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>;<span style="color:#66d9ef">else</span> c<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;        <span style="color:#75715e">// 23 chars
+</span></span></span><span style="display:flex;"><span>c<span style="color:#f92672">=</span>a<span style="color:#f92672">&gt;</span>b<span style="color:#f92672">?</span><span style="color:#ae81ff">1</span><span style="color:#f92672">:</span><span style="color:#ae81ff">0</span>;                  <span style="color:#75715e">// 9 chars
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 2. 位运算替代算术 (节省 1-3 chars)
+</span></span></span><span style="display:flex;"><span>n<span style="color:#f92672">%</span><span style="color:#ae81ff">2</span><span style="color:#f92672">==</span><span style="color:#ae81ff">0</span> <span style="color:#960050;background-color:#1e0010">→</span> <span style="color:#f92672">!</span>(n<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>)             <span style="color:#75715e">// 节省2 chars
+</span></span></span><span style="display:flex;"><span>n<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">2</span>    <span style="color:#960050;background-color:#1e0010">→</span> n<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">2</span> (<span style="color:#960050;background-color:#1e0010">不变</span>)
+</span></span><span style="display:flex;"><span>n<span style="color:#f92672">&gt;=</span><span style="color:#ae81ff">3</span>   <span style="color:#960050;background-color:#1e0010">→</span> n<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">2</span>                <span style="color:#75715e">// 节省1 char
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 3. 逗号运算符链式执行 (节省大括号)
+</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// for(int i=0;i&lt;n;i++){a++;b--;}  →  for(int i=0;i&lt;n;i++)a++,b--;
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 4. 逻辑运算符作控制流
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">if</span>(n<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span>)f(n);                <span style="color:#75715e">// 18 chars
+</span></span></span><span style="display:flex;"><span>n<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">0</span><span style="color:#f92672">&amp;&amp;</span>f(n);                  <span style="color:#75715e">// 9 chars
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 5. 去掉 return 0; (C++ 允许 main 省略, 节省 10 chars)
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 6. 全局变量零初始化 → 省去 =0
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> a<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>;                    <span style="color:#75715e">// 7 chars
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> a;                      <span style="color:#75715e">// 5 chars (全局变量自动初始化为0)
+</span></span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e">// 7. 循环技巧
+</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">while</span>(n<span style="color:#f92672">--</span>)proc();           <span style="color:#75715e">// 比 for(int i=0;i&lt;n;i++)proc(); 省 ~15 chars
+</span></span></span></code></pre></div><h3 id="43-python--代码高尔夫之王">4.3 Python — 代码高尔夫之王<a hidden class="anchor" aria-hidden="true" href="#43-python--代码高尔夫之王">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>C 极致:  #include&lt;stdio.h&gt;
+</span></span><span style="display:flex;"><span>         int main(){int w;scanf(&#34;%d&#34;,&amp;w);puts(w&amp;1||w&lt;3?&#34;NO&#34;:&#34;YES&#34;);}
+</span></span><span style="display:flex;"><span>         → 78 chars
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>Python:  print(&#34;YNEOS&#34;[int(input())%2|w&lt;3::2])
+</span></span><span style="display:flex;"><span>         → 42 chars (46% less!)
+</span></span></code></pre></div><p><strong>Python 天生优势：</strong></p>
+<table>
+  <thead>
+      <tr>
+          <th>特性</th>
+          <th>C 等效</th>
+          <th>节省</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>print()</code></td>
+          <td><code>printf(&quot;...\n&quot;);</code></td>
+          <td>~8 chars</td>
+      </tr>
+      <tr>
+          <td><code>input()</code></td>
+          <td><code>scanf(&quot;%d&quot;,&amp;x);</code></td>
+          <td>~8 chars</td>
+      </tr>
+      <tr>
+          <td>短路切片 <code>[::2]</code></td>
+          <td>if-else 分支</td>
+          <td>~15 chars</td>
+      </tr>
+      <tr>
+          <td><code>open(0)</code> 代替 stdin</td>
+          <td><code>#include &lt;stdio.h&gt;</code></td>
+          <td>~15 chars</td>
+      </tr>
+      <tr>
+          <td><code>sum(map(int,l.split()))</code></td>
+          <td>循环 + scanf</td>
+          <td>~20 chars</td>
+      </tr>
+      <tr>
+          <td>无类型声明</td>
+          <td><code>int x;</code></td>
+          <td>~4 chars</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>实测结论：</strong> 8 道 Codeforces 简单题（600-800 分），Python 平均 65.0 字符 vs C 极致 85.3 字符。Python 全胜。</p>
+<h3 id="44-终极技巧编译器标志消除-include">4.4 终极技巧：编译器标志消除 #include<a hidden class="anchor" aria-hidden="true" href="#44-终极技巧编译器标志消除-include">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 不写 #include&lt;stdio.h&gt; 的 C 代码 (节省 18 chars)</span>
+</span></span><span style="display:flex;"><span>clang -std<span style="color:#f92672">=</span>gnu89 -include stdio.h -o prog prog.c
+</span></span></code></pre></div><p><code>-std=gnu89</code> 同时启用：</p>
+<ul>
+<li>隐式 int 返回类型：<code>main(){...}</code> 不需要写 <code>int</code></li>
+<li>K&amp;R 函数定义风格：<code>main(n){...}</code> 参数默认为 int</li>
+<li>隐式函数声明：printf/scanf 不需要 #include</li>
+</ul>
+<p>4A Watermelon 从 78 chars → 49 chars (C 极致) → 42 chars (Python)。</p>
+<hr>
+<h2 id="5-跨维度权衡与实测数据">5. 跨维度权衡与实测数据<a hidden class="anchor" aria-hidden="true" href="#5-跨维度权衡与实测数据">#</a></h2>
+<h3 id="51-速度-vs-内存预计算的两面性">5.1 速度 vs 内存：预计算的两面性<a hidden class="anchor" aria-hidden="true" href="#51-速度-vs-内存预计算的两面性">#</a></h3>
+<table>
+  <thead>
+      <tr>
+          <th>问题</th>
+          <th>基线内存</th>
+          <th>极致内存</th>
+          <th>改变</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td>161D</td>
+          <td>200.8 MB</td>
+          <td><strong>3.5 MB</strong></td>
+          <td>57× 缩减 (算法改写)</td>
+      </tr>
+      <tr>
+          <td>118D</td>
+          <td>6.6 MB</td>
+          <td><strong>1.4 MB</strong></td>
+          <td>4.64× 缩减 (滚动DP)</td>
+      </tr>
+      <tr>
+          <td>1061C</td>
+          <td>2.7 MB</td>
+          <td>63.9 MB</td>
+          <td><strong>23× 膨胀</strong> (预计算除数表换速度)</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>1061C 的权衡解释：</strong></p>
+<ul>
+<li>基线：每次动态求除数 → O(√a_i) per element, 2.7 MB</li>
+<li>极致：预计算 1..10^6 所有数的除数表 → O(d(a_i)) per element, 63.9 MB</li>
+<li>选择：如果内存充裕 (256MB)，极致版更快；如果内存紧张 (64MB)，用基线</li>
+</ul>
+<h3 id="52-编译器标志的意外性能">5.2 编译器标志的意外性能<a hidden class="anchor" aria-hidden="true" href="#52-编译器标志的意外性能">#</a></h3>
+<table>
+  <thead>
+      <tr>
+          <th>标志</th>
+          <th>体积</th>
+          <th>速度 (NEON)</th>
+          <th>说明</th>
+      </tr>
+  </thead>
+  <tbody>
+      <tr>
+          <td><code>-Os</code></td>
+          <td>33.8 KB</td>
+          <td><strong>1.65×</strong></td>
+          <td>体积优化居然最快！</td>
+      </tr>
+      <tr>
+          <td><code>-O3</code></td>
+          <td>33.8 KB</td>
+          <td>1.42×</td>
+          <td>常规最快假设被推翻</td>
+      </tr>
+      <tr>
+          <td><code>-O3 -flto</code></td>
+          <td>33.7 KB</td>
+          <td>1.37×</td>
+          <td>LTO 减小体积但未提升速度</td>
+      </tr>
+  </tbody>
+</table>
+<p><strong>原因：</strong> Apple M4 的 L1 指令缓存只有 192KB。<code>-Os</code> 产生的代码更小，指令缓存命中率更高，对循环密集型代码的收益超过指令调度优化。</p>
+<h3 id="53-基准测试汇总-全-38-个二进制">5.3 基准测试汇总 (全 38 个二进制)<a hidden class="anchor" aria-hidden="true" href="#53-基准测试汇总-全-38-个二进制">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>运行时加速 Top 3:
+</span></span><span style="display:flex;"><span>  1. 86D Powerful Array   — 7.25×  (540.7ms → 74.5ms)
+</span></span><span style="display:flex;"><span>  2. NEON SIMD 求和       — 2.38×  (3519µs → 1477µs)
+</span></span><span style="display:flex;"><span>  3. 无分支二分查找       — 2.09×  (4087ms → 1955ms)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>内存缩减 Top 3:
+</span></span><span style="display:flex;"><span>  1. 161D Distance in Tree — 57.37× (200.8MB → 3.5MB)
+</span></span><span style="display:flex;"><span>  2. 118D Caesar&#39;s Legions — 4.64×  (6.6MB → 1.4MB)
+</span></span><span style="display:flex;"><span>  3. (其余为同等或膨胀)
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span>代码长度缩减 Top 3:
+</span></span><span style="display:flex;"><span>  1. 112A Petya and Strings — 82.7% (313 → 54 chars, Python)
+</span></span><span style="display:flex;"><span>  2. 4A Watermelon          — 77.4% (186 → 42 chars, Python)
+</span></span><span style="display:flex;"><span>  3. 71A Way Too Long Words — 77.1% (358 → 82 chars, Python)
+</span></span></code></pre></div><hr>
+<h2 id="6-最佳实践清单">6. 最佳实践清单<a hidden class="anchor" aria-hidden="true" href="#6-最佳实践清单">#</a></h2>
+<h3 id="61-提交前检查按优先级">6.1 提交前检查（按优先级）<a hidden class="anchor" aria-hidden="true" href="#61-提交前检查按优先级">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>□ 1. 算法复杂度是否已最优？ (最优先)
+</span></span><span style="display:flex;"><span>□ 2. I/O 是否已优化？ (fread/fwrite 或 sync_with_stdio)
+</span></span><span style="display:flex;"><span>□ 3. 是否使用了正确的数据类型？ (int vs long long, 避免 double 除非必要)
+</span></span><span style="display:flex;"><span>□ 4. 编译标志是否最优？ (-O3 -march=native -flto)
+</span></span><span style="display:flex;"><span>□ 5. vector 是否可用静态数组替换？
+</span></span><span style="display:flex;"><span>□ 6. 哈希表是否可用数组/排序+二分替换？
+</span></span><span style="display:flex;"><span>□ 7. 是否有不必要的 STL 容器？
+</span></span><span style="display:flex;"><span>□ 8. 摩尔题是否用了 Hilbert 排序？
+</span></span><span style="display:flex;"><span>□ 9. 是否可以用滚动数组压缩 DP 维度？
+</span></span><span style="display:flex;"><span>□ 10. __builtin_expect 是否放在正确位置？
+</span></span></code></pre></div><h3 id="62-最快速编译命令">6.2 最快速编译命令<a hidden class="anchor" aria-hidden="true" href="#62-最快速编译命令">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 通用</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -O3 -march<span style="color:#f92672">=</span>native -flto -o prog src.cpp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 有训练数据时 (PGO 额外 1.2-1.6×)</span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># (先运行插桩版本收集 profile, 再用 -fprofile-instr-use)</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -O3 -march<span style="color:#f92672">=</span>native -flto -fprofile-instr-use<span style="color:#f92672">=</span>profile.profdata -o prog src.cpp
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># 手写 NEON/SIMD 向量化代码</span>
+</span></span><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -Os -o prog src.cpp
+</span></span></code></pre></div><h3 id="63-最小内存编译命令">6.3 最小内存编译命令<a hidden class="anchor" aria-hidden="true" href="#63-最小内存编译命令">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>clang++ -std<span style="color:#f92672">=</span>c++20 -Os -fno-exceptions -fno-rtti -flto -Wl,-dead_strip -o prog src.cpp
+</span></span><span style="display:flex;"><span>strip -x prog
+</span></span></code></pre></div><h3 id="64-最简代码高尔夫编译命令">6.4 最简代码高尔夫编译命令<a hidden class="anchor" aria-hidden="true" href="#64-最简代码高尔夫编译命令">#</a></h3>
+<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># C 极限 (隐式 int + 隐式声明)</span>
+</span></span><span style="display:flex;"><span>clang -std<span style="color:#f92672">=</span>gnu89 -include stdio.h -O2 -o prog prog.c
+</span></span><span style="display:flex;"><span>
+</span></span><span style="display:flex;"><span><span style="color:#75715e"># Python 极限 (本就短)</span>
+</span></span><span style="display:flex;"><span>python3 -c <span style="color:#e6db74">&#34;</span><span style="color:#66d9ef">$(</span>cat prog.py<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> &lt; input.txt
+</span></span></code></pre></div><hr>
+<h2 id="总结">总结<a hidden class="anchor" aria-hidden="true" href="#总结">#</a></h2>
+<p>极致优化的三个核心洞察：</p>
+<ol>
+<li>
+<p><strong>10× 优化靠算法。</strong> 重心分解、滚动 DP、候选过滤等方法从根本上改变复杂度。在这之后才考虑微优化。</p>
+</li>
+<li>
+<p><strong>I/O 和编译标志是免费的午餐。</strong> <code>fread</code> + <code>-O3 -march=native -flto</code> 不改一行算法就能获得 3-6× 加速。</p>
+</li>
+<li>
+<p><strong>实测代替猜测。</strong> hyperfine 跑 10 次取均值，<code>/usr/bin/time -l</code> 看 peak RSS，<code>wc -c</code> 数字符。数据驱动决策——同一个优化技巧在不同平台、不同编译器、不同输入规模下效果可能截然相反。</p>
+</li>
+</ol>
+<p>最后记住：<strong>最极致的优化不是写出最优代码，而是写出根本不需要执行的那行代码。</strong> 如果一个 O(n²) 算法可以被 O(n) 公式替代，你不需要任何上述技术。数学永远是终极优化器。</p>
+<hr>
+<p><em>基于 Apple M4 / clang++ 21.0.0 实测。所有基准测试数据来自 <code>benchmarks/ALL_RESULTS.md</code>。</em></p>
+
+
+  </div>
+
+  <footer class="post-footer">
+    <ul class="post-tags">
+    </ul>
+        
+    
+<nav class="paginav">
+  <a class="prev" href="https://kennems.github.io/posts/tech/android%E5%BC%80%E5%8F%91/">
+    <span class="title">« 上一页</span>
+    <span></span>
+  </a>
+</nav>
+
+  </footer>
+</article>
+    </main>
+    
+<footer class="footer">
+        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
+
+    <span>
+        Powered by
+        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
+    </span>
+</footer>
+<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
+        <polyline points="17 11 12 6 7 11"></polyline>
+        <polyline points="17 18 12 13 7 18"></polyline>
+    </svg>
+</a>
+
+<script>
+    let menu = document.getElementById('menu');
+    if (menu) {
+        
+        const scrollPosition = localStorage.getItem("menu-scroll-position");
+        if (scrollPosition) {
+            menu.scrollLeft = parseInt(scrollPosition, 10);
+        }
+        
+        menu.onscroll = function () {
+            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
+        }
+    }
+
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+        anchor.addEventListener("click", function (e) {
+            e.preventDefault();
+            var id = this.getAttribute("href").substr(1);
+            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
+                    behavior: "smooth"
+                });
+            } else {
+                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
+            }
+            if (id === "top") {
+                history.replaceState(null, null, " ");
+            } else {
+                history.pushState(null, null, `#${id}`);
+            }
+        });
+    });
+
+</script>
+<script>
+    var toplink = document.getElementById("top-link");
+    window.onscroll = function () {
+        const scrollThreshold = window.innerHeight;
+        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
+            toplink.classList.remove("hidden");
+        } else {
+            toplink.classList.add("hidden");
+        }
+    };
+
+</script>
+<script>
+    document.getElementById("theme-toggle").addEventListener("click", () => {
+        const html = document.querySelector("html");
+        if (html.dataset.theme === "dark") {
+            html.dataset.theme = 'light';
+            localStorage.setItem("pref-theme", 'light');
+        } else {
+            html.dataset.theme = 'dark';
+            localStorage.setItem("pref-theme", 'dark');
+        }
+    })
+
+</script>
+<script>
+    document.querySelectorAll('pre > code').forEach((codeblock) => {
+        const container = codeblock.parentNode.parentNode;
+
+        const copybutton = document.createElement('button');
+        copybutton.classList.add('copy-code');
+        copybutton.innerHTML = '复制';
+
+        function copyingDone() {
+            copybutton.innerHTML = '已复制！';
+            setTimeout(() => {
+                copybutton.innerHTML = '复制';
+            }, 2000);
+        }
+
+        copybutton.addEventListener('click', (cb) => {
+            if ('clipboard' in navigator) {
+                navigator.clipboard.writeText(codeblock.textContent);
+                copyingDone();
+                return;
+            }
+
+            const range = document.createRange();
+            range.selectNodeContents(codeblock);
+            const selection = window.getSelection();
+            selection.removeAllRanges();
+            selection.addRange(range);
+            try {
+                document.execCommand('copy');
+                copyingDone();
+            } catch (e) { };
+            selection.removeRange(range);
+        });
+
+        if (container.classList.contains("highlight")) {
+            container.appendChild(copybutton);
+        } else if (container.parentNode.firstChild == container) {
+            
+        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
+            
+            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
+        } else {
+            
+            codeblock.parentNode.appendChild(copybutton);
+        }
+    });
+</script>
+
+<footer class="footer">
+    
+    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+
+    <span id="busuanzi_container">
+    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
+    👀 Views: <span id="busuanzi_value_site_pv"></span>
+  </span>
+</footer>
+
+
+
+</body>
+
+</html>
