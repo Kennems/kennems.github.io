@@ -144,8 +144,8 @@ document.addEventListener("DOMContentLoaded", function() {
   "keywords": [
     "LeetCode Hot 100"
   ],
-  "articleBody": "LeetCode Hot 100 精练🥸(4) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。\n(61)31. 下一个排列 题目大意：给定一个整数数组，要求找出这个数组的下一个排列，即比当前排列大的下一个排列，如果不存在则返回字典序最小的排列。\n实现思路：要找到下一个排列，可以遵循以下步骤：\n从数组末尾开始，找到第一个相邻的两个数，满足 nums[i] \u003c nums[i+1]。 如果找到了这样的一对数，说明当前排列还不是最大的排列，可以进行下一步操作。 在从右往左找到的第一个位置记为 i，再从数组末尾开始，找到第一个大于 nums[i] 的数，记为 j。 交换 nums[i] 和 nums[j]。 将从 i+1 位置开始到数组末尾的数逆序排列，以得到字典序最小的排列。 如果步骤1中没有找到相邻的两个数，则说明当前排列已经是最大的排列，直接将整个数组逆序排列即可。 class Solution: def nextPermutation(self, nums: List[int]) -\u003e None: n = len(nums) i = n - 2 while i \u003e= 0 and nums[i] \u003e= nums[i + 1]: i -= 1 if i \u003e= 0: j = n - 1 while j \u003e= i and nums[j] \u003c= nums[i]: j -= 1 nums[i], nums[j] = nums[j], nums[i] nums[i + 1 :] = reversed(nums[i + 1 :]) (62)538. 把二叉搜索树转换为累加树 题目大意：给定一个二叉搜索树的根节点，需要将其转换为累加树，即每个节点的新值等于原树中大于或等于该节点值的节点值之和。\n递归解法 class Solution: def convertBST(self, root: Optional[TreeNode]) -\u003e Optional[TreeNode]: s = 0 def dfs(r): nonlocal s if not r: return 0 dfs(r.right) s += r.val r.val = s dfs(r.left) dfs(root) return root (Morris 遍历) 从根节点开始，采用反向中序遍历（右-根-左）的方式进行遍历。利用一个变量 s 记录累加和，初始值为 0。对于每个节点，首先判断其是否存在右子节点，如果不存在，则将其值加上累加和并更新累加和，然后将当前节点指向其左子节点；如果存在右子节点，则找到其中序遍历的后继节点，即右子树中最左边的节点。如果后继节点的左子节点为空，说明还未处理过该节点，则将后继节点的左子节点指向当前节点，并将当前节点指向其右子节点；如果后继节点的左子节点为当前节点，则说明已经处理过该节点，则将后继节点的左子节点置为空，将当前节点的值加上累加和并更新累加和，并将当前节点指向其左子节点。最后返回根节点。\nclass Solution: def convertBST(self, root: Optional[TreeNode]) -\u003e Optional[TreeNode]: def getSucc(node): succ = node.right while succ.left and succ.left!=node: succ = succ.left return succ newRoot = root s = 0 while root: if not root.right: s += root.val root.val = s root = root.left else: succ = getSucc(root) if not succ.left: succ.left = root root = root.right else: succ.left = None s += root.val root.val = s root = root.left return newRoot (63)23. 合并 K 个升序链表 # Definition for singly-linked list. # class ListNode: # def __init__(self, val=0, next=None): # self.val = val # self.next = next class pq: def __init__(self, val, node): self.val = val self.node = node def __lt__(self, other): return self.val \u003c other.val class Solution: def mergeKLists(self, lists: List[Optional[ListNode]]) -\u003e Optional[ListNode]: h = [] n = len(lists) for i in range(n): head = lists[i] if head: heappush(h, pq(head.val, head)) newHead = ListNode(-1) dummy = newHead while h: top = heappop(h) cur = top.node dummy.next = cur dummy = cur if cur.next: heappush(h, pq(cur.next.val, cur.next)) return newHead.next (64)560. 和为 K 的子数组 给你一个整数数组 nums 和一个整数 k ，请你统计并返回 该数组中和为 k 的子数组的个数 。\n子数组是数组中元素的连续非空序列。\nclass Solution: def subarraySum(self, nums: List[int], k: int) -\u003e int: d = defaultdict(int) d[0] += 1 n, pre, res = len(nums), 0, 0 for i in range(n): pre += nums[i] if d[pre - k]: res += d[pre - k] d[pre] += 1 return res (65)21. 合并两个有序链表 将两个升序链表合并为一个新的 升序 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。\n# Definition for singly-linked list. # class ListNode: # def __init__(self, val=0, next=None): # self.val = val # self.next = next class Solution: def mergeTwoLists( self, l1: Optional[ListNode], l2: Optional[ListNode] ) -\u003e Optional[ListNode]: dummy = ListNode(-1) cur = dummy while l1 and l2: if l1.val \u003c l2.val: cur.next = l1 cur = cur.next l1 = l1.next else: cur.next = l2 cur = cur.next l2 = l2.next while l1: cur.next = l1 cur = cur.next l1 = l1.next while l2: cur.next = l2 cur = cur.next l2 = l2.next return dummy.next (6620. 有效的括号 给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串 s ，判断字符串是否有效。\n有效字符串需满足：\n左括号必须用相同类型的右括号闭合。 左括号必须以正确的顺序闭合。 每个右括号都有一个对应的相同类型的左括号。 class Solution: def isValid(self, s: str) -\u003e bool: stk = [] for i, ch in enumerate(s): if ch in \"([{\": stk.append(ch) continue if not stk: return False if ch == \")\" and stk[-1] == \"(\": stk.pop() continue if ch == \"]\" and stk[-1] == \"[\": stk.pop() continue if ch == \"}\" and stk[-1] == \"{\": stk.pop() continue return False return len(stk) == 0 (67)19. 删除链表的倒数第 N 个结点 题目大意：给定一个链表，要求删除倒数第n个节点，并返回链表的头结点。\n实现思路：使用双指针，首先让第一个指针从头节点开始向后移动n步，然后同时移动第一个指针和第二个指针，直到第一个指针到达链表末尾。这样第二个指针所指的位置就是倒数第n个节点的前一个节点，然后进行删除操作即可。需要注意的是要考虑边界情况，比如链表长度为1，删除头节点等情况。\nclass Solution: def removeNthFromEnd(self, head: Optional[ListNode], n: int) -\u003e Optional[ListNode]: if not head.next: return None p1 = head n -= 1 while n: p1 = p1.next n -= 1 pre = p2 = head while p1.next: p1 = p1.next pre = p2 p2 = p2.next if p2 == head: head = head.next else: pre.next = pre.next.next return head (68)17. 电话号码的字母组合 给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。\n给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。\nclass Solution: def letterCombinations(self, digits: str) -\u003e List[str]: # 自救者人能救之 n = len(digits) if not n: return [] s = [] res = [] def dfs(i): if i==n: res.append(''.join(s)) return beg = 3 * ( int(digits[i]) - 2) + 1 \\ + (1 if digits[i]=='8' or digits[i]=='9' else 0) lim = 3 if digits[i]==\"7\" or digits[i]==\"9\": lim = 4 for j in range(beg, beg+lim): s.append(chr(j-1 + ord('a'))) dfs(i+1) s.pop() dfs(0) return res (69)15. 三数之和 题目大意：给定一个整数数组 nums，判断是否存在三元组 [nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k，同时还满足 nums[i] + nums[j] + nums[k] == 0。返回所有满足条件的不重复的三元组。\n枚举 实现思路：首先对数组 nums 进行排序。然后遍历数组，对于每个元素 nums[i]，设定两个指针 l 和 r 分别指向 i+1 和数组末尾。在 l 和 r 之间寻找和为 0 的两个数。具体地，如果当前元素与前一个元素相同，跳过；如果当前元素与 l+1 处的元素相同，跳过；在 l 和 r 之间利用双指针的方式找到满足条件的两个数，如果找到了满足条件的三元组，则添加到结果中。最后返回结果列表 res。\nclass Solution: def threeSum(self, nums: List[int]) -\u003e List[List[int]]: n = len(nums) nums.sort() res = [] for i in range(n): l = i r = n-1 if i and nums[i]==nums[i-1]: continue for m in range(l+1, n): if m\u003el+1 and nums[m]==nums[m-1]: continue while r\u003em and nums[r]+nums[m]+nums[l]\u003e0: r-=1 if m==r: break if nums[r]+nums[m]+nums[l]==0: res.append([nums[l], nums[m], nums[r]]) return res 计数排序双指针 实现思路：首先，利用 Counter 函数统计每个数出现的次数，并检查是否有 0 出现至少三次，如果是则将 [0, 0, 0] 添加到结果中。然后，对不重复的数进行排序。遍历排序后的数，对于每个数 num，如果 num 不等于 0 且 num 出现次数大于 1 且 -num*2 也在 Counter 中，则将 [num, num, -num*2] 添加到结果中。然后，在负数部分，利用双指针的方式寻找满足条件的两个数。最后返回结果列表 res。\nclass Solution: def threeSum(self, nums: List[int]) -\u003e List[List[int]]: res = [] c = Counter(nums) if 0 in c and c[0] \u003e= 3: res.append([0,0,0]) no_repeat_nums = sorted(c.keys()) for i,num in enumerate(no_repeat_nums): if num != 0 and c[num] \u003e 1 and -num*2 in c: res.append([num,num,-num*2]) if num \u003c 0: for num3 in no_repeat_nums[ bisect_left(no_repeat_nums,((-num+1)/2)) : bisect_right(no_repeat_nums,-num*2-1) ]: num2 = -num-num3 if num2 in c: res.append([num,num2,num3]) return res (70)11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。\n实现思路：使用双指针法。初始化左指针l指向数组的起始位置，右指针r指向数组的末尾位置。设置变量ret用于记录当前最大容量，初始化为0。在每一轮循环中，计算当前容器的容量，即min(height[l], height[r])乘以r和l之间的距离，更新ret。然后根据指针所指向的高度的大小，移动指针，如果height[l]",
-  "wordCount" : "4825",
+  "articleBody": "LeetCode Hot 100 精练🥸(4) 记忆中的东西一定会消退，真正留下的才是学到的，一定要及时回顾。\n(61)31. 下一个排列 题目大意：给定一个整数数组，要求找出这个数组的下一个排列，即比当前排列大的下一个排列，如果不存在则返回字典序最小的排列。\n实现思路：要找到下一个排列，可以遵循以下步骤：\n从数组末尾开始，找到第一个相邻的两个数，满足 nums[i] \u003c nums[i+1]。 如果找到了这样的一对数，说明当前排列还不是最大的排列，可以进行下一步操作。 在从右往左找到的第一个位置记为 i，再从数组末尾开始，找到第一个大于 nums[i] 的数，记为 j。 交换 nums[i] 和 nums[j]。 将从 i+1 位置开始到数组末尾的数逆序排列，以得到字典序最小的排列。 如果步骤1中没有找到相邻的两个数，则说明当前排列已经是最大的排列，直接将整个数组逆序排列即可。 class Solution: def nextPermutation(self, nums: List[int]) -\u003e None: n = len(nums) i = n - 2 while i \u003e= 0 and nums[i] \u003e= nums[i + 1]: i -= 1 if i \u003e= 0: j = n - 1 while j \u003e= i and nums[j] \u003c= nums[i]: j -= 1 nums[i], nums[j] = nums[j], nums[i] nums[i + 1 :] = reversed(nums[i + 1 :]) (62)538. 把二叉搜索树转换为累加树 题目大意：给定一个二叉搜索树的根节点，需要将其转换为累加树，即每个节点的新值等于原树中大于或等于该节点值的节点值之和。\n递归解法 class Solution: def convertBST(self, root: Optional[TreeNode]) -\u003e Optional[TreeNode]: s = 0 def dfs(r): nonlocal s if not r: return 0 dfs(r.right) s += r.val r.val = s dfs(r.left) dfs(root) return root (Morris 遍历) 从根节点开始，采用反向中序遍历（右-根-左）的方式进行遍历。利用一个变量 s 记录累加和，初始值为 0。对于每个节点，首先判断其是否存在右子节点，如果不存在，则将其值加上累加和并更新累加和，然后将当前节点指向其左子节点；如果存在右子节点，则找到其中序遍历的后继节点，即右子树中最左边的节点。如果后继节点的左子节点为空，说明还未处理过该节点，则将后继节点的左子节点指向当前节点，并将当前节点指向其右子节点；如果后继节点的左子节点为当前节点，则说明已经处理过该节点，则将后继节点的左子节点置为空，将当前节点的值加上累加和并更新累加和，并将当前节点指向其左子节点。最后返回根节点。\nclass Solution: def convertBST(self, root: Optional[TreeNode]) -\u003e Optional[TreeNode]: def getSucc(node): succ = node.right while succ.left and succ.left!=node: succ = succ.left return succ newRoot = root s = 0 while root: if not root.right: s += root.val root.val = s root = root.left else: succ = getSucc(root) if not succ.left: succ.left = root root = root.right else: succ.left = None s += root.val root.val = s root = root.left return newRoot (63)23. 合并 K 个升序链表 题目大意： 给定 k 个升序链表，将它们合并为一个新的升序链表并返回。\n解题思路： 使用最小堆（优先队列）：将每个链表头节点入堆，每次弹出堆顶接到结果链表尾部，若弹出节点有后继则将其入堆，重复直到堆空。\n# Definition for singly-linked list. # class ListNode: # def __init__(self, val=0, next=None): # self.val = val # self.next = next class pq: def __init__(self, val, node): self.val = val self.node = node def __lt__(self, other): return self.val \u003c other.val class Solution: def mergeKLists(self, lists: List[Optional[ListNode]]) -\u003e Optional[ListNode]: h = [] n = len(lists) for i in range(n): head = lists[i] if head: heappush(h, pq(head.val, head)) newHead = ListNode(-1) dummy = newHead while h: top = heappop(h) cur = top.node dummy.next = cur dummy = cur if cur.next: heappush(h, pq(cur.next.val, cur.next)) return newHead.next (64)560. 和为 K 的子数组 给你一个整数数组 nums 和一个整数 k ，请你统计并返回 该数组中和为 k 的子数组的个数 。\n子数组是数组中元素的连续非空序列。\n题目大意： 统计数组中和为 k 的连续子数组的个数。\n解题思路： 前缀和 + 哈希表。遍历数组时维护前缀和 pre，检查 pre - k 是否在哈希表中出现过（即存在子数组和为 k），将其出现次数累加到结果中。\nclass Solution: def subarraySum(self, nums: List[int], k: int) -\u003e int: d = defaultdict(int) d[0] += 1 n, pre, res = len(nums), 0, 0 for i in range(n): pre += nums[i] if d[pre - k]: res += d[pre - k] d[pre] += 1 return res (65)21. 合并两个有序链表 将两个升序链表合并为一个新的 升序 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。\n题目大意： 合并两个升序链表为一个新的升序链表。\n解题思路： 双指针 + 虚拟头节点。比较两个链表当前节点值，将较小者接入结果链表尾部，直到其中一个链表遍历完毕，再将剩余部分直接拼接。\n# Definition for singly-linked list. # class ListNode: # def __init__(self, val=0, next=None): # self.val = val # self.next = next class Solution: def mergeTwoLists( self, l1: Optional[ListNode], l2: Optional[ListNode] ) -\u003e Optional[ListNode]: dummy = ListNode(-1) cur = dummy while l1 and l2: if l1.val \u003c l2.val: cur.next = l1 cur = cur.next l1 = l1.next else: cur.next = l2 cur = cur.next l2 = l2.next while l1: cur.next = l1 cur = cur.next l1 = l1.next while l2: cur.next = l2 cur = cur.next l2 = l2.next return dummy.next (6620. 有效的括号 给定一个只包括 '('，')'，'{'，'}'，'['，']' 的字符串 s ，判断字符串是否有效。\n有效字符串需满足：\n左括号必须用相同类型的右括号闭合。 左括号必须以正确的顺序闭合。 每个右括号都有一个对应的相同类型的左括号。 题目大意： 判断给定括号字符串是否有效（括号类型匹配且顺序正确）。\n解题思路： 使用栈。遇到左括号入栈，遇到右括号时检查栈顶是否匹配对应左括号，匹配则弹栈，否则返回 false；遍历结束后栈空则有效。\nclass Solution: def isValid(self, s: str) -\u003e bool: stk = [] for i, ch in enumerate(s): if ch in \"([{\": stk.append(ch) continue if not stk: return False if ch == \")\" and stk[-1] == \"(\": stk.pop() continue if ch == \"]\" and stk[-1] == \"[\": stk.pop() continue if ch == \"}\" and stk[-1] == \"{\": stk.pop() continue return False return len(stk) == 0 (67)19. 删除链表的倒数第 N 个结点 题目大意：给定一个链表，要求删除倒数第n个节点，并返回链表的头结点。\n实现思路：使用双指针，首先让第一个指针从头节点开始向后移动n步，然后同时移动第一个指针和第二个指针，直到第一个指针到达链表末尾。这样第二个指针所指的位置就是倒数第n个节点的前一个节点，然后进行删除操作即可。需要注意的是要考虑边界情况，比如链表长度为1，删除头节点等情况。\nclass Solution: def removeNthFromEnd(self, head: Optional[ListNode], n: int) -\u003e Optional[ListNode]: if not head.next: return None p1 = head n -= 1 while n: p1 = p1.next n -= 1 pre = p2 = head while p1.next: p1 = p1.next pre = p2 p2 = p2.next if p2 == head: head = head.next else: pre.next = pre.next.next return head (68)17. 电话号码的字母组合 给定一个仅包含数字 2-9 的字符串，返回所有它能表示的字母组合。答案可以按 任意顺序 返回。\n给出数字到字母的映射如下（与电话按键相同）。注意 1 不对应任何字母。\n题目大意： 给定数字字符串，返回所有可能的字母组合映射。\n解题思路： DFS 回溯。递归遍历每个数字，枚举当前数字对应的所有字母，加入路径后继续深入，到达末尾时保存结果并回溯。\nclass Solution: def letterCombinations(self, digits: str) -\u003e List[str]: # 自救者人能救之 n = len(digits) if not n: return [] s = [] res = [] def dfs(i): if i==n: res.append(''.join(s)) return beg = 3 * ( int(digits[i]) - 2) + 1 \\ + (1 if digits[i]=='8' or digits[i]=='9' else 0) lim = 3 if digits[i]==\"7\" or digits[i]==\"9\": lim = 4 for j in range(beg, beg+lim): s.append(chr(j-1 + ord('a'))) dfs(i+1) s.pop() dfs(0) return res (69)15. 三数之和 题目大意：给定一个整数数组 nums，判断是否存在三元组 [nums[i], nums[j], nums[k]] 满足 i != j、i != k 且 j != k，同时还满足 nums[i] + nums[j] + nums[k] == 0。返回所有满足条件的不重复的三元组。\n枚举 实现思路：首先对数组 nums 进行排序。然后遍历数组，对于每个元素 nums[i]，设定两个指针 l 和 r 分别指向 i+1 和数组末尾。在 l 和 r 之间寻找和为 0 的两个数。具体地，如果当前元素与前一个元素相同，跳过；如果当前元素与 l+1 处的元素相同，跳过；在 l 和 r 之间利用双指针的方式找到满足条件的两个数，如果找到了满足条件的三元组，则添加到结果中。最后返回结果列表 res。\nclass Solution: def threeSum(self, nums: List[int]) -\u003e List[List[int]]: n = len(nums) nums.sort() res = [] for i in range(n): l = i r = n-1 if i and nums[i]==nums[i-1]: continue for m in range(l+1, n): if m\u003el+1 and nums[m]==nums[m-1]: continue while r\u003em and nums[r]+nums[m]+nums[l]\u003e0: r-=1 if m==r: break if nums[r]+nums[m]+nums[l]==0: res.append([nums[l], nums[m], nums[r]]) return res 计数排序双指针 实现思路：首先，利用 Counter 函数统计每个数出现的次数，并检查是否有 0 出现至少三次，如果是则将 [0, 0, 0] 添加到结果中。然后，对不重复的数进行排序。遍历排序后的数，对于每个数 num，如果 num 不等于 0 且 num 出现次数大于 1 且 -num*2 也在 Counter 中，则将 [num, num, -num*2] 添加到结果中。然后，在负数部分，利用双指针的方式寻找满足条件的两个数。最后返回结果列表 res。\nclass Solution: def threeSum(self, nums: List[int]) -\u003e List[List[int]]: res = [] c = Counter(nums) if 0 in c and c[0] \u003e= 3: res.append([0,0,0]) no_repeat_nums = sorted(c.keys()) for i,num in enumerate(no_repeat_nums): if num != 0 and c[num] \u003e 1 and -num*2 in c: res.append([num,num,-num*2]) if num \u003c 0: for num3 in no_repeat_nums[ bisect_left(no_repeat_nums,((-num+1)/2)) : bisect_right(no_repeat_nums,-num*2-1) ]: num2 = -num-num3 if num2 in c: res.append([num,num2,num3]) return res (70)11. 盛最多水的容器 题目大意：给定一个长度为n的整数数组height，数组中的每个元素代表一条垂直线的高度。找出其中的两条线，使得它们与x轴构成的容器可以容纳最多的水。\n实现思路：使用双指针法。初始化左指针l指向数组的起始位置，右指针r指向数组的末尾位置。设置变量ret用于记录当前最大容量，初始化为0。在每一轮循环中，计算当前容器的容量，即min(height[l], height[r])乘以r和l之间的距离，更新ret。然后根据指针所指向的高度的大小，移动指针，如果height[l]",
+  "wordCount" : "6236",
   "inLanguage": "zh",
   "datePublished": "2024-12-08T10:00:01+08:00",
   "dateModified": "2026-05-11T10:00:01+08:00",
@@ -266,7 +266,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="post-description">
       LeetCode Hot 100 精练🥸(4)
     </div>
-    <div class="post-meta"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4825 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-11&nbsp;·&nbsp;<span>ShowGuan</span>
+    <div class="post-meta"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6236 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-11&nbsp;·&nbsp;<span>ShowGuan</span>
 
 </div>
     
@@ -335,7 +335,7 @@ document.addEventListener("DOMContentLoaded", function() {
                 <li>
                     <a href="#79617-%e5%90%88%e5%b9%b6%e4%ba%8c%e5%8f%89%e6%a0%91" aria-label="(79)617. 合并二叉树">(79)<a href="https://leetcode.cn/problems/merge-two-binary-trees/">617. 合并二叉树</a></a></li>
                 <li>
-                    <a href="#80105-%e4%bb%8e%e5%89%8d%e5%ba%8f%e4%b8%8e%e4%b8%ad%e5%ba%8f%e9%81%8d%e5%8e%86%e5%ba%8f%e5%88%97%e6%9e%84%e9%80%a0%e4%ba%8c%e5%8f%89%e6%a0%91" aria-label="(80)	105. 从前序与中序遍历序列构造二叉树">(80)	105. 从前序与中序遍历序列构造二叉树</a>
+                    <a href="#80105-%e4%bb%8e%e5%89%8d%e5%ba%8f%e4%b8%8e%e4%b8%ad%e5%ba%8f%e9%81%8d%e5%8e%86%e5%ba%8f%e5%88%97%e6%9e%84%e9%80%a0%e4%ba%8c%e5%8f%89%e6%a0%91" aria-label="(80)	105. 从前序与中序遍历序列构造二叉树">(80)	<a href="https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/">105. 从前序与中序遍历序列构造二叉树</a></a>
                 </li>
             </ul>
             </li>
@@ -476,6 +476,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>                    root <span style="color:#f92672">=</span> root<span style="color:#f92672">.</span>left
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> newRoot
 </span></span></code></pre></div><h2 id="6323-合并-k-个升序链表">(63)<a href="https://leetcode.cn/problems/merge-k-sorted-lists/">23. 合并 K 个升序链表</a><a hidden class="anchor" aria-hidden="true" href="#6323-合并-k-个升序链表">#</a></h2>
+<p><strong>题目大意</strong>：
+给定 k 个升序链表，将它们合并为一个新的升序链表并返回。</p>
+<p><strong>解题思路</strong>：
+使用最小堆（优先队列）：将每个链表头节点入堆，每次弹出堆顶接到结果链表尾部，若弹出节点有后继则将其入堆，重复直到堆空。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># Definition for singly-linked list.</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># class ListNode:</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#     def __init__(self, val=0, next=None):</span>
@@ -514,6 +518,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></code></pre></div><h2 id="64560-和为-k-的子数组">(64)<a href="https://leetcode.cn/problems/subarray-sum-equals-k/">560. 和为 K 的子数组</a><a hidden class="anchor" aria-hidden="true" href="#64560-和为-k-的子数组">#</a></h2>
 <p>给你一个整数数组 <code>nums</code> 和一个整数 <code>k</code> ，请你统计并返回 <em>该数组中和为 <code>k</code> 的子数组的个数</em> 。</p>
 <p>子数组是数组中元素的连续非空序列。</p>
+<p><strong>题目大意</strong>：
+统计数组中和为 k 的连续子数组的个数。</p>
+<p><strong>解题思路</strong>：
+前缀和 + 哈希表。遍历数组时维护前缀和 pre，检查 pre - k 是否在哈希表中出现过（即存在子数组和为 k），将其出现次数累加到结果中。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">subarraySum</span>(self, nums: List[int], k: int) <span style="color:#f92672">-&gt;</span> int:
 </span></span><span style="display:flex;"><span>        d <span style="color:#f92672">=</span> defaultdict(int)
@@ -529,6 +537,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> res
 </span></span></code></pre></div><h2 id="6521-合并两个有序链表">(65)<a href="https://leetcode.cn/problems/merge-two-sorted-lists/">21. 合并两个有序链表</a><a hidden class="anchor" aria-hidden="true" href="#6521-合并两个有序链表">#</a></h2>
 <p>将两个升序链表合并为一个新的 <strong>升序</strong> 链表并返回。新链表是通过拼接给定的两个链表的所有节点组成的。</p>
+<p><strong>题目大意</strong>：
+合并两个升序链表为一个新的升序链表。</p>
+<p><strong>解题思路</strong>：
+双指针 + 虚拟头节点。比较两个链表当前节点值，将较小者接入结果链表尾部，直到其中一个链表遍历完毕，再将剩余部分直接拼接。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># Definition for singly-linked list.</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># class ListNode:</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#     def __init__(self, val=0, next=None):</span>
@@ -570,6 +582,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>左括号必须以正确的顺序闭合。</li>
 <li>每个右括号都有一个对应的相同类型的左括号。</li>
 </ol>
+<p><strong>题目大意</strong>：
+判断给定括号字符串是否有效（括号类型匹配且顺序正确）。</p>
+<p><strong>解题思路</strong>：
+使用栈。遇到左括号入栈，遇到右括号时检查栈顶是否匹配对应左括号，匹配则弹栈，否则返回 false；遍历结束后栈空则有效。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">isValid</span>(self, s: str) <span style="color:#f92672">-&gt;</span> bool:
 </span></span><span style="display:flex;"><span>        stk <span style="color:#f92672">=</span> []
@@ -639,6 +655,10 @@ document.addEventListener("DOMContentLoaded", function() {
         </a>
     </div>
 </p>
+<p><strong>题目大意</strong>：
+给定数字字符串，返回所有可能的字母组合映射。</p>
+<p><strong>解题思路</strong>：
+DFS 回溯。递归遍历每个数字，枚举当前数字对应的所有字母，加入路径后继续深入，到达末尾时保存结果并回溯。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">letterCombinations</span>(self, digits: str) <span style="color:#f92672">-&gt;</span> List[str]:
 </span></span><span style="display:flex;"><span>        <span style="color:#75715e"># 自救者人能救之</span>
@@ -735,6 +755,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <li><code>'*'</code> 匹配零个或多个前面的那一个元素</li>
 </ul>
 <p>返回一个布尔值，表示匹配是否覆盖整个输入字符串（而非部分）。</p>
+<p><strong>题目大意</strong>：
+实现支持 &lsquo;.&rsquo; 和 &lsquo;*&rsquo; 的正则表达式匹配，判断 s 是否能被 p 完整匹配。</p>
+<p><strong>解题思路</strong>：
+动态规划。定义 f[i][j] 表示 s 的前 i 个字符与 p 的前 j 个字符是否匹配，分字符匹配、&rsquo;.&rsquo; 匹配、&rsquo;*&rsquo; 匹配三种情况转移。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">isMatch</span>(self, s: str, p: str) <span style="color:#f92672">-&gt;</span> bool:
 </span></span><span style="display:flex;"><span>        m, n <span style="color:#f92672">=</span> len(s), len(p)
@@ -759,6 +783,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></code></pre></div><p>​</p>
 <h2 id="725-最长回文子串">(72)<a href="https://leetcode.cn/problems/longest-palindromic-substring/">5. 最长回文子串</a><a hidden class="anchor" aria-hidden="true" href="#725-最长回文子串">#</a></h2>
 <p>给你一个字符串 <code>s</code>，找到 <code>s</code> 中最长的 回文 子串。</p>
+<p><strong>题目大意</strong>：
+找出给定字符串中的最长回文子串。</p>
+<p><strong>解题思路</strong>：
+马拉车算法（Manacher）。通过插入分隔符统一处理奇偶长度回文，维护当前最右回文中心 c 和右边界 r，利用对称性加速回文半径计算。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">longestPalindrome</span>(self, s: str) <span style="color:#f92672">-&gt;</span> str:
 </span></span><span style="display:flex;"><span>        s <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;#&#34;</span> <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;#&#34;</span><span style="color:#f92672">.</span>join(s) <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;#&#34;</span>
@@ -782,6 +810,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></code></pre></div><h2 id="734-寻找两个正序数组的中位数">(73)<a href="https://leetcode.cn/problems/median-of-two-sorted-arrays/">4. 寻找两个正序数组的中位数</a><a hidden class="anchor" aria-hidden="true" href="#734-寻找两个正序数组的中位数">#</a></h2>
 <p>给定两个大小分别为 <code>m</code> 和 <code>n</code> 的正序（从小到大）数组 <code>nums1</code> 和 <code>nums2</code>。请你找出并返回这两个正序数组的 <strong>中位数</strong> 。</p>
 <p>算法的时间复杂度应该为 <code>O(log (m+n))</code> 。</p>
+<p><strong>题目大意</strong>：
+在两个正序数组中找到中位数，要求 O(log(m+n)) 时间复杂度。</p>
+<p><strong>解题思路</strong>：
+二分法（基于较小数组划分）。在较小数组上二分查找合适的分割点，使得左半部分全部小于等于右半部分，根据两数组长度和的奇偶性返回中位数。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">findMedianSortedArrays</span>(self, nums1: List[int], nums2: List[int]) <span style="color:#f92672">-&gt;</span> float:
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(k):
@@ -869,6 +901,10 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">raise</span> <span style="color:#66d9ef">None</span>
 </span></span></code></pre></div><h2 id="743-无重复字符的最长子串">(74)<a href="https://leetcode.cn/problems/longest-substring-without-repeating-characters/">3. 无重复字符的最长子串</a><a hidden class="anchor" aria-hidden="true" href="#743-无重复字符的最长子串">#</a></h2>
 <p>给定一个字符串 <code>s</code> ，请你找出其中不含有重复字符的 <strong>最长 子串</strong> 的长度。</p>
+<p><strong>题目大意</strong>：
+找出不含重复字符的最长子串的长度。</p>
+<p><strong>解题思路</strong>：
+滑动窗口 + 哈希表。双指针维护窗口 [j, i]，哈希表统计窗口内字符频率，当出现重复时移动左边界 j 直到没有重复，每步更新最大长度。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">lengthOfLongestSubstring</span>(self, s: str) <span style="color:#f92672">-&gt;</span> int:
 </span></span><span style="display:flex;"><span>        d <span style="color:#f92672">=</span> defaultdict(int)
@@ -888,6 +924,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>给你两个 <strong>非空</strong> 的链表，表示两个非负的整数。它们每位数字都是按照 <strong>逆序</strong> 的方式存储的，并且每个节点只能存储 <strong>一位</strong> 数字。</p>
 <p>请你将两个数相加，并以相同形式返回一个表示和的链表。</p>
 <p>你可以假设除了数字 0 之外，这两个数都不会以 0 开头。</p>
+<p><strong>题目大意</strong>：
+两个逆序链表表示的非负整数相加，返回和链表。</p>
+<p><strong>解题思路</strong>：
+遍历两个链表，逐位相加并处理进位。使用虚拟头节点简化链表构建，每次计算 val1 + val2 + carry，生成新节点接到结果链表尾部。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># Definition for singly-linked list.</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># class ListNode:</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#     def __init__(self, val=0, next=None):</span>
@@ -918,7 +958,11 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></code></pre></div><p>​</p>
 <h2 id="7679-单词搜索">(76)<a href="https://leetcode.cn/problems/word-search/">79. 单词搜索</a><a hidden class="anchor" aria-hidden="true" href="#7679-单词搜索">#</a></h2>
 <p>给定一个 <code>m x n</code> 二维字符网格 <code>board</code> 和一个字符串单词 <code>word</code> 。如果 <code>word</code> 存在于网格中，返回 <code>true</code> ；否则，返回 <code>false</code> 。</p>
-<p>单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中“相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。</p>
+<p>单词必须按照字母顺序，通过相邻的单元格内的字母构成，其中”相邻”单元格是那些水平相邻或垂直相邻的单元格。同一个单元格内的字母不允许被重复使用。</p>
+<p><strong>题目大意</strong>：
+判断给定单词是否存在于二维字符网格中（相邻匹配且不重复使用）。</p>
+<p><strong>解题思路</strong>：
+DFS 回溯。遍历网格每个位置作为起点，深度优先搜索匹配单词的每个字符，用 visited 数组标记已访问单元格，搜索完毕恢复状态（回溯）。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exist</span>(self, grid: List[List[str]], target: str) <span style="color:#f92672">-&gt;</span> bool:
 </span></span><span style="display:flex;"><span>        m, n <span style="color:#f92672">=</span> len(grid), len(grid[<span style="color:#ae81ff">0</span>])
@@ -957,6 +1001,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <li>展开后的单链表应该同样使用 <code>TreeNode</code> ，其中 <code>right</code> 子指针指向链表中下一个结点，而左子指针始终为 <code>null</code> 。</li>
 <li>展开后的单链表应该与二叉树 <a href="https://baike.baidu.com/item/%E5%85%88%E5%BA%8F%E9%81%8D%E5%8E%86/6442839?fr=aladdin"><strong>先序遍历</strong></a> 顺序相同。</li>
 </ul>
+<p><strong>题目大意</strong>：
+将二叉树原地展开为先序遍历顺序的单链表（右指针指向后继，左指针置空）。</p>
+<p><strong>解题思路</strong>：
+先序遍历 + 指针重连。遍历二叉树（根-左-右），维护一个 cur 指针指向当前链表末尾，依次将访问到的节点连接到 cur.right 并将 left 置空。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">flatten</span>(self, root: Optional[TreeNode]) <span style="color:#f92672">-&gt;</span> <span style="color:#66d9ef">None</span>:
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">inorder</span>(r):
@@ -980,6 +1028,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <h2 id="78621-任务调度器">(78)<a href="https://leetcode.cn/problems/task-scheduler/">621. 任务调度器</a><a hidden class="anchor" aria-hidden="true" href="#78621-任务调度器">#</a></h2>
 <p>给你一个用字符数组 <code>tasks</code> 表示的 CPU 需要执行的任务列表，用字母 A 到 Z 表示，以及一个冷却时间 <code>n</code>。每个周期或时间间隔允许完成一项任务。任务可以按任何顺序完成，但有一个限制：两个 <strong>相同种类</strong> 的任务之间必须有长度为 <code>n</code> 的冷却时间。</p>
 <p>返回完成所有任务所需要的 <strong>最短时间间隔</strong> 。</p>
+<p><strong>题目大意</strong>：
+安排任务执行顺序，相同任务间需间隔 n 个时间单位，求完成所有任务的最短时间。</p>
+<p><strong>解题思路</strong>：
+贪心模拟。每次选择当前可执行（冷却已结束）且剩余数量最多的任务执行，更新其下次可执行时间和剩余次数，直至所有任务完成。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Solution</span>:
 </span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">leastInterval</span>(self, tasks: List[str], n: int) <span style="color:#f92672">-&gt;</span> int:
 </span></span><span style="display:flex;"><span>        c <span style="color:#f92672">=</span> Counter(tasks)
@@ -1009,6 +1061,10 @@ document.addEventListener("DOMContentLoaded", function() {
 <p>想象一下，当你将其中一棵覆盖到另一棵之上时，两棵树上的一些节点将会重叠（而另一些不会）。你需要将这两棵树合并成一棵新二叉树。合并的规则是：如果两个节点重叠，那么将这两个节点的值相加作为合并后节点的新值；否则，<strong>不为</strong> null 的节点将直接作为新二叉树的节点。</p>
 <p>返回合并后的二叉树。</p>
 <p><strong>注意:</strong> 合并过程必须从两个树的根节点开始。</p>
+<p><strong>题目大意</strong>：
+合并两棵二叉树，重叠节点值相加，非重叠节点保留非空节点。</p>
+<p><strong>解题思路</strong>：
+DFS 递归。若一个节点为空则返回另一个，否则将两节点值相加，然后递归合并左右子树。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># Definition for a binary tree node.</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># class TreeNode:</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#     def __init__(self, val=0, left=None, right=None):</span>
@@ -1027,8 +1083,12 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>        root1<span style="color:#f92672">.</span>right <span style="color:#f92672">=</span> self<span style="color:#f92672">.</span>mergeTrees(root1<span style="color:#f92672">.</span>right, root2<span style="color:#f92672">.</span>right)
 </span></span><span style="display:flex;"><span>
 </span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> root1
-</span></span></code></pre></div><h2 id="80105-从前序与中序遍历序列构造二叉树">(80)	105. 从前序与中序遍历序列构造二叉树<a hidden class="anchor" aria-hidden="true" href="#80105-从前序与中序遍历序列构造二叉树">#</a></h2>
+</span></span></code></pre></div><h2 id="80105-从前序与中序遍历序列构造二叉树">(80)	<a href="https://leetcode.cn/problems/construct-binary-tree-from-preorder-and-inorder-traversal/">105. 从前序与中序遍历序列构造二叉树</a><a hidden class="anchor" aria-hidden="true" href="#80105-从前序与中序遍历序列构造二叉树">#</a></h2>
 <p>给定两个整数数组 <code>preorder</code> 和 <code>inorder</code> ，其中 <code>preorder</code> 是二叉树的<strong>先序遍历</strong>， <code>inorder</code> 是同一棵树的<strong>中序遍历</strong>，请构造二叉树并返回其根节点。</p>
+<p><strong>题目大意</strong>：
+根据前序遍历和中序遍历序列构造唯一的二叉树。</p>
+<p><strong>解题思路</strong>：
+递归构造。前序首元素为根节点，在中序中找到该元素位置 idx，左边为左子树，右边为右子树，递归构造左右子树并连接。</p>
 <div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># Definition for a binary tree node.</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e"># class TreeNode:</span>
 </span></span><span style="display:flex;"><span><span style="color:#75715e">#     def __init__(self, val=0, left=None, right=None):</span>
