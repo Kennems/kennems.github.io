@@ -568,50 +568,50 @@ document.addEventListener("DOMContentLoaded", function() {
 <hr>
 <h3 id="22-编译器标志--一行不改的优化">2.2 编译器标志 — 一行不改的优化<a hidden class="anchor" aria-hidden="true" href="#22-编译器标志--一行不改的优化">#</a></h3>
 <table>
-  <thead>
-      <tr>
-          <th>标志</th>
-          <th>效果</th>
-          <th>实测加速 (NEON 10M 求和)</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>-O0</code></td>
-          <td>基线</td>
-          <td>1.00×</td>
-      </tr>
-      <tr>
-          <td><code>-O1</code></td>
-          <td>基础优化</td>
-          <td>1.59×</td>
-      </tr>
-      <tr>
-          <td><code>-O2</code></td>
-          <td>标准优化</td>
-          <td>1.07×*</td>
-      </tr>
-      <tr>
-          <td><code>-O3</code></td>
-          <td>激进优化</td>
-          <td>1.42×</td>
-      </tr>
-      <tr>
-          <td><code>-Os</code></td>
-          <td><strong>体积优化</strong></td>
-          <td><strong>1.65×</strong> 🏆</td>
-      </tr>
-      <tr>
-          <td><code>-Ofast</code></td>
-          <td>不安全优化</td>
-          <td>1.24×</td>
-      </tr>
-      <tr>
-          <td><code>-O3 -march=native -flto</code></td>
-          <td>全开</td>
-          <td>1.37×</td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>标志</th>
+					<th>效果</th>
+					<th>实测加速 (NEON 10M 求和)</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>-O0</code></td>
+					<td>基线</td>
+					<td>1.00×</td>
+			</tr>
+			<tr>
+					<td><code>-O1</code></td>
+					<td>基础优化</td>
+					<td>1.59×</td>
+			</tr>
+			<tr>
+					<td><code>-O2</code></td>
+					<td>标准优化</td>
+					<td>1.07×*</td>
+			</tr>
+			<tr>
+					<td><code>-O3</code></td>
+					<td>激进优化</td>
+					<td>1.42×</td>
+			</tr>
+			<tr>
+					<td><code>-Os</code></td>
+					<td><strong>体积优化</strong></td>
+					<td><strong>1.65×</strong> 🏆</td>
+			</tr>
+			<tr>
+					<td><code>-Ofast</code></td>
+					<td>不安全优化</td>
+					<td>1.24×</td>
+			</tr>
+			<tr>
+					<td><code>-O3 -march=native -flto</code></td>
+					<td>全开</td>
+					<td>1.37×</td>
+			</tr>
+	</tbody>
 </table>
 <p>* 注：<code>-O2</code> 在该特定基准中因向量化决策差异反而慢于 <code>-O1</code></p>
 <p><strong>关键发现：</strong> <code>-Os</code>（优化体积）在 Apple M4 对 NEON 向量化代码比 <code>-O3</code> 更快！原因是指令缓存命中率更高。</p>
@@ -682,65 +682,65 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span><span style="color:#75715e">// 实测: 2.38× 加速 (Apple M4, 10M ints)
 </span></span></span></code></pre></div><p><strong>NEON 常用指令速查：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>操作</th>
-          <th>NEON 指令</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>加载</td>
-          <td><code>vld1q_s32(ptr)</code></td>
-          <td>加载 4 个 int</td>
-      </tr>
-      <tr>
-          <td>存储</td>
-          <td><code>vst1q_s32(ptr, v)</code></td>
-          <td>存储 4 个 int</td>
-      </tr>
-      <tr>
-          <td>加法</td>
-          <td><code>vaddq_s32(a, b)</code></td>
-          <td>4 路并行加</td>
-      </tr>
-      <tr>
-          <td>乘法</td>
-          <td><code>vmulq_s32(a, b)</code></td>
-          <td>4 路并行乘</td>
-      </tr>
-      <tr>
-          <td>乘加</td>
-          <td><code>vmlaq_s32(acc, a, b)</code></td>
-          <td>acc += a * b</td>
-      </tr>
-      <tr>
-          <td>最小值</td>
-          <td><code>vminq_s32(a, b)</code></td>
-          <td>4 路并行 min</td>
-      </tr>
-      <tr>
-          <td>最大值</td>
-          <td><code>vmaxq_s32(a, b)</code></td>
-          <td>4 路并行 max</td>
-      </tr>
-      <tr>
-          <td>水平归约</td>
-          <td><code>vaddvq_s32(v)</code></td>
-          <td>4→1 求和</td>
-      </tr>
-      <tr>
-          <td>比较</td>
-          <td><code>vceqq_s32(a, b)</code></td>
-          <td>4 路相等比较</td>
-      </tr>
-      <tr>
-          <td>popcount</td>
-          <td><code>vcntq_u8(v)</code></td>
-          <td>字节级 popcount</td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>操作</th>
+					<th>NEON 指令</th>
+					<th>说明</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>加载</td>
+					<td><code>vld1q_s32(ptr)</code></td>
+					<td>加载 4 个 int</td>
+			</tr>
+			<tr>
+					<td>存储</td>
+					<td><code>vst1q_s32(ptr, v)</code></td>
+					<td>存储 4 个 int</td>
+			</tr>
+			<tr>
+					<td>加法</td>
+					<td><code>vaddq_s32(a, b)</code></td>
+					<td>4 路并行加</td>
+			</tr>
+			<tr>
+					<td>乘法</td>
+					<td><code>vmulq_s32(a, b)</code></td>
+					<td>4 路并行乘</td>
+			</tr>
+			<tr>
+					<td>乘加</td>
+					<td><code>vmlaq_s32(acc, a, b)</code></td>
+					<td>acc += a * b</td>
+			</tr>
+			<tr>
+					<td>最小值</td>
+					<td><code>vminq_s32(a, b)</code></td>
+					<td>4 路并行 min</td>
+			</tr>
+			<tr>
+					<td>最大值</td>
+					<td><code>vmaxq_s32(a, b)</code></td>
+					<td>4 路并行 max</td>
+			</tr>
+			<tr>
+					<td>水平归约</td>
+					<td><code>vaddvq_s32(v)</code></td>
+					<td>4→1 求和</td>
+			</tr>
+			<tr>
+					<td>比较</td>
+					<td><code>vceqq_s32(a, b)</code></td>
+					<td>4 路相等比较</td>
+			</tr>
+			<tr>
+					<td>popcount</td>
+					<td><code>vcntq_u8(v)</code></td>
+					<td>字节级 popcount</td>
+			</tr>
+	</tbody>
 </table>
 <p><strong>何时使用 SIMD：</strong></p>
 <ol>
@@ -813,35 +813,35 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span></span><span style="display:flex;"><span><span style="color:#75715e">// SoA (好): int xs[n], ys[n], zs[n];         // 每次加载只含需要的字段
 </span></span></span></code></pre></div><p><strong>Apple M4 缓存层次：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>级别</th>
-          <th>大小</th>
-          <th>延迟</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>L1 指令</td>
-          <td>192 KB</td>
-          <td>~3 cycles</td>
-      </tr>
-      <tr>
-          <td>L1 数据</td>
-          <td>128 KB</td>
-          <td>~4 cycles</td>
-      </tr>
-      <tr>
-          <td>L2 共享</td>
-          <td>16 MB</td>
-          <td>~20 cycles</td>
-      </tr>
-      <tr>
-          <td>主存</td>
-          <td>16 GB</td>
-          <td>~100+ cycles</td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>级别</th>
+					<th>大小</th>
+					<th>延迟</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>L1 指令</td>
+					<td>192 KB</td>
+					<td>~3 cycles</td>
+			</tr>
+			<tr>
+					<td>L1 数据</td>
+					<td>128 KB</td>
+					<td>~4 cycles</td>
+			</tr>
+			<tr>
+					<td>L2 共享</td>
+					<td>16 MB</td>
+					<td>~20 cycles</td>
+			</tr>
+			<tr>
+					<td>主存</td>
+					<td>16 GB</td>
+					<td>~100+ cycles</td>
+			</tr>
+	</tbody>
 </table>
 <hr>
 <h3 id="27-莫队算法优化">2.7 莫队算法优化<a hidden class="anchor" aria-hidden="true" href="#27-莫队算法优化">#</a></h3>
@@ -866,22 +866,22 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> add(<span style="color:#66d9ef">int</span> pos) { <span style="color:#75715e">/* 内联消除函数调用开销 */</span> }
 </span></span></code></pre></div><p><strong>86D 实测结果：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>方法</th>
-          <th>时间</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>块排序莫队 + cin/cout</td>
-          <td>540.7 ms</td>
-      </tr>
-      <tr>
-          <td>Hilbert 莫队 + fread I/O + 内联</td>
-          <td><strong>74.5 ms (7.25×)</strong></td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>方法</th>
+					<th>时间</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>块排序莫队 + cin/cout</td>
+					<td>540.7 ms</td>
+			</tr>
+			<tr>
+					<td>Hilbert 莫队 + fread I/O + 内联</td>
+					<td><strong>74.5 ms (7.25×)</strong></td>
+			</tr>
+	</tbody>
 </table>
 <hr>
 <h3 id="28-配置文件引导优化-pgo">2.8 配置文件引导优化 (PGO)<a hidden class="anchor" aria-hidden="true" href="#28-配置文件引导优化-pgo">#</a></h3>
@@ -1062,45 +1062,45 @@ document.addEventListener("DOMContentLoaded", function() {
 </span></span><span style="display:flex;"><span>         → 42 chars (46% less!)
 </span></span></code></pre></div><p><strong>Python 天生优势：</strong></p>
 <table>
-  <thead>
-      <tr>
-          <th>特性</th>
-          <th>C 等效</th>
-          <th>节省</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>print()</code></td>
-          <td><code>printf(&quot;...\n&quot;);</code></td>
-          <td>~8 chars</td>
-      </tr>
-      <tr>
-          <td><code>input()</code></td>
-          <td><code>scanf(&quot;%d&quot;,&amp;x);</code></td>
-          <td>~8 chars</td>
-      </tr>
-      <tr>
-          <td>短路切片 <code>[::2]</code></td>
-          <td>if-else 分支</td>
-          <td>~15 chars</td>
-      </tr>
-      <tr>
-          <td><code>open(0)</code> 代替 stdin</td>
-          <td><code>#include &lt;stdio.h&gt;</code></td>
-          <td>~15 chars</td>
-      </tr>
-      <tr>
-          <td><code>sum(map(int,l.split()))</code></td>
-          <td>循环 + scanf</td>
-          <td>~20 chars</td>
-      </tr>
-      <tr>
-          <td>无类型声明</td>
-          <td><code>int x;</code></td>
-          <td>~4 chars</td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>特性</th>
+					<th>C 等效</th>
+					<th>节省</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>print()</code></td>
+					<td><code>printf(&quot;...\n&quot;);</code></td>
+					<td>~8 chars</td>
+			</tr>
+			<tr>
+					<td><code>input()</code></td>
+					<td><code>scanf(&quot;%d&quot;,&amp;x);</code></td>
+					<td>~8 chars</td>
+			</tr>
+			<tr>
+					<td>短路切片 <code>[::2]</code></td>
+					<td>if-else 分支</td>
+					<td>~15 chars</td>
+			</tr>
+			<tr>
+					<td><code>open(0)</code> 代替 stdin</td>
+					<td><code>#include &lt;stdio.h&gt;</code></td>
+					<td>~15 chars</td>
+			</tr>
+			<tr>
+					<td><code>sum(map(int,l.split()))</code></td>
+					<td>循环 + scanf</td>
+					<td>~20 chars</td>
+			</tr>
+			<tr>
+					<td>无类型声明</td>
+					<td><code>int x;</code></td>
+					<td>~4 chars</td>
+			</tr>
+	</tbody>
 </table>
 <p><strong>实测结论：</strong> 8 道 Codeforces 简单题（600-800 分），Python 平均 65.0 字符 vs C 极致 85.3 字符。Python 全胜。</p>
 <h3 id="44-终极技巧编译器标志消除-include">4.4 终极技巧：编译器标志消除 #include<a hidden class="anchor" aria-hidden="true" href="#44-终极技巧编译器标志消除-include">#</a></h3>
@@ -1117,34 +1117,34 @@ document.addEventListener("DOMContentLoaded", function() {
 <h2 id="5-跨维度权衡与实测数据">5. 跨维度权衡与实测数据<a hidden class="anchor" aria-hidden="true" href="#5-跨维度权衡与实测数据">#</a></h2>
 <h3 id="51-速度-vs-内存预计算的两面性">5.1 速度 vs 内存：预计算的两面性<a hidden class="anchor" aria-hidden="true" href="#51-速度-vs-内存预计算的两面性">#</a></h3>
 <table>
-  <thead>
-      <tr>
-          <th>问题</th>
-          <th>基线内存</th>
-          <th>极致内存</th>
-          <th>改变</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td>161D</td>
-          <td>200.8 MB</td>
-          <td><strong>3.5 MB</strong></td>
-          <td>57× 缩减 (算法改写)</td>
-      </tr>
-      <tr>
-          <td>118D</td>
-          <td>6.6 MB</td>
-          <td><strong>1.4 MB</strong></td>
-          <td>4.64× 缩减 (滚动DP)</td>
-      </tr>
-      <tr>
-          <td>1061C</td>
-          <td>2.7 MB</td>
-          <td>63.9 MB</td>
-          <td><strong>23× 膨胀</strong> (预计算除数表换速度)</td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>问题</th>
+					<th>基线内存</th>
+					<th>极致内存</th>
+					<th>改变</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td>161D</td>
+					<td>200.8 MB</td>
+					<td><strong>3.5 MB</strong></td>
+					<td>57× 缩减 (算法改写)</td>
+			</tr>
+			<tr>
+					<td>118D</td>
+					<td>6.6 MB</td>
+					<td><strong>1.4 MB</strong></td>
+					<td>4.64× 缩减 (滚动DP)</td>
+			</tr>
+			<tr>
+					<td>1061C</td>
+					<td>2.7 MB</td>
+					<td>63.9 MB</td>
+					<td><strong>23× 膨胀</strong> (预计算除数表换速度)</td>
+			</tr>
+	</tbody>
 </table>
 <p><strong>1061C 的权衡解释：</strong></p>
 <ul>
@@ -1154,34 +1154,34 @@ document.addEventListener("DOMContentLoaded", function() {
 </ul>
 <h3 id="52-编译器标志的意外性能">5.2 编译器标志的意外性能<a hidden class="anchor" aria-hidden="true" href="#52-编译器标志的意外性能">#</a></h3>
 <table>
-  <thead>
-      <tr>
-          <th>标志</th>
-          <th>体积</th>
-          <th>速度 (NEON)</th>
-          <th>说明</th>
-      </tr>
-  </thead>
-  <tbody>
-      <tr>
-          <td><code>-Os</code></td>
-          <td>33.8 KB</td>
-          <td><strong>1.65×</strong></td>
-          <td>体积优化居然最快！</td>
-      </tr>
-      <tr>
-          <td><code>-O3</code></td>
-          <td>33.8 KB</td>
-          <td>1.42×</td>
-          <td>常规最快假设被推翻</td>
-      </tr>
-      <tr>
-          <td><code>-O3 -flto</code></td>
-          <td>33.7 KB</td>
-          <td>1.37×</td>
-          <td>LTO 减小体积但未提升速度</td>
-      </tr>
-  </tbody>
+	<thead>
+			<tr>
+					<th>标志</th>
+					<th>体积</th>
+					<th>速度 (NEON)</th>
+					<th>说明</th>
+			</tr>
+	</thead>
+	<tbody>
+			<tr>
+					<td><code>-Os</code></td>
+					<td>33.8 KB</td>
+					<td><strong>1.65×</strong></td>
+					<td>体积优化居然最快！</td>
+			</tr>
+			<tr>
+					<td><code>-O3</code></td>
+					<td>33.8 KB</td>
+					<td>1.42×</td>
+					<td>常规最快假设被推翻</td>
+			</tr>
+			<tr>
+					<td><code>-O3 -flto</code></td>
+					<td>33.7 KB</td>
+					<td>1.37×</td>
+					<td>LTO 减小体积但未提升速度</td>
+			</tr>
+	</tbody>
 </table>
 <p><strong>原因：</strong> Apple M4 的 L1 指令缓存只有 192KB。<code>-Os</code> 产生的代码更小，指令缓存命中率更高，对循环密集型代码的收益超过指令调度优化。</p>
 <h3 id="53-基准测试汇总-全-38-个二进制">5.3 基准测试汇总 (全 38 个二进制)<a hidden class="anchor" aria-hidden="true" href="#53-基准测试汇总-全-38-个二进制">#</a></h3>
