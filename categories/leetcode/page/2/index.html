@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/categories/leetcode/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -109,8 +126,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -121,12 +136,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -138,6 +153,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -183,12 +205,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/categories/">🗂️ 分类</a></nav>
+            <a href="/categories/">🗂️ 分类</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     LeetCode
   </h1>
@@ -207,7 +234,9 @@ document.addEventListener("DOMContentLoaded", function() {
 第三题3164. 优质数对的总数 II 题目大意： 给定两个整数数组nums1和nums2，以及一个正整数k。如果nums1[i]可以被nums2[j]*k整除，则称数对(i, j)为优质数对。要求计算优质数对的总数。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>850 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>850 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛399(240526)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B399240526/"></a>
 </article>
@@ -226,7 +255,9 @@ document.addEventListener("DOMContentLoaded", function() {
 给定一个非负整数 k，表示目标台阶的编号。虎老师从台阶 1 开始，通过一系列操作到达台阶 k。操作分为两种：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-19 15:37:01 +0800 CST'>2024-05-19</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>546 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-19 15:37:01 +0800 CST'>2024-05-19</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>546 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛398(240519)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B250519/"></a>
 </article>
@@ -243,7 +274,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>周赛20240505 第四题 100288. 使数组中所有元素相等的最小开销 题目大意：给定一个整数数组 nums 和两个整数 cost1 和 cost2，可以执行两种操作来使数组中所有元素相等：1. 选择某个元素增加1，开销为cost1；2. 选择两个不同的元素同时增加1，开销为cost2。目标是使数组中所有元素相等，返回需要的最小开销之和。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-05 15:37:01 +0800 CST'>2024-05-05</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>483 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-05 15:37:01 +0800 CST'>2024-05-05</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>483 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛396(240505)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B20240505/"></a>
 </article>
@@ -261,7 +294,9 @@ document.addEventListener("DOMContentLoaded", function() {
 实现思路：首先对工作按照结束时间进行排序，然后使用动态规划来求解最大报酬。在动态规划的过程中，维护一个数组f，其中f[i]表示在考虑前i个工作时可以获得的最大报酬。遍历每个工作，对于第i个工作，找到在其开始时间之前且结束时间最接近的工作j，然后更新f[i]为f[j] &#43; 第i个工作的报酬。最终返回f[n]即为所求的最大报酬。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1695 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1695 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题(202405)" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202405/"></a>
 </article>
@@ -278,7 +313,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>双周赛20230427 第三/四题3130. 找出所有稳定的二进制数组 II 题目大意：给定三个正整数 zero、one 和 limit，定义一个二进制数组 arr，要求满足以下条件：数组中 0 出现的次数为 zero，1 出现的次数为 one，并且数组中每个长度超过 limit 的子数组都同时包含 0 和 1。求稳定二进制数组的总数目。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>469 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>469 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode双周赛129(240427)" href="https://kennems.github.io/posts/tech/%E5%8F%8C%E5%91%A8%E8%B5%9B20230427/"></a>
 </article>
@@ -295,7 +332,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>周赛240428 第四题134. 找出唯一性数组的中位数 题目大意：给定一个整数数组nums，唯一性数组是一个按元素从小到大排序的数组，包含了nums的所有非空子数组中不同元素的个数。要求返回nums唯一性数组的中位数，即有序唯一性数组的中间元素。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>401 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>401 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛395(240428)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240428/"></a>
 </article>
@@ -312,7 +351,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>力扣周赛394(20240421) 第三题100290. 使矩阵满足条件的最少操作次数 题目大意：给定一个大小为 m x n 的二维矩形 grid，每次操作可以将任意格子的值修改为任意非负整数。完成所有操作后，需要确保每个格子 grid[i][j] 的值满足以下条件：如果下面相邻格子存在的话，它们的值相等；如果右边相邻格子存在的话，它们的值不相等。返回需要的最少操作次数。 记忆化 实现思路：首先，统计每一列中各个数字的出现次数。然后，使用动态规划的方法，定义函数dfs(i, pre)，表示处理到第i列时，前一列的值为pre时的最大操作次数。在dfs中，对于当前列的每个数字，考虑是否修改当前列的值，然后递归处理下一列。利用缓存来避免重复计算。最后返回总的操作次数。 class Solution: # 如果你想不出来，1、你不知道这个知识点 2、 你知道这个知识点但是方向错了 def minimumOperations(self, g: List[List[int]]) -&gt; int: n, m = len(g), len(g[0]) cnt = [[0]*10 for _ in range(m)] for row in g: for k, v in enumerate(row): cnt[k][v]&#43;=1 @cache def dfs(i, pre): if i&lt;0: return 0 res = 0 for v in range(10): if v!=pre: res = max(res, dfs(i-1, v) &#43; cnt[i][v]) return res return m*n - dfs(m-1, -1) 递推 实现思路：首先，对每一列进行遍历，并统计每列中每个数字的出现次数。然后，通过动态规划的方法，使用两个变量f0和f1分别表示当前列处理时，前一列最大能保留的个数和次大能够保留的个数。接着，通过遍历每列中的每个数字，计算当前列的最大操作次数，并更新f0和f1。最后返回总的操作次数。 class Solution: def minimumOperations(self, grid: List[List[int]]) -&gt; int: n, m = len(grid), len(grid[0]) f0, f1, pre = 0, 0, -1 for col in zip(*grid): mx, mx2, x = f0, f1, -1 for v, c in Counter(col).items(): res = (f0 if v!=pre else f1) &#43; c if res &gt; mx: mx, mx2, x = res, mx, v elif res &gt; mx2: mx2 = res f0, f1, pre = mx, mx2, x return m*n - f0 第四题100276. 最短路径中的边 题目大意：给定一个包含n个节点的无向带权图，节点编号从0到n-1，总共有m条边。对于节点0为出发点，节点n-1为结束点的所有最短路，需要返回一个长度为m的布尔数组，如果edges[i]至少在其中一条最短路上，则answer[i]为true，否则为false。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-21 15:37:01 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>989 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-21 15:37:01 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>989 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240421" href="https://kennems.github.io/posts/tech/%E5%8A%9B%E6%89%A3%E5%91%A8%E8%B5%9B39420240421/"></a>
 </article>
@@ -332,7 +373,9 @@ HOT100 301. 删除无效的括号 题目大意：
 返回所有可能的结果。答案可以按 任意顺序 返回。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>26 分钟</span>&nbsp;·&nbsp;<span>12788 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-06&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>26 分钟</span>&nbsp;·&nbsp;<span>12788 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to  LeetCode笔记" href="https://kennems.github.io/posts/tech/leetcode%E7%AC%94%E8%AE%B0/"></a>
 </article>
@@ -350,7 +393,9 @@ HOT100 301. 删除无效的括号 题目大意：
 思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]&#43;n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5983 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5983 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202404）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202404/"></a>
 </article>
@@ -368,7 +413,9 @@ HOT100 301. 删除无效的括号 题目大意：
 思路：由于只能改动元素，所以最后的元素个数不变，去重后，枚举每个值作为左端点，则右端点为nums[i]&#43;n-1, 用双指针计算在区间内的元素个数即为可以保留的数字，其他数字修改元素值填满空隙即可。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5131 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5131 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202404）" href="https://kennems.github.io/posts/tech/%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202404/"></a>
 </article>
@@ -387,7 +434,9 @@ HOT100 301. 删除无效的括号 题目大意：
 如果输入的是第奇数个（比如第一个，则N初始化为0，插入后N为1，代表一共有一个数字），则先插入大顶堆，然后把堆顶插入小顶堆。保证小顶堆的任意一个值都比大顶堆大。 同样，如果输入的是第偶数个（第二个），则先插入小顶堆，然后将小顶堆最小值插入大顶堆。同样是保证小顶堆的任意一个值都比大顶堆大。 至于先插入哪一个堆是没有关系的，只要保证交替插入不同的堆即可，并且要确保边界问题（比如在奇数个元素的中位数， 只有一个数据时应返回先插入的堆顶值， 否则堆为空会报错）。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2475 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-17 15:37:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2475 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 剑指Offer" href="https://kennems.github.io/posts/tech/%E5%89%91%E6%8C%87offer/"></a>
 </article>
@@ -405,7 +454,9 @@ HOT100 301. 删除无效的括号 题目大意：
 题目表 (序号) 标题 (1) 160. 相交链表 (2) 236. 二叉树的最近公共祖先 (3) 234. 回文链表 (4) 739. 每日温度 (5) 226. 翻转二叉树 (6) 221. 最大正方形 (7) 215. 数组中的第K个最大元素 (8) 208. 实现 Trie (前缀树) (9) 207. 课程表 (10) 206. 反转链表 (11) 200. 岛屿数量 (12) 198. 打家劫舍 (13) 169. 多数元素 (14) 238. 除自身以外数组的乘积 (15) 155. 最小栈 (16) 152. 乘积最大子数组 (17) 148. 排序链表 (18) 146. LRU 缓存 (19) 142. 环形链表 II (20) 141. 环形链表 (21) 139. 单词拆分 (22) 136. 只出现一次的数字 (23) 647. 回文子串 (24) 128. 最长连续序列 (25) 124. 二叉树中的最大路径和 (26) 322. 零钱兑换 (27) 494. 目标和 (28) 461. 汉明距离 (29) 448. 找到所有数组中消失的数字 (30) 438. 找到字符串中所有字母异位词 (31) 437. 路径总和 III (32) 416. 分割等和子集 (33) 406. 根据身高重建队列 (34) 399. 除法求值 (35) 394. 字符串解码 (36) 347. 前 K 个高频元素 (37) 338. 比特位计数 (38) 337. 打家劫舍 III (39) 121. 买卖股票的最佳时机 (40) 312. 戳气球 (41) 309. 买卖股票的最佳时机含冷冻期 (42) 301. 删除无效的括号 (43) 300. 最长递增子序列 (44) 297. 二叉树的序列化与反序列化 (45) 287. 寻找重复数 (46) 283. 移动零 (47) 279. 完全平方数 (48) 253. 会议室 II (49) 240. 搜索二维矩阵 II (50) 239. 滑动窗口最大值 (51) 22. 括号生成 (52) 49. 字母异位词分组 (53) 48. 旋转图像 (54) 46. 全排列 (55) 42. 接雨水 (56) 39. 组合总和 (57) 543. 二叉树的直径 (58) 34. 在排序数组中查找元素的第一个和最后一个位置 (59) 33. 搜索旋转排序数组 (60) 32. 最长有效括号 (61) 31. 下一个排列 (62) 538. 把二叉搜索树转换为累加树 (63) 23. 合并 K 个升序链表 (64) 560. 和为 K 的子数组 (65) 21. 合并两个有序链表 (66) 20. 有效的括号 (67) 19. 删除链表的倒数第 N 个结点 (68) 17. 电话号码的字母组合 (69) 15. 三数之和 (70) 11. 盛最多水的容器 (71) 10. 正则表达式匹配 (72) 5. 最长回文子串 (73) 4. 寻找两个正序数组的中位数 (74) 3. 无重复字符的最长子串 (75) 2. 两数相加 (76) 79. 单词搜索 (77) 114. 二叉树展开为链表 (78) 621. 任务调度器 (79) 617. 合并二叉树 (80) 105. 从前序与中序遍历序列构造二叉树 (81) 104. 二叉树的最大深度 (82) 102. 二叉树的层序遍历 (83) 101. 对称二叉树 (84) 98. 验证二叉搜索树 (85) 96. 不同的二叉搜索树 (86) 94. 二叉树的中序遍历 (87) 85. 最大矩形 (88) 84. 柱状图中最大的矩形 (89) 1. 两数之和 (90) 78. 子集 (91) 76. 最小覆盖子串 (92) 75. 颜色分类 (93) 72. 编辑距离 (94) 70. 爬楼梯 (95) 581. 最短无序连续子数组 (96) 64. 最小路径和 (97) 62. 不同路径 (98) 56. 合并区间 (99) 55. 跳跃游戏 (100) 53. 最大子数组和 (1)160. 相交链表 题目大意：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-17 10:00:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>20 分钟</span>&nbsp;·&nbsp;<span>9650 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-12-20&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-17 10:00:01 +0800 CST'>2024-04-17</span>&nbsp;·&nbsp;<span>20 分钟</span>&nbsp;·&nbsp;<span>9650 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(1)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-1/"></a>
 </article>
@@ -422,7 +473,9 @@ HOT100 301. 删除无效的括号 题目大意：
       <p>LeetCode第 393 场周赛 第三题3116. 单面值组合的第 K 小金额 题目大意： 给定一个整数数组coins表示不同面额的硬币，另给定一个整数k。你有无限量的每种面额的硬币，但是，你不能组合使用不同面额的硬币。要求返回使用这些硬币能制造的第kth小金额。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-16 15:37:01 +0800 CST'>2024-04-16</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1109 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-16&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-16 15:37:01 +0800 CST'>2024-04-16</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1109 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240414" href="https://kennems.github.io/posts/tech/leetcode%E7%AC%AC-393-%E5%9C%BA%E5%91%A8%E8%B5%9B/"></a>
 </article>
@@ -440,7 +493,9 @@ HOT100 301. 删除无效的括号 题目大意：
 第二题100242. 满足距离约束且字典序最小的字符串 纯思维题，先花时间想清楚基础问题再想后面的问题。吸取教训，代码一定要写的清晰明了，自己才能更好的看懂并写下去。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-07 15:37:01 +0800 CST'>2024-04-07</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>678 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-07 15:37:01 +0800 CST'>2024-04-07</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>678 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛392(240407)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240407/"></a>
 </article>
@@ -459,7 +514,9 @@ HOT100 301. 删除无效的括号 题目大意：
 题目大意：给定一个字符串word和一个整数k，定义特殊字符串为满足|freq(word[i]) - freq(word[j])| &lt;= k对于字符串中所有下标i和j都成立的字符串。其中，freq(x)表示字符x在word中的出现频率，|y|表示y的绝对值。要求计算使word成为k特殊字符串所需删除的字符的最小数量。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-03 15:37:01 +0800 CST'>2024-04-03</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>854 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-03 15:37:01 +0800 CST'>2024-04-03</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>854 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛VP389" href="https://kennems.github.io/posts/tech/vp-%E5%91%A8%E8%B5%9B389/"></a>
 </article>
@@ -477,9 +534,11 @@ HOT100 301. 删除无效的括号 题目大意：
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -499,7 +558,7 @@ HOT100 301. 删除无效的括号 题目大意：
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -540,12 +599,24 @@ HOT100 301. 删除无效的括号 题目大意：
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -560,6 +631,7 @@ HOT100 301. 删除无效的括号 题目大意：
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

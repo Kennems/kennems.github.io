@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -130,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -142,12 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -159,6 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -204,12 +226,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/posts/">📚文章</a></nav>
+            <a href="/posts/">📚文章</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     💻技术
   </h1>
@@ -228,7 +255,9 @@ document.addEventListener("DOMContentLoaded", function() {
 人工审核 待自动审核返回不确定信息时，转到人工审核，由平台管理员进行审核
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-28 15:37:01 +0800 CST'>2024-12-28</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1963 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-28&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-28 15:37:01 +0800 CST'>2024-12-28</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1963 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（4）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A14/"></a>
 </article>
@@ -247,7 +276,9 @@ document.addEventListener("DOMContentLoaded", function() {
 依赖项 build.gradle.kts plugins { id(&#34;com.android.application&#34;) version &#34;8.7.3&#34; apply false id(&#34;com.android.library&#34;) version &#34;8.7.3&#34; apply false id(&#34;org.jetbrains.kotlin.android&#34;) version &#34;2.1.0&#34; apply false id(&#34;com.google.gms.google-services&#34;) version &#34;4.4.2&#34; apply false } app/build.gradle.kts dependencies{ // Google implementation(&#34;com.google.android.gms:play-services-auth:20.7.0&#34;) // Firebase implementation(platform(&#34;com.google.firebase:firebase-bom:33.6.0&#34;)) implementation(&#34;com.google.firebase:firebase-database&#34;) implementation(&#34;com.google.firebase:firebase-storage&#34;) implementation(&#34;com.google.firebase:firebase-auth&#34;) // Firebase UI implementation(&#34;com.firebaseui:firebase-ui-auth:8.0.2&#34;) implementation(&#34;com.firebaseui:firebase-ui-database:8.0.2&#34;) } 安装Firebase CLI npm install -g firebase-tools firebase login 本地启动Firebase模拟器 firebase emulators:start --project=demo-friendlychat-android Firebase本地调试 Firebase.database.useEmulator(&#34;10.0.2.2&#34;, 9000) Firebase.auth.useEmulator(&#34;10.0.2.2&#34;, 9099) Firebase.storage.useEmulator(&#34;10.0.2.2&#34;, 9199) 在app模块下放置 services.json
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-17 22:30:13 +0800 CST'>2024-12-17</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>176 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-17&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-17 22:30:13 +0800 CST'>2024-12-17</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>176 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Firebase使用" href="https://kennems.github.io/posts/tech/firebase%E4%BD%BF%E7%94%A8/"></a>
 </article>
@@ -265,7 +296,9 @@ document.addEventListener("DOMContentLoaded", function() {
 T2 3387. 两天自由外汇交易后的最大货币数 1. 题目大意 你初始拥有 1 单位的指定货币 initialCurrency。在两天内，可以按照分别提供的汇率 rates1 和 rates2 进行任意次数的货币兑换。每种货币对的汇率可以反向兑换（汇率为 1/rate1/\text{rate}1/rate）。目标是经过两天后，使得最终持有的 initialCurrency 数量最大化。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-15 15:37:01 +0800 CST'>2024-12-15</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2564 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-15 15:37:01 +0800 CST'>2024-12-15</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2564 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode 1215 周赛" href="https://kennems.github.io/posts/tech/leetcode-1215-%E5%91%A8%E8%B5%9B/"></a>
 </article>
@@ -285,7 +318,9 @@ public class WmThreadLocalUtil { private final static ThreadLocal&lt;WmUser&gt; 
 public class WmTokenInterceptor implements HandlerInterceptor { /** * 得到header中的用户信息后，并存入到当前线程中 * @param request * @param response * @param handler * @return * @throws Exception */ @Override public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception { String userId = request.getHeader(&#34;userId&#34;); if (userId != null) { WmUser wmUser = new WmUser(); wmUser.setId(Integer.valueOf(userId)); WmThreadLocalUtil.setUser(wmUser); } return true; } /** * 清理线程中的数据 * @param request * @param response * @param handler * @param modelAndView * @throws Exception */ @Override public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception { WmThreadLocalUtil.clear(); } } WebMvcConfig 添加拦截器
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-15 15:37:01 +0800 CST'>2024-12-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1636 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-15 15:37:01 +0800 CST'>2024-12-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1636 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（3）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A13/"></a>
 </article>
@@ -303,7 +338,9 @@ public class WmTokenInterceptor implements HandlerInterceptor { /** * 得到head
 n 和 m 的数位长度相同； 可以对 n的数位执行以下操作： 将 n 中的任意一个 不是 9 的数位 增加 1； 将 n 中的任意一个 不是 0 的数位 减少 1； 转变过程中，n 任何中间状态都 不能是质数； 需要返回从 n 变为 m 的最小代价，代价为转变过程中所有 n 的值之和； 如果无法将 n 变为 m，返回 -1。 实现思路： 质数筛选： 使用线性筛法生成 1~10000 范围内的质数表，用布尔数组 st 标记每个数是否为质数，避免重复计算质数判断。 判断是否是质数： 定义函数 isPrime(x)，通过 st[x] 快速判断一个数是否为质数。 特殊情况过滤： 如果 n 或 m 本身是质数，则直接返回 -1，因为无法满足条件。 最短路径求解： 使用 Dijkstra 算法 求解最小代价。 用优先队列（堆）存储当前的值和路径代价，起点为 n，终点为 m。 遍历当前数的每一位，分别尝试将该位增加或减少 1，生成新的数字 new_n： 如果 new_n 不为质数，并且更新的代价比当前已知代价更小，则将其加入堆中。 重复以上过程直到找到从 n 到 m 的最小代价。 返回结果： 如果在搜索中找到路径，返回最小代价；否则返回 -1 表示无法转换。 class Solution: def minOperations(self, n: int, m: int) -&gt; int: N = 10000 primes = [] st = [False] * (N &#43; 1) st[1] = True def sieve(n): for i in range(2, n &#43; 1): if not st[i]: primes.append(i) for prime in primes: if i * prime &gt; n: break st[i * prime] = True if i % prime == 0: break sieve(N) def isPrime(x): return not st[x] if isPrime(n) or isPrime(m): return -1 dis = [inf] * (N &#43; 1) def dijkstra(): h = [(n, n)] dis[n] = n while h: dist, ver = heappop(h) if ver == m: return dist if dist &gt; dis[ver]: continue str_n = list(str(ver)) for i in range(len(str_n)): ch = str_n[i] for delta in [-1, 1]: new_ch = chr(ord(ch) &#43; delta) if &#39;0&#39; &lt;= new_ch &lt;= &#39;9&#39;: new_n = int(&#34;&#34;.join(str_n[:i] &#43; [new_ch] &#43; str_n[i&#43;1:])) if not isPrime(new_n) and dist &#43; new_n &lt; dis[new_n]: dis[new_n] = dist &#43; new_n heappush(h, (dis[new_n], new_n)) return dis[m] res = dijkstra() return res if res &lt; inf else -1 T4 3378. 统计最小公倍数图中的连通块数目 题目大意 题目给定一个整数数组 nums 和一个正整数 threshold，定义一张由 nums 的元素组成的图。如果两个节点对应的值 nums[i] 和 nums[j] 的最小公倍数（LCM）小于等于 threshold，则在图中将两个节点相连。要求返回图中 连通块的数量，即所有相互连通的节点组成的独立子图的数量。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-08 15:37:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2570 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-08&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-08 15:37:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2570 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode 12/07 12/08 周赛/双周赛" href="https://kennems.github.io/posts/tech/leetcode-1207-1208-%E5%91%A8%E8%B5%9B%E5%8F%8C%E5%91%A8%E8%B5%9B/"></a>
 </article>
@@ -321,7 +358,9 @@ n 和 m 的数位长度相同； 可以对 n的数位执行以下操作： 将 n
 (21)139. 单词拆分 1、题目大意 给定字符串 s 和单词字典 wordDict，判断是否能用字典中的单词（可重复使用、无需全部使用）按顺序拼接得到 s。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>17 分钟</span>&nbsp;·&nbsp;<span>8153 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-07-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>17 分钟</span>&nbsp;·&nbsp;<span>8150 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(2)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-2/"></a>
 </article>
@@ -339,7 +378,9 @@ n 和 m 的数位长度相同； 可以对 n的数位执行以下操作： 将 n
 (41) 309. 买卖股票的最佳时机含冷冻期 题目大意： 给定一个股票价格数组，可以多次买卖，但卖出后必须冷冻一天才能再次买入，求最大利润。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>16 分钟</span>&nbsp;·&nbsp;<span>7739 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-11&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>16 分钟</span>&nbsp;·&nbsp;<span>7739 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(3)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-3/"></a>
 </article>
@@ -357,7 +398,9 @@ n 和 m 的数位长度相同； 可以对 n的数位执行以下操作： 将 n
 (61)31. 下一个排列 题目大意：给定一个整数数组，要求找出这个数组的下一个排列，即比当前排列大的下一个排列，如果不存在则返回字典序最小的排列。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6455 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-11&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>14 分钟</span>&nbsp;·&nbsp;<span>6528 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(4)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-4/"></a>
 </article>
@@ -376,7 +419,9 @@ n 和 m 的数位长度相同； 可以对 n的数位执行以下操作： 将 n
 二叉树的 最大深度 是指从根节点到最远叶子节点的最长路径上的节点数。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6477 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-12-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-08 10:00:01 +0800 CST'>2024-12-08</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6477 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode Hot 100 精练🥸(5)" href="https://kennems.github.io/posts/tech/leetcode-hot-100-5/"></a>
 </article>
@@ -397,7 +442,9 @@ ap_article_content 文章内容表
 从业务角度分析如何分表 滚屏分页的逻辑 表的拆分-垂直分表 垂直分表：将一个表的字段分散到多个表中，每个表存储其中一部分字段。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-01 15:37:01 +0800 CST'>2024-12-01</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3798 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-01&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-01 15:37:01 +0800 CST'>2024-12-01</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3798 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（2）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A12/"></a>
 </article>
@@ -415,7 +462,9 @@ ap_article_content 文章内容表
 双周赛 T3 3362. 零数组变换 III 题目大意 给定一个整数数组 nums 和二维数组 queries，每个操作 [li, ri] 可以将 nums[li] 到 nums[ri] 范围内的每个元素 最多减 1。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-11-24 15:37:01 +0800 CST'>2024-11-24</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1921 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-11-24&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-11-24 15:37:01 +0800 CST'>2024-11-24</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1921 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛425 & 144(241124)" href="https://kennems.github.io/posts/tech/leetcode-1124-1125-%E5%91%A8%E8%B5%9B%E5%8F%8C%E5%91%A8%E8%B5%9B/"></a>
 </article>
@@ -434,7 +483,9 @@ ap_article_content 文章内容表
 类似今日头条
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-11-24 15:37:01 +0800 CST'>2024-11-24</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3916 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-11-24&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-11-24 15:37:01 +0800 CST'>2024-11-24</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3916 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（1）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A11/"></a>
 </article>
@@ -453,7 +504,9 @@ ap_article_content 文章内容表
 背景和教育经历：说明你的专业、学校和毕业时间。如果有相关的学术成果或者奖项也可以提及。 实习和项目经验：重点介绍和面试岗位高度相关的实习或项目经历。比如，可以概括性地描述你负责的模块、使用的技术栈、解决的核心问题和取得的成效。 技术栈：可以具体介绍精通的编程语言（如Java、Python），掌握的框架或工具（如Spring Boot、Django），以及数据库和开发工具的经验（如MySQL、Git）。 项目细节：对于项目，可以选择一两个具有代表性的项目进行详细说明。建议结构如下： 项目背景及目标 你在项目中的角色及承担的主要工作 项目过程中遇到的挑战和你如何解决这些问题 项目的最终成果及其影响（数据和结果能帮助量化） 2. 操作系统 虚拟线程 虚拟线程（virtual thread）是现代编程语言（如Java）中为提高并发性能而引入的轻量级线程机制。相比传统线程，虚拟线程的创建和销毁代价更低，更适合高并发场景。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-11-12 15:37:01 +0800 CST'>2024-11-12</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1557 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-11-12&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-11-12 15:37:01 +0800 CST'>2024-11-12</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1557 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 面经（2）" href="https://kennems.github.io/posts/tech/%E9%9D%A2%E7%BB%8F2/"></a>
 </article>
@@ -473,7 +526,9 @@ ap_article_content 文章内容表
 消息发送者：投递消息的人，就是原来的调用方 消息代理：管理、暂存、转发消息，可以理解为微信服务器 消息接收者：接受和处理消息的人，就是原来的服务提供方 支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-11-05 22:30:13 +0800 CST'>2024-11-05</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5321 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-11-06&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-11-05 22:30:13 +0800 CST'>2024-11-05</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5321 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to RabbitMQ" href="https://kennems.github.io/posts/tech/rabbitmq/"></a>
 </article>
@@ -492,7 +547,9 @@ vue create vue-demo-1 用网页的形式创建
 vue ui Vue目录结构 node_modules：当前项目依赖的js包 assets：静态资源存放目录 components：公共组件存放目录 App.vue：项目的主组件，页面的入口文件 main.js：整个项目的入口文件 package.json：项目的配置信息、依赖包管理 vue.config.js：vue-cli配置文件 启动Vue项目工程 在Vue项目文件夹中：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-26 22:30:13 +0800 CST'>2024-10-26</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3134 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-26&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-26 22:30:13 +0800 CST'>2024-10-26</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3134 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖前端开发(Day1)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91day1/"></a>
 </article>
@@ -510,9 +567,11 @@ vue ui Vue目录结构 node_modules：当前项目依赖的js包 assets：静态
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -532,7 +591,7 @@ vue ui Vue目录结构 node_modules：当前项目依赖的js包 assets：静态
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -573,12 +632,24 @@ vue ui Vue目录结构 node_modules：当前项目依赖的js包 assets：静态
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -593,6 +664,7 @@ vue ui Vue目录结构 node_modules：当前项目依赖的js包 assets：静态
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -130,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -142,12 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -159,6 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -204,12 +226,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/posts/">📚文章</a></nav>
+            <a href="/posts/">📚文章</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     💻技术
   </h1>
@@ -228,7 +255,9 @@ document.addEventListener("DOMContentLoaded", function() {
 营业额：已完成订单的总金额 有效订单：已完成订单的数量 订单完成率：有效订单数 / 总订单数 * 100% 平均客单价：营业额 / 有效订单数 新增用户：新增用户的数量 Apache POI Apache POI 是一个处理Microsoft Office 各种文件格式的开源项目。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-24 22:30:13 +0800 CST'>2024-10-24</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1140 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-24&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-24 22:30:13 +0800 CST'>2024-10-24</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1140 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day12)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day12/"></a>
 </article>
@@ -247,7 +276,9 @@ document.addEventListener("DOMContentLoaded", function() {
 SalesTop10ReportVO
 &lt;select id=&#34;getSalesTop10&#34; resultType=&#34;com.sky.dto.GoodsSalesDTO&#34;&gt; SELECT name, sum(od.number) number from order_detail od, orders o where od.order_id = o.id and o.status = 5 &lt;if test=&#34;begin != null&#34;&gt; and o.order_time &amp;gt; #{begin} &lt;/if&gt; &lt;if test=&#34;end != null&#34;&gt; and o.order_time &amp;lt; #{end} &lt;/if&gt; GROUP BY od.name ORDER BY number DESC LIMIT 10; &lt;/select&gt; </p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-23 22:30:13 +0800 CST'>2024-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>93 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-23&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-23 22:30:13 +0800 CST'>2024-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>93 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day11)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day11/"></a>
 </article>
@@ -265,7 +296,9 @@ SalesTop10ReportVO
 cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式可以定义任务触发的时间
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-21 22:30:13 +0800 CST'>2024-10-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>799 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-21 22:30:13 +0800 CST'>2024-10-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>799 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day10)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day10/"></a>
 </article>
@@ -283,7 +316,9 @@ cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式�
 实现思路 通过Redis来缓存菜品数据，减少数据库查询操作。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-18 22:30:13 +0800 CST'>2024-10-18</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>836 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-18&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-18 22:30:13 +0800 CST'>2024-10-18</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>836 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day7)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day7/"></a>
 </article>
@@ -300,7 +335,9 @@ cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式�
       <p>苍穹外卖后端开发(Day6) HttpClient HttpClient是 Apache Jakarta Common 下的子项目，可以用来提供高效的、最新的、功能丰富的支持HTTP协议的客户端编程工具包，并且它支持HTTP协议最新的版本和建议。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-17 22:30:13 +0800 CST'>2024-10-17</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1020 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-17&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-17 22:30:13 +0800 CST'>2024-10-17</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1020 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day6)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day6/"></a>
 </article>
@@ -318,7 +355,9 @@ cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式�
 基于内存存储，读写性能高 适合存储热点数据（热点商品，资讯，新闻） 企业应用广泛 Redis安装和使用 安装Redis
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-15 22:30:13 +0800 CST'>2024-10-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1409 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-15 22:30:13 +0800 CST'>2024-10-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1409 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day5)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day5/"></a>
 </article>
@@ -335,7 +374,9 @@ cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式�
       <p>苍穹外卖后端开发(Day3) 菜品管理 公共字段自动填充 对于创建时间、创建人id，修改时间，修改人id等字段 重复性代码进行统一编写
 自定义注解AutoFill，用于标识需要进行公共字段自动填充的方法 package com.sky.annotation; /** * 自定义注解，用于标识某个方法需要进行功能字段自动填充处理。 * 这个注解可以应用于方法上，用于指示在特定的数据库操作时 * 需要自动填充某些功能字段。 */ @Target(ElementType.METHOD) // 指定注解可以用于方法 @Retention(RetentionPolicy.RUNTIME) // 指定注解在运行时可用 public @interface AutoFill { /** * 数据库操作类型：用于指示自动填充的操作类型。 * 可选值包括 UPDATE 和 INSERT。 * * @return 操作类型 */ OperationType value(); } 自定义切面类AutoFillAspect， 统一拦截加入了AutoFill注解的方法，通过反射为公共字段赋值。 package com.sky.aspect; /** * 自定义切面， 实现公共字段自动填充 */ @Aspect @Component @Slf4j public class AutoFillAspect { /** * 定义切入点，匹配com.sky.mapper包下的所有方法，并且方法上需有@AutoFill注解 */ @Pointcut(&#34;execution(* com.sky.mapper.*.*(..)) &amp;&amp; @annotation(com.sky.annotation.AutoFill)&#34;) public void autoFillPointCut() { } /** * 前置通知，在目标方法执行前进行公共字段赋值 * * @param joinPoint 连接点，表示被拦截的方法调用 */ @Before(&#34;autoFillPointCut()&#34;) public void autoFill(JoinPoint joinPoint) { log.info(&#34;开始进行公共字段自动填充...&#34;); // 获取当前被拦截方法的签名（方法信息） MethodSignature signature = (MethodSignature) joinPoint.getSignature(); // 从方法签名中获取@AutoFill注解 AutoFill autoFill = signature.getMethod().getAnnotation(AutoFill.class); // 获取操作类型（INSERT或UPDATE） OperationType operationType = autoFill.value(); // 获取目标方法的参数（假设第一个参数是实体对象） Object[] args = joinPoint.getArgs(); if (args == null || args.length == 0) { return; // 如果没有参数则直接返回 } // 获取实体对象（目标方法的第一个参数） Object entity = args[0]; // 获取当前时间和当前操作用户ID LocalDateTime now = LocalDateTime.now(); Long currentId = BaseContext.getCurrentId(); // 根据操作类型判断是INSERT还是UPDATE操作 if (operationType == OperationType.INSERT) { try { // 通过反射调用实体对象的set方法，赋值创建和更新时间、创建和更新用户 Method setCreateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_TIME, LocalDateTime.class); Method setCreateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_USER, Long.class); Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class); Method setUpdateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_USER, Long.class); // 调用方法进行赋值 setCreateTime.invoke(entity, now); setCreateUser.invoke(entity, currentId); setUpdateTime.invoke(entity, now); setUpdateUser.invoke(entity, currentId); } catch (Exception e) { e.printStackTrace(); // 捕获异常并打印 } } else if (operationType == OperationType.UPDATE) { try { // 通过反射调用实体对象的set方法，赋值更新时间和更新用户 Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class); Method setUpdateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_USER, Long.class); // 调用方法进行赋值 setUpdateTime.invoke(entity, now); setUpdateUser.invoke(entity, currentId); } catch (Exception e) { e.printStackTrace(); // 捕获异常并打印 } } } } 在Mapper的方法上加入AutoFill注解 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-14 22:30:13 +0800 CST'>2024-10-14</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2026 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-14&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-14 22:30:13 +0800 CST'>2024-10-14</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2026 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day3)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/"></a>
 </article>
@@ -353,7 +394,9 @@ cron 表达式 cron 表达式其实就是一个字符串，通过cron表达式�
 注意 ： 当前端提交的数据和实体类中对应的属性差别比较大时，建议使用DTO来封装数据
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-13 22:30:13 +0800 CST'>2024-10-13</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1241 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-13&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-13 22:30:13 +0800 CST'>2024-10-13</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1241 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day2)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day2/"></a>
 </article>
@@ -375,7 +418,9 @@ docker rm &lt;container_id&gt; 启动已有的容器
 docker start &lt;容器ID或名称&gt; 启动容器并进入其交互式终端
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-12 22:30:13 +0800 CST'>2024-10-12</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>886 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-12&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-12 22:30:13 +0800 CST'>2024-10-12</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>886 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Docker" href="https://kennems.github.io/posts/tech/docker/"></a>
 </article>
@@ -396,7 +441,9 @@ docker start &lt;容器ID或名称&gt; 启动容器并进入其交互式终端
 上线运维 ： 软件环境安装、配置
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-10-12 22:30:13 +0800 CST'>2024-10-12</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1653 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-12&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-10-12 22:30:13 +0800 CST'>2024-10-12</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1653 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 苍穹外卖后端开发(Day1)" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day1/"></a>
 </article>
@@ -412,7 +459,9 @@ docker start &lt;容器ID或名称&gt; 启动容器并进入其交互式终端
     <div class="entry-content">
       <p>Prompt 要求：字数尽可能多，内容需要全面，可以不按照我的标题来写，可以适当添加一些内容，但是内容一定一定要多，要专业 请根据以上内容以及你的数据库内容，撰写： 数据处理与分析 海浪波谱仪采集的数据需要经过复杂的处理与分析，才能生成有用的波谱图。数据处理过程包括去噪、滤波、频谱分析等步骤。常用的频谱分析方法包括快速傅里叶变换（FFT）和小波变换等。通过对海浪频谱的分析，可以提取出海浪的主导频率、波高分布、能量谱等重要信息。 详细 我现在需要写实验报告，请缩写上部分内容，但是不要损失其表达的意思 文章生成 “我想写一篇科普文章，标题是：‘[在此处插入你的标题]’。你能帮我分析一下这个标题吗？它是否有吸引力，有没有可以改进的地方来增强其吸引力？” 文章生成： “在优化标题后，帮我生成一篇文章。文章的目标是向读者科普关于[插入主题]的知识。请确保内容易于普通读者理解，同时保持科学的准确性和趣味性。文章应包括以下部分：引言、定义、示例、现实应用以及结论。语气要保持信息性，但尽量亲切、易懂。” 朗读内容 先重复下面的内容，然后加一个简短的总结 Leetcode题目总结 下面我给出一个题目，代码实现，和对题目的总结和实现思路， 你需要的是学习我是如何总结的，如果你看懂了则回复我你懂了, 不用回复别的 &#34;&#34;&#34; 给你一个 n 个节点的树（也就是一个无环连通无向图），节点编号从 0 到 n - 1 ，且恰好有 n - 1 条边，每个节点有一个值。树的 根节点 为 0 号点。 给你一个整数数组 nums 和一个二维数组 edges 来表示这棵树。nums[i] 表示第 i 个点的值，edges[j] = [uj, vj] 表示节点 uj 和节点 vj 在树中有一条边。 当 gcd(x, y) == 1 ，我们称两个数 x 和 y 是 互质的 ，其中 gcd(x, y) 是 x 和 y 的 最大公约数 。 从节点 i 到 根 最短路径上的点都是节点 i 的祖先节点。一个节点 不是 它自己的祖先节点。 请你返回一个大小为 n 的数组 ans ，其中 ans[i]是离节点 i 最近的祖先节点且满足 nums[i] 和 nums[ans[i]] 是 互质的 ，如果不存在这样的祖先节点，ans[i] 为 -1 。 示例 1： 输入：nums = [2,3,3,2], edges = [[0,1],[1,2],[1,3]] 输出：[-1,0,0,1] 解释：上图中，每个节点的值在括号中表示。 - 节点 0 没有互质祖先。 - 节点 1 只有一个祖先节点 0 。它们的值是互质的（gcd(2,3) == 1）。 - 节点 2 有两个祖先节点，分别是节点 1 和节点 0 。节点 1 的值与它的值不是互质的（gcd(3,3) == 3）但节点 0 的值是互质的(gcd(2,3) == 1)，所以节点 0 是最近的符合要求的祖先节点。 - 节点 3 有两个祖先节点，分别是节点 1 和节点 0 。它与节点 1 互质（gcd(3,2) == 1），所以节点 1 是离它最近的符合要求的祖先节点。 示例 2： 输入：nums = [5,6,10,2,3,6,15], edges = [[0,1],[0,2],[1,3],[1,4],[2,5],[2,6]] 输出：[-1,0,-1,0,0,0,-1] 提示： nums.length == n 1 &lt;= nums[i] &lt;= 50 1 &lt;= n &lt;= 105 edges.length == n - 1 edges[j].length == 2 0 &lt;= uj, vj &lt; n uj != vj 代码实现： class Solution: def getCoprimes(self, nums: List[int], edges: List[List[int]]) -&gt; List[int]: n = len(nums) g = [[]*n for _ in range(n)] ret = [-1]*n store = [[] for _ in range(51)] mem = [(-1, -1)]*(51) for i in range(1, 51): for j in range(1, 51): if gcd(i, j)==1: store[i].append(j) for u, v in edges: g[u].append(v) g[v].append(u) def dfs(u, last, level): ret[u] = max(mem[i] for i in store[nums[u]])[1] tmp = mem[nums[u]] mem[nums[u]] = (level, u) for son in g[u]: if son==last: continue dfs(son, u, level&#43;1) mem[nums[u]] = tmp dfs(0, -1, 0) return ret &#34;&#34;&#34; 好的，你现在需要做的是 ： 我给你其他题目，并给出已经AC的代码实现，你需要补充：1、题目大意 2、实现思路 如果你已经了解了我的需求，请回复我懂了 </p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-30 22:30:13 +0800 CST'>2024-09-30</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1296 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-30 22:30:13 +0800 CST'>2024-09-30</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1296 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Prompt" href="https://kennems.github.io/posts/tech/prompt/"></a>
 </article>
@@ -432,7 +481,9 @@ acquire(&amp;p-&gt;lock); p-&gt;state = RUNNABLE; swtch(); scheduler:
 swtch(); release(&amp;p-&gt;lock); the main point of holding p-&gt;lock across swtch(): prevent another core’s scheduler from seeing p-&gt;state == RUNNABLE until after the original core has stopped executing the thread and after the original core has stopped using the thread’s stack
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-29 19:30:13 +0800 CST'>2024-09-29</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5649 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-03&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-29 19:30:13 +0800 CST'>2024-09-29</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5649 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(13)-Coordination (sleep&wakeup)" href="https://kennems.github.io/posts/tech/mit6.s08113-coordination-sleepwakeup/"></a>
 </article>
@@ -450,7 +501,9 @@ swtch(); release(&amp;p-&gt;lock); the main point of holding p-&gt;lock across s
 3295. 举报垃圾信息 题目大意 给定两个字符串数组 message 和 bannedWords，你需要判断 message 是否属于“垃圾信息”。如果 message 中至少有两个单词出现在 bannedWords 中，则该数组被视为垃圾信息，返回 true；否则返回 false。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-24 15:37:01 +0800 CST'>2024-09-24</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1553 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-24&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-24 15:37:01 +0800 CST'>2024-09-24</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1553 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛416(250922)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240924/"></a>
 </article>
@@ -469,7 +522,9 @@ Why support multiple tasks? Time-sharing: many users and/or many running program
 Threads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of multiple threads
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3091 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3091 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(11)- Thread switching" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/"></a>
 </article>
@@ -487,7 +542,9 @@ Threads are an abstraction to simplify programming when there are many tasks. th
 What goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but lose performance (kfree is serialized)
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(10)-Locking" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/"></a>
 </article>
@@ -505,9 +562,11 @@ What goes wrong if we don’t have locks Case study: delete acquire/release in k
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -527,7 +586,7 @@ What goes wrong if we don’t have locks Case study: delete acquire/release in k
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -568,12 +627,24 @@ What goes wrong if we don’t have locks Case study: delete acquire/release in k
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -588,6 +659,7 @@ What goes wrong if we don’t have locks Case study: delete acquire/release in k
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

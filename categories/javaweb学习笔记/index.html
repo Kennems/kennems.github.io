@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/categories/javaweb%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -109,8 +126,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -121,12 +136,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -138,6 +153,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -183,12 +205,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/categories/">🗂️ 分类</a></nav>
+            <a href="/categories/">🗂️ 分类</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     JavaWeb学习笔记
   </h1>
@@ -206,7 +233,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>黑马头条（6） Kafka概述 消息中间件 建议 Kafka 追求高吞吐量，适合产生大量数据的互联网服务的数据收集业务 RocketMQ 可可靠性要求很高的金融互联网领域，稳定性高，经历了多次阿里双11考验 RabbitMQ 性能较好，社区活跃度高，数据量没有那么大，优先选择功能比较完备的RabbitMQ Kafka是一个分布式流媒体平台，类似于消息队列或企业消息传递系统
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-31 15:37:01 +0800 CST'>2025-01-31</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3343 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-31&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-31 15:37:01 +0800 CST'>2025-01-31</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3343 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（6）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A16/"></a>
 </article>
@@ -223,7 +252,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>黑马头条（5） 文章定时发布 延迟任务 DelayQueue JDK自带 DelayQueue 是一个支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现Delayed接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提取元素。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-19 15:37:01 +0800 CST'>2025-01-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2048 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-19 15:37:01 +0800 CST'>2025-01-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2048 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（5）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A15/"></a>
 </article>
@@ -241,7 +272,9 @@ document.addEventListener("DOMContentLoaded", function() {
 人工审核 待自动审核返回不确定信息时，转到人工审核，由平台管理员进行审核
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-28 15:37:01 +0800 CST'>2024-12-28</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1963 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-28&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-28 15:37:01 +0800 CST'>2024-12-28</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1963 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（4）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A14/"></a>
 </article>
@@ -261,7 +294,9 @@ public class WmThreadLocalUtil { private final static ThreadLocal&lt;WmUser&gt; 
 public class WmTokenInterceptor implements HandlerInterceptor { /** * 得到header中的用户信息后，并存入到当前线程中 * @param request * @param response * @param handler * @return * @throws Exception */ @Override public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception { String userId = request.getHeader(&#34;userId&#34;); if (userId != null) { WmUser wmUser = new WmUser(); wmUser.setId(Integer.valueOf(userId)); WmThreadLocalUtil.setUser(wmUser); } return true; } /** * 清理线程中的数据 * @param request * @param response * @param handler * @param modelAndView * @throws Exception */ @Override public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler, ModelAndView modelAndView) throws Exception { WmThreadLocalUtil.clear(); } } WebMvcConfig 添加拦截器
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-15 15:37:01 +0800 CST'>2024-12-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1636 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-15 15:37:01 +0800 CST'>2024-12-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1636 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（3）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A13/"></a>
 </article>
@@ -282,7 +317,9 @@ ap_article_content 文章内容表
 从业务角度分析如何分表 滚屏分页的逻辑 表的拆分-垂直分表 垂直分表：将一个表的字段分散到多个表中，每个表存储其中一部分字段。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-12-01 15:37:01 +0800 CST'>2024-12-01</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3798 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-12-01&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-12-01 15:37:01 +0800 CST'>2024-12-01</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3798 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（2）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A12/"></a>
 </article>
@@ -301,7 +338,9 @@ ap_article_content 文章内容表
 类似今日头条
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-11-24 15:37:01 +0800 CST'>2024-11-24</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3916 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-11-24&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-11-24 15:37:01 +0800 CST'>2024-11-24</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3916 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（1）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A11/"></a>
 </article>
@@ -319,7 +358,9 @@ ap_article_content 文章内容表
 properties yaml yml 配置 SpringBoot除了支持配置文件属性配置，还支持Java系统属性和命令行参数的方式进行属性配置
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-06-11 22:30:13 +0800 CST'>2024-06-11</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3242 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-06-11&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-06-11 22:30:13 +0800 CST'>2024-06-11</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3242 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(7)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%917/"></a>
 </article>
@@ -337,7 +378,9 @@ properties yaml yml 配置 SpringBoot除了支持配置文件属性配置，还�
 start transaction / begin commit rollback Spring事务管理 @Transactional 位置：业务（service）层的方法上、类上、接口上 作用：将当前方法交给spring进行事务管理，方法执行前，开启事务；成功执行完毕，提交事务；出现异常，回滚事务。 事务属性
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-06-10 22:30:13 +0800 CST'>2024-06-10</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2239 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-06-10&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-06-10 22:30:13 +0800 CST'>2024-06-10</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2239 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(6)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%916/"></a>
 </article>
@@ -355,7 +398,9 @@ start transaction / begin commit rollback Spring事务管理 @Transactional 位�
 创建SpringBoot工程， 数据库表user， 实体类User
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-06-07 22:30:13 +0800 CST'>2024-06-07</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5716 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-06-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-06-07 22:30:13 +0800 CST'>2024-06-07</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5716 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(5)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%915/"></a>
 </article>
@@ -373,7 +418,9 @@ start transaction / begin commit rollback Spring事务管理 @Transactional 位�
 依赖管理 统一的项目结构 项目构建 &lt;maven.compiler.source&gt;11&lt;/maven.compiler.source&gt; &lt;maven.compiler.target&gt;11&lt;/maven.compiler.target&gt; MVN坐标 Maven中的坐标是资源的唯一标识，通过该坐标可以唯一定位资源位置 使用坐标来定义项目或引入项目中所需要的依赖 Maven的坐标主要组成
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4679 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4679 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(3)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%913/"></a>
 </article>
@@ -392,7 +439,9 @@ mysql -uroot -p&#34;password&#34; 或者
 mysql -uroot -p 之后输入密码
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>19 分钟</span>&nbsp;·&nbsp;<span>9099 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>19 分钟</span>&nbsp;·&nbsp;<span>9099 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(4)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%914/"></a>
 </article>
@@ -412,7 +461,9 @@ mysql -uroot -p 之后输入密码
 混合开发
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6459 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6459 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(1)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%911/"></a>
 </article>
@@ -429,7 +480,9 @@ mysql -uroot -p 之后输入密码
       <p>Java Web开发(2) Vue Vue是一套前端框架，免除原生的JavaScript中的DOM操作，简化书写。 基于MVVM（Model-View-View-Model）思想，实现数据的双向绑定，将编程的关注点放在数据上。 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;Vue&lt;/title&gt; &lt;!-- 引入Vue.js库 --&gt; &lt;script src=&#34;../js/vue.js&#34;&gt;&lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id=&#34;app&#34;&gt; &lt;!-- 输入框，使用v-model指令实现双向数据绑定 --&gt; &lt;input type=&#34;text&#34; v-model=&#34;message&#34;&gt; &lt;!-- 使用插值表达式显示message变量的值 --&gt; {{ message }} &lt;/div&gt; &lt;/body&gt; &lt;script&gt; // 创建一个Vue实例 new Vue({ // 将Vue实例挂载到id为&#34;app&#34;的元素上 el: &#34;#app&#34;, // 定义数据对象 data: { message: &#34;Hello Vue&#34; // 初始值为&#34;Hello Vue&#34; } }) &lt;/script&gt; &lt;/html&gt; Vue常用指令 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;Vue&lt;/title&gt; &lt;!-- 引入 Vue.js 文件 --&gt; &lt;script src=&#34;../js/vue.js&#34;&gt;&lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;!-- Vue 实例挂载的根节点 --&gt; &lt;div id=&#34;app&#34;&gt; &lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; width=&#34;60%&#34;&gt; &lt;tr&gt; &lt;th&gt;编号&lt;/th&gt; &lt;th&gt;姓名&lt;/th&gt; &lt;th&gt;年龄&lt;/th&gt; &lt;th&gt;性别&lt;/th&gt; &lt;th&gt;成绩&lt;/th&gt; &lt;th&gt;等级&lt;/th&gt; &lt;/tr&gt; &lt;!-- 使用 v-for 循环渲染列表 --&gt; &lt;tr align=&#34;center&#34; v-for=&#34;(user, index) in users&#34;&gt; &lt;td&gt;{{index &#43; 1}}&lt;/td&gt; &lt;td&gt;{{user.name}}&lt;/td&gt; &lt;td&gt;{{user.age}}&lt;/td&gt; &lt;td&gt; &lt;!-- 使用 v-if 条件渲染 --&gt; &lt;span v-if=&#34;user.gender == 1&#34;&gt;男&lt;/span&gt; &lt;span v-if=&#34;user.gender == 2&#34;&gt;女&lt;/span&gt; &lt;/td&gt; &lt;td&gt;{{user.score}}&lt;/td&gt; &lt;td&gt; &lt;!-- 使用 v-if、v-else-if、v-else 实现多条件渲染 --&gt; &lt;span v-if=&#34;user.score &gt;= 60 &amp;&amp; user.score &lt; 85&#34;&gt;优秀&lt;/span&gt; &lt;span v-else-if=&#34;user.score &gt;= 85&#34;&gt;及格&lt;/span&gt; &lt;span style=&#34;color:red&#34; v-else&gt;不及格&lt;/span&gt; &lt;/td&gt; &lt;/tr&gt; &lt;/div&gt; &lt;/body&gt; &lt;script&gt; // 创建 Vue 实例 new Vue({ el: &#34;#app&#34;, // 指定实例挂载的根节点 data: { // 用于存储数据的对象 users: [{ name: &#34;Tom&#34;, age: 20, gender: 1, score: 30 }, { name: &#34;Rose&#34;, age: 18, gender: 2, score: 99 }, { name: &#34;Jerry&#34;, age: 16, gender: 1, score: 98 }, { name: &#34;Kennem&#34;, age: 21, gender: 1, score: 100 }] }, }) &lt;/script&gt; &lt;/html&gt; Vue生命周期 new new Vue({ el: &#34;#app&#34;, //接管区域 data: { }, methods: { }, mounted() { alert(&#34;挂载完成!&#34;); }, }) Ajax Asynchronous JavaScript And XML, 异步的JavaScript和XML 作用： 数据交换：通过Ajax可以给服务器发送请求，并获取服务器响应的数据。 异步交互：可以在不重新加载整个页面的情况下，与服务器交换数据并更新部分网页的技术，如：搜索联想，用户名是否可用的校验等。 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta http-equiv=&#34;X-UA-Compatible&#34; content=&#34;IE=edge&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;原生Ajax&lt;/title&gt; &lt;/head&gt; &lt;body&gt; &lt;input type=&#34;button&#34; value=&#34;获取数据&#34; onclick=&#34;getData()&#34;&gt; &lt;div id=&#34;div1&#34;&gt;&lt;/div&gt; &lt;/body&gt; &lt;script&gt; function getData() { // 创建XMLHttpRequest对象 var xmlHttpRequest = new XMLHttpRequest(); // 发送异步请求 xmlHttpRequest.open(&#39;GET&#39;, &#39;https://xxx/json_demo.json&#39;); xmlHttpRequest.send(); // 发送请求 // 获取服务响应数据 xmlHttpRequest.onreadystatechange = function () { if (xmlHttpRequest.readyState == 4 &amp;&amp; xmlHttpRequest.status == 200) { document.getElementById(&#39;div1&#39;).innerHTML = xmlHttpRequest.responseText; } } } &lt;/script&gt; &lt;/html&gt; Axios Axios对原生的Ajax进行了封装，简化书写，快速开发。 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta http-equiv=&#34;X-UA-Compatible&#34; content=&#34;IE=edge&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;Ajax-Axios-案例&lt;/title&gt; &lt;!-- 引入axios库 --&gt; &lt;script src=&#34;js/axios-0.18.0.js&#34;&gt;&lt;/script&gt; &lt;!-- 引入Vue.js --&gt; &lt;script src=&#34;js/vue.js&#34;&gt;&lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id=&#34;app&#34;&gt; &lt;!-- 数据展示表格 --&gt; &lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; width=&#34;60%&#34;&gt; &lt;!-- 表头 --&gt; &lt;tr&gt; &lt;th&gt;编号&lt;/th&gt; &lt;th&gt;姓名&lt;/th&gt; &lt;th&gt;图像&lt;/th&gt; &lt;th&gt;性别&lt;/th&gt; &lt;th&gt;职位&lt;/th&gt; &lt;th&gt;入职日期&lt;/th&gt; &lt;th&gt;最后操作时间&lt;/th&gt; &lt;/tr&gt; &lt;!-- 数据行，使用Vue.js的v-for指令循环渲染 --&gt; &lt;tr align=&#34;center&#34; v-for=&#34;(emp,index) in emps&#34;&gt; &lt;td&gt;{{index &#43; 1}}&lt;/td&gt; &lt;!-- 显示编号 --&gt; &lt;td&gt;{{emp.name}}&lt;/td&gt; &lt;!-- 显示姓名 --&gt; &lt;td&gt; &lt;img :src=&#34;emp.image&#34; width=&#34;70px&#34; height=&#34;50px&#34;&gt; &lt;!-- 显示图像 --&gt; &lt;/td&gt; &lt;td&gt; &lt;span v-if=&#34;emp.gender == 1&#34;&gt;男&lt;/span&gt; &lt;!-- 根据性别显示男或女 --&gt; &lt;span v-if=&#34;emp.gender == 2&#34;&gt;女&lt;/span&gt; &lt;/td&gt; &lt;td&gt;{{emp.job}}&lt;/td&gt; &lt;!-- 显示职位 --&gt; &lt;td&gt;{{emp.entrydate}}&lt;/td&gt; &lt;!-- 显示入职日期 --&gt; &lt;td&gt;{{emp.updatetime}}&lt;/td&gt; &lt;!-- 显示最后操作时间 --&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/div&gt; &lt;/body&gt; &lt;script&gt; new Vue({ el: &#34;#app&#34;, data: { emps: [] // 存储员工数据的数组 }, mounted () { // 在Vue实例mounted生命周期钩子中发送异步请求加载数据 axios.get(&#34;http://yapi.smart-xwork.cn/mock/169327/emp/list&#34;).then(result =&gt; { // 异步请求成功后将数据赋值给emps数组 this.emps = result.data.data; }) } }); &lt;/script&gt; &lt;/html&gt; 接口管理平台 Yapi apifox
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3959 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3959 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(2)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%912/"></a>
 </article>
@@ -438,9 +491,11 @@ mysql -uroot -p 之后输入密码
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -460,7 +515,7 @@ mysql -uroot -p 之后输入密码
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -501,12 +556,24 @@ mysql -uroot -p 之后输入密码
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -521,6 +588,7 @@ mysql -uroot -p 之后输入密码
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

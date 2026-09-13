@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/tags/%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -109,8 +126,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -121,12 +136,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -138,6 +153,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -183,12 +205,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/tags/">🧩 标签</a></nav>
+            <a href="/tags/">🧩 标签</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     学习笔记
   </h1>
@@ -207,7 +234,9 @@ document.addEventListener("DOMContentLoaded", function() {
 上下文不够：一个复杂任务需要大量背景知识，但上下文窗口有限 工作流缺失：Claude Code 不知道你的团队用什么分支策略、怎么做 code review 领域专精不足：UI 设计、PPT 制作这类任务需要大量领域知识 Skills 就是解决这三个问题的插件系统。它本质上是一个包含 SKILL.md 的文件夹，通过 YAML frontmatter 定义触发条件。安装后，Claude Code 会根据你的意图自动选择合适的 Skill。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2026-07-19 17:30:00 +0800 CST'>2026-07-19</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4982 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-07-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-07-19 17:30:00 +0800 CST'>2026-07-19</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4982 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Claude Code Skills 完全指南" href="https://kennems.github.io/posts/tech/claude-code-skills-%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/"></a>
 </article>
@@ -226,7 +255,9 @@ Activity 有 7 个核心生命周期回调：
 onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（绑定数据、关联 ViewModel、实例化变量） onStart() — Activity 进入&#34;已启动&#34;状态，对用户可见 onResume() — Activity 进入前台，可与用户交互 onPause() — 用户离开 Activity 的第一个信号，Activity 不再处于前台但仍可能可见（多窗口模式）。执行非常短暂，不要做耗时操作 onStop() — Activity 不再可见，可执行较重的关闭操作（如保存数据到数据库） onRestart() — 已停止的 Activity 重新被带回前台时调用（在 onStop 和 onStart 之间） onDestroy() — Activity 被销毁前调用，释放所有资源 生命周期流程：Created → Started → Resumed → Paused → Stopped → Destroyed 从停止状态恢复：Stopped → onRestart() → Started → Resumed
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>77 分钟</span>&nbsp;·&nbsp;<span>38495 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>77 分钟</span>&nbsp;·&nbsp;<span>38495 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android面试相关" href="https://kennems.github.io/posts/tech/android%E9%9D%A2%E8%AF%95%E7%9B%B8%E5%85%B3/"></a>
 </article>
@@ -244,7 +275,9 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 确保运行成功。
 在项目中引入下面的依赖 可以使用远程仓库的android库 查看导入的AAR包 </p>
     </div>
-    <footer class="entry-footer"><span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>98 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-03-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>98 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 制作并发布自己的包" href="https://kennems.github.io/posts/tech/android%E5%88%B6%E4%BD%9C%E5%B9%B6%E5%8F%91%E5%B8%83%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8C%85/"></a>
 </article>
@@ -262,7 +295,9 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 问题 1: 什么是垃圾回收机制？ 解答： 垃圾回收（GC）是由Java虚拟机（JVM）垃圾回收器提供的一种对内存回收的机制。它会在内存空间不足或者内存占用过高的时候，自动回收那些没有引用的对象，以释放内存资源。垃圾回收的主要目标是自动管理内存，避免内存泄漏和内存溢出。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-14 03:36:29 +0800 CST'>2024-08-14</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1617 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-03-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-08-14 03:36:29 +0800 CST'>2024-08-14</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1617 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android 八股" href="https://kennems.github.io/posts/tech/android-%E5%85%AB%E8%82%A1/"></a>
 </article>
@@ -281,7 +316,9 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 7.6 - 7.20 小米训练营， 上课尽量回答问题， 最后的机会了， 不能浪费
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-14 03:36:29 +0800 CST'>2024-08-14</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>277 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-08-14 03:36:29 +0800 CST'>2024-08-14</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>277 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android学习计划" href="https://kennems.github.io/posts/tech/android%E5%AD%A6%E4%B9%A0%E8%AE%A1%E5%88%92/"></a>
 </article>
@@ -290,9 +327,11 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -312,7 +351,7 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -353,12 +392,24 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -373,6 +424,7 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

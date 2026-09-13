@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -130,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -142,12 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -159,6 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -204,12 +226,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/posts/">📚文章</a></nav>
+            <a href="/posts/">📚文章</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     💻技术
   </h1>
@@ -228,7 +255,9 @@ document.addEventListener("DOMContentLoaded", function() {
 上下文不够：一个复杂任务需要大量背景知识，但上下文窗口有限 工作流缺失：Claude Code 不知道你的团队用什么分支策略、怎么做 code review 领域专精不足：UI 设计、PPT 制作这类任务需要大量领域知识 Skills 就是解决这三个问题的插件系统。它本质上是一个包含 SKILL.md 的文件夹，通过 YAML frontmatter 定义触发条件。安装后，Claude Code 会根据你的意图自动选择合适的 Skill。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2026-07-19 17:30:00 +0800 CST'>2026-07-19</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4982 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-07-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-07-19 17:30:00 +0800 CST'>2026-07-19</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4982 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Claude Code Skills 完全指南" href="https://kennems.github.io/posts/tech/claude-code-skills-%E5%AE%8C%E5%85%A8%E6%8C%87%E5%8D%97/"></a>
 </article>
@@ -246,7 +275,9 @@ document.addEventListener("DOMContentLoaded", function() {
 目录 macOS 自带好用的工具 基础开发环境 终端与 Shell 配置 版本控制：Git 开发工具 效率工具 AI 工具 网络与代理 写作与笔记 容器与虚拟化 多媒体与办公 系统设置优化 Dotfiles 管理 一键恢复脚本 1. macOS 自带好用的工具 很多人觉得 Mac 开箱是&#34;毛坯房&#34;，其实 macOS 自带了很多实用工具，先了解它们再决定要不要装第三方替代品。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2026-05-04 18:11:00 +0800 CST'>2026-05-04</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6377 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-05-04 18:11:00 +0800 CST'>2026-05-04</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6377 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Mac 开发环境配置" href="https://kennems.github.io/posts/tech/mac%E5%BC%80%E5%8F%91%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE/"></a>
 </article>
@@ -265,7 +296,9 @@ Activity 有 7 个核心生命周期回调：
 onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（绑定数据、关联 ViewModel、实例化变量） onStart() — Activity 进入&#34;已启动&#34;状态，对用户可见 onResume() — Activity 进入前台，可与用户交互 onPause() — 用户离开 Activity 的第一个信号，Activity 不再处于前台但仍可能可见（多窗口模式）。执行非常短暂，不要做耗时操作 onStop() — Activity 不再可见，可执行较重的关闭操作（如保存数据到数据库） onRestart() — 已停止的 Activity 重新被带回前台时调用（在 onStop 和 onStart 之间） onDestroy() — Activity 被销毁前调用，释放所有资源 生命周期流程：Created → Started → Resumed → Paused → Stopped → Destroyed 从停止状态恢复：Stopped → onRestart() → Started → Resumed
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>77 分钟</span>&nbsp;·&nbsp;<span>38495 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-05-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>77 分钟</span>&nbsp;·&nbsp;<span>38495 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android面试相关" href="https://kennems.github.io/posts/tech/android%E9%9D%A2%E8%AF%95%E7%9B%B8%E5%85%B3/"></a>
 </article>
@@ -283,7 +316,9 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 确保运行成功。
 在项目中引入下面的依赖 可以使用远程仓库的android库 查看导入的AAR包 </p>
     </div>
-    <footer class="entry-footer"><span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>98 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-03-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-03-22 20:43:04 +0800 CST'>2026-03-22</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>98 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 制作并发布自己的包" href="https://kennems.github.io/posts/tech/android%E5%88%B6%E4%BD%9C%E5%B9%B6%E5%8F%91%E5%B8%83%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8C%85/"></a>
 </article>
@@ -300,7 +335,9 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
       <p>Go ——设计模式 引言 设计模式（Design Pattern）是软件开发中经过反复验证的最佳实践，用于解决特定场景下的常见问题。Go 语言以其简洁的语法、强大的并发支持和丰富的标准库，非常适合实践经典设计模式。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2026-01-02 10:00:01 +0800 CST'>2026-01-02</span>&nbsp;·&nbsp;<span>37 分钟</span>&nbsp;·&nbsp;<span>18222 字</span>&nbsp;·&nbsp;updated:&nbsp;2026-01-02&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2026-01-02 10:00:01 +0800 CST'>2026-01-02</span>&nbsp;·&nbsp;<span>37 分钟</span>&nbsp;·&nbsp;<span>18222 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Go ——设计模式" href="https://kennems.github.io/posts/tech/go-%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"></a>
 </article>
@@ -318,7 +355,9 @@ onCreate() — 系统首次创建 Activity 时调用，进行基础初始化（�
 RPC（远程过程调用）：像调用本地函数一样调用远程服务。 Protobuf（Protocol Buffers）：一种高效、结构化的二进制序列化格式，用 .proto 文件定义消息和服务接口。 在一个典型 gRPC 项目中你会看到：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-11-23 22:30:13 +0800 CST'>2025-11-23</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3485 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-23&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-11-23 22:30:13 +0800 CST'>2025-11-23</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3485 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to gRpc（1）" href="https://kennems.github.io/posts/tech/grpc1/"></a>
 </article>
@@ -336,7 +375,9 @@ RPC（远程过程调用）：像调用本地函数一样调用远程服务。 P
 sudo adduser zg 系统会提示你输入 新密码 和 确认密码。 接下来，你还会被要求填写一些额外信息（如全名、房间号等），这些可以按需填写，也可以直接按 Enter 跳过。 将用户添加到 sudo 组（可选） 如果你希望 zg 用户具有管理员权限，可以将其添加到 sudo 组：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-11-01 15:40:01 +0800 CST'>2025-11-01</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>296 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-01&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-11-01 15:40:01 +0800 CST'>2025-11-01</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>296 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to WSL Manager" href="https://kennems.github.io/posts/tech/wsl-manager/"></a>
 </article>
@@ -354,7 +395,9 @@ sudo adduser zg 系统会提示你输入 新密码 和 确认密码。 接下来
 方法 1：直接切到 root（推荐） sudo su # 或 sudo -i 方法 2：设置 root 密码（启用 su） sudo su passwd # 设置 root 密码 exit su # 输入新密码登录 root 方法 3：设置默认登录用户为 root 查看发行版名：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-10-23 15:40:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>248 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-10-23&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-10-23 15:40:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>248 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Wsl" href="https://kennems.github.io/posts/tech/wsl/"></a>
 </article>
@@ -371,7 +414,9 @@ sudo adduser zg 系统会提示你输入 新密码 和 确认密码。 接下来
       <p>Wsl Conda https://www.anaconda.com/docs/getting-started/miniconda/install
 wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh bash ~/Miniconda3-latest-Linux-x86_64.sh source ~/.bashrc </p>
     </div>
-    <footer class="entry-footer"><span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>9 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-09&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>9 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Wsl Conda" href="https://kennems.github.io/posts/tech/wsl-conda/"></a>
 </article>
@@ -388,7 +433,9 @@ wget https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh bash 
       <p>Wsl Docker 安装 Docker（使用官方推荐方式） 1. 卸载旧版本（如果有） sudo apt-get remove -y docker docker-engine docker.io containerd runc || true 2. 安装依赖 sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y 3. 添加官方 GPG 密钥 sudo mkdir -p /usr/share/keyrings curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce-archive-keyring.gpg 4. 添加 Docker 软件源（可切换为国内镜像） 官方源：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-09&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Wsl Docker" href="https://kennems.github.io/posts/tech/wsl-docker/"></a>
 </article>
@@ -407,7 +454,9 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
 /usr/lib/jvm/java-8-openjdk-amd64 /usr/lib/jvm/java-11-openjdk-amd64 /usr/lib/jvm/java-17-openjdk-amd64 1、使用 update-alternatives（官方推荐切换方案） update-alternatives 是 Ubuntu/Debian 下管理多版本工具的标准方式。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>320 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-09&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>320 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Wsl Java" href="https://kennems.github.io/posts/tech/wsl-java/"></a>
 </article>
@@ -425,7 +474,9 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
 三段式子数组定义为一个连续子数组 nums[l...r]，满足其中存在下标 l &lt; p &lt; q &lt; r，使得这三个片段满足：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-08-03 10:00:01 +0800 CST'>2025-08-03</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>720 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-08-03&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-08-03 10:00:01 +0800 CST'>2025-08-03</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>720 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛461(250803)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B250803/"></a>
 </article>
@@ -442,7 +493,9 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
       <p>1. 简介 absl（Abseil Python Common Libraries） 是由 Google 开发的一套常用工具库，主要目的是为大型项目提供更稳定、更灵活、更高效的基础工具。它不仅在 Google 内部被广泛使用，在 TensorFlow 等开源项目中也有应用。absl 的设计理念是提供比 Python 标准库更高效、功能更强大的工具，帮助开发者解决日常开发中遇到的各种问题。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-04-01 01:30:13 +0800 CST'>2025-04-01</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2250 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-04-01&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-04-01 01:30:13 +0800 CST'>2025-04-01</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2250 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to absl" href="https://kennems.github.io/posts/tech/absl/"></a>
 </article>
@@ -459,7 +512,9 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
       <p>20250329LeetCode双周赛 &amp; 20250330LeetCode周赛 T3 - 3500. 将数组分割为子数组的最小代价 1. 题目大意 给定两个等长的整数数组 nums 和 cost，以及一个整数 k。可以将 nums 分割为若干个连续的子数组，每个子数组的代价计算方式如下：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-30 15:37:01 +0800 CST'>2025-03-30</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3683 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-30 15:37:01 +0800 CST'>2025-03-30</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3683 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 20250329LeetCode双周赛 & 20250330LeetCode周赛" href="https://kennems.github.io/posts/tech/20250329leetcode%E5%8F%8C%E5%91%A8%E8%B5%9B--20250330leetcode%E5%91%A8%E8%B5%9B/"></a>
 </article>
@@ -476,7 +531,9 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
       <p>NumPy 1. NumPy 简介 NumPy（Numerical Python）是 Python 进行科学计算的基础库，提供了高效的多维数组（ndarray）对象和丰富的数值计算函数。它在数据处理、机器学习、工程计算等领域都有广泛应用。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-29 10:30:13 +0800 CST'>2025-03-29</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1859 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-29&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-29 10:30:13 +0800 CST'>2025-03-29</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1859 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to NumPy" href="https://kennems.github.io/posts/tech/numpy/"></a>
 </article>
@@ -491,9 +548,11 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -513,7 +572,7 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -554,12 +613,24 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -574,6 +645,7 @@ sudo apt update sudo apt install openjdk-8-jdk openjdk-11-jdk openjdk-17-jdk -y 
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

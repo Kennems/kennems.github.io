@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -130,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -142,12 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -159,6 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -204,12 +226,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/posts/">📚文章</a></nav>
+            <a href="/posts/">📚文章</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     💻技术
   </h1>
@@ -228,7 +255,9 @@ document.addEventListener("DOMContentLoaded", function() {
 3161. 物块放置查询 题目大意：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1361 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1361 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode双周赛131(240525)" href="https://kennems.github.io/posts/tech/%E5%8F%8C%E5%91%A8%E8%B5%9B131240525/"></a>
 </article>
@@ -246,7 +275,9 @@ document.addEventListener("DOMContentLoaded", function() {
 第三题3164. 优质数对的总数 II 题目大意： 给定两个整数数组nums1和nums2，以及一个正整数k。如果nums1[i]可以被nums2[j]*k整除，则称数对(i, j)为优质数对。要求计算优质数对的总数。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>850 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>850 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛399(240526)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B399240526/"></a>
 </article>
@@ -264,7 +295,9 @@ document.addEventListener("DOMContentLoaded", function() {
 变量未声明 i,j,k变量写错了 变量名一定要看清楚 函数体内变量和外部变量分不清，变量名相近的一定要看清楚 七夕祭 题目大意： TYVJ 七夕祭的会场是一个 N 行 M 列的矩形，共有 N×M 个摊点。Vani 邀请 cl 同学来参加，但 cl 只对其中的一部分摊点感兴趣。Vani 希望能够通过调整摊点的布置，使得每行和每列中 cl 感兴趣的摊点数相等。现在需要判断是否能满足这两个要求，并计算最少需要交换的摊点数。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5615 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-23&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-27 15:37:01 +0800 CST'>2024-05-27</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5615 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Python库" href="https://kennems.github.io/posts/tech/python%E5%BA%93/"></a>
 </article>
@@ -283,7 +316,9 @@ document.addEventListener("DOMContentLoaded", function() {
 给定一个非负整数 k，表示目标台阶的编号。虎老师从台阶 1 开始，通过一系列操作到达台阶 k。操作分为两种：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-19 15:37:01 +0800 CST'>2024-05-19</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>546 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-19 15:37:01 +0800 CST'>2024-05-19</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>546 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛398(240519)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B250519/"></a>
 </article>
@@ -300,7 +335,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>周赛20240505 第四题 100288. 使数组中所有元素相等的最小开销 题目大意：给定一个整数数组 nums 和两个整数 cost1 和 cost2，可以执行两种操作来使数组中所有元素相等：1. 选择某个元素增加1，开销为cost1；2. 选择两个不同的元素同时增加1，开销为cost2。目标是使数组中所有元素相等，返回需要的最小开销之和。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-05 15:37:01 +0800 CST'>2024-05-05</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>483 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-05&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-05 15:37:01 +0800 CST'>2024-05-05</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>483 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛396(240505)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B20240505/"></a>
 </article>
@@ -318,7 +355,9 @@ document.addEventListener("DOMContentLoaded", function() {
 实现思路：首先对工作按照结束时间进行排序，然后使用动态规划来求解最大报酬。在动态规划的过程中，维护一个数组f，其中f[i]表示在考虑前i个工作时可以获得的最大报酬。遍历每个工作，对于第i个工作，找到在其开始时间之前且结束时间最接近的工作j，然后更新f[i]为f[j] &#43; 第i个工作的报酬。最终返回f[n]即为所求的最大报酬。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1695 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-05-07&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-05-01 15:37:01 +0800 CST'>2024-05-01</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1695 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题(202405)" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202405/"></a>
 </article>
@@ -335,7 +374,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>双周赛20230427 第三/四题3130. 找出所有稳定的二进制数组 II 题目大意：给定三个正整数 zero、one 和 limit，定义一个二进制数组 arr，要求满足以下条件：数组中 0 出现的次数为 zero，1 出现的次数为 one，并且数组中每个长度超过 limit 的子数组都同时包含 0 和 1。求稳定二进制数组的总数目。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>469 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>469 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode双周赛129(240427)" href="https://kennems.github.io/posts/tech/%E5%8F%8C%E5%91%A8%E8%B5%9B20230427/"></a>
 </article>
@@ -352,7 +393,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>周赛240428 第四题134. 找出唯一性数组的中位数 题目大意：给定一个整数数组nums，唯一性数组是一个按元素从小到大排序的数组，包含了nums的所有非空子数组中不同元素的个数。要求返回nums唯一性数组的中位数，即有序唯一性数组的中间元素。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>401 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-30&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-30 15:37:01 +0800 CST'>2024-04-30</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>401 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛395(240428)" href="https://kennems.github.io/posts/tech/%E5%91%A8%E8%B5%9B240428/"></a>
 </article>
@@ -370,7 +413,9 @@ document.addEventListener("DOMContentLoaded", function() {
 依赖管理 统一的项目结构 项目构建 &lt;maven.compiler.source&gt;11&lt;/maven.compiler.source&gt; &lt;maven.compiler.target&gt;11&lt;/maven.compiler.target&gt; MVN坐标 Maven中的坐标是资源的唯一标识，通过该坐标可以唯一定位资源位置 使用坐标来定义项目或引入项目中所需要的依赖 Maven的坐标主要组成
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4679 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4679 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(3)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%913/"></a>
 </article>
@@ -389,7 +434,9 @@ mysql -uroot -p&#34;password&#34; 或者
 mysql -uroot -p 之后输入密码
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>19 分钟</span>&nbsp;·&nbsp;<span>9099 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-27&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-27 22:30:13 +0800 CST'>2024-04-27</span>&nbsp;·&nbsp;<span>19 分钟</span>&nbsp;·&nbsp;<span>9099 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(4)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%914/"></a>
 </article>
@@ -409,7 +456,9 @@ mysql -uroot -p 之后输入密码
 混合开发
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6459 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>13 分钟</span>&nbsp;·&nbsp;<span>6459 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(1)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%911/"></a>
 </article>
@@ -426,7 +475,9 @@ mysql -uroot -p 之后输入密码
       <p>Java Web开发(2) Vue Vue是一套前端框架，免除原生的JavaScript中的DOM操作，简化书写。 基于MVVM（Model-View-View-Model）思想，实现数据的双向绑定，将编程的关注点放在数据上。 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;Vue&lt;/title&gt; &lt;!-- 引入Vue.js库 --&gt; &lt;script src=&#34;../js/vue.js&#34;&gt;&lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id=&#34;app&#34;&gt; &lt;!-- 输入框，使用v-model指令实现双向数据绑定 --&gt; &lt;input type=&#34;text&#34; v-model=&#34;message&#34;&gt; &lt;!-- 使用插值表达式显示message变量的值 --&gt; {{ message }} &lt;/div&gt; &lt;/body&gt; &lt;script&gt; // 创建一个Vue实例 new Vue({ // 将Vue实例挂载到id为&#34;app&#34;的元素上 el: &#34;#app&#34;, // 定义数据对象 data: { message: &#34;Hello Vue&#34; // 初始值为&#34;Hello Vue&#34; } }) &lt;/script&gt; &lt;/html&gt; Vue常用指令 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;Vue&lt;/title&gt; &lt;!-- 引入 Vue.js 文件 --&gt; &lt;script src=&#34;../js/vue.js&#34;&gt;&lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;!-- Vue 实例挂载的根节点 --&gt; &lt;div id=&#34;app&#34;&gt; &lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; width=&#34;60%&#34;&gt; &lt;tr&gt; &lt;th&gt;编号&lt;/th&gt; &lt;th&gt;姓名&lt;/th&gt; &lt;th&gt;年龄&lt;/th&gt; &lt;th&gt;性别&lt;/th&gt; &lt;th&gt;成绩&lt;/th&gt; &lt;th&gt;等级&lt;/th&gt; &lt;/tr&gt; &lt;!-- 使用 v-for 循环渲染列表 --&gt; &lt;tr align=&#34;center&#34; v-for=&#34;(user, index) in users&#34;&gt; &lt;td&gt;{{index &#43; 1}}&lt;/td&gt; &lt;td&gt;{{user.name}}&lt;/td&gt; &lt;td&gt;{{user.age}}&lt;/td&gt; &lt;td&gt; &lt;!-- 使用 v-if 条件渲染 --&gt; &lt;span v-if=&#34;user.gender == 1&#34;&gt;男&lt;/span&gt; &lt;span v-if=&#34;user.gender == 2&#34;&gt;女&lt;/span&gt; &lt;/td&gt; &lt;td&gt;{{user.score}}&lt;/td&gt; &lt;td&gt; &lt;!-- 使用 v-if、v-else-if、v-else 实现多条件渲染 --&gt; &lt;span v-if=&#34;user.score &gt;= 60 &amp;&amp; user.score &lt; 85&#34;&gt;优秀&lt;/span&gt; &lt;span v-else-if=&#34;user.score &gt;= 85&#34;&gt;及格&lt;/span&gt; &lt;span style=&#34;color:red&#34; v-else&gt;不及格&lt;/span&gt; &lt;/td&gt; &lt;/tr&gt; &lt;/div&gt; &lt;/body&gt; &lt;script&gt; // 创建 Vue 实例 new Vue({ el: &#34;#app&#34;, // 指定实例挂载的根节点 data: { // 用于存储数据的对象 users: [{ name: &#34;Tom&#34;, age: 20, gender: 1, score: 30 }, { name: &#34;Rose&#34;, age: 18, gender: 2, score: 99 }, { name: &#34;Jerry&#34;, age: 16, gender: 1, score: 98 }, { name: &#34;Kennem&#34;, age: 21, gender: 1, score: 100 }] }, }) &lt;/script&gt; &lt;/html&gt; Vue生命周期 new new Vue({ el: &#34;#app&#34;, //接管区域 data: { }, methods: { }, mounted() { alert(&#34;挂载完成!&#34;); }, }) Ajax Asynchronous JavaScript And XML, 异步的JavaScript和XML 作用： 数据交换：通过Ajax可以给服务器发送请求，并获取服务器响应的数据。 异步交互：可以在不重新加载整个页面的情况下，与服务器交换数据并更新部分网页的技术，如：搜索联想，用户名是否可用的校验等。 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta http-equiv=&#34;X-UA-Compatible&#34; content=&#34;IE=edge&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;原生Ajax&lt;/title&gt; &lt;/head&gt; &lt;body&gt; &lt;input type=&#34;button&#34; value=&#34;获取数据&#34; onclick=&#34;getData()&#34;&gt; &lt;div id=&#34;div1&#34;&gt;&lt;/div&gt; &lt;/body&gt; &lt;script&gt; function getData() { // 创建XMLHttpRequest对象 var xmlHttpRequest = new XMLHttpRequest(); // 发送异步请求 xmlHttpRequest.open(&#39;GET&#39;, &#39;https://xxx/json_demo.json&#39;); xmlHttpRequest.send(); // 发送请求 // 获取服务响应数据 xmlHttpRequest.onreadystatechange = function () { if (xmlHttpRequest.readyState == 4 &amp;&amp; xmlHttpRequest.status == 200) { document.getElementById(&#39;div1&#39;).innerHTML = xmlHttpRequest.responseText; } } } &lt;/script&gt; &lt;/html&gt; Axios Axios对原生的Ajax进行了封装，简化书写，快速开发。 &lt;!DOCTYPE html&gt; &lt;html lang=&#34;en&#34;&gt; &lt;head&gt; &lt;meta charset=&#34;UTF-8&#34;&gt; &lt;meta http-equiv=&#34;X-UA-Compatible&#34; content=&#34;IE=edge&#34;&gt; &lt;meta name=&#34;viewport&#34; content=&#34;width=device-width, initial-scale=1.0&#34;&gt; &lt;title&gt;Ajax-Axios-案例&lt;/title&gt; &lt;!-- 引入axios库 --&gt; &lt;script src=&#34;js/axios-0.18.0.js&#34;&gt;&lt;/script&gt; &lt;!-- 引入Vue.js --&gt; &lt;script src=&#34;js/vue.js&#34;&gt;&lt;/script&gt; &lt;/head&gt; &lt;body&gt; &lt;div id=&#34;app&#34;&gt; &lt;!-- 数据展示表格 --&gt; &lt;table border=&#34;1&#34; cellspacing=&#34;0&#34; width=&#34;60%&#34;&gt; &lt;!-- 表头 --&gt; &lt;tr&gt; &lt;th&gt;编号&lt;/th&gt; &lt;th&gt;姓名&lt;/th&gt; &lt;th&gt;图像&lt;/th&gt; &lt;th&gt;性别&lt;/th&gt; &lt;th&gt;职位&lt;/th&gt; &lt;th&gt;入职日期&lt;/th&gt; &lt;th&gt;最后操作时间&lt;/th&gt; &lt;/tr&gt; &lt;!-- 数据行，使用Vue.js的v-for指令循环渲染 --&gt; &lt;tr align=&#34;center&#34; v-for=&#34;(emp,index) in emps&#34;&gt; &lt;td&gt;{{index &#43; 1}}&lt;/td&gt; &lt;!-- 显示编号 --&gt; &lt;td&gt;{{emp.name}}&lt;/td&gt; &lt;!-- 显示姓名 --&gt; &lt;td&gt; &lt;img :src=&#34;emp.image&#34; width=&#34;70px&#34; height=&#34;50px&#34;&gt; &lt;!-- 显示图像 --&gt; &lt;/td&gt; &lt;td&gt; &lt;span v-if=&#34;emp.gender == 1&#34;&gt;男&lt;/span&gt; &lt;!-- 根据性别显示男或女 --&gt; &lt;span v-if=&#34;emp.gender == 2&#34;&gt;女&lt;/span&gt; &lt;/td&gt; &lt;td&gt;{{emp.job}}&lt;/td&gt; &lt;!-- 显示职位 --&gt; &lt;td&gt;{{emp.entrydate}}&lt;/td&gt; &lt;!-- 显示入职日期 --&gt; &lt;td&gt;{{emp.updatetime}}&lt;/td&gt; &lt;!-- 显示最后操作时间 --&gt; &lt;/tr&gt; &lt;/table&gt; &lt;/div&gt; &lt;/body&gt; &lt;script&gt; new Vue({ el: &#34;#app&#34;, data: { emps: [] // 存储员工数据的数组 }, mounted () { // 在Vue实例mounted生命周期钩子中发送异步请求加载数据 axios.get(&#34;http://yapi.smart-xwork.cn/mock/169327/emp/list&#34;).then(result =&gt; { // 异步请求成功后将数据赋值给emps数组 this.emps = result.data.data; }) } }); &lt;/script&gt; &lt;/html&gt; 接口管理平台 Yapi apifox
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3959 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-22 22:30:13 +0800 CST'>2024-04-22</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3959 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java Web开发(2)" href="https://kennems.github.io/posts/tech/java-web%E5%BC%80%E5%8F%912/"></a>
 </article>
@@ -444,7 +495,9 @@ mysql -uroot -p 之后输入密码
 基本的通信架构有2中形式：CS架构（Client客户端/Server服务端）、BS架构（Browser浏览器/Server服务器） 无论是CS架构，还是BS架构的软件都必须要依赖网络编程
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-21 22:30:13 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>17 分钟</span>&nbsp;·&nbsp;<span>8164 字</span>&nbsp;·&nbsp;updated:&nbsp;2022-01-08&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-21 22:30:13 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>17 分钟</span>&nbsp;·&nbsp;<span>8164 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java20天速成——进阶课程(5)" href="https://kennems.github.io/posts/tech/java20%E5%A4%A9%E9%80%9F%E6%88%90%E8%BF%9B%E9%98%B6%E8%AF%BE%E7%A8%8B5/"></a>
 </article>
@@ -461,7 +514,9 @@ mysql -uroot -p 之后输入密码
       <p>力扣周赛394(20240421) 第三题100290. 使矩阵满足条件的最少操作次数 题目大意：给定一个大小为 m x n 的二维矩形 grid，每次操作可以将任意格子的值修改为任意非负整数。完成所有操作后，需要确保每个格子 grid[i][j] 的值满足以下条件：如果下面相邻格子存在的话，它们的值相等；如果右边相邻格子存在的话，它们的值不相等。返回需要的最少操作次数。 记忆化 实现思路：首先，统计每一列中各个数字的出现次数。然后，使用动态规划的方法，定义函数dfs(i, pre)，表示处理到第i列时，前一列的值为pre时的最大操作次数。在dfs中，对于当前列的每个数字，考虑是否修改当前列的值，然后递归处理下一列。利用缓存来避免重复计算。最后返回总的操作次数。 class Solution: # 如果你想不出来，1、你不知道这个知识点 2、 你知道这个知识点但是方向错了 def minimumOperations(self, g: List[List[int]]) -&gt; int: n, m = len(g), len(g[0]) cnt = [[0]*10 for _ in range(m)] for row in g: for k, v in enumerate(row): cnt[k][v]&#43;=1 @cache def dfs(i, pre): if i&lt;0: return 0 res = 0 for v in range(10): if v!=pre: res = max(res, dfs(i-1, v) &#43; cnt[i][v]) return res return m*n - dfs(m-1, -1) 递推 实现思路：首先，对每一列进行遍历，并统计每列中每个数字的出现次数。然后，通过动态规划的方法，使用两个变量f0和f1分别表示当前列处理时，前一列最大能保留的个数和次大能够保留的个数。接着，通过遍历每列中的每个数字，计算当前列的最大操作次数，并更新f0和f1。最后返回总的操作次数。 class Solution: def minimumOperations(self, grid: List[List[int]]) -&gt; int: n, m = len(grid), len(grid[0]) f0, f1, pre = 0, 0, -1 for col in zip(*grid): mx, mx2, x = f0, f1, -1 for v, c in Counter(col).items(): res = (f0 if v!=pre else f1) &#43; c if res &gt; mx: mx, mx2, x = res, mx, v elif res &gt; mx2: mx2 = res f0, f1, pre = mx, mx2, x return m*n - f0 第四题100276. 最短路径中的边 题目大意：给定一个包含n个节点的无向带权图，节点编号从0到n-1，总共有m条边。对于节点0为出发点，节点n-1为结束点的所有最短路，需要返回一个长度为m的布尔数组，如果edges[i]至少在其中一条最短路上，则answer[i]为true，否则为false。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-21 15:37:01 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>989 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-04-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-21 15:37:01 +0800 CST'>2024-04-21</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>989 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode周赛240421" href="https://kennems.github.io/posts/tech/%E5%8A%9B%E6%89%A3%E5%91%A8%E8%B5%9B39420240421/"></a>
 </article>
@@ -482,7 +537,9 @@ mysql -uroot -p 之后输入密码
 把程序运行的信息，记录到文件中，方便程序员定位bug， 并了解程序的执行情况等。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-04-20 22:30:13 +0800 CST'>2024-04-20</span>&nbsp;·&nbsp;<span>20 分钟</span>&nbsp;·&nbsp;<span>9840 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-11&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-04-20 22:30:13 +0800 CST'>2024-04-20</span>&nbsp;·&nbsp;<span>20 分钟</span>&nbsp;·&nbsp;<span>9840 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Java20天速成——进阶课程(4)" href="https://kennems.github.io/posts/tech/java20%E5%A4%A9%E9%80%9F%E6%88%90%E8%BF%9B%E9%98%B6%E8%AF%BE%E7%A8%8B4/"></a>
 </article>
@@ -500,9 +557,11 @@ mysql -uroot -p 之后输入密码
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -522,7 +581,7 @@ mysql -uroot -p 之后输入密码
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -563,12 +622,24 @@ mysql -uroot -p 之后输入密码
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -583,6 +654,7 @@ mysql -uroot -p 之后输入密码
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

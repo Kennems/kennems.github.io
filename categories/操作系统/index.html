@@ -12,7 +12,7 @@
 <meta name="description" content="记录值得记录的一切">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -109,8 +126,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -121,12 +136,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -138,6 +153,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -183,12 +205,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/categories/">🗂️ 分类</a></nav>
+            <a href="/categories/">🗂️ 分类</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     操作系统
   </h1>
@@ -209,7 +236,9 @@ acquire(&amp;p-&gt;lock); p-&gt;state = RUNNABLE; swtch(); scheduler:
 swtch(); release(&amp;p-&gt;lock); the main point of holding p-&gt;lock across swtch(): prevent another core’s scheduler from seeing p-&gt;state == RUNNABLE until after the original core has stopped executing the thread and after the original core has stopped using the thread’s stack
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-29 19:30:13 +0800 CST'>2024-09-29</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5649 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-10-03&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-29 19:30:13 +0800 CST'>2024-09-29</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5649 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(13)-Coordination (sleep&wakeup)" href="https://kennems.github.io/posts/tech/mit6.s08113-coordination-sleepwakeup/"></a>
 </article>
@@ -228,7 +257,9 @@ Why support multiple tasks? Time-sharing: many users and/or many running program
 Threads are an abstraction to simplify programming when there are many tasks. thread = an independent serial execution – registers, pc, stack the threading system interleaves the execution of multiple threads
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3091 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-21&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-21 19:30:13 +0800 CST'>2024-09-21</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3091 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(11)- Thread switching" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/"></a>
 </article>
@@ -246,7 +277,9 @@ Threads are an abstraction to simplify programming when there are many tasks. th
 What goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but lose performance (kfree is serialized)
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(10)-Locking" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/"></a>
 </article>
@@ -265,7 +298,9 @@ Interrupts hardware wants attention now! e.g., pkt arrived, clock interrupt soft
 Where do device interrupts come from? diagram: Fig 1 of SiFive board in FU540-C000-v1.0.pdf CPUs, CLINT, PLIC, devices Fig 3 has more detail for interrupts Section 8 and 9 of FU540-C000-v1.0.pdf UART (universal asynchronous receiver/transmitter) See Section 13 of FU540-C000-v1.0.pdf Although the QEMU version is slightly different Follows http://byterunner.com/16550.html the interrupt tells the kernel the device hardware wants attention the driver (in the kernel) knows how to tell the device to do things often the interrupt handler calls the relevant driver but other arrangements are possible (schedule a thread; poll) [diagram: top-half/bottom-half]
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-18 19:30:13 +0800 CST'>2024-09-18</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1303 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-18&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-18 19:30:13 +0800 CST'>2024-09-18</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1303 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(9)-Interrupts" href="https://kennems.github.io/posts/tech/mit6.s0819-interrupts/"></a>
 </article>
@@ -284,7 +319,9 @@ Better performance/efficiency e.g., one zero-filled page e.g., copy-on-write for
 primary purpose: isolation each process has its own address space Virtual memory provides a level-of-indirection provides kernel with opportunity to do cool stuff already some examples: shared trampoline page guard page but more possible… Key idea: change page tables on page fault Page fault is a form of a trap (like a system call) Xv6 panics on page fault But you don’t have to panic! Instead: update page table instead of panic restart instruction (see userret() from traps lecture) Combination of page faults and updating page table is powerful!
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-17 19:30:13 +0800 CST'>2024-09-17</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3585 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-17&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-17 19:30:13 +0800 CST'>2024-09-17</span>&nbsp;·&nbsp;<span>8 分钟</span>&nbsp;·&nbsp;<span>3585 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(8)-Page faults" href="https://kennems.github.io/posts/tech/mit6.s0818-page-faults/"></a>
 </article>
@@ -303,7 +340,9 @@ Pgtbl lab comments few lines of code, but difficult-to-debug bugs
 worst case: qemu/xv6 stops running “best” case: kernel panic hard to debug for staff too there are so many possible reasons why you discovered once we hadn’t seen yet likely to be the most challenging lab historically the first VM lab is hard this year too, even though we made a new lab to provide a gentler intro to VM Part 1 of pgtbl lab Explain vm output in terms of fig 3-4
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-12 19:30:13 +0800 CST'>2024-09-12</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2628 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-12&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-12 19:30:13 +0800 CST'>2024-09-12</span>&nbsp;·&nbsp;<span>6 分钟</span>&nbsp;·&nbsp;<span>2628 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(7)-Q&A" href="https://kennems.github.io/posts/tech/mit6.s0817-qa/"></a>
 </article>
@@ -321,7 +360,9 @@ worst case: qemu/xv6 stops running “best” case: kernel panic hard to debug f
 What needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs to happen? save 32 user registers and pc switch to supervisor mode switch to kernel page table switch to kernel stack jump to kernel C code high-level goals don’t let user code interfere with user-&gt;kernel transition e.g. don’t execute user code in supervisor mode! transparent to user code – resume without disturbing
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3444 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-10&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3444 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(6)-System Call Entry/Exit" href="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"></a>
 </article>
@@ -339,7 +380,9 @@ What needs to happen when a program makes a system call, e.g. write()? [CPU | us
 RISC-V abstract machine No C-like control flow, no concept of variables, types … Base ISA: Program counter, 32 general-purpose registers (x0–x31)
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-04 19:30:13 +0800 CST'>2024-09-04</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-04 19:30:13 +0800 CST'>2024-09-04</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb" href="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/"></a>
 </article>
@@ -358,7 +401,9 @@ Global variables, accessible throughout the whole program. Defined with static k
 Local variables with functions. Destroyed after function exits. 堆内存（Heap Memory）
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-03 22:30:13 +0800 CST'>2024-09-03</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3405 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-03&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-03 22:30:13 +0800 CST'>2024-09-03</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3405 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to C 语言指针" href="https://kennems.github.io/posts/tech/c-%E8%AF%AD%E8%A8%80%E6%8C%87%E9%92%88/"></a>
 </article>
@@ -381,7 +426,9 @@ sometimes it writes to a random memory address how can we keep it from wrecking 
 we want isolated address spaces each process has its own memory it can read and write its own memory it cannot read or write anything else
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5742 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-09-02&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-09-02 22:30:13 +0800 CST'>2024-09-02</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5742 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(4)-Virtual Memory" href="https://kennems.github.io/posts/tech/mit6.s0814-virtual-memory/"></a>
 </article>
@@ -397,7 +444,9 @@ we want isolated address spaces each process has its own memory it can read and 
     <div class="entry-content">
       <p>MIT6.S081(1)-O/S overview Class Page Overview 6.S081 goals Understand operating system (O/S) design and implementation Hands-on experience extending a small O/S Hands-on experience writing systems software What is the purpose of an O/S? Abstract the hardware for convenience and portability Multiplex the hardware among many applications Isolate applications in order to contain bugs Allow sharing among cooperating applications Control sharing for security Don’t get in the way of high performance Support a wide range of applications Organization: layered picture user applications: vi, gcc, DB, &amp;c kernel services h/w: CPU, RAM, disk, net, &amp;c we care a lot about the interfaces and internal kernel structure ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5896 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>12 分钟</span>&nbsp;·&nbsp;<span>5896 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(1)-O/S overview" href="https://kennems.github.io/posts/tech/mit6.s0811-os-overview/"></a>
 </article>
@@ -418,7 +467,9 @@ Strawman design: No OS Application directly interacts with hardware CPU cores &a
 Strawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1800 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-08-31&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1800 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MIT6.S081(3)-OS organization" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"></a>
 </article>
@@ -427,9 +478,11 @@ Strawman design not conducive to multiplexing each app periodically must give up
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -449,7 +502,7 @@ Strawman design not conducive to multiplexing each app periodically must give up
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -490,12 +543,24 @@ Strawman design not conducive to multiplexing each app periodically must give up
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -510,6 +575,7 @@ Strawman design not conducive to multiplexing each app periodically must give up
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -130,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -142,12 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -159,6 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -204,12 +226,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/posts/">📚文章</a></nav>
+            <a href="/posts/">📚文章</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     💻技术
   </h1>
@@ -227,7 +254,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Jetpack基础 ViewModel class MainViewModel(countReserved: Int) : ViewModel() { val userLiveData = MutableLiveData&lt;User&gt;() private val userIdLiveData = MutableLiveData&lt;String&gt;() val userName: LiveData&lt;String&gt; = userLiveData.map { user -&gt; &#34;${user.firstName} ${user.lastName}&#34; } val user: LiveData&lt;User&gt; = userIdLiveData.switchMap { userId -&gt; Repository.getUser(userId) } val count: LiveData&lt;Int&gt; get() = _count val _count = MutableLiveData&lt;Int&gt;() init { _count.value = countReserved } fun plusOne() { val count = _count.value ?: 0 _count.value = count &#43; 1 } fun clear() { _count.value = 0 } // fun getUser(userId: String): LiveData&lt;User&gt; { // return Repository.getUser(userId) // } fun getUser(userId: String) { userIdLiveData.value = userId } } Lifecycle 可以在Observer中查看到对应MainActivity生命周期的变化
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>570 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>570 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Jetpack基础" href="https://kennems.github.io/posts/tech/jetpack%E5%9F%BA%E7%A1%80/"></a>
 </article>
@@ -244,7 +273,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Lopper &amp; Handler Looper 是 Android 中用于线程消息循环的核心组件，它让线程可以接收和处理消息（Message）或任务（Runnable）。它通过一个消息队列（MessageQueue）来管理这些消息和任务，线程从中取出消息逐一处理。 在Android中：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>648 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>648 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Lopper & Handler" href="https://kennems.github.io/posts/tech/lopper--handler/"></a>
 </article>
@@ -260,7 +291,9 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="entry-content">
       <p>MaterialDesign </p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>1 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>1 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to MaterialDesign" href="https://kennems.github.io/posts/tech/materialdesign/"></a>
 </article>
@@ -278,7 +311,9 @@ document.addEventListener("DOMContentLoaded", function() {
 1. 检查设备连接 adb devices 列出已连接的设备及其状态。 2. 安装与卸载应用 安装 APK：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 10:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>566 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 10:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>566 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to adb使用" href="https://kennems.github.io/posts/tech/adb%E4%BD%BF%E7%94%A8/"></a>
 </article>
@@ -294,7 +329,9 @@ document.addEventListener("DOMContentLoaded", function() {
     <div class="entry-content">
       <p>Android 配置文件常用配置项 gradle.properties 常用配置 # 启用 AndroidX 支持 # 设置为 true，项目中将使用 AndroidX 库而不是旧版支持库（Support Libraries）。 # 如果你正在迁移到 AndroidX，确保设置此项为 true。 android.useAndroidX=true # 启用 Jetifier 工具 # 设置为 true，Jetifier 会自动将项目中使用的所有旧版 Android 支持库（Support Library）转换为 AndroidX 库。 # 如果你的项目或依赖项中包含旧版支持库，启用此项可以确保它们与 AndroidX 兼容。 android.enableJetifier=true # 启用数据绑定 V2 版本 # 设置为 true 时，启用数据绑定的 V2 版本，这会提供更高效的编译速度和更多的功能。 # 数据绑定 V2 相较于 V1 版本，在性能和功能上进行了优化。 android.databinding.enableV2=true # 禁用 Android 资源 ID 的动态修改 # 设置为 false 时，资源 ID 将会被标记为 final，不允许在运行时被修改。 # 默认值为 true，可以保证资源 ID 在编译时不可变。适用于大多数应用，除非有特殊需求。 android.nonFinalResIds=false # 启用 Gradle 守护进程 # 启用守护进程可以让 Gradle 在后台持续运行，从而加快构建速度。 # 这样 Gradle 在后续构建时不需要重新启动，减少启动时间。 org.gradle.daemon=true # 启用并行构建 # 设置为 true 时，Gradle 会并行执行多个模块的构建任务，从而提高构建效率。 # 对于多模块项目，开启此项能显著减少构建时间。 org.gradle.parallel=true # 启用构建缓存 # 启用构建缓存时，Gradle 会缓存之前构建的输出结果，避免重复构建相同的任务。 # 这有助于加快构建速度，尤其是在大项目中。 org.gradle.caching=true # 设置 Kotlin 代码风格为官方标准 # 默认情况下，Kotlin 会采用官方推荐的代码风格。设置此项为 official 以确保代码风格符合 Kotlin 官方的标准。 kotlin.code.style=official # 应用的版本代码 # 版本代码是一个整数，每次发布新版本时需要增加它，通常用来标识应用的版本。 # 版本代码用于区分应用的不同版本，Google Play 会根据版本代码进行版本更新的管理。 APP_VERSION_CODE=5663 # 应用的版本名称 # 版本名称是一个字符串，通常是用户可见的版本号，用于展示给用户。 # 版本名称通常采用类似 &#34;1.0.0&#34; 的格式，可以包含数字和字母。 APP_VERSION_NAME=11.7.0 # 应用的包名 # 包名是应用的唯一标识符，通常采用反向域名命名规范，如 com.example.app。 # 在发布到应用商店时，包名不能更改，因此需要为每个应用选择一个唯一的包名。 APP_PACKAGE=org.telegram.messenger # 是否为私有应用 # 设置为 true 时，表示这是一个私有应用，不会公开发布，通常用于企业内部应用或特殊用途的应用。 IS_PRIVATE=false # 发布密钥的密码 # 用于签名 APK 文件时使用的发布密钥的密码。为了保证应用的安全，发布密钥是非常重要的。 RELEASE_KEY_PASSWORD=android # 发布密钥别名 # 签名应用时需要指定密钥的别名。别名通常在创建密钥时设置，并且在后续的构建过程中使用。 RELEASE_KEY_ALIAS=androidkey # 发布密钥的存储库密码 # 这是存储签名密钥的文件（通常为 .keystore 文件）的密码。 RELEASE_STORE_PASSWORD=android # 设置 Gradle JVM 的最大堆内存 # 通过增加 JVM 堆内存的大小，可以提高 Gradle 构建的性能，特别是在大项目中。 # 这个配置项指定了 Gradle 为 JVM 分配的最大内存。这里设置为 4096MB。 org.gradle.jvmargs=-Xmx4096M # 启用 Gradle 守护进程 # 启用守护进程可以减少构建时的启动时间，因为 Gradle 在后台保持一个持久的进程。 # 守护进程有助于提高构建效率，特别是对大型项目。 org.gradle.daemon=true # 启用并行构建 # 启用并行构建时，Gradle 会并行执行多个模块的构建任务。 # 这有助于加快多模块项目的构建速度。 org.gradle.parallel=true # 启用按需配置 # 设置为 false 时，Gradle 会在构建时配置所有模块。设置为 true 时，Gradle 会只配置当前构建任务所需要的模块，减少配置时间。 # 如果你有多个模块且不需要配置全部模块时，可以考虑启用按需配置以加速构建过程。 org.gradle.configureondemand=false # 启用 AndroidX # 启用 AndroidX 后，所有的支持库都会被替换为 AndroidX 库。建议新项目始终使用 AndroidX。 android.useAndroidX=true # 启用 BuildConfig 生成 # 设置为 true 时，Gradle 会生成一个名为 BuildConfig 的类，它包含与构建相关的信息（如版本号、构建类型等）。 # 这在访问这些信息时非常方便，可以用于配置和调试。 android.defaults.buildfeatures.buildconfig=true # 禁用非传递 R 类 # 设置为 false 时，Android 编译系统会为每个模块生成一个 R 类，允许模块间访问资源。 # 如果设置为 true，则该模块的 R 类不会传递给其他模块。 android.nonTransitiveRClass=false # 禁用资源 ID 的动态修改 # 设置为 false 时，资源 ID 会被标记为 final，确保资源 ID 在编译时不可变。 # 如果你希望在运行时修改资源 ID，则可以将其设置为 true。 android.nonFinalResIds=false # 启用 R8 完整模式 # 设置为 true 时，启用 R8 的完整模式，R8 是 Android 构建工具链中的代码压缩器和混淆器。 # 完整模式会尝试更优化地压缩和混淆代码，通常能显著减少 APK 的大小。 android.enableR8.fullMode=true </p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 10:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1715 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 10:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1715 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android 配置文件常用配置项" href="https://kennems.github.io/posts/tech/android-%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E5%B8%B8%E7%94%A8%E9%85%8D%E7%BD%AE%E9%A1%B9/"></a>
 </article>
@@ -311,7 +348,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>黑马头条（6） Kafka概述 消息中间件 建议 Kafka 追求高吞吐量，适合产生大量数据的互联网服务的数据收集业务 RocketMQ 可可靠性要求很高的金融互联网领域，稳定性高，经历了多次阿里双11考验 RabbitMQ 性能较好，社区活跃度高，数据量没有那么大，优先选择功能比较完备的RabbitMQ Kafka是一个分布式流媒体平台，类似于消息队列或企业消息传递系统
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-31 15:37:01 +0800 CST'>2025-01-31</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3343 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-31&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-31 15:37:01 +0800 CST'>2025-01-31</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3343 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（6）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A16/"></a>
 </article>
@@ -328,7 +367,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Go 开发框架三件套 1. Gorm - 强大的 ORM 框架深度扩展 1.1 基本使用增强版 1.1.1 完整 CRUD 操作示例 // 创建记录（批量插入） users := []User{ {Name: &#34;Alice&#34;, Age: 25}, {Name: &#34;Bob&#34;, Age: 30}, {Name: &#34;Charlie&#34;, Age: 35}, } db.Create(&amp;users) // 一次性插入所有记录 // 查询记录（带条件） var activeUsers []User db.Where(&#34;status = ? AND age &gt; ?&#34;, &#34;active&#34;, 25). Order(&#34;created_at desc&#34;). Limit(10). Offset(0). Find(&amp;activeUsers) // 更新多个字段 db.Model(&amp;User{}).Where(&#34;role = ?&#34;, &#34;admin&#34;). Updates(map[string]interface{}{ &#34;age&#34;: 40, &#34;status&#34;: &#34;inactive&#34;, }) // 删除记录（带条件） db.Where(&#34;email LIKE ?&#34;, &#34;%@test.com&#34;).Delete(&amp;User{}) 1.1.2 高级查询技巧 // 子查询 subQuery := db.Select(&#34;AVG(age)&#34;).Where(&#34;department = ?&#34;, &#34;IT&#34;).Table(&#34;users&#34;) db.Where(&#34;age &gt; (?)&#34;, subQuery).Find(&amp;users) // 原生 SQL 执行 db.Exec(&#34;UPDATE users SET balance = balance * ? WHERE level &gt; ?&#34;, 1.1, 3) // 查询结果映射到自定义结构体 type UserProfile struct { Name string Email string } db.Model(&amp;User{}).Select(&#34;name, email&#34;).Scan(&amp;UserProfile{}) 1.2 软删除进阶实践 1.2.1 自定义删除字段 type CustomModel struct { ID uint `gorm:&#34;primarykey&#34;` CreatedAt time.Time UpdatedAt time.Time Deleted gorm.DeletedAt `gorm:&#34;index;column:deleted_at&#34;` } type Product struct { CustomModel Name string Price float64 } // 使用自定义删除字段 db.Where(&#34;price &lt; ?&#34;, 100).Delete(&amp;Product{}) 1.2.2 软删除与关联关系 type Company struct { gorm.Model Name string Products []Product `gorm:&#34;foreignKey:CompanyID&#34;` } // 级联软删除 db.Select(&#34;Products&#34;).Delete(&amp;company) 1.3 事务管理增强 1.3.1 分布式事务示例（Saga模式） // 创建订单事务 err := db.Transaction(func(tx *gorm.DB) error { // 扣减库存 if err := tx.Model(&amp;Inventory{}). Where(&#34;product_id = ?&#34;, order.ProductID). Update(&#34;quantity&#34;, gorm.Expr(&#34;quantity - ?&#34;, order.Quantity)). Error; err != nil { return err } // 创建订单 if err := tx.Create(&amp;order).Error; err != nil { return err } // 调用支付服务（外部系统） if err := paymentClient.Charge(order.Total); err != nil { return err // 自动回滚 } return nil }) 1.3.2 事务隔离级别配置 // 设置事务隔离级别为可重复读 tx := db.Set(&#34;gorm:query_options&#34;, &#34;SET TRANSACTION ISOLATION LEVEL REPEATABLE READ&#34;).Begin() // 在事务中执行操作 tx.Model(&amp;User{}).Where(&#34;id = ?&#34;, 1).Update(&#34;balance&#34;, gorm.Expr(&#34;balance - ?&#34;, 100)) tx.Commit() 1.4 Hook 全生命周期管理 1.4.1 完整 Hook 列表及执行顺序 type Order struct { gorm.Model Status string TotalPrice float64 } // 创建流程 func (o *Order) BeforeCreate(tx *gorm.DB) error { o.Status = &#34;pending&#34; return nil } func (o *Order) AfterCreate(tx *gorm.DB) error { tx.Model(o).Update(&#34;order_no&#34;, generateOrderNo()) return nil } // 更新流程 func (o *Order) BeforeUpdate(tx *gorm.DB) error { if o.Status == &#34;shipped&#34; { o.TotalPrice *= 1.1 // 增加运费 } return nil } 1.4.2 审计日志实现 func (u *User) BeforeUpdate(tx *gorm.DB) error { if tx.Statement.Changed(&#34;Email&#34;) { oldEmail := tx.Statement.Old(&#34;Email&#34;).(string) newEmail := tx.Statement.New(&#34;Email&#34;).(string) audit := AuditLog{ UserID: u.ID, Action: &#34;UPDATE_EMAIL&#34;, OldValue: oldEmail, NewValue: newEmail, } tx.Create(&amp;audit) } return nil } 1.5 性能优化深度指南 1.5.1 连接池最佳配置 sqlDB, err := db.DB() if err != nil { panic(&#34;failed to get database handle&#34;) } // 连接池配置 sqlDB.SetMaxIdleConns(20) // 空闲连接数 sqlDB.SetMaxOpenConns(100) // 最大打开连接数 sqlDB.SetConnMaxLifetime(time.Hour) // 连接最大生命周期 sqlDB.SetConnMaxIdleTime(30*time.Minute) // 空闲连接最大存活时间 1.5.2 索引优化策略 type Product struct { gorm.Model SKU string `gorm:&#34;index:idx_sku,unique&#34;` Category string `gorm:&#34;index:idx_category&#34;` Price float64 } // 复合索引 db.Model(&amp;Order{}).AddIndex(&#34;idx_status_created&#34;, &#34;status&#34;, &#34;created_at&#34;) // 表达式索引（PostgreSQL） db.Exec(&#34;CREATE INDEX idx_lower_name ON users ((lower(name)))&#34;) 1.6 生态扩展实践 1.6.1 常用插件示例 // 分页插件 import &#34;gorm.io/plugin/pagination&#34; db.Use(pagination.Register) var users []User result := db.Scopes(pagination.Paginate(page, pageSize)).Find(&amp;users) // 数据加密插件 import &#34;github.com/go-gorm/gorm/v2/plugin/crypto&#34; db.Use(crypto.NewCryptoPlugin(crypto.Config{ Keys: [][]byte{[]byte(&#34;32-byte-long-secret-key-here&#34;)}, })) 1.6.2 多数据库支持 // MySQL 配置 mysqlDB, err := gorm.Open(mysql.Open(dsn), &amp;gorm.Config{}) // PostgreSQL 配置 postgresDB, err := gorm.Open(postgres.Open(dsn), &amp;gorm.Config{ NamingStrategy: schema.NamingStrategy{ TablePrefix: &#34;tbl_&#34;, }, }) // SQLite 配置 sqliteDB, err := gorm.Open(sqlite.Open(&#34;gorm.db&#34;), &amp;gorm.Config{ DisableForeignKeyConstraintWhenMigrating: true, }) 1.7 高级特性 1.7.1 多租户架构实现 // 基于 schema 的多租户 db.Use(multitenancy.New(multitenancy.Config{ TenantKey: &#34;X-Tenant-ID&#34;, Resolver: func(c *multitenancy.Context) string { return c.Request.Header.Get(&#34;X-Tenant-ID&#34;) }, })) // 自动路由到对应 schema db.Scopes(func(d *gorm.DB) *gorm.DB { return d.Table(&#34;tenant_&#34; &#43; tenantID &#43; &#34;.users&#34;) }) 1.7.2 版本化迁移 // 使用 Atlas 迁移工具 // 创建迁移文件 migrate create --dir migrations --format golang add_users_table // 执行迁移 migrate apply --dir migrations --dialect mysql 1.8 最佳实践总结 查询优化：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-26 15:37:01 +0800 CST'>2025-01-26</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1427 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-26&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-26 15:37:01 +0800 CST'>2025-01-26</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1427 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Go 开发框架三件套" href="https://kennems.github.io/posts/tech/go-5/"></a>
 </article>
@@ -345,7 +386,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Go 并发与依赖管理 01 并发与并行 Go 语言以简洁、轻量级的方式支持并发编程，通过 Goroutine 和 Channel 可以充分利用多核 CPU，提高程序执行效率。理解 Go 的并发模型对于写出高效、稳定的程序至关重要。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5139 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5139 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Go 并发与依赖管理" href="https://kennems.github.io/posts/tech/go-2/"></a>
 </article>
@@ -363,7 +406,9 @@ document.addEventListener("DOMContentLoaded", function() {
 01 高质量编程 高质量代码的目标是正确可靠、简洁清晰。以下是实现高质量编程的关键点。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3462 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3462 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Go 高质量编程与性能调优" href="https://kennems.github.io/posts/tech/go-3/"></a>
 </article>
@@ -380,7 +425,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Go 内存管理与编译器优化 本文深入探讨 Go 语言的自动内存管理、垃圾回收机制以及编译器优化技术，结合具体示例和流程图，帮助你理解 Go 内存管理的核心原理和性能优化方法。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3196 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3196 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Go 内存管理与编译器优化" href="https://kennems.github.io/posts/tech/go-4/"></a>
 </article>
@@ -397,7 +444,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>每日一题（202501） 0124 2944. 购买水果需要的最少金币数 1. 题目大意 给定一个整数数组 prices，其中 prices[i] 表示购买第 i 个水果所需的金币数。每购买一个水果后，可以根据一定的规则免费获得后续水果。规则是：购买第 i 个水果后，可以免费获得下标在 [i&#43;1, i&#43;i] 范围内的水果。你的目标是通过选择购买一些水果，最小化总花费，同时确保获得所有水果。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1298 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-25&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-25 15:37:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1298 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202501）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202501/"></a>
 </article>
@@ -414,7 +463,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Go语言基础 1. Go语言概述 高性能：适合并发编程，支持高并发、高性能场景。 简洁语法：Go的语法简洁，快速上手，去除了复杂的面向对象特性，保留了函数式编程的一些优势。 丰富标准库：内建强大的标准库，支持网络、文件操作、并发等。 静态链接：生成独立的可执行文件，无需依赖外部库，简化部署。 跨平台：支持Linux、Windows、macOS等多个平台。 垃圾回收：自动管理内存，减少开发人员的负担。 2. 环境搭建 Go安装：官方安装指南 推荐IDE：VSCode、GoLand，或者Gitpod等云开发环境。 Go Module go.mod：用于管理 Go 项目的依赖，记录模块路径、Go 版本和所依赖的包及其版本。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-25 10:00:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>20 分钟</span>&nbsp;·&nbsp;<span>9558 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-02&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-25 10:00:01 +0800 CST'>2025-01-25</span>&nbsp;·&nbsp;<span>20 分钟</span>&nbsp;·&nbsp;<span>9558 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Go语言基础" href="https://kennems.github.io/posts/tech/go-1/"></a>
 </article>
@@ -431,7 +482,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>黑马头条（5） 文章定时发布 延迟任务 DelayQueue JDK自带 DelayQueue 是一个支持延时获取元素的阻塞队列，内部采用优先队列 PriorityQueue 存储元素，同时元素必须实现Delayed接口；在创建元素时可以指定多久才可以从队列中获取当前元素，只有在延迟期满时才能从队列中提取元素。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-19 15:37:01 +0800 CST'>2025-01-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2048 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-19&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-19 15:37:01 +0800 CST'>2025-01-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2048 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 黑马头条（5）" href="https://kennems.github.io/posts/tech/%E9%BB%91%E9%A9%AC%E5%A4%B4%E6%9D%A15/"></a>
 </article>
@@ -449,7 +502,9 @@ document.addEventListener("DOMContentLoaded", function() {
 sda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Serial ATA (Advanced Technology Attachment)) 磁盘的标识符，通常代表硬盘或固态硬盘。 在 Linux 系统中，所有的存储设备（如硬盘、SSD、U盘）都会被标记为块设备，使用类似 sdX 的命名规则，其中： sd 表示 SCSI/SATA 设备（尽管现在也适用于大多数现代磁盘，包括 NVMe 磁盘）。 a 表示第一个磁盘，b 是第二个磁盘，c 是第三个磁盘，依此类推。 sda 的分区** 磁盘（如 sda）可以被分成多个分区，每个分区也有自己的标识符。例如：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-04 15:37:01 +0800 CST'>2025-01-04</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1978 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-04&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-04 15:37:01 +0800 CST'>2025-01-04</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1978 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Linux扩展磁盘空间大小" href="https://kennems.github.io/posts/tech/linux%E6%89%A9%E5%B1%95%E7%A3%81%E7%9B%98%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F/"></a>
 </article>
@@ -467,7 +522,9 @@ sda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Seria
 项目展示了信息论在高效数据处理和安全传输中的实际应用。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-01-01 10:30:13 +0800 CST'>2025-01-01</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>973 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-01-01&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-01-01 10:30:13 +0800 CST'>2025-01-01</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>973 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to 信息论基础项目 && Matlab实现" href="https://kennems.github.io/posts/tech/%E4%BF%A1%E6%81%AF%E8%AE%BA%E5%9F%BA%E7%A1%80%E9%A1%B9%E7%9B%AE--matlab%E5%AE%9E%E7%8E%B0/"></a>
 </article>
@@ -485,9 +542,11 @@ sda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Seria
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -507,7 +566,7 @@ sda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Seria
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -548,12 +607,24 @@ sda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Seria
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -568,6 +639,7 @@ sda 是系统中第一个 SCSI (Small Computer System Interface) 或 SATA (Seria
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 

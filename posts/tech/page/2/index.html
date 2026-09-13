@@ -12,7 +12,7 @@
 <meta name="description" content="💻技术 - Kennem&#39;s Blog">
 <meta name="author" content="ShowGuan">
 <link rel="canonical" href="https://kennems.github.io/posts/tech/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.85d1e85b782b726c10701446318059984a5cadc1095c1796d92c904d70cdfedf.css" integrity="sha256-hdHoW3grcmwQcBRGMYBZmEpcrcEJXBeW2SyQTXDN/t8=" rel="preload stylesheet" as="style">
+<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
 <link rel="icon" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
 <link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
@@ -57,15 +57,32 @@
     </style>
 </noscript>
 <script>
-    if (localStorage.getItem("pref-theme") === "dark") {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else if (localStorage.getItem("pref-theme") === "light") {
-       document.querySelector("html").dataset.theme = 'light';
-    } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-        document.querySelector("html").dataset.theme = 'dark';
-    } else {
-        document.querySelector("html").dataset.theme = 'light';
-    }
+    (function() {
+        var stored = localStorage.getItem("pref-theme");
+        var html = document.querySelector("html");
+
+        if (stored === "dark") {
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+        } else if (stored === "light") {
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+        } else {
+            
+            html.dataset.prefTheme = "auto";
+            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                html.dataset.theme = "dark";
+            } else {
+                html.dataset.theme = "light";
+            }
+            
+            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
+                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
+                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
+                }
+            });
+        }
+    })();
 
 </script>
 
@@ -130,8 +147,6 @@ document.addEventListener("DOMContentLoaded", function() {
 <script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
 
 
-
-
 </head>
 <body class="list" id="top">
     <header class="header">
@@ -142,12 +157,12 @@ document.addEventListener("DOMContentLoaded", function() {
                     height="35">Kennem&#39;s Blog</a>
             <div class="logo-switches">
                 <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
                     </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24"
+                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
                         fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
                         stroke-linejoin="round">
                         <circle cx="12" cy="12" r="5"></circle>
@@ -159,6 +174,13 @@ document.addEventListener("DOMContentLoaded", function() {
                         <line x1="21" y1="12" x2="23" y2="12"></line>
                         <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
                         <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
                     </svg>
                 </button>
             </div>
@@ -204,12 +226,17 @@ document.addEventListener("DOMContentLoaded", function() {
 </header>
 <main class="main"> 
 <header class="page-header"><nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-    <a href='https://kennems.github.io/'>主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+            <a href="/">主页</a>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
                 <polyline points="9 18 15 12 9 6"></polyline>
             </svg>
-            <a href="https://kennems.github.io/posts/">📚文章</a></nav>
+            <a href="/posts/">📚文章</a>
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
+        <polyline points="9 18 15 12 9 6"></polyline>
+    </svg>
+</nav>
   <h1>
     💻技术
   </h1>
@@ -227,7 +254,9 @@ document.addEventListener("DOMContentLoaded", function() {
       <p>Pandas 1. pandas 简介 pandas 是 Python 中一个功能强大的数据分析和数据处理库，它提供了高性能、易用的数据结构（如 Series 和 DataFrame），方便进行数据的导入、清洗、转换、分析和可视化。pandas 广泛应用于金融、统计、科学计算等领域。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-29 10:30:13 +0800 CST'>2025-03-29</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1854 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-29&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-29 10:30:13 +0800 CST'>2025-03-29</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1854 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Pandas" href="https://kennems.github.io/posts/tech/pandas/"></a>
 </article>
@@ -246,7 +275,9 @@ pip --version 2. 安装 pip 如果未安装，可以根据操作系统选择以�
 Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS 使用 Homebrew 安装：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-22 22:30:13 +0800 CST'>2025-03-22</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1294 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-22&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-22 22:30:13 +0800 CST'>2025-03-22</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1294 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Python包管理" href="https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/"></a>
 </article>
@@ -263,7 +294,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
       <p>HTML 字体 一. 通用字体家族 1.1 Serif（衬线字体） 常用示例：Times New Roman、Georgia、Garamond、Palatino Linotype、Book Antiqua
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>9 分钟</span>&nbsp;·&nbsp;<span>4482 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-11-09&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>9 分钟</span>&nbsp;·&nbsp;<span>4482 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to HTML 字体" href="https://kennems.github.io/posts/tech/html-font/"></a>
 </article>
@@ -282,7 +315,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
 方法 1：使用 curl（推荐） curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash 方法 2：使用 wget wget -qO- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.4/install.sh | bash ⚠️ 注意： v0.39.4 是 nvm 最新稳定版，建议去 官方 GitHub 检查最新版本。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>470 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-16&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>470 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to NVM使用（Linux）" href="https://kennems.github.io/posts/tech/nvm/"></a>
 </article>
@@ -299,7 +334,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
       <p>PowerShell 详细使用 一、PowerShell 简介 PowerShell 是微软开发的一种命令行外壳和脚本语言，它基于 .NET 框架，不仅适用于 Windows 系统，也在 Linux 和 macOS 上提供支持。与传统的命令提示符相比，PowerShell 处理的是对象而非纯文本，使得数据传递和管理更为灵活高效。无论是日常管理任务还是复杂的自动化操作，PowerShell 都是非常强大的工具。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2159 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-16&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2159 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to PowerShell 详细使用" href="https://kennems.github.io/posts/tech/powershell/"></a>
 </article>
@@ -316,7 +353,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
       <p>ProtoBuf使用 1. ProtoBuf 简介 Protocol Buffers（简称 ProtoBuf） 是 Google 开发的一种语言无关、平台无关、可扩展的序列化结构化数据的机制。它主要用于数据的高效存储和传输，在分布式系统、RPC 框架、数据持久化等场景中非常常用。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1354 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-03-16&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-03-16 10:30:13 +0800 CST'>2025-03-16</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1354 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to ProtoBuf使用" href="https://kennems.github.io/posts/tech/protobuf%E4%BD%BF%E7%94%A8/"></a>
 </article>
@@ -334,7 +373,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
 1. 安装 Anaconda 或 Miniconda 如果你还没有安装 Anaconda 或 Miniconda，可以先去其官网下载安装包并进行安装：
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-23 22:30:13 +0800 CST'>2025-02-23</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>929 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-23&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-23 22:30:13 +0800 CST'>2025-02-23</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>929 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Conda使用" href="https://kennems.github.io/posts/tech/conda%E4%BD%BF%E7%94%A8/"></a>
 </article>
@@ -352,7 +393,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
 1. 题目大意 设计一个跳表，要求在平均 O(log n) 时间内完成搜索、插入和删除操作。跳表由多层有序链表构成，每一层起到加速查找的作用，同时允许存在重复的值。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-23 15:37:01 +0800 CST'>2025-02-23</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1477 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-23&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-23 15:37:01 +0800 CST'>2025-02-23</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1477 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to LeetCode每日一题（202502）" href="https://kennems.github.io/posts/tech/leetcode%E6%AF%8F%E6%97%A5%E4%B8%80%E9%A2%98202502/"></a>
 </article>
@@ -370,7 +413,9 @@ Windows 下载 get-pip.py。 运行以下命令安装： python get-pip.py macOS
 https://stackoverflow.com/questions/42485164/suppress-identifier-not-allowed-in-android
 基本快捷键 Alt &#43; F7 用途: 查找当前选中的符号的所有用法（Find Usages）。可以用于查看方法、类、变量等在代码中的引用位置。 Shift &#43; F6 用途: 查找并重命名当前选中的元素（Find and Rename）。适用于重命名类、方法、变量等。 Ctrl &#43; Shift &#43; F 用途: 查找文件（Find Files）。用于在项目中快速搜索文件，支持正则表达式和文件路径筛选。 Ctrl &#43; F 用途: 查找当前文件中的文本内容。常用于快速定位某个词或表达式。 Ctrl &#43; Shift &#43; N 用途: 查找并打开文件（Find and Open File）。可以通过文件名或部分文件名快速找到并打开文件。 Ctrl &#43; Shift &#43; A 用途: 查找并执行命令（Find Action）。用于快速执行任何 Android Studio 中的命令或操作。 Ctrl &#43; B 用途: 跳转到定义（Go to Definition）。用于快速跳转到当前选中元素（如变量、方法、类等）的定义处。 Ctrl &#43; Shift &#43; I 用途: 查看当前选中元素的定义（Quick Definition）。用于查看变量、方法或类的定义，而不必跳转到定义的文件。 Ctrl &#43; E 用途: 打开最近访问的文件（Recent Files）。通过此快捷键可以快速切换到最近打开的文件。 Ctrl &#43; P 用途: 显示方法参数信息（Parameter Info）。在方法调用时，按下此快捷键可以查看该方法的参数类型和顺序。 编辑相关快捷键 Ctrl &#43; D 用途: 复制当前行或选中的代码行（Duplicate Line）。可以快速复制一行代码。 Ctrl &#43; Y 用途: 删除当前行（Delete Line）。删除当前光标所在的行。 Ctrl &#43; / 用途: 注释/取消注释当前行（Comment/Uncomment Line）。用于快速注释或取消注释单行代码。 Ctrl &#43; Shift &#43; / 用途: 块注释/取消块注释（Block Comment/Uncomment）。可以对选中的多行代码进行块注释或取消块注释。 Ctrl &#43; Alt &#43; L 用途: 格式化代码（Reformat Code）。根据项目的代码风格自动调整代码的格式。 Ctrl &#43; Shift &#43; Up/Down 用途: 向上/向下移动当前行（Move Line Up/Down）。可以将当前代码行向上或向下移动。 Alt &#43; Enter 用途: 显示意图操作（Show Context Menu）。根据光标所在位置显示相关的快速修复建议或操作。 Ctrl &#43; Shift &#43; V 用途: 粘贴最近的剪贴板内容（Paste from History）。可以选择最近的多个剪贴板内容进行粘贴。 调试相关快捷键 F8 用途: 步过当前代码行（Step Over）。在调试时，执行当前行并跳过任何方法调用。 F7 用途: 步入当前方法（Step Into）。在调试时，进入当前行调用的方法中。 Shift &#43; F8 用途: 步出当前方法（Step Out）。在调试时，跳出当前方法并返回到调用它的地方。 Ctrl &#43; F5 用途: 重新运行调试（Rerun Debugger）。在调试时，重新启动调试会话。 Alt &#43; F9 用途: 运行到光标位置（Run to Cursor）。将程序执行跳到光标所在行。 项目管理快捷键 Alt &#43; 1 用途: 打开项目视图（Project View）。快速打开项目结构视图，查看和管理项目文件。 Alt &#43; 4 用途: 打开运行窗口（Run Window）。用于查看构建、运行过程中的日志和输出。 Ctrl &#43; Shift &#43; F12 用途: 切换最大化/恢复编辑窗口（Maximize/Restore Editor）。在多个窗口之间切换编辑区域的显示状态。 </p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1318 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1318 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android Studio 使用" href="https://kennems.github.io/posts/tech/android-studio-%E4%BD%BF%E7%94%A8/"></a>
 </article>
@@ -390,7 +435,9 @@ MVP
 把原来的UI逻辑抽象成View接口，把原来的业务逻辑抽象成Presenter接口，model还是原来的model
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>121 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>1 分钟</span>&nbsp;·&nbsp;<span>121 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android 代码架构设计" href="https://kennems.github.io/posts/tech/android-%E4%BB%A3%E7%A0%81%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/"></a>
 </article>
@@ -409,7 +456,9 @@ MVP
 1.1 在项目级 build.gradle 中添加 ARouter Maven 仓库 buildscript { repositories { mavenCentral() google() maven { url &#39;&lt;https://jitpack.io&gt;&#39; } } } 1.2 在模块级 build.gradle 中添加依赖
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2361 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2361 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android 第三方库" href="https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/"></a>
 </article>
@@ -425,7 +474,9 @@ MVP
     <div class="entry-content">
       <p>网络请求解析数据 Pull方式解析XML数据 /** * pull 解析 xml */ class MainActivity5 : AppCompatActivity() { private val mBinding by lazy { ActivityMain5Binding.inflate(layoutInflater) } private fun sendRequestWithOkHttp() { thread{ try { val client = OkHttpClient() val request = Request.Builder() .url(&#34;&lt;http://10.0.2.2/get_data.xml&gt;&#34;) .build() val response = client.newCall(request).execute() val responseData = response.body?.string() if (responseData != null){ parseXMLWithPull(responseData) } }catch (e: Exception){ e.printStackTrace() } } } private fun parseXMLWithPull(xmlData: String) { try { val factory = XmlPullParserFactory.newInstance() val xmlPullParser = factory.newPullParser() xmlPullParser.setInput(StringReader(xmlData)) var eventType = xmlPullParser.eventType var id = &#34;&#34; var name = &#34;&#34; var version = &#34;&#34; while (eventType != XmlPullParser.END_DOCUMENT) { val nodeName = xmlPullParser.name when (eventType) { // 开始解析某个节点 XmlPullParser.START_TAG -&gt; { when (nodeName) { &#34;id&#34; -&gt; id = xmlPullParser.nextText() &#34;name&#34; -&gt; name = xmlPullParser.nextText() &#34;version&#34; -&gt; version = xmlPullParser.nextText() } } // 完成解析某个节点 XmlPullParser.END_TAG -&gt; { if (&#34;app&#34; == nodeName) { Log.d(&#34;MainActivity&#34;, &#34;id is $id&#34;) Log.d(&#34;MainActivity&#34;, &#34;name is $name&#34;) Log.d(&#34;MainActivity&#34;, &#34;version is $version&#34;) } } } eventType = xmlPullParser.next() } } catch (e: Exception) { e.printStackTrace() } } override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) enableEdgeToEdge() setContentView(mBinding.root) ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets -&gt; val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) insets } mBinding.sendRequestBtn.setOnClickListener { Log.d(&#34;MainActivity&#34;, &#34;发送请求 &#34;) sendRequestWithOkHttp() } } } ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>936 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>2 分钟</span>&nbsp;·&nbsp;<span>936 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android 网络请求解析数据" href="https://kennems.github.io/posts/tech/android-%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82%E8%A7%A3%E6%9E%90%E6%95%B0%E6%8D%AE/"></a>
 </article>
@@ -443,7 +494,9 @@ MVP
 收发标准广播 发送广播的Activity class BroadStandardActivity : AppCompatActivity() { lateinit var standardReceiver: BroadcastReceiver private val mBinding: ActivityBroadStandardBinding by lazy { ActivityBroadStandardBinding.inflate(layoutInflater) } @SuppressLint(&#34;UnspecifiedRegisterReceiverFlag&#34;) override fun onStart() { super.onStart() standardReceiver = StandardReceiver() // 创建一个意图过滤器，只处理ACTION_STANDARD的广播 val filter = IntentFilter(StandardReceiver.ACTION_STANDARD) registerReceiver(standardReceiver, filter) } override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) enableEdgeToEdge() setContentView(mBinding.root) ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets -&gt; val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) insets } mBinding.button.setOnClickListener { val intent: Intent = Intent(StandardReceiver.ACTION_STANDARD) intent.apply { putExtra(&#34;data&#34;, &#34;standard&#34;) } sendBroadcast(intent) } } override fun onStop() { super.onStop() // 注销接收器 unregisterReceiver(standardReceiver) } } 接受广播的Receiver class StandardReceiver : BroadcastReceiver() { companion object { const val TAG = &#34;StandardReceiver&#34; const val ACTION_STANDARD = &#34;com.zhouguan.learnbroadcasts.action.standard&#34; } override fun onReceive(context: Context?, intent: Intent?) { if (intent != null &amp;&amp; intent.action.equals(ACTION_STANDARD)) { Log.d(TAG, &#34;onReceive: ${intent.extras?.getString(&#34;data&#34;)}&#34;) } } } 接受有序广播 通过设置接收器的优先级来控制顺序
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1494 字</span>&nbsp;·&nbsp;updated:&nbsp;2025-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>3 分钟</span>&nbsp;·&nbsp;<span>1494 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Android（7）" href="https://kennems.github.io/posts/tech/android7/"></a>
 </article>
@@ -460,7 +513,9 @@ MVP
       <p>Jetpack Compose(1) Jetpack Compose是用于构建原生Android界面的新工具包。它可简化并加快Android上的界面开发，帮助使用更少的代码、强大的工具和只管的Kotlin API，快速打造生动而精彩的应用。 Compose的优势 更少的代码 使用更少的代码实现更多的功能，并且可以避免各种bug，从而使代码简洁且易于维护 直观 只需要描述界面，Compose会负责处理剩余的工作。应用状态变化时，界面会自动更新 加快应用开发 兼容现有的所有代码，方便随时随地使用。借助实时预览和全面的Android Studio支持，实现快速迭代。 功能强大 凭借对Android平台API的直接访问和对于Material Design，深色主题、动画等的内置支持，创建精美的应用。 可组合函数 Jetpack Compose 是围绕可组合函数构建的。这些函数可以让你以程序化定义应用的界面，只需描述应用界面的外观并提供数据项，而不必关注界面的构建过程（初始化元素，将其附加到父项等）。如需创建可组合函数，只需将@Composable注解添加到函数名称中即可。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3079 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3079 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Jetpack Compose(1)" href="https://kennems.github.io/posts/tech/jetpack-compose1/"></a>
 </article>
@@ -477,7 +532,9 @@ MVP
       <p>Jetpack Compose(2) Compose中布局的目标 实现高性能 让开发者能够轻松编写自定义布局 在Compose中，通过避免多次测量布局子级可实现高性能。如果需要进行多次测量，Compose具有一个特殊系统，即固有特性测量。 标准布局组件 使用Column可将多个项垂直地放置在屏幕上 使用Row可以将多个项水平地放置在屏幕上 使用Box可以将一个元素放在另一个元素上 修饰符 修饰符的作用类似于基于视图的布局中的布局参数，借助修饰符，可以修饰或扩充可组合项。
 ...</p>
     </div>
-    <footer class="entry-footer"><span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1984 字</span>&nbsp;·&nbsp;updated:&nbsp;2024-02-15&nbsp;·&nbsp;<span>ShowGuan</span></footer>
+    <footer class="entry-footer">
+
+<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1984 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></footer>
   </div> 
   <a class="entry-link" aria-label="post link to Jetpack Compose(2)" href="https://kennems.github.io/posts/tech/jetpack-compose2/"></a>
 </article>
@@ -495,9 +552,11 @@ MVP
 <footer class="footer">
         <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
 
+    
+
     <span>
         Powered by
-        <a href="https://gohugo.io/" rel="noopener noreferrer" target="_blank">Hugo</a> &
+        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
         <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
     </span>
 </footer>
@@ -517,7 +576,7 @@ MVP
         if (scrollPosition) {
             menu.scrollLeft = parseInt(scrollPosition, 10);
         }
-        
+
         menu.onscroll = function () {
             localStorage.setItem("menu-scroll-position", menu.scrollLeft);
         }
@@ -558,12 +617,24 @@ MVP
 <script>
     document.getElementById("theme-toggle").addEventListener("click", () => {
         const html = document.querySelector("html");
-        if (html.dataset.theme === "dark") {
-            html.dataset.theme = 'light';
-            localStorage.setItem("pref-theme", 'light');
+        const pref = localStorage.getItem("pref-theme") || "auto";
+
+        if (pref === "light") {
+            
+            html.dataset.theme = "dark";
+            html.dataset.prefTheme = "dark";
+            localStorage.setItem("pref-theme", "dark");
+        } else if (pref === "dark") {
+            
+            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+            html.dataset.theme = prefersDark ? "dark" : "light";
+            html.dataset.prefTheme = "auto";
+            localStorage.setItem("pref-theme", "auto");
         } else {
-            html.dataset.theme = 'dark';
-            localStorage.setItem("pref-theme", 'dark');
+            
+            html.dataset.theme = "light";
+            html.dataset.prefTheme = "light";
+            localStorage.setItem("pref-theme", "light");
         }
     })
 
@@ -578,6 +649,7 @@ MVP
     👀 Views: <span id="busuanzi_value_site_pv"></span>
   </span>
 </footer>
+
 
 
 
