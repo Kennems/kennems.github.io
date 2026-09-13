@@ -1,252 +1,110 @@
-#!/usr/bin/env python3
-"""图片压缩与格式转换工具
-
-用法:
-    compress.py compress <文件或目录>...        # 压缩图片
-    compress.py webp <文件或目录>...            # 转 WebP（变小删原文件，变大跳过）
-    compress.py compress webp <文件或目录>...   # 压缩 + 转 WebP
-
-选项:
-    --quality N   压缩质量 1-100（默认 80）
-    --force       强制覆盖已存在的 WebP
-
-示例:
-    compress.py compress .                     # 压缩当前目录
-    compress.py compress photo.jpg             # 压缩单张图片
-    compress.py compress *.jpg img/            # 文件和目录混传
-    compress.py webp --quality 90 *.png        # 指定质量转 WebP
-    compress.py compress webp .                # 压缩 + 转 WebP
-"""
-
 from PIL import Image
-import os, sys, hashlib, logging
-
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-RECORD_FILE = os.path.join(SCRIPT_DIR, ".compressed")
-IMAGE_EXTS = (".jpg", ".jpeg", ".png")
-ACTIONS = ("compress", "webp")
+import os
+import logging
+import shutil
 
 
-def file_hash(path):
-    h = hashlib.md5()
-    with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(8192), b""):
-            h.update(chunk)
-    return h.hexdigest()
+# 配置日志，输出到文件和控制台
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    handlers=[
+        logging.FileHandler(
+            "./compress_errors.log", mode="w", encoding="utf-8"
+        ),
+        logging.StreamHandler(),
+    ],
+)
 
 
-def load_records():
-    records = {}
-    if not os.path.exists(RECORD_FILE):
-        return records
-    with open(RECORD_FILE, encoding="utf-8") as f:
-        for line in f:
-            line = line.strip()
-            if line and not line.startswith("#"):
-                parts = line.split("  ", 1)
-                if len(parts) == 2:
-                    records[os.path.abspath(parts[1])] = parts[0]
-    return records
+def format_size(size_bytes):
+    """将字节数转换为合适的单位显示"""
+    for unit in ["B", "KB", "MB", "GB"]:
+        if size_bytes < 1024:
+            return f"{size_bytes:.2f}{unit}"
+        size_bytes /= 1024
+    return f"{size_bytes:.2f}TB"
 
 
-def save_records(records):
-    with open(RECORD_FILE, "w", encoding="utf-8") as f:
-        f.write("# auto-generated, do not edit\n")
-        for path, h in sorted(records.items()):
-            f.write(f"{h}  {path}\n")
-
-
-def fmt_size(b):
-    for u in ("B", "KB", "MB", "GB"):
-        if b < 1024:
-            return f"{b:.2f}{u}"
-        b /= 1024
-    return f"{b:.2f}TB"
-
-
-def expand_targets(paths):
-    """展开文件和目录为去重后的图片列表"""
-    seen = set()
-    images = []
-    for p in paths:
-        p = os.path.abspath(p)
-        if os.path.isdir(p):
-            for f in sorted(os.listdir(p)):
-                fp = os.path.join(p, f)
-                if f.lower().endswith(IMAGE_EXTS) and fp not in seen:
-                    seen.add(fp)
-                    images.append(fp)
-        elif os.path.isfile(p):
-            if p.lower().endswith(IMAGE_EXTS):
-                if p not in seen:
-                    seen.add(p)
-                    images.append(p)
-            else:
-                logging.warning(f"跳过非图片文件：{os.path.basename(p)}")
-        else:
-            logging.warning(f"路径不存在：{p}")
-    return images
-
-
-def compress_image(filepath, quality=80):
-    """压缩图片。压缩后更大则保留原文件。返回是否已处理。"""
+def compress_image(filepath, quality=70):
     try:
         img = Image.open(filepath)
     except Exception as e:
-        logging.error(f"  无法打开：{e}")
-        return False
+        logging.error(f"无法打开 {filepath}，错误：{e}")
+        return
 
-    if img.format == "GIF":
-        logging.warning(f"  跳过 GIF：{os.path.basename(filepath)}")
-        return False
+    # 跳过 GIF 文件
+    if img.format.upper() == "GIF":
+        logging.info(f"跳过 GIF 文件：{filepath}")
+        return
 
-    tmp = filepath + ".tmp"
+    temp_filepath = filepath + ".tmp"
     try:
-        fmt = (img.format or "").upper()
-        if fmt in ("JPEG", "JPG"):
+        if img.format.upper() in ("JPEG", "JPG"):
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
-            img.save(tmp, "JPEG", quality=quality, optimize=True, progressive=True)
-        elif fmt == "PNG":
+            img.save(
+                temp_filepath, "JPEG", quality=quality, optimize=True, progressive=True
+            )
+        elif img.format.upper() == "PNG":
             if "A" in img.getbands():
-                img.save(tmp, "PNG", optimize=True, compress_level=9)
+                img.save(temp_filepath, "PNG", optimize=True, compress_level=9)
             else:
-                img = img.convert("RGB").quantize(method=Image.MEDIANCUT)
-                img.save(tmp, "PNG", optimize=True, compress_level=9)
+                img = img.convert("RGB")
+                img = img.quantize(method=Image.MEDIANCUT)
+                img.save(temp_filepath, "PNG", optimize=True, compress_level=9)
         else:
             if img.mode in ("RGBA", "P"):
                 img = img.convert("RGB")
-            img.save(tmp, optimize=True, quality=quality)
+            img.save(temp_filepath, optimize=True, quality=quality)
 
-        orig, new = os.path.getsize(filepath), os.path.getsize(tmp)
-        if new < orig:
-            os.rename(tmp, filepath)
-            logging.info(f"  ✅ {fmt_size(orig)} → {fmt_size(new)}")
+        # 比较文件大小，如果压缩后文件更大则不替换
+        original_size = os.path.getsize(filepath)
+        new_size = os.path.getsize(temp_filepath)
+        if new_size < original_size:
+            shutil.move(temp_filepath, filepath)
+            logging.info(f"{filepath} 压缩成功，新大小：{format_size(new_size)}")
         else:
-            os.remove(tmp)
-            logging.info(f"  ⏭ 压缩后更大，跳过")
-        return True
+            os.remove(temp_filepath)
+            logging.info(f"{filepath} 压缩后反而更大，保留原文件。")
     except Exception as e:
-        logging.error(f"  压缩失败：{e}")
-        if os.path.exists(tmp):
-            os.remove(tmp)
-        return False
-
-
-def convert_to_webp(filepath, quality=80):
-    """转 WebP。更小则删原文件，更大则删 WebP。返回是否保留了 WebP。"""
-    try:
-        img = Image.open(filepath)
-    except Exception as e:
-        logging.error(f"  无法打开：{e}")
-        return False
-
-    if img.format == "GIF":
-        logging.warning(f"  跳过 GIF：{os.path.basename(filepath)}")
-        return False
-
-    webp = os.path.splitext(filepath)[0] + ".webp"
-    try:
-        if img.mode in ("RGBA", "P"):
-            img = img.convert("RGBA")
-        else:
-            img = img.convert("RGB")
-        img.save(webp, "WEBP", quality=quality, method=6)
-
-        orig, wp = os.path.getsize(filepath), os.path.getsize(webp)
-        if wp < orig:
-            os.remove(filepath)
-            logging.info(f"  ✅ → WebP {fmt_size(orig)} → {fmt_size(wp)}，已删原文件")
-            return True
-        else:
-            os.remove(webp)
-            logging.info(f"  ⏭ WebP {fmt_size(wp)} >= 原文件 {fmt_size(orig)}，跳过")
-            return False
-    except Exception as e:
-        logging.error(f"  WebP 转换失败：{e}")
-        if os.path.exists(webp):
-            os.remove(webp)
-        return False
+        logging.error(f"处理 {filepath} 时出现错误：{e}")
+        if os.path.exists(temp_filepath):
+            os.remove(temp_filepath)
 
 
 def main():
-    # 解析参数：[compress] [webp] [--quality N] [--force] <文件或目录>...
-    args_left = []
-    quality = 80
-    force = False
-    i = 1
-    while i < len(sys.argv):
-        arg = sys.argv[i]
-        if arg == "--quality" and i + 1 < len(sys.argv):
-            quality = int(sys.argv[i + 1])
-            i += 2
-        elif arg.startswith("--quality="):
-            quality = int(arg.split("=", 1)[1])
-            i += 1
-        elif arg == "--force":
-            force = True
-            i += 1
-        elif arg in ("--help", "-h"):
-            print(__doc__.strip())
-            sys.exit(0)
-        else:
-            args_left.append(arg)
-            i += 1
+    input_folder = "./"  # 启动脚本所在目录
+    quality = 50  # 压缩质量（1-100）
 
-    actions = [a for a in args_left if a in ACTIONS]
-    paths = [a for a in args_left if a not in ACTIONS]
+    logging.info(f"当前工作目录：{os.getcwd()}")
+    try:
+        files = os.listdir(input_folder)
+        logging.info(f"目标文件夹中的文件：{files}")
+    except Exception as e:
+        logging.error(f"无法列出目录 {input_folder} 中的文件，错误：{e}")
+        return
 
-    if not actions:
-        print("用法: compress.py compress|webp [选项] <文件或目录>...", file=sys.stderr)
-        sys.exit(1)
-
-    if not paths:
-        paths = ["."]
-
-    logging.basicConfig(level=logging.INFO, format="%(message)s")
-
-    images = expand_targets(paths)
-    if not images:
-        logging.warning("未找到图片文件")
-        sys.exit(1)
-
-    records = load_records() if "compress" in actions else {}
-
-    logging.info(f"图片：{len(images)} 张  操作：{' + '.join(actions)}")
-
-    stats = {"processed": 0, "compressed": 0, "webp": 0, "skip": 0}
-
-    for fp in images:
-        name = os.path.basename(fp)
-
-        if "compress" in actions:
-            if fp in records and file_hash(fp) == records[fp]:
-                logging.info(f"⏭ {name}（已压缩）")
-                stats["skip"] += 1
-                if "webp" not in actions:
-                    continue
-            else:
-                logging.info(f"📦 {name}")
-                if compress_image(fp, quality=quality):
-                    records[fp] = file_hash(fp)
-                    stats["processed"] += 1
-
-        if "webp" in actions:
-            if not os.path.exists(fp):
+    for filename in files:
+        # 仅处理png、jpg、jpeg类型的文件，跳过gif
+        if filename.lower().endswith((".png", ".jpg", ".jpeg")):
+            filepath = os.path.join(input_folder, filename)
+            try:
+                original_size = os.path.getsize(filepath)
+            except Exception as e:
+                logging.error(f"获取 {filepath} 大小时出错：{e}")
                 continue
-            webp = os.path.splitext(fp)[0] + ".webp"
-            if os.path.exists(webp) and not force:
-                logging.info(f"⏭ {name}（WebP 已存在）")
-                stats["skip"] += 1
-                continue
-            logging.info(f"📦 {name}")
-            if convert_to_webp(fp, quality=quality):
-                stats["webp"] += 1
+            logging.info(f"正在处理 {filename}，原始大小：{format_size(original_size)}")
 
-    if "compress" in actions:
-        save_records(records)
+            compress_image(filepath, quality=quality)
 
-    logging.info(f"\n完成 — 处理 {stats['processed']} | WebP {stats['webp']} | 跳过 {stats['skip']}")
+            try:
+                new_size = os.path.getsize(filepath)
+                logging.info(
+                    f"{filename} 处理完成，压缩后大小：{format_size(new_size)}\n"
+                )
+            except Exception as e:
+                logging.error(f"获取 {filepath} 压缩后大小时出错：{e}")
 
 
 if __name__ == "__main__":
