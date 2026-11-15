@@ -1,1198 +1,204 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>Wsl Docker | Kennem&#39;s Blog</title>
-<meta name="keywords" content="Wsl">
-<meta name="description" content="Wsl初始化">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/wsl-docker/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/wsl-docker/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/wsl-docker/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="Wsl Docker">
-  <meta property="og:description" content="Wsl初始化">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-10-23T10:00:01+08:00">
-    <meta property="article:modified_time" content="2025-11-09T10:00:01+08:00">
-    <meta property="article:tag" content="Wsl">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Wsl Docker">
-  <meta name="twitter:description" content="Wsl初始化">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "Wsl Docker",
-      "item": "https://kennems.github.io/posts/tech/wsl-docker/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Wsl Docker",
-  "name": "Wsl Docker",
-  "description": "Wsl初始化",
-  "keywords": [
-    "Wsl"
-  ],
-  "articleBody": "Wsl Docker 安装 Docker（使用官方推荐方式） 1. 卸载旧版本（如果有） sudo apt-get remove -y docker docker-engine docker.io containerd runc || true 2. 安装依赖 sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y 3. 添加官方 GPG 密钥 sudo mkdir -p /usr/share/keyrings curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce-archive-keyring.gpg 4. 添加 Docker 软件源（可切换为国内镜像） 官方源：\necho \\ \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \\ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" \\ | sudo tee /etc/apt/sources.list.d/docker.list \u003e /dev/null 国内镜像源（推荐）：\necho \\ \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-ce-archive-keyring.gpg] \\ https://mirrors.aliyun.com/docker-ce/linux/ubuntu jammy stable\" \\ | sudo tee /etc/apt/sources.list.d/docker.list 5. 安装 Docker sudo apt update sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 6. 验证安装 docker --version docker compose version sudo systemctl enable --now docker 安装 Docker Compose（独立版本） 简便安装方式：sudo apt install docker-compose\n说明：如果已通过上面的步骤安装了 docker-compose-plugin，可以直接使用 docker compose 命令，无需再安装独立版。 若需要传统的 docker-compose 可执行文件，请按以下步骤安装。\n1. 下载最新版本 先查询最新版本号（或直接使用稳定版本）：\nDOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '\"' -f 4) 下载并安装：\nsudo curl -L \"https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" \\ -o /usr/local/bin/docker-compose 若下载缓慢，可使用国内镜像：\nsudo curl -L \"https://get.daocloud.io/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" \\ -o /usr/local/bin/docker-compose 2. 赋予执行权限 sudo chmod +x /usr/local/bin/docker-compose 3. 验证安装是否成功 docker-compose --version 4. （可选）启用命令自动补全 sudo curl -L https://raw.githubusercontent.com/docker/compose/${DOCKER_COMPOSE_VERSION}/contrib/completion/bash/docker-compose \\ -o /etc/bash_completion.d/docker-compose 5. 使用方式 独立版 Compose 使用命令：\ndocker-compose up -d 插件版（推荐）使用命令：\ndocker compose up -d 配置 Docker Hub 镜像加速器 Docker Hub 默认从国外下载，建议添加国内加速器：\n添加加速器列表（推荐组合） sudo mkdir -p /etc/docker sudo tee /etc/docker/daemon.json \u003c",
-  "wordCount" : "2064",
-  "inLanguage": "zh",
-  "datePublished": "2025-10-23T10:00:01+08:00",
-  "dateModified": "2025-11-09T10:00:01+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/wsl-docker/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      Wsl Docker
-    </h1>
-    <div class="post-description">
-      Wsl初始化
-    </div>
-    <div class="post-meta">
-
-<span title='2025-10-23 10:00:01 +0800 CST'>2025-10-23</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#wsl-docker" aria-label="Wsl Docker">Wsl Docker</a><ul>
-                        
-                <li>
-                    <a href="#%e5%ae%89%e8%a3%85-docker%e4%bd%bf%e7%94%a8%e5%ae%98%e6%96%b9%e6%8e%a8%e8%8d%90%e6%96%b9%e5%bc%8f" aria-label="安装 Docker（使用官方推荐方式）">安装 Docker（使用官方推荐方式）</a><ul>
-                        
-                <li>
-                    <a href="#1-%e5%8d%b8%e8%bd%bd%e6%97%a7%e7%89%88%e6%9c%ac%e5%a6%82%e6%9e%9c%e6%9c%89" aria-label="1. 卸载旧版本（如果有）">1. 卸载旧版本（如果有）</a></li>
-                <li>
-                    <a href="#2-%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96" aria-label="2. 安装依赖">2. 安装依赖</a></li>
-                <li>
-                    <a href="#3-%e6%b7%bb%e5%8a%a0%e5%ae%98%e6%96%b9-gpg-%e5%af%86%e9%92%a5" aria-label="3. 添加官方 GPG 密钥">3. 添加官方 GPG 密钥</a></li>
-                <li>
-                    <a href="#4-%e6%b7%bb%e5%8a%a0-docker-%e8%bd%af%e4%bb%b6%e6%ba%90%e5%8f%af%e5%88%87%e6%8d%a2%e4%b8%ba%e5%9b%bd%e5%86%85%e9%95%9c%e5%83%8f" aria-label="4. 添加 Docker 软件源（可切换为国内镜像）">4. 添加 Docker 软件源（可切换为国内镜像）</a></li>
-                <li>
-                    <a href="#5-%e5%ae%89%e8%a3%85-docker" aria-label="5. 安装 Docker">5. 安装 Docker</a></li>
-                <li>
-                    <a href="#6-%e9%aa%8c%e8%af%81%e5%ae%89%e8%a3%85" aria-label="6. 验证安装">6. 验证安装</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e5%ae%89%e8%a3%85-docker-compose%e7%8b%ac%e7%ab%8b%e7%89%88%e6%9c%ac" aria-label="安装 Docker Compose（独立版本）">安装 Docker Compose（独立版本）</a><ul>
-                        
-                <li>
-                    <a href="#1-%e4%b8%8b%e8%bd%bd%e6%9c%80%e6%96%b0%e7%89%88%e6%9c%ac" aria-label="1. 下载最新版本">1. 下载最新版本</a></li>
-                <li>
-                    <a href="#2-%e8%b5%8b%e4%ba%88%e6%89%a7%e8%a1%8c%e6%9d%83%e9%99%90" aria-label="2. 赋予执行权限">2. 赋予执行权限</a></li>
-                <li>
-                    <a href="#3-%e9%aa%8c%e8%af%81%e5%ae%89%e8%a3%85%e6%98%af%e5%90%a6%e6%88%90%e5%8a%9f" aria-label="3. 验证安装是否成功">3. 验证安装是否成功</a></li>
-                <li>
-                    <a href="#4-%e5%8f%af%e9%80%89%e5%90%af%e7%94%a8%e5%91%bd%e4%bb%a4%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8" aria-label="4. （可选）启用命令自动补全">4. （可选）启用命令自动补全</a></li>
-                <li>
-                    <a href="#5-%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f" aria-label="5. 使用方式">5. 使用方式</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%85%8d%e7%bd%ae-docker-hub-%e9%95%9c%e5%83%8f%e5%8a%a0%e9%80%9f%e5%99%a8" aria-label="配置 Docker Hub 镜像加速器">配置 Docker Hub 镜像加速器</a><ul>
-                        
-                <li>
-                    <a href="#%e6%b7%bb%e5%8a%a0%e5%8a%a0%e9%80%9f%e5%99%a8%e5%88%97%e8%a1%a8%e6%8e%a8%e8%8d%90%e7%bb%84%e5%90%88" aria-label="添加加速器列表（推荐组合）">添加加速器列表（推荐组合）</a></li>
-                <li>
-                    <a href="#%e9%aa%8c%e8%af%81%e6%98%af%e5%90%a6%e7%94%9f%e6%95%88" aria-label="验证是否生效">验证是否生效</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e6%b7%bb%e5%8a%a0%e6%99%ae%e9%80%9a%e7%94%a8%e6%88%b7%e6%9d%83%e9%99%90" aria-label="添加普通用户权限">添加普通用户权限</a><ul>
-                        
-                <li>
-                    <a href="#%e5%88%9b%e5%bb%ba-docker-%e7%94%a8%e6%88%b7%e7%bb%84%e5%a6%82%e6%9e%9c%e4%b8%8d%e5%ad%98%e5%9c%a8" aria-label="创建 Docker 用户组（如果不存在）">创建 Docker 用户组（如果不存在）</a></li>
-                <li>
-                    <a href="#%e5%b0%86%e5%bd%93%e5%89%8d%e7%94%a8%e6%88%b7%e5%8a%a0%e5%85%a5-docker-%e7%bb%84" aria-label="将当前用户加入 Docker 组">将当前用户加入 Docker 组</a></li>
-                <li>
-                    <a href="#%e9%87%8d%e6%96%b0%e7%99%bb%e5%bd%95%e7%94%a8%e6%88%b7%e6%88%96%e5%88%b7%e6%96%b0%e7%bb%84%e6%9d%83%e9%99%90" aria-label="重新登录用户或刷新组权限">重新登录用户或刷新组权限</a></li>
-                <li>
-                    <a href="#%e9%aa%8c%e8%af%81%e6%98%af%e5%90%a6%e7%94%9f%e6%95%88-1" aria-label="验证是否生效">验证是否生效</a></li>
-                <li>
-                    <a href="#%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9" aria-label="注意事项">注意事项</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%83%a8%e7%bd%b2mysql" aria-label="部署MySQL">部署MySQL</a><ul>
-                        
-                <li>
-                    <a href="#%e5%88%9b%e5%bb%ba%e6%9c%ac%e5%9c%b0%e6%8c%81%e4%b9%85%e5%8c%96%e6%95%b0%e6%8d%ae%e7%9b%ae%e5%bd%95" aria-label="创建本地持久化数据目录"><strong>创建本地持久化数据目录</strong></a></li>
-                <li>
-                    <a href="#%e6%8b%89%e5%8f%96-mysql-%e9%95%9c%e5%83%8f" aria-label="拉取 MySQL 镜像">拉取 MySQL 镜像</a></li>
-                <li>
-                    <a href="#%e5%90%af%e5%8a%a8-mysql-%e5%ae%b9%e5%99%a8" aria-label="启动 MySQL 容器">启动 MySQL 容器</a><ul>
-                        
-                <li>
-                    <a href="#%e5%8f%82%e6%95%b0%e8%af%b4%e6%98%8e" aria-label="参数说明：">参数说明：</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%aa%8c%e8%af%81-mysql-%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c" aria-label="验证 MySQL 容器运行">验证 MySQL 容器运行</a></li>
-                <li>
-                    <a href="#%e5%81%9c%e6%ad%a2%e5%90%af%e5%8a%a8%e9%87%8d%e5%90%af%e5%ae%b9%e5%99%a8" aria-label="停止/启动/重启容器">停止/启动/重启容器</a></li>
-                <li>
-                    <a href="#%e5%88%a0%e9%99%a4-mysql-%e5%ae%b9%e5%99%a8" aria-label="删除 MySQL 容器">删除 MySQL 容器</a></li>
-                <li>
-                    <a href="#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2%e5%8f%af%e9%80%89" aria-label="使用 Docker Compose 部署（可选）">使用 Docker Compose 部署（可选）</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%83%a8%e7%bd%b2redis" aria-label="部署Redis">部署Redis</a><ul>
-                        
-                <li>
-                    <a href="#%e5%88%9b%e5%bb%ba%e6%9c%ac%e5%9c%b0%e6%8c%81%e4%b9%85%e5%8c%96%e6%95%b0%e6%8d%ae%e7%9b%ae%e5%bd%95-1" aria-label="创建本地持久化数据目录"><strong>创建本地持久化数据目录</strong></a></li>
-                <li>
-                    <a href="#%e6%8b%89%e5%8f%96-redis-%e9%95%9c%e5%83%8f" aria-label="拉取 Redis 镜像">拉取 Redis 镜像</a></li>
-                <li>
-                    <a href="#%e5%90%af%e5%8a%a8-redis-%e5%ae%b9%e5%99%a8" aria-label="启动 Redis 容器">启动 Redis 容器</a></li>
-                <li>
-                    <a href="#%e5%8f%82%e6%95%b0%e8%af%b4%e6%98%8e-1" aria-label="参数说明">参数说明</a></li>
-                <li>
-                    <a href="#%e9%aa%8c%e8%af%81-redis-%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c" aria-label="验证 Redis 容器运行">验证 Redis 容器运行</a></li>
-                <li>
-                    <a href="#%e5%81%9c%e6%ad%a2%e5%90%af%e5%8a%a8%e9%87%8d%e5%90%af%e5%ae%b9%e5%99%a8-1" aria-label="停止/启动/重启容器">停止/启动/重启容器</a></li>
-                <li>
-                    <a href="#%e5%88%a0%e9%99%a4-redis-%e5%ae%b9%e5%99%a8" aria-label="删除 Redis 容器">删除 Redis 容器</a></li>
-                <li>
-                    <a href="#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2-redis%e5%8f%af%e9%80%89" aria-label="使用 Docker Compose 部署 Redis（可选）">使用 Docker Compose 部署 Redis（可选）</a></li>
-                <li>
-                    <a href="#%e7%ab%af%e5%8f%a3%e5%86%b2%e7%aa%81%e5%92%8c%e6%9d%83%e9%99%90%e6%b3%a8%e6%84%8f" aria-label="端口冲突和权限注意">端口冲突和权限注意</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%83%a8%e7%bd%b2es" aria-label="部署ES">部署ES</a><ul>
-                        
-                <li>
-                    <a href="#%e6%8b%89%e5%8f%96-elasticsearch-%e9%95%9c%e5%83%8f" aria-label="拉取 Elasticsearch 镜像">拉取 Elasticsearch 镜像</a></li>
-                <li>
-                    <a href="#%e5%90%af%e5%8a%a8-elasticsearch-%e5%ae%b9%e5%99%a8" aria-label="启动 Elasticsearch 容器">启动 Elasticsearch 容器</a><ul>
-                        
-                <li>
-                    <a href="#%e5%8f%82%e6%95%b0%e8%af%b4%e6%98%8e-2" aria-label="参数说明">参数说明</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%aa%8c%e8%af%81-elasticsearch-%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c" aria-label="验证 Elasticsearch 容器运行">验证 Elasticsearch 容器运行</a></li>
-                <li>
-                    <a href="#%e5%81%9c%e6%ad%a2%e5%90%af%e5%8a%a8%e9%87%8d%e5%90%af%e5%ae%b9%e5%99%a8-2" aria-label="停止/启动/重启容器">停止/启动/重启容器</a></li>
-                <li>
-                    <a href="#%e5%88%a0%e9%99%a4-elasticsearch-%e5%ae%b9%e5%99%a8" aria-label="删除 Elasticsearch 容器">删除 Elasticsearch 容器</a></li>
-                <li>
-                    <a href="#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2-elasticsearch%e5%8f%af%e9%80%89" aria-label="使用 Docker Compose 部署 Elasticsearch（可选）">使用 Docker Compose 部署 Elasticsearch（可选）</a></li>
-                <li>
-                    <a href="#%e7%ab%af%e5%8f%a3%e5%86%b2%e7%aa%81%e4%b8%8e%e6%9d%83%e9%99%90%e6%b3%a8%e6%84%8f" aria-label="端口冲突与权限注意">端口冲突与权限注意</a></li></ul>
-                </li>
-                <li>
-                    <a href="#tomcat" aria-label="Tomcat">Tomcat</a></li>
-                <li>
-                    <a href="#nginx" aria-label="Nginx">Nginx</a></li>
-                <li>
-                    <a href="#rabbitmq" aria-label="RabbitMq">RabbitMq</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="wsl-docker">Wsl Docker<a hidden class="anchor" aria-hidden="true" href="#wsl-docker">#</a></h1>
-<h2 id="安装-docker使用官方推荐方式">安装 Docker（使用官方推荐方式）<a hidden class="anchor" aria-hidden="true" href="#安装-docker使用官方推荐方式">#</a></h2>
-<h3 id="1-卸载旧版本如果有">1. 卸载旧版本（如果有）<a hidden class="anchor" aria-hidden="true" href="#1-卸载旧版本如果有">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt-get remove -y docker docker-engine docker.io containerd runc <span style="color:#f92672">||</span> true
-</span></span></code></pre></div><h3 id="2-安装依赖">2. 安装依赖<a hidden class="anchor" aria-hidden="true" href="#2-安装依赖">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y
-</span></span></code></pre></div><h3 id="3-添加官方-gpg-密钥">3. 添加官方 GPG 密钥<a hidden class="anchor" aria-hidden="true" href="#3-添加官方-gpg-密钥">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo mkdir -p /usr/share/keyrings
-</span></span><span style="display:flex;"><span>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce-archive-keyring.gpg
-</span></span></code></pre></div><h3 id="4-添加-docker-软件源可切换为国内镜像">4. 添加 Docker 软件源（可切换为国内镜像）<a hidden class="anchor" aria-hidden="true" href="#4-添加-docker-软件源可切换为国内镜像">#</a></h3>
-<p>官方源：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>echo <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;deb [arch=</span><span style="color:#66d9ef">$(</span>dpkg --print-architecture<span style="color:#66d9ef">)</span><span style="color:#e6db74"> signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  https://download.docker.com/linux/ubuntu </span><span style="color:#66d9ef">$(</span>lsb_release -cs<span style="color:#66d9ef">)</span><span style="color:#e6db74"> stable&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
-</span></span></code></pre></div><p>国内镜像源（推荐）：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>echo <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;deb [arch=</span><span style="color:#66d9ef">$(</span>dpkg --print-architecture<span style="color:#66d9ef">)</span><span style="color:#e6db74"> signed-by=/usr/share/keyrings/docker-ce-archive-keyring.gpg] \
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  https://mirrors.aliyun.com/docker-ce/linux/ubuntu jammy stable&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  | sudo tee /etc/apt/sources.list.d/docker.list
-</span></span></code></pre></div><h3 id="5-安装-docker">5. 安装 Docker<a hidden class="anchor" aria-hidden="true" href="#5-安装-docker">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo apt update
-</span></span><span style="display:flex;"><span>sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-</span></span></code></pre></div><h3 id="6-验证安装">6. 验证安装<a hidden class="anchor" aria-hidden="true" href="#6-验证安装">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker --version
-</span></span><span style="display:flex;"><span>docker compose version
-</span></span><span style="display:flex;"><span>sudo systemctl enable --now docker
-</span></span></code></pre></div><h2 id="安装-docker-compose独立版本">安装 Docker Compose（独立版本）<a hidden class="anchor" aria-hidden="true" href="#安装-docker-compose独立版本">#</a></h2>
-<p>简便安装方式：<code>sudo apt  install docker-compose</code></p>
-<blockquote>
-<p>说明：如果已通过上面的步骤安装了 <code>docker-compose-plugin</code>，可以直接使用 <code>docker compose</code> 命令，无需再安装独立版。
-若需要传统的 <code>docker-compose</code> 可执行文件，请按以下步骤安装。</p>
-</blockquote>
-<h3 id="1-下载最新版本">1. 下载最新版本<a hidden class="anchor" aria-hidden="true" href="#1-下载最新版本">#</a></h3>
-<p>先查询最新版本号（或直接使用稳定版本）：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>DOCKER_COMPOSE_VERSION<span style="color:#f92672">=</span><span style="color:#66d9ef">$(</span>curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d <span style="color:#e6db74">&#39;&#34;&#39;</span> -f 4<span style="color:#66d9ef">)</span>
-</span></span></code></pre></div><p>下载并安装：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo curl -L <span style="color:#e6db74">&#34;https://github.com/docker/compose/releases/download/</span><span style="color:#e6db74">${</span>DOCKER_COMPOSE_VERSION<span style="color:#e6db74">}</span><span style="color:#e6db74">/docker-compose-</span><span style="color:#66d9ef">$(</span>uname -s<span style="color:#66d9ef">)</span><span style="color:#e6db74">-</span><span style="color:#66d9ef">$(</span>uname -m<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -o /usr/local/bin/docker-compose
-</span></span></code></pre></div><blockquote>
-<p>若下载缓慢，可使用国内镜像：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo curl -L <span style="color:#e6db74">&#34;https://get.daocloud.io/docker/compose/releases/download/</span><span style="color:#e6db74">${</span>DOCKER_COMPOSE_VERSION<span style="color:#e6db74">}</span><span style="color:#e6db74">/docker-compose-</span><span style="color:#66d9ef">$(</span>uname -s<span style="color:#66d9ef">)</span><span style="color:#e6db74">-</span><span style="color:#66d9ef">$(</span>uname -m<span style="color:#66d9ef">)</span><span style="color:#e6db74">&#34;</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>-o /usr/local/bin/docker-compose
-</span></span></code></pre></div></blockquote>
-<h3 id="2-赋予执行权限">2. 赋予执行权限<a hidden class="anchor" aria-hidden="true" href="#2-赋予执行权限">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo chmod +x /usr/local/bin/docker-compose
-</span></span></code></pre></div><h3 id="3-验证安装是否成功">3. 验证安装是否成功<a hidden class="anchor" aria-hidden="true" href="#3-验证安装是否成功">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker-compose --version
-</span></span></code></pre></div><h3 id="4-可选启用命令自动补全">4. （可选）启用命令自动补全<a hidden class="anchor" aria-hidden="true" href="#4-可选启用命令自动补全">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>sudo curl -L https://raw.githubusercontent.com/docker/compose/<span style="color:#e6db74">${</span>DOCKER_COMPOSE_VERSION<span style="color:#e6db74">}</span>/contrib/completion/bash/docker-compose <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -o /etc/bash_completion.d/docker-compose
-</span></span></code></pre></div><h3 id="5-使用方式">5. 使用方式<a hidden class="anchor" aria-hidden="true" href="#5-使用方式">#</a></h3>
-<p>独立版 Compose 使用命令：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker-compose up -d
-</span></span></code></pre></div><p>插件版（推荐）使用命令：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker compose up -d
-</span></span></code></pre></div><h2 id="配置-docker-hub-镜像加速器">配置 Docker Hub 镜像加速器<a hidden class="anchor" aria-hidden="true" href="#配置-docker-hub-镜像加速器">#</a></h2>
-<p>Docker Hub 默认从国外下载，建议添加国内加速器：</p>
-<h3 id="添加加速器列表推荐组合">添加加速器列表（推荐组合）<a hidden class="anchor" aria-hidden="true" href="#添加加速器列表推荐组合">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo mkdir -p /etc/docker
-</span></span><span style="display:flex;"><span>sudo tee /etc/docker/daemon.json <span style="color:#e6db74">&lt;&lt;EOF
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">{
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  &#34;registry-mirrors&#34;: [
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;https://registry.cn-hangzhou.aliyuncs.com&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;https://docker.mirrors.ustc.edu.cn&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;https://mirror.ccs.tencentyun.com&#34;,
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">    &#34;https://docker.m.daocloud.io&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">  ]
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">}
-</span></span></span><span style="display:flex;"><span><span style="color:#e6db74">EOF</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>sudo systemctl daemon-reload
-</span></span><span style="display:flex;"><span>sudo systemctl restart docker
-</span></span></code></pre></div><h3 id="验证是否生效">验证是否生效<a hidden class="anchor" aria-hidden="true" href="#验证是否生效">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker info | grep -A <span style="color:#ae81ff">3</span> <span style="color:#e6db74">&#34;Registry Mirrors&#34;</span>
-</span></span></code></pre></div><p>输出类似：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span> Registry Mirrors:
-</span></span><span style="display:flex;"><span>  https://registry.cn-hangzhou.aliyuncs.com/
-</span></span><span style="display:flex;"><span>  https://docker.m.daocloud.io/
-</span></span></code></pre></div><p>说明生效。</p>
-<h2 id="添加普通用户权限">添加普通用户权限<a hidden class="anchor" aria-hidden="true" href="#添加普通用户权限">#</a></h2>
-<h3 id="创建-docker-用户组如果不存在">创建 Docker 用户组（如果不存在）<a hidden class="anchor" aria-hidden="true" href="#创建-docker-用户组如果不存在">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo groupadd docker
-</span></span></code></pre></div><blockquote>
-<p>大部分系统安装 Docker 时已经自动创建了 <code>docker</code> 组，如果存在会提示 <code>groupadd: group 'docker' already exists</code>，可以忽略。</p>
-</blockquote>
-<hr>
-<h3 id="将当前用户加入-docker-组">将当前用户加入 Docker 组<a hidden class="anchor" aria-hidden="true" href="#将当前用户加入-docker-组">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo usermod -aG docker $USER
-</span></span></code></pre></div><ul>
-<li><code>-aG</code>：追加当前用户到指定组，不覆盖原有组</li>
-<li><code>$USER</code>：当前登录用户名，也可以直接写 <code>kennem</code></li>
-</ul>
-<hr>
-<h3 id="重新登录用户或刷新组权限">重新登录用户或刷新组权限<a hidden class="anchor" aria-hidden="true" href="#重新登录用户或刷新组权限">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>newgrp docker
-</span></span></code></pre></div><p>或者 <strong>完全登出再登录</strong>，才能使组权限生效。</p>
-<hr>
-<h3 id="验证是否生效-1">验证是否生效<a hidden class="anchor" aria-hidden="true" href="#验证是否生效-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker ps
-</span></span></code></pre></div><ul>
-<li>如果能够列出运行的容器而 <strong>不需要 sudo</strong>，说明成功。</li>
-<li>如果仍提示权限错误，请确认 <code>$USER</code> 已在 <code>docker</code> 组：</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>groups $USER
-</span></span></code></pre></div><hr>
-<h3 id="注意事项">注意事项<a hidden class="anchor" aria-hidden="true" href="#注意事项">#</a></h3>
-<ol>
-<li><strong>安全性</strong>：加入 <code>docker</code> 组等同于拥有 root 权限，因为 Docker 可以执行任意宿主机命令。</li>
-<li><strong>系统服务</strong>：Docker 仍然以 root 启动，但你作为普通用户可以无需 sudo 使用 Docker CLI。</li>
-<li><strong>脚本自动化</strong>：加入组后，所有 Docker 命令无需 sudo，例如：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker run hello-world
-</span></span><span style="display:flex;"><span>docker pull mysql:8.0
-</span></span><span style="display:flex;"><span>docker-compose up -d
-</span></span></code></pre></div><h2 id="部署mysql">部署MySQL<a hidden class="anchor" aria-hidden="true" href="#部署mysql">#</a></h2>
-<h3 id="创建本地持久化数据目录"><strong>创建本地持久化数据目录</strong><a hidden class="anchor" aria-hidden="true" href="#创建本地持久化数据目录">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p /data/mysql
-</span></span></code></pre></div><ul>
-<li>这样容器删除后数据仍保留。</li>
-</ul>
-<h3 id="拉取-mysql-镜像">拉取 MySQL 镜像<a hidden class="anchor" aria-hidden="true" href="#拉取-mysql-镜像">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker pull mysql:8.0
-</span></span></code></pre></div><ul>
-<li><code>mysql:8.0</code> 可替换为其他版本，如 <code>mysql:5.7</code></li>
-<li>国内用户建议使用国内镜像加速：</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/mysql:8
-</span></span></code></pre></div><h3 id="启动-mysql-容器">启动 MySQL 容器<a hidden class="anchor" aria-hidden="true" href="#启动-mysql-容器">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker run -d <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  --name mysql-server <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -e MYSQL_ROOT_PASSWORD<span style="color:#f92672">=</span>Root1234 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -e MYSQL_DATABASE<span style="color:#f92672">=</span>testdb <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -e MYSQL_USER<span style="color:#f92672">=</span>testuser <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -e MYSQL_PASSWORD<span style="color:#f92672">=</span>testpass <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -p 3306:3306 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -v /data/mysql:/var/lib/mysql <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  mysql:8.0
-</span></span></code></pre></div><h4 id="参数说明">参数说明：<a hidden class="anchor" aria-hidden="true" href="#参数说明">#</a></h4>
-<table>
-	<thead>
-			<tr>
-					<th>参数</th>
-					<th>说明</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td><code>--name mysql-server</code></td>
-					<td>容器名称</td>
-			</tr>
-			<tr>
-					<td><code>-e MYSQL_ROOT_PASSWORD=Root1234</code></td>
-					<td>设置 root 密码</td>
-			</tr>
-			<tr>
-					<td><code>-e MYSQL_DATABASE=testdb</code></td>
-					<td>容器启动时创建的数据库</td>
-			</tr>
-			<tr>
-					<td><code>-e MYSQL_USER=testuser</code></td>
-					<td>容器启动时创建的用户</td>
-			</tr>
-			<tr>
-					<td><code>-e MYSQL_PASSWORD=testpass</code></td>
-					<td>用户密码</td>
-			</tr>
-			<tr>
-					<td><code>-p 3306:3306</code></td>
-					<td>映射宿主机端口到容器端口</td>
-			</tr>
-			<tr>
-					<td><code>-v /data/mysql:/var/lib/mysql</code></td>
-					<td>数据持久化挂载</td>
-			</tr>
-	</tbody>
-</table>
-<h3 id="验证-mysql-容器运行">验证 MySQL 容器运行<a hidden class="anchor" aria-hidden="true" href="#验证-mysql-容器运行">#</a></h3>
-<ol>
-<li>查看容器状态：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker ps
-</span></span></code></pre></div><ol>
-<li>登录 MySQL：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker exec -it mysql-server mysql -uroot -p
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 输入密码 Root1234</span>
-</span></span></code></pre></div><ol>
-<li>测试数据库：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>SHOW DATABASES;
-</span></span></code></pre></div><hr>
-<h3 id="停止启动重启容器">停止/启动/重启容器<a hidden class="anchor" aria-hidden="true" href="#停止启动重启容器">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 停止</span>
-</span></span><span style="display:flex;"><span>docker stop mysql-server
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 启动</span>
-</span></span><span style="display:flex;"><span>docker start mysql-server
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 重启</span>
-</span></span><span style="display:flex;"><span>docker restart mysql-server
-</span></span></code></pre></div><hr>
-<h3 id="删除-mysql-容器">删除 MySQL 容器<a hidden class="anchor" aria-hidden="true" href="#删除-mysql-容器">#</a></h3>
-<ol>
-<li><strong>停止容器</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker stop mysql-server
-</span></span></code></pre></div><ol>
-<li><strong>删除容器</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker rm mysql-server
-</span></span></code></pre></div><ol>
-<li><strong>删除镜像（如果不再使用）</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker rmi mysql:8.0
-</span></span></code></pre></div><blockquote>
-<p>注意：删除容器不会删除 <code>/data/mysql</code> 数据目录，如果想连数据一起删除：</p>
-</blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo rm -rf /data/mysql
-</span></span></code></pre></div><hr>
-<h3 id="使用-docker-compose-部署可选">使用 Docker Compose 部署（可选）<a hidden class="anchor" aria-hidden="true" href="#使用-docker-compose-部署可选">#</a></h3>
-<p>创建 <code>docker-compose.yml</code>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>version: <span style="color:#e6db74">&#34;3.9&#34;</span>
-</span></span><span style="display:flex;"><span>services:
-</span></span><span style="display:flex;"><span>  mysql:
-</span></span><span style="display:flex;"><span>    image: mysql:8.0
-</span></span><span style="display:flex;"><span>    container_name: mysql-server
-</span></span><span style="display:flex;"><span>    environment:
-</span></span><span style="display:flex;"><span>      MYSQL_ROOT_PASSWORD: Root1234
-</span></span><span style="display:flex;"><span>      MYSQL_DATABASE: testdb
-</span></span><span style="display:flex;"><span>      MYSQL_USER: testuser
-</span></span><span style="display:flex;"><span>      MYSQL_PASSWORD: testpass
-</span></span><span style="display:flex;"><span>    ports:
-</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;3306:3306&#34;</span>
-</span></span><span style="display:flex;"><span>    volumes:
-</span></span><span style="display:flex;"><span>      - /data/mysql:/var/lib/mysql
-</span></span></code></pre></div><p>启动：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker-compose up -d
-</span></span></code></pre></div><p>停止并删除：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker-compose down
-</span></span></code></pre></div><ul>
-<li>数据仍在 <code>/data/mysql</code> 持久化。</li>
-</ul>
-<h2 id="部署redis">部署Redis<a hidden class="anchor" aria-hidden="true" href="#部署redis">#</a></h2>
-<h3 id="创建本地持久化数据目录-1"><strong>创建本地持久化数据目录</strong><a hidden class="anchor" aria-hidden="true" href="#创建本地持久化数据目录-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p /data/redis
-</span></span></code></pre></div><ul>
-<li>容器删除后数据仍保留。</li>
-</ul>
-<h3 id="拉取-redis-镜像">拉取 Redis 镜像<a hidden class="anchor" aria-hidden="true" href="#拉取-redis-镜像">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>docker pull redis:8.2
-</span></span></code></pre></div><ul>
-<li><code>redis:8.2</code> 可根据需求选择版本</li>
-<li>国内用户可用国内镜像加速：</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>docker pull registry.cn-hangzhou.aliyuncs.com/official/redis:8.2
-</span></span></code></pre></div><hr>
-<h3 id="启动-redis-容器">启动 Redis 容器<a hidden class="anchor" aria-hidden="true" href="#启动-redis-容器">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker run -d <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  --name redis-server <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -p 6379:6379 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  -v /data/redis:/data <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  redis:8.2 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>  redis-server --appendonly yes
-</span></span></code></pre></div><h3 id="参数说明-1">参数说明<a hidden class="anchor" aria-hidden="true" href="#参数说明-1">#</a></h3>
-<table>
-	<thead>
-			<tr>
-					<th>参数</th>
-					<th>说明</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td><code>--name redis-server</code></td>
-					<td>容器名称</td>
-			</tr>
-			<tr>
-					<td><code>-p 6379:6379</code></td>
-					<td>映射宿主机端口到容器端口</td>
-			</tr>
-			<tr>
-					<td><code>-v /data/redis:/data</code></td>
-					<td>持久化数据挂载</td>
-			</tr>
-			<tr>
-					<td><code>redis-server --appendonly yes</code></td>
-					<td>开启 AOF 持久化</td>
-			</tr>
-	</tbody>
-</table>
-<blockquote>
-<p>默认 Redis 不设置密码，如果需要可以加：</p>
-</blockquote>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>-e REDIS_PASSWORD=MyStrongPass
-</span></span></code></pre></div><p>然后用 <code>redis-cli -a MyStrongPass</code> 登录。</p>
-<h3 id="验证-redis-容器运行">验证 Redis 容器运行<a hidden class="anchor" aria-hidden="true" href="#验证-redis-容器运行">#</a></h3>
-<ol>
-<li>查看容器状态：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>docker ps
-</span></span></code></pre></div><ol>
-<li>进入容器：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker exec -it redis-server redis-cli
-</span></span></code></pre></div><ol>
-<li>测试：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>set testkey hello
-</span></span><span style="display:flex;"><span>get testkey
-</span></span></code></pre></div><hr>
-<h3 id="停止启动重启容器-1">停止/启动/重启容器<a hidden class="anchor" aria-hidden="true" href="#停止启动重启容器-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 停止</span>
-</span></span><span style="display:flex;"><span>docker stop redis-server
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 启动</span>
-</span></span><span style="display:flex;"><span>docker start redis-server
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 重启</span>
-</span></span><span style="display:flex;"><span>docker restart redis-server
-</span></span></code></pre></div><hr>
-<h3 id="删除-redis-容器">删除 Redis 容器<a hidden class="anchor" aria-hidden="true" href="#删除-redis-容器">#</a></h3>
-<ol>
-<li><strong>停止容器</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker stop redis-server
-</span></span></code></pre></div><ol>
-<li><strong>删除容器</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker rm redis-server
-</span></span></code></pre></div><ol>
-<li><strong>删除镜像（可选）</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker rmi redis:8.2
-</span></span></code></pre></div><ol>
-<li><strong>删除数据目录（可选）</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo rm -rf /data/redis
-</span></span></code></pre></div><hr>
-<h3 id="使用-docker-compose-部署-redis可选">使用 Docker Compose 部署 Redis（可选）<a hidden class="anchor" aria-hidden="true" href="#使用-docker-compose-部署-redis可选">#</a></h3>
-<p>创建 <code>docker-compose.yml</code>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>version: <span style="color:#e6db74">&#34;3.9&#34;</span>
-</span></span><span style="display:flex;"><span>services:
-</span></span><span style="display:flex;"><span>  redis:
-</span></span><span style="display:flex;"><span>    image: redis:8.2
-</span></span><span style="display:flex;"><span>    container_name: redis-server
-</span></span><span style="display:flex;"><span>    ports:
-</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;6379:6379&#34;</span>
-</span></span><span style="display:flex;"><span>    volumes:
-</span></span><span style="display:flex;"><span>      - /data/redis:/data
-</span></span><span style="display:flex;"><span>    command: <span style="color:#f92672">[</span><span style="color:#e6db74">&#34;redis-server&#34;</span>, <span style="color:#e6db74">&#34;--appendonly&#34;</span>, <span style="color:#e6db74">&#34;yes&#34;</span><span style="color:#f92672">]</span>
-</span></span></code></pre></div><p>启动：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker-compose up -d
-</span></span></code></pre></div><p>停止并删除：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker-compose down
-</span></span></code></pre></div><ul>
-<li>数据仍在 <code>/data/redis</code> 持久化。</li>
-</ul>
-<hr>
-<h3 id="端口冲突和权限注意">端口冲突和权限注意<a hidden class="anchor" aria-hidden="true" href="#端口冲突和权限注意">#</a></h3>
-<p>如果宿主机 6379 被占用，使用不同端口：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>-p 6380:6379
-</span></span></code></pre></div><h2 id="部署es">部署ES<a hidden class="anchor" aria-hidden="true" href="#部署es">#</a></h2>
-<p><strong>创建本地持久化数据目录</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>mkdir -p /data/elasticsearch
-</span></span></code></pre></div><ul>
-<li>用于存储 Elasticsearch 的数据文件，即使容器删除，数据仍然保留。</li>
-</ul>
-<hr>
-<h3 id="拉取-elasticsearch-镜像">拉取 Elasticsearch 镜像<a hidden class="anchor" aria-hidden="true" href="#拉取-elasticsearch-镜像">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.2
-</span></span></code></pre></div><ul>
-<li>最新版本可根据官网调整</li>
-<li>国内用户建议使用国内镜像加速：</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/elasticsearch:8.10.2
-</span></span></code></pre></div><hr>
-<h3 id="启动-elasticsearch-容器">启动 Elasticsearch 容器<a hidden class="anchor" aria-hidden="true" href="#启动-elasticsearch-容器">#</a></h3>
-<p>Elasticsearch 对系统资源有要求，需要设置内存和一些环境变量：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#ae81ff">docker run -d \</span>
-</span></span><span style="display:flex;"><span>  --<span style="color:#ae81ff">name es-server \</span>
-</span></span><span style="display:flex;"><span>  -<span style="color:#ae81ff">p 9200:9200 \</span>
-</span></span><span style="display:flex;"><span>  -<span style="color:#ae81ff">p 9300:9300 \</span>
-</span></span><span style="display:flex;"><span>  -<span style="color:#ae81ff">e &#34;discovery.type=single-node&#34; \</span>
-</span></span><span style="display:flex;"><span>  -<span style="color:#ae81ff">e &#34;ES_JAVA_OPTS=-Xms1g -Xmx1g&#34; \</span>
-</span></span><span style="display:flex;"><span>  -<span style="color:#ae81ff">v /data/elasticsearch:/usr/share/elasticsearch/data \</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">docker.elastic.co/elasticsearch/elasticsearch:8.10.2</span>
-</span></span></code></pre></div><h4 id="参数说明-2">参数说明<a hidden class="anchor" aria-hidden="true" href="#参数说明-2">#</a></h4>
-<table>
-	<thead>
-			<tr>
-					<th>参数</th>
-					<th>说明</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td><code>--name es-server</code></td>
-					<td>容器名称</td>
-			</tr>
-			<tr>
-					<td><code>-p 9200:9200</code></td>
-					<td>对外 HTTP 接口</td>
-			</tr>
-			<tr>
-					<td><code>-p 9300:9300</code></td>
-					<td>节点间通信端口</td>
-			</tr>
-			<tr>
-					<td><code>-e discovery.type=single-node</code></td>
-					<td>单节点模式</td>
-			</tr>
-			<tr>
-					<td><code>-e ES_JAVA_OPTS=-Xms1g -Xmx1g</code></td>
-					<td>JVM 内存设置，可根据宿主机调整</td>
-			</tr>
-			<tr>
-					<td><code>-v /data/elasticsearch:/usr/share/elasticsearch/data</code></td>
-					<td>数据持久化挂载</td>
-			</tr>
-	</tbody>
-</table>
-<hr>
-<h3 id="验证-elasticsearch-容器运行">验证 Elasticsearch 容器运行<a hidden class="anchor" aria-hidden="true" href="#验证-elasticsearch-容器运行">#</a></h3>
-<ol>
-<li>查看容器状态：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker ps
-</span></span></code></pre></div><ol>
-<li>测试 HTTP 接口：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>curl http://localhost:9200
-</span></span></code></pre></div><p>示例返回：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;name&#34;</span> : <span style="color:#e6db74">&#34;es-server&#34;</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;cluster_name&#34;</span> : <span style="color:#e6db74">&#34;docker-cluster&#34;</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;cluster_uuid&#34;</span> : <span style="color:#e6db74">&#34;abcd1234&#34;</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;version&#34;</span> : <span style="color:#f92672">{</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;number&#34;</span> : <span style="color:#e6db74">&#34;8.10.2&#34;</span>,
-</span></span><span style="display:flex;"><span>    ...
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">}</span>,
-</span></span><span style="display:flex;"><span>  <span style="color:#e6db74">&#34;tagline&#34;</span> : <span style="color:#e6db74">&#34;You Know, for Search&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">}</span>
-</span></span></code></pre></div><hr>
-<h3 id="停止启动重启容器-2">停止/启动/重启容器<a hidden class="anchor" aria-hidden="true" href="#停止启动重启容器-2">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span><span style="color:#75715e"># 停止</span>
-</span></span><span style="display:flex;"><span>docker stop es-server
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 启动</span>
-</span></span><span style="display:flex;"><span>docker start es-server
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 重启</span>
-</span></span><span style="display:flex;"><span>docker restart es-server
-</span></span></code></pre></div><hr>
-<h3 id="删除-elasticsearch-容器">删除 Elasticsearch 容器<a hidden class="anchor" aria-hidden="true" href="#删除-elasticsearch-容器">#</a></h3>
-<ol>
-<li><strong>停止容器</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker stop es-server
-</span></span></code></pre></div><ol>
-<li><strong>删除容器</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker rm es-server
-</span></span></code></pre></div><ol>
-<li><strong>删除镜像（可选）</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker rmi docker.elastic.co/elasticsearch/elasticsearch:8.10.2
-</span></span></code></pre></div><ol>
-<li><strong>删除数据目录（可选）</strong></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>sudo rm -rf /data/elasticsearch
-</span></span></code></pre></div><hr>
-<h3 id="使用-docker-compose-部署-elasticsearch可选">使用 Docker Compose 部署 Elasticsearch（可选）<a hidden class="anchor" aria-hidden="true" href="#使用-docker-compose-部署-elasticsearch可选">#</a></h3>
-<p>创建 <code>docker-compose.yml</code>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yaml" data-lang="yaml"><span style="display:flex;"><span><span style="color:#f92672">version</span>: <span style="color:#e6db74">&#34;3.9&#34;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">services</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">elasticsearch</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">image</span>: <span style="color:#ae81ff">docker.elastic.co/elasticsearch/elasticsearch:8.10.2</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">container_name</span>: <span style="color:#ae81ff">es-server</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">environment</span>:
-</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">discovery.type=single-node</span>
-</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">ES_JAVA_OPTS=-Xms1g -Xmx1g</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">ports</span>:
-</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;9200:9200&#34;</span>
-</span></span><span style="display:flex;"><span>      - <span style="color:#e6db74">&#34;9300:9300&#34;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">volumes</span>:
-</span></span><span style="display:flex;"><span>      - <span style="color:#ae81ff">/data/elasticsearch:/usr/share/elasticsearch/data</span>
-</span></span></code></pre></div><p>启动：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker-compose up -d
-</span></span></code></pre></div><p>停止并删除：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>docker-compose down
-</span></span></code></pre></div><ul>
-<li>数据仍在 <code>/data/elasticsearch</code> 持久化。</li>
-</ul>
-<hr>
-<h3 id="端口冲突与权限注意">端口冲突与权限注意<a hidden class="anchor" aria-hidden="true" href="#端口冲突与权限注意">#</a></h3>
-<ol>
-<li><strong>端口冲突</strong>
-<ul>
-<li>宿主机 9200 或 9300 被占用，可用不同端口：</li>
-</ul>
-</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-bash" data-lang="bash"><span style="display:flex;"><span>-p 9201:9200 -p 9301:9300
-</span></span></code></pre></div><h2 id="tomcat">Tomcat<a hidden class="anchor" aria-hidden="true" href="#tomcat">#</a></h2>
-<h2 id="nginx">Nginx<a hidden class="anchor" aria-hidden="true" href="#nginx">#</a></h2>
-<h2 id="rabbitmq">RabbitMq<a hidden class="anchor" aria-hidden="true" href="#rabbitmq">#</a></h2>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/wsl/">Wsl</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/linux">Linux</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/wsl-conda/">
-    <span class="title">« 上一页</span>
-    <span>Wsl Conda</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/wsl-java/">
-    <span class="title">下一页 »</span>
-    <span>Wsl Java</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>Wsl Docker | Kennem's Blog</title><meta name=keywords content="Wsl"><meta name=description content="Wsl初始化"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/wsl-docker/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/wsl-docker/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/wsl-docker/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="Wsl Docker"><meta property="og:description" content="Wsl初始化"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-10-23T10:00:01+08:00"><meta property="article:modified_time" content="2025-11-09T10:00:01+08:00"><meta property="article:tag" content="Wsl"><meta name=twitter:card content="summary"><meta name=twitter:title content="Wsl Docker"><meta name=twitter:description content="Wsl初始化"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"Wsl Docker","item":"https://kennems.github.io/posts/tech/wsl-docker/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Wsl Docker","name":"Wsl Docker","description":"Wsl初始化","keywords":["Wsl"],"articleBody":"Wsl Docker 安装 Docker（使用官方推荐方式） 1. 卸载旧版本（如果有） sudo apt-get remove -y docker docker-engine docker.io containerd runc || true 2. 安装依赖 sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y 3. 添加官方 GPG 密钥 sudo mkdir -p /usr/share/keyrings curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce-archive-keyring.gpg 4. 添加 Docker 软件源（可切换为国内镜像） 官方源：\necho \\ \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \\ https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable\" \\ | sudo tee /etc/apt/sources.list.d/docker.list \u003e /dev/null 国内镜像源（推荐）：\necho \\ \"deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/docker-ce-archive-keyring.gpg] \\ https://mirrors.aliyun.com/docker-ce/linux/ubuntu jammy stable\" \\ | sudo tee /etc/apt/sources.list.d/docker.list 5. 安装 Docker sudo apt update sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin 6. 验证安装 docker --version docker compose version sudo systemctl enable --now docker 安装 Docker Compose（独立版本） 简便安装方式：sudo apt install docker-compose\n说明：如果已通过上面的步骤安装了 docker-compose-plugin，可以直接使用 docker compose 命令，无需再安装独立版。 若需要传统的 docker-compose 可执行文件，请按以下步骤安装。\n1. 下载最新版本 先查询最新版本号（或直接使用稳定版本）：\nDOCKER_COMPOSE_VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d '\"' -f 4) 下载并安装：\nsudo curl -L \"https://github.com/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" \\ -o /usr/local/bin/docker-compose 若下载缓慢，可使用国内镜像：\nsudo curl -L \"https://get.daocloud.io/docker/compose/releases/download/${DOCKER_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)\" \\ -o /usr/local/bin/docker-compose 2. 赋予执行权限 sudo chmod +x /usr/local/bin/docker-compose 3. 验证安装是否成功 docker-compose --version 4. （可选）启用命令自动补全 sudo curl -L https://raw.githubusercontent.com/docker/compose/${DOCKER_COMPOSE_VERSION}/contrib/completion/bash/docker-compose \\ -o /etc/bash_completion.d/docker-compose 5. 使用方式 独立版 Compose 使用命令：\ndocker-compose up -d 插件版（推荐）使用命令：\ndocker compose up -d 配置 Docker Hub 镜像加速器 Docker Hub 默认从国外下载，建议添加国内加速器：\n添加加速器列表（推荐组合） sudo mkdir -p /etc/docker sudo tee /etc/docker/daemon.json \u003c{ \"registry-mirrors\": [ \"https://registry.cn-hangzhou.aliyuncs.com\", \"https://docker.mirrors.ustc.edu.cn\", \"https://mirror.ccs.tencentyun.com\", \"https://docker.m.daocloud.io\" ] } EOF sudo systemctl daemon-reload sudo systemctl restart docker 验证是否生效 docker info | grep -A 3 \"Registry Mirrors\" 输出类似：\nRegistry Mirrors: https://registry.cn-hangzhou.aliyuncs.com/ https://docker.m.daocloud.io/ 说明生效。\n添加普通用户权限 创建 Docker 用户组（如果不存在） sudo groupadd docker 大部分系统安装 Docker 时已经自动创建了 docker 组，如果存在会提示 groupadd: group 'docker' already exists，可以忽略。\n将当前用户加入 Docker 组 sudo usermod -aG docker $USER -aG：追加当前用户到指定组，不覆盖原有组 $USER：当前登录用户名，也可以直接写 kennem 重新登录用户或刷新组权限 newgrp docker 或者 完全登出再登录，才能使组权限生效。\n验证是否生效 docker ps 如果能够列出运行的容器而 不需要 sudo，说明成功。 如果仍提示权限错误，请确认 $USER 已在 docker 组： groups $USER 注意事项 安全性：加入 docker 组等同于拥有 root 权限，因为 Docker 可以执行任意宿主机命令。 系统服务：Docker 仍然以 root 启动，但你作为普通用户可以无需 sudo 使用 Docker CLI。 脚本自动化：加入组后，所有 Docker 命令无需 sudo，例如： docker run hello-world docker pull mysql:8.0 docker-compose up -d 部署MySQL 创建本地持久化数据目录 mkdir -p /data/mysql 这样容器删除后数据仍保留。 拉取 MySQL 镜像 docker pull mysql:8.0 mysql:8.0 可替换为其他版本，如 mysql:5.7 国内用户建议使用国内镜像加速： docker pull registry.cn-hangzhou.aliyuncs.com/library/mysql:8 启动 MySQL 容器 docker run -d \\ --name mysql-server \\ -e MYSQL_ROOT_PASSWORD=Root1234 \\ -e MYSQL_DATABASE=testdb \\ -e MYSQL_USER=testuser \\ -e MYSQL_PASSWORD=testpass \\ -p 3306:3306 \\ -v /data/mysql:/var/lib/mysql \\ mysql:8.0 参数说明： 参数 说明 --name mysql-server 容器名称 -e MYSQL_ROOT_PASSWORD=Root1234 设置 root 密码 -e MYSQL_DATABASE=testdb 容器启动时创建的数据库 -e MYSQL_USER=testuser 容器启动时创建的用户 -e MYSQL_PASSWORD=testpass 用户密码 -p 3306:3306 映射宿主机端口到容器端口 -v /data/mysql:/var/lib/mysql 数据持久化挂载 验证 MySQL 容器运行 查看容器状态： docker ps 登录 MySQL： docker exec -it mysql-server mysql -uroot -p # 输入密码 Root1234 测试数据库： SHOW DATABASES; 停止/启动/重启容器 # 停止 docker stop mysql-server # 启动 docker start mysql-server # 重启 docker restart mysql-server 删除 MySQL 容器 停止容器 docker stop mysql-server 删除容器 docker rm mysql-server 删除镜像（如果不再使用） docker rmi mysql:8.0 注意：删除容器不会删除 /data/mysql 数据目录，如果想连数据一起删除：\nsudo rm -rf /data/mysql 使用 Docker Compose 部署（可选） 创建 docker-compose.yml：\nversion: \"3.9\" services: mysql: image: mysql:8.0 container_name: mysql-server environment: MYSQL_ROOT_PASSWORD: Root1234 MYSQL_DATABASE: testdb MYSQL_USER: testuser MYSQL_PASSWORD: testpass ports: - \"3306:3306\" volumes: - /data/mysql:/var/lib/mysql 启动：\ndocker-compose up -d 停止并删除：\ndocker-compose down 数据仍在 /data/mysql 持久化。 部署Redis 创建本地持久化数据目录 mkdir -p /data/redis 容器删除后数据仍保留。 拉取 Redis 镜像 docker pull redis:8.2 redis:8.2 可根据需求选择版本 国内用户可用国内镜像加速： docker pull registry.cn-hangzhou.aliyuncs.com/official/redis:8.2 启动 Redis 容器 docker run -d \\ --name redis-server \\ -p 6379:6379 \\ -v /data/redis:/data \\ redis:8.2 \\ redis-server --appendonly yes 参数说明 参数 说明 --name redis-server 容器名称 -p 6379:6379 映射宿主机端口到容器端口 -v /data/redis:/data 持久化数据挂载 redis-server --appendonly yes 开启 AOF 持久化 默认 Redis 不设置密码，如果需要可以加：\n-e REDIS_PASSWORD=MyStrongPass 然后用 redis-cli -a MyStrongPass 登录。\n验证 Redis 容器运行 查看容器状态： docker ps 进入容器： docker exec -it redis-server redis-cli 测试： set testkey hello get testkey 停止/启动/重启容器 # 停止 docker stop redis-server # 启动 docker start redis-server # 重启 docker restart redis-server 删除 Redis 容器 停止容器 docker stop redis-server 删除容器 docker rm redis-server 删除镜像（可选） docker rmi redis:8.2 删除数据目录（可选） sudo rm -rf /data/redis 使用 Docker Compose 部署 Redis（可选） 创建 docker-compose.yml：\nversion: \"3.9\" services: redis: image: redis:8.2 container_name: redis-server ports: - \"6379:6379\" volumes: - /data/redis:/data command: [\"redis-server\", \"--appendonly\", \"yes\"] 启动：\ndocker-compose up -d 停止并删除：\ndocker-compose down 数据仍在 /data/redis 持久化。 端口冲突和权限注意 如果宿主机 6379 被占用，使用不同端口：\n-p 6380:6379 部署ES 创建本地持久化数据目录\nmkdir -p /data/elasticsearch 用于存储 Elasticsearch 的数据文件，即使容器删除，数据仍然保留。 拉取 Elasticsearch 镜像 docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.2 最新版本可根据官网调整 国内用户建议使用国内镜像加速： docker pull registry.cn-hangzhou.aliyuncs.com/library/elasticsearch:8.10.2 启动 Elasticsearch 容器 Elasticsearch 对系统资源有要求，需要设置内存和一些环境变量：\ndocker run -d \\ --name es-server \\ -p 9200:9200 \\ -p 9300:9300 \\ -e \"discovery.type=single-node\" \\ -e \"ES_JAVA_OPTS=-Xms1g -Xmx1g\" \\ -v /data/elasticsearch:/usr/share/elasticsearch/data \\ docker.elastic.co/elasticsearch/elasticsearch:8.10.2 参数说明 参数 说明 --name es-server 容器名称 -p 9200:9200 对外 HTTP 接口 -p 9300:9300 节点间通信端口 -e discovery.type=single-node 单节点模式 -e ES_JAVA_OPTS=-Xms1g -Xmx1g JVM 内存设置，可根据宿主机调整 -v /data/elasticsearch:/usr/share/elasticsearch/data 数据持久化挂载 验证 Elasticsearch 容器运行 查看容器状态： docker ps 测试 HTTP 接口： curl http://localhost:9200 示例返回：\n{ \"name\" : \"es-server\", \"cluster_name\" : \"docker-cluster\", \"cluster_uuid\" : \"abcd1234\", \"version\" : { \"number\" : \"8.10.2\", ... }, \"tagline\" : \"You Know, for Search\" } 停止/启动/重启容器 # 停止 docker stop es-server # 启动 docker start es-server # 重启 docker restart es-server 删除 Elasticsearch 容器 停止容器 docker stop es-server 删除容器 docker rm es-server 删除镜像（可选） docker rmi docker.elastic.co/elasticsearch/elasticsearch:8.10.2 删除数据目录（可选） sudo rm -rf /data/elasticsearch 使用 Docker Compose 部署 Elasticsearch（可选） 创建 docker-compose.yml：\nversion: \"3.9\" services: elasticsearch: image: docker.elastic.co/elasticsearch/elasticsearch:8.10.2 container_name: es-server environment: - discovery.type=single-node - ES_JAVA_OPTS=-Xms1g -Xmx1g ports: - \"9200:9200\" - \"9300:9300\" volumes: - /data/elasticsearch:/usr/share/elasticsearch/data 启动：\ndocker-compose up -d 停止并删除：\ndocker-compose down 数据仍在 /data/elasticsearch 持久化。 端口冲突与权限注意 端口冲突 宿主机 9200 或 9300 被占用，可用不同端口： -p 9201:9200 -p 9301:9300 Tomcat Nginx RabbitMq ","wordCount":"2064","inLanguage":"zh","datePublished":"2025-10-23T10:00:01+08:00","dateModified":"2025-11-09T10:00:01+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/wsl-docker/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">Wsl Docker</h1><div class=post-description>Wsl初始化</div><div class=post-meta><span title='2025-10-23 10:00:01 +0800 +0800'>2025-10-23</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2064 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#wsl-docker aria-label="Wsl Docker">Wsl Docker</a><ul><li><a href=#%e5%ae%89%e8%a3%85-docker%e4%bd%bf%e7%94%a8%e5%ae%98%e6%96%b9%e6%8e%a8%e8%8d%90%e6%96%b9%e5%bc%8f aria-label="安装 Docker（使用官方推荐方式）">安装 Docker（使用官方推荐方式）</a><ul><li><a href=#1-%e5%8d%b8%e8%bd%bd%e6%97%a7%e7%89%88%e6%9c%ac%e5%a6%82%e6%9e%9c%e6%9c%89 aria-label="1. 卸载旧版本（如果有）">1. 卸载旧版本（如果有）</a></li><li><a href=#2-%e5%ae%89%e8%a3%85%e4%be%9d%e8%b5%96 aria-label="2. 安装依赖">2. 安装依赖</a></li><li><a href=#3-%e6%b7%bb%e5%8a%a0%e5%ae%98%e6%96%b9-gpg-%e5%af%86%e9%92%a5 aria-label="3. 添加官方 GPG 密钥">3. 添加官方 GPG 密钥</a></li><li><a href=#4-%e6%b7%bb%e5%8a%a0-docker-%e8%bd%af%e4%bb%b6%e6%ba%90%e5%8f%af%e5%88%87%e6%8d%a2%e4%b8%ba%e5%9b%bd%e5%86%85%e9%95%9c%e5%83%8f aria-label="4. 添加 Docker 软件源（可切换为国内镜像）">4. 添加 Docker 软件源（可切换为国内镜像）</a></li><li><a href=#5-%e5%ae%89%e8%a3%85-docker aria-label="5. 安装 Docker">5. 安装 Docker</a></li><li><a href=#6-%e9%aa%8c%e8%af%81%e5%ae%89%e8%a3%85 aria-label="6. 验证安装">6. 验证安装</a></li></ul></li><li><a href=#%e5%ae%89%e8%a3%85-docker-compose%e7%8b%ac%e7%ab%8b%e7%89%88%e6%9c%ac aria-label="安装 Docker Compose（独立版本）">安装 Docker Compose（独立版本）</a><ul><li><a href=#1-%e4%b8%8b%e8%bd%bd%e6%9c%80%e6%96%b0%e7%89%88%e6%9c%ac aria-label="1. 下载最新版本">1. 下载最新版本</a></li><li><a href=#2-%e8%b5%8b%e4%ba%88%e6%89%a7%e8%a1%8c%e6%9d%83%e9%99%90 aria-label="2. 赋予执行权限">2. 赋予执行权限</a></li><li><a href=#3-%e9%aa%8c%e8%af%81%e5%ae%89%e8%a3%85%e6%98%af%e5%90%a6%e6%88%90%e5%8a%9f aria-label="3. 验证安装是否成功">3. 验证安装是否成功</a></li><li><a href=#4-%e5%8f%af%e9%80%89%e5%90%af%e7%94%a8%e5%91%bd%e4%bb%a4%e8%87%aa%e5%8a%a8%e8%a1%a5%e5%85%a8 aria-label="4. （可选）启用命令自动补全">4. （可选）启用命令自动补全</a></li><li><a href=#5-%e4%bd%bf%e7%94%a8%e6%96%b9%e5%bc%8f aria-label="5. 使用方式">5. 使用方式</a></li></ul></li><li><a href=#%e9%85%8d%e7%bd%ae-docker-hub-%e9%95%9c%e5%83%8f%e5%8a%a0%e9%80%9f%e5%99%a8 aria-label="配置 Docker Hub 镜像加速器">配置 Docker Hub 镜像加速器</a><ul><li><a href=#%e6%b7%bb%e5%8a%a0%e5%8a%a0%e9%80%9f%e5%99%a8%e5%88%97%e8%a1%a8%e6%8e%a8%e8%8d%90%e7%bb%84%e5%90%88 aria-label=添加加速器列表（推荐组合）>添加加速器列表（推荐组合）</a></li><li><a href=#%e9%aa%8c%e8%af%81%e6%98%af%e5%90%a6%e7%94%9f%e6%95%88 aria-label=验证是否生效>验证是否生效</a></li></ul></li><li><a href=#%e6%b7%bb%e5%8a%a0%e6%99%ae%e9%80%9a%e7%94%a8%e6%88%b7%e6%9d%83%e9%99%90 aria-label=添加普通用户权限>添加普通用户权限</a><ul><li><a href=#%e5%88%9b%e5%bb%ba-docker-%e7%94%a8%e6%88%b7%e7%bb%84%e5%a6%82%e6%9e%9c%e4%b8%8d%e5%ad%98%e5%9c%a8 aria-label="创建 Docker 用户组（如果不存在）">创建 Docker 用户组（如果不存在）</a></li><li><a href=#%e5%b0%86%e5%bd%93%e5%89%8d%e7%94%a8%e6%88%b7%e5%8a%a0%e5%85%a5-docker-%e7%bb%84 aria-label="将当前用户加入 Docker 组">将当前用户加入 Docker 组</a></li><li><a href=#%e9%87%8d%e6%96%b0%e7%99%bb%e5%bd%95%e7%94%a8%e6%88%b7%e6%88%96%e5%88%b7%e6%96%b0%e7%bb%84%e6%9d%83%e9%99%90 aria-label=重新登录用户或刷新组权限>重新登录用户或刷新组权限</a></li><li><a href=#%e9%aa%8c%e8%af%81%e6%98%af%e5%90%a6%e7%94%9f%e6%95%88-1 aria-label=验证是否生效>验证是否生效</a></li><li><a href=#%e6%b3%a8%e6%84%8f%e4%ba%8b%e9%a1%b9 aria-label=注意事项>注意事项</a></li></ul></li><li><a href=#%e9%83%a8%e7%bd%b2mysql aria-label=部署MySQL>部署MySQL</a><ul><li><a href=#%e5%88%9b%e5%bb%ba%e6%9c%ac%e5%9c%b0%e6%8c%81%e4%b9%85%e5%8c%96%e6%95%b0%e6%8d%ae%e7%9b%ae%e5%bd%95 aria-label=创建本地持久化数据目录><strong>创建本地持久化数据目录</strong></a></li><li><a href=#%e6%8b%89%e5%8f%96-mysql-%e9%95%9c%e5%83%8f aria-label="拉取 MySQL 镜像">拉取 MySQL 镜像</a></li><li><a href=#%e5%90%af%e5%8a%a8-mysql-%e5%ae%b9%e5%99%a8 aria-label="启动 MySQL 容器">启动 MySQL 容器</a><ul><li><a href=#%e5%8f%82%e6%95%b0%e8%af%b4%e6%98%8e aria-label=参数说明：>参数说明：</a></li></ul></li><li><a href=#%e9%aa%8c%e8%af%81-mysql-%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c aria-label="验证 MySQL 容器运行">验证 MySQL 容器运行</a></li><li><a href=#%e5%81%9c%e6%ad%a2%e5%90%af%e5%8a%a8%e9%87%8d%e5%90%af%e5%ae%b9%e5%99%a8 aria-label=停止/启动/重启容器>停止/启动/重启容器</a></li><li><a href=#%e5%88%a0%e9%99%a4-mysql-%e5%ae%b9%e5%99%a8 aria-label="删除 MySQL 容器">删除 MySQL 容器</a></li><li><a href=#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2%e5%8f%af%e9%80%89 aria-label="使用 Docker Compose 部署（可选）">使用 Docker Compose 部署（可选）</a></li></ul></li><li><a href=#%e9%83%a8%e7%bd%b2redis aria-label=部署Redis>部署Redis</a><ul><li><a href=#%e5%88%9b%e5%bb%ba%e6%9c%ac%e5%9c%b0%e6%8c%81%e4%b9%85%e5%8c%96%e6%95%b0%e6%8d%ae%e7%9b%ae%e5%bd%95-1 aria-label=创建本地持久化数据目录><strong>创建本地持久化数据目录</strong></a></li><li><a href=#%e6%8b%89%e5%8f%96-redis-%e9%95%9c%e5%83%8f aria-label="拉取 Redis 镜像">拉取 Redis 镜像</a></li><li><a href=#%e5%90%af%e5%8a%a8-redis-%e5%ae%b9%e5%99%a8 aria-label="启动 Redis 容器">启动 Redis 容器</a></li><li><a href=#%e5%8f%82%e6%95%b0%e8%af%b4%e6%98%8e-1 aria-label=参数说明>参数说明</a></li><li><a href=#%e9%aa%8c%e8%af%81-redis-%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c aria-label="验证 Redis 容器运行">验证 Redis 容器运行</a></li><li><a href=#%e5%81%9c%e6%ad%a2%e5%90%af%e5%8a%a8%e9%87%8d%e5%90%af%e5%ae%b9%e5%99%a8-1 aria-label=停止/启动/重启容器>停止/启动/重启容器</a></li><li><a href=#%e5%88%a0%e9%99%a4-redis-%e5%ae%b9%e5%99%a8 aria-label="删除 Redis 容器">删除 Redis 容器</a></li><li><a href=#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2-redis%e5%8f%af%e9%80%89 aria-label="使用 Docker Compose 部署 Redis（可选）">使用 Docker Compose 部署 Redis（可选）</a></li><li><a href=#%e7%ab%af%e5%8f%a3%e5%86%b2%e7%aa%81%e5%92%8c%e6%9d%83%e9%99%90%e6%b3%a8%e6%84%8f aria-label=端口冲突和权限注意>端口冲突和权限注意</a></li></ul></li><li><a href=#%e9%83%a8%e7%bd%b2es aria-label=部署ES>部署ES</a><ul><li><a href=#%e6%8b%89%e5%8f%96-elasticsearch-%e9%95%9c%e5%83%8f aria-label="拉取 Elasticsearch 镜像">拉取 Elasticsearch 镜像</a></li><li><a href=#%e5%90%af%e5%8a%a8-elasticsearch-%e5%ae%b9%e5%99%a8 aria-label="启动 Elasticsearch 容器">启动 Elasticsearch 容器</a><ul><li><a href=#%e5%8f%82%e6%95%b0%e8%af%b4%e6%98%8e-2 aria-label=参数说明>参数说明</a></li></ul></li><li><a href=#%e9%aa%8c%e8%af%81-elasticsearch-%e5%ae%b9%e5%99%a8%e8%bf%90%e8%a1%8c aria-label="验证 Elasticsearch 容器运行">验证 Elasticsearch 容器运行</a></li><li><a href=#%e5%81%9c%e6%ad%a2%e5%90%af%e5%8a%a8%e9%87%8d%e5%90%af%e5%ae%b9%e5%99%a8-2 aria-label=停止/启动/重启容器>停止/启动/重启容器</a></li><li><a href=#%e5%88%a0%e9%99%a4-elasticsearch-%e5%ae%b9%e5%99%a8 aria-label="删除 Elasticsearch 容器">删除 Elasticsearch 容器</a></li><li><a href=#%e4%bd%bf%e7%94%a8-docker-compose-%e9%83%a8%e7%bd%b2-elasticsearch%e5%8f%af%e9%80%89 aria-label="使用 Docker Compose 部署 Elasticsearch（可选）">使用 Docker Compose 部署 Elasticsearch（可选）</a></li><li><a href=#%e7%ab%af%e5%8f%a3%e5%86%b2%e7%aa%81%e4%b8%8e%e6%9d%83%e9%99%90%e6%b3%a8%e6%84%8f aria-label=端口冲突与权限注意>端口冲突与权限注意</a></li></ul></li><li><a href=#tomcat aria-label=Tomcat>Tomcat</a></li><li><a href=#nginx aria-label=Nginx>Nginx</a></li><li><a href=#rabbitmq aria-label=RabbitMq>RabbitMq</a></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=wsl-docker>Wsl Docker<a hidden class=anchor aria-hidden=true href=#wsl-docker>#</a></h1><h2 id=安装-docker使用官方推荐方式>安装 Docker（使用官方推荐方式）<a hidden class=anchor aria-hidden=true href=#安装-docker使用官方推荐方式>#</a></h2><h3 id=1-卸载旧版本如果有>1. 卸载旧版本（如果有）<a hidden class=anchor aria-hidden=true href=#1-卸载旧版本如果有>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo apt-get remove -y docker docker-engine docker.io containerd runc <span style=color:#f92672>||</span> true
+</span></span></code></pre></div><h3 id=2-安装依赖>2. 安装依赖<a hidden class=anchor aria-hidden=true href=#2-安装依赖>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo apt install apt-transport-https ca-certificates curl gnupg lsb-release -y
+</span></span></code></pre></div><h3 id=3-添加官方-gpg-密钥>3. 添加官方 GPG 密钥<a hidden class=anchor aria-hidden=true href=#3-添加官方-gpg-密钥>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo mkdir -p /usr/share/keyrings
+</span></span><span style=display:flex><span>curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-ce-archive-keyring.gpg
+</span></span></code></pre></div><h3 id=4-添加-docker-软件源可切换为国内镜像>4. 添加 Docker 软件源（可切换为国内镜像）<a hidden class=anchor aria-hidden=true href=#4-添加-docker-软件源可切换为国内镜像>#</a></h3><p>官方源：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>echo <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;deb [arch=</span><span style=color:#66d9ef>$(</span>dpkg --print-architecture<span style=color:#66d9ef>)</span><span style=color:#e6db74> signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  https://download.docker.com/linux/ubuntu </span><span style=color:#66d9ef>$(</span>lsb_release -cs<span style=color:#66d9ef>)</span><span style=color:#e6db74> stable&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  | sudo tee /etc/apt/sources.list.d/docker.list &gt; /dev/null
+</span></span></code></pre></div><p>国内镜像源（推荐）：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>echo <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;deb [arch=</span><span style=color:#66d9ef>$(</span>dpkg --print-architecture<span style=color:#66d9ef>)</span><span style=color:#e6db74> signed-by=/usr/share/keyrings/docker-ce-archive-keyring.gpg] \
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  https://mirrors.aliyun.com/docker-ce/linux/ubuntu jammy stable&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  | sudo tee /etc/apt/sources.list.d/docker.list
+</span></span></code></pre></div><h3 id=5-安装-docker>5. 安装 Docker<a hidden class=anchor aria-hidden=true href=#5-安装-docker>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo apt update
+</span></span><span style=display:flex><span>sudo apt install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+</span></span></code></pre></div><h3 id=6-验证安装>6. 验证安装<a hidden class=anchor aria-hidden=true href=#6-验证安装>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker --version
+</span></span><span style=display:flex><span>docker compose version
+</span></span><span style=display:flex><span>sudo systemctl enable --now docker
+</span></span></code></pre></div><h2 id=安装-docker-compose独立版本>安装 Docker Compose（独立版本）<a hidden class=anchor aria-hidden=true href=#安装-docker-compose独立版本>#</a></h2><p>简便安装方式：<code>sudo apt install docker-compose</code></p><blockquote><p>说明：如果已通过上面的步骤安装了 <code>docker-compose-plugin</code>，可以直接使用 <code>docker compose</code> 命令，无需再安装独立版。
+若需要传统的 <code>docker-compose</code> 可执行文件，请按以下步骤安装。</p></blockquote><h3 id=1-下载最新版本>1. 下载最新版本<a hidden class=anchor aria-hidden=true href=#1-下载最新版本>#</a></h3><p>先查询最新版本号（或直接使用稳定版本）：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>DOCKER_COMPOSE_VERSION<span style=color:#f92672>=</span><span style=color:#66d9ef>$(</span>curl -s https://api.github.com/repos/docker/compose/releases/latest | grep tag_name | cut -d <span style=color:#e6db74>&#39;&#34;&#39;</span> -f 4<span style=color:#66d9ef>)</span>
+</span></span></code></pre></div><p>下载并安装：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>sudo curl -L <span style=color:#e6db74>&#34;https://github.com/docker/compose/releases/download/</span><span style=color:#e6db74>${</span>DOCKER_COMPOSE_VERSION<span style=color:#e6db74>}</span><span style=color:#e6db74>/docker-compose-</span><span style=color:#66d9ef>$(</span>uname -s<span style=color:#66d9ef>)</span><span style=color:#e6db74>-</span><span style=color:#66d9ef>$(</span>uname -m<span style=color:#66d9ef>)</span><span style=color:#e6db74>&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -o /usr/local/bin/docker-compose
+</span></span></code></pre></div><blockquote><p>若下载缓慢，可使用国内镜像：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>sudo curl -L <span style=color:#e6db74>&#34;https://get.daocloud.io/docker/compose/releases/download/</span><span style=color:#e6db74>${</span>DOCKER_COMPOSE_VERSION<span style=color:#e6db74>}</span><span style=color:#e6db74>/docker-compose-</span><span style=color:#66d9ef>$(</span>uname -s<span style=color:#66d9ef>)</span><span style=color:#e6db74>-</span><span style=color:#66d9ef>$(</span>uname -m<span style=color:#66d9ef>)</span><span style=color:#e6db74>&#34;</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>-o /usr/local/bin/docker-compose
+</span></span></code></pre></div></blockquote><h3 id=2-赋予执行权限>2. 赋予执行权限<a hidden class=anchor aria-hidden=true href=#2-赋予执行权限>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>sudo chmod +x /usr/local/bin/docker-compose
+</span></span></code></pre></div><h3 id=3-验证安装是否成功>3. 验证安装是否成功<a hidden class=anchor aria-hidden=true href=#3-验证安装是否成功>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>docker-compose --version
+</span></span></code></pre></div><h3 id=4-可选启用命令自动补全>4. （可选）启用命令自动补全<a hidden class=anchor aria-hidden=true href=#4-可选启用命令自动补全>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>sudo curl -L https://raw.githubusercontent.com/docker/compose/<span style=color:#e6db74>${</span>DOCKER_COMPOSE_VERSION<span style=color:#e6db74>}</span>/contrib/completion/bash/docker-compose <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -o /etc/bash_completion.d/docker-compose
+</span></span></code></pre></div><h3 id=5-使用方式>5. 使用方式<a hidden class=anchor aria-hidden=true href=#5-使用方式>#</a></h3><p>独立版 Compose 使用命令：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>docker-compose up -d
+</span></span></code></pre></div><p>插件版（推荐）使用命令：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>docker compose up -d
+</span></span></code></pre></div><h2 id=配置-docker-hub-镜像加速器>配置 Docker Hub 镜像加速器<a hidden class=anchor aria-hidden=true href=#配置-docker-hub-镜像加速器>#</a></h2><p>Docker Hub 默认从国外下载，建议添加国内加速器：</p><h3 id=添加加速器列表推荐组合>添加加速器列表（推荐组合）<a hidden class=anchor aria-hidden=true href=#添加加速器列表推荐组合>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo mkdir -p /etc/docker
+</span></span><span style=display:flex><span>sudo tee /etc/docker/daemon.json <span style=color:#e6db74>&lt;&lt;EOF
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>{
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  &#34;registry-mirrors&#34;: [
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &#34;https://registry.cn-hangzhou.aliyuncs.com&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &#34;https://docker.mirrors.ustc.edu.cn&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &#34;https://mirror.ccs.tencentyun.com&#34;,
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>    &#34;https://docker.m.daocloud.io&#34;
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>  ]
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>}
+</span></span></span><span style=display:flex><span><span style=color:#e6db74>EOF</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>sudo systemctl daemon-reload
+</span></span><span style=display:flex><span>sudo systemctl restart docker
+</span></span></code></pre></div><h3 id=验证是否生效>验证是否生效<a hidden class=anchor aria-hidden=true href=#验证是否生效>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker info | grep -A <span style=color:#ae81ff>3</span> <span style=color:#e6db74>&#34;Registry Mirrors&#34;</span>
+</span></span></code></pre></div><p>输出类似：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span> Registry Mirrors:
+</span></span><span style=display:flex><span>  https://registry.cn-hangzhou.aliyuncs.com/
+</span></span><span style=display:flex><span>  https://docker.m.daocloud.io/
+</span></span></code></pre></div><p>说明生效。</p><h2 id=添加普通用户权限>添加普通用户权限<a hidden class=anchor aria-hidden=true href=#添加普通用户权限>#</a></h2><h3 id=创建-docker-用户组如果不存在>创建 Docker 用户组（如果不存在）<a hidden class=anchor aria-hidden=true href=#创建-docker-用户组如果不存在>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo groupadd docker
+</span></span></code></pre></div><blockquote><p>大部分系统安装 Docker 时已经自动创建了 <code>docker</code> 组，如果存在会提示 <code>groupadd: group 'docker' already exists</code>，可以忽略。</p></blockquote><hr><h3 id=将当前用户加入-docker-组>将当前用户加入 Docker 组<a hidden class=anchor aria-hidden=true href=#将当前用户加入-docker-组>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo usermod -aG docker $USER
+</span></span></code></pre></div><ul><li><code>-aG</code>：追加当前用户到指定组，不覆盖原有组</li><li><code>$USER</code>：当前登录用户名，也可以直接写 <code>kennem</code></li></ul><hr><h3 id=重新登录用户或刷新组权限>重新登录用户或刷新组权限<a hidden class=anchor aria-hidden=true href=#重新登录用户或刷新组权限>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>newgrp docker
+</span></span></code></pre></div><p>或者 <strong>完全登出再登录</strong>，才能使组权限生效。</p><hr><h3 id=验证是否生效-1>验证是否生效<a hidden class=anchor aria-hidden=true href=#验证是否生效-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker ps
+</span></span></code></pre></div><ul><li>如果能够列出运行的容器而 <strong>不需要 sudo</strong>，说明成功。</li><li>如果仍提示权限错误，请确认 <code>$USER</code> 已在 <code>docker</code> 组：</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>groups $USER
+</span></span></code></pre></div><hr><h3 id=注意事项>注意事项<a hidden class=anchor aria-hidden=true href=#注意事项>#</a></h3><ol><li><strong>安全性</strong>：加入 <code>docker</code> 组等同于拥有 root 权限，因为 Docker 可以执行任意宿主机命令。</li><li><strong>系统服务</strong>：Docker 仍然以 root 启动，但你作为普通用户可以无需 sudo 使用 Docker CLI。</li><li><strong>脚本自动化</strong>：加入组后，所有 Docker 命令无需 sudo，例如：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker run hello-world
+</span></span><span style=display:flex><span>docker pull mysql:8.0
+</span></span><span style=display:flex><span>docker-compose up -d
+</span></span></code></pre></div><h2 id=部署mysql>部署MySQL<a hidden class=anchor aria-hidden=true href=#部署mysql>#</a></h2><h3 id=创建本地持久化数据目录><strong>创建本地持久化数据目录</strong><a hidden class=anchor aria-hidden=true href=#创建本地持久化数据目录>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>mkdir -p /data/mysql
+</span></span></code></pre></div><ul><li>这样容器删除后数据仍保留。</li></ul><h3 id=拉取-mysql-镜像>拉取 MySQL 镜像<a hidden class=anchor aria-hidden=true href=#拉取-mysql-镜像>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker pull mysql:8.0
+</span></span></code></pre></div><ul><li><code>mysql:8.0</code> 可替换为其他版本，如 <code>mysql:5.7</code></li><li>国内用户建议使用国内镜像加速：</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/mysql:8
+</span></span></code></pre></div><h3 id=启动-mysql-容器>启动 MySQL 容器<a hidden class=anchor aria-hidden=true href=#启动-mysql-容器>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker run -d <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --name mysql-server <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e MYSQL_ROOT_PASSWORD<span style=color:#f92672>=</span>Root1234 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e MYSQL_DATABASE<span style=color:#f92672>=</span>testdb <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e MYSQL_USER<span style=color:#f92672>=</span>testuser <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -e MYSQL_PASSWORD<span style=color:#f92672>=</span>testpass <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -p 3306:3306 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -v /data/mysql:/var/lib/mysql <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  mysql:8.0
+</span></span></code></pre></div><h4 id=参数说明>参数说明：<a hidden class=anchor aria-hidden=true href=#参数说明>#</a></h4><table><thead><tr><th>参数</th><th>说明</th></tr></thead><tbody><tr><td><code>--name mysql-server</code></td><td>容器名称</td></tr><tr><td><code>-e MYSQL_ROOT_PASSWORD=Root1234</code></td><td>设置 root 密码</td></tr><tr><td><code>-e MYSQL_DATABASE=testdb</code></td><td>容器启动时创建的数据库</td></tr><tr><td><code>-e MYSQL_USER=testuser</code></td><td>容器启动时创建的用户</td></tr><tr><td><code>-e MYSQL_PASSWORD=testpass</code></td><td>用户密码</td></tr><tr><td><code>-p 3306:3306</code></td><td>映射宿主机端口到容器端口</td></tr><tr><td><code>-v /data/mysql:/var/lib/mysql</code></td><td>数据持久化挂载</td></tr></tbody></table><h3 id=验证-mysql-容器运行>验证 MySQL 容器运行<a hidden class=anchor aria-hidden=true href=#验证-mysql-容器运行>#</a></h3><ol><li>查看容器状态：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker ps
+</span></span></code></pre></div><ol><li>登录 MySQL：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker exec -it mysql-server mysql -uroot -p
+</span></span><span style=display:flex><span><span style=color:#75715e># 输入密码 Root1234</span>
+</span></span></code></pre></div><ol><li>测试数据库：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>SHOW DATABASES;
+</span></span></code></pre></div><hr><h3 id=停止启动重启容器>停止/启动/重启容器<a hidden class=anchor aria-hidden=true href=#停止启动重启容器>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 停止</span>
+</span></span><span style=display:flex><span>docker stop mysql-server
+</span></span><span style=display:flex><span><span style=color:#75715e># 启动</span>
+</span></span><span style=display:flex><span>docker start mysql-server
+</span></span><span style=display:flex><span><span style=color:#75715e># 重启</span>
+</span></span><span style=display:flex><span>docker restart mysql-server
+</span></span></code></pre></div><hr><h3 id=删除-mysql-容器>删除 MySQL 容器<a hidden class=anchor aria-hidden=true href=#删除-mysql-容器>#</a></h3><ol><li><strong>停止容器</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker stop mysql-server
+</span></span></code></pre></div><ol><li><strong>删除容器</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker rm mysql-server
+</span></span></code></pre></div><ol><li><strong>删除镜像（如果不再使用）</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker rmi mysql:8.0
+</span></span></code></pre></div><blockquote><p>注意：删除容器不会删除 <code>/data/mysql</code> 数据目录，如果想连数据一起删除：</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo rm -rf /data/mysql
+</span></span></code></pre></div><hr><h3 id=使用-docker-compose-部署可选>使用 Docker Compose 部署（可选）<a hidden class=anchor aria-hidden=true href=#使用-docker-compose-部署可选>#</a></h3><p>创建 <code>docker-compose.yml</code>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>version: <span style=color:#e6db74>&#34;3.9&#34;</span>
+</span></span><span style=display:flex><span>services:
+</span></span><span style=display:flex><span>  mysql:
+</span></span><span style=display:flex><span>    image: mysql:8.0
+</span></span><span style=display:flex><span>    container_name: mysql-server
+</span></span><span style=display:flex><span>    environment:
+</span></span><span style=display:flex><span>      MYSQL_ROOT_PASSWORD: Root1234
+</span></span><span style=display:flex><span>      MYSQL_DATABASE: testdb
+</span></span><span style=display:flex><span>      MYSQL_USER: testuser
+</span></span><span style=display:flex><span>      MYSQL_PASSWORD: testpass
+</span></span><span style=display:flex><span>    ports:
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;3306:3306&#34;</span>
+</span></span><span style=display:flex><span>    volumes:
+</span></span><span style=display:flex><span>      - /data/mysql:/var/lib/mysql
+</span></span></code></pre></div><p>启动：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker-compose up -d
+</span></span></code></pre></div><p>停止并删除：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker-compose down
+</span></span></code></pre></div><ul><li>数据仍在 <code>/data/mysql</code> 持久化。</li></ul><h2 id=部署redis>部署Redis<a hidden class=anchor aria-hidden=true href=#部署redis>#</a></h2><h3 id=创建本地持久化数据目录-1><strong>创建本地持久化数据目录</strong><a hidden class=anchor aria-hidden=true href=#创建本地持久化数据目录-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>mkdir -p /data/redis
+</span></span></code></pre></div><ul><li>容器删除后数据仍保留。</li></ul><h3 id=拉取-redis-镜像>拉取 Redis 镜像<a hidden class=anchor aria-hidden=true href=#拉取-redis-镜像>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>docker pull redis:8.2
+</span></span></code></pre></div><ul><li><code>redis:8.2</code> 可根据需求选择版本</li><li>国内用户可用国内镜像加速：</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>docker pull registry.cn-hangzhou.aliyuncs.com/official/redis:8.2
+</span></span></code></pre></div><hr><h3 id=启动-redis-容器>启动 Redis 容器<a hidden class=anchor aria-hidden=true href=#启动-redis-容器>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker run -d <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  --name redis-server <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -p 6379:6379 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  -v /data/redis:/data <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  redis:8.2 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>  redis-server --appendonly yes
+</span></span></code></pre></div><h3 id=参数说明-1>参数说明<a hidden class=anchor aria-hidden=true href=#参数说明-1>#</a></h3><table><thead><tr><th>参数</th><th>说明</th></tr></thead><tbody><tr><td><code>--name redis-server</code></td><td>容器名称</td></tr><tr><td><code>-p 6379:6379</code></td><td>映射宿主机端口到容器端口</td></tr><tr><td><code>-v /data/redis:/data</code></td><td>持久化数据挂载</td></tr><tr><td><code>redis-server --appendonly yes</code></td><td>开启 AOF 持久化</td></tr></tbody></table><blockquote><p>默认 Redis 不设置密码，如果需要可以加：</p></blockquote><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>-e REDIS_PASSWORD=MyStrongPass
+</span></span></code></pre></div><p>然后用 <code>redis-cli -a MyStrongPass</code> 登录。</p><h3 id=验证-redis-容器运行>验证 Redis 容器运行<a hidden class=anchor aria-hidden=true href=#验证-redis-容器运行>#</a></h3><ol><li>查看容器状态：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>docker ps
+</span></span></code></pre></div><ol><li>进入容器：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker exec -it redis-server redis-cli
+</span></span></code></pre></div><ol><li>测试：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>set testkey hello
+</span></span><span style=display:flex><span>get testkey
+</span></span></code></pre></div><hr><h3 id=停止启动重启容器-1>停止/启动/重启容器<a hidden class=anchor aria-hidden=true href=#停止启动重启容器-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 停止</span>
+</span></span><span style=display:flex><span>docker stop redis-server
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 启动</span>
+</span></span><span style=display:flex><span>docker start redis-server
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 重启</span>
+</span></span><span style=display:flex><span>docker restart redis-server
+</span></span></code></pre></div><hr><h3 id=删除-redis-容器>删除 Redis 容器<a hidden class=anchor aria-hidden=true href=#删除-redis-容器>#</a></h3><ol><li><strong>停止容器</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker stop redis-server
+</span></span></code></pre></div><ol><li><strong>删除容器</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker rm redis-server
+</span></span></code></pre></div><ol><li><strong>删除镜像（可选）</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker rmi redis:8.2
+</span></span></code></pre></div><ol><li><strong>删除数据目录（可选）</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo rm -rf /data/redis
+</span></span></code></pre></div><hr><h3 id=使用-docker-compose-部署-redis可选>使用 Docker Compose 部署 Redis（可选）<a hidden class=anchor aria-hidden=true href=#使用-docker-compose-部署-redis可选>#</a></h3><p>创建 <code>docker-compose.yml</code>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>version: <span style=color:#e6db74>&#34;3.9&#34;</span>
+</span></span><span style=display:flex><span>services:
+</span></span><span style=display:flex><span>  redis:
+</span></span><span style=display:flex><span>    image: redis:8.2
+</span></span><span style=display:flex><span>    container_name: redis-server
+</span></span><span style=display:flex><span>    ports:
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;6379:6379&#34;</span>
+</span></span><span style=display:flex><span>    volumes:
+</span></span><span style=display:flex><span>      - /data/redis:/data
+</span></span><span style=display:flex><span>    command: <span style=color:#f92672>[</span><span style=color:#e6db74>&#34;redis-server&#34;</span>, <span style=color:#e6db74>&#34;--appendonly&#34;</span>, <span style=color:#e6db74>&#34;yes&#34;</span><span style=color:#f92672>]</span>
+</span></span></code></pre></div><p>启动：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker-compose up -d
+</span></span></code></pre></div><p>停止并删除：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker-compose down
+</span></span></code></pre></div><ul><li>数据仍在 <code>/data/redis</code> 持久化。</li></ul><hr><h3 id=端口冲突和权限注意>端口冲突和权限注意<a hidden class=anchor aria-hidden=true href=#端口冲突和权限注意>#</a></h3><p>如果宿主机 6379 被占用，使用不同端口：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>-p 6380:6379
+</span></span></code></pre></div><h2 id=部署es>部署ES<a hidden class=anchor aria-hidden=true href=#部署es>#</a></h2><p><strong>创建本地持久化数据目录</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>mkdir -p /data/elasticsearch
+</span></span></code></pre></div><ul><li>用于存储 Elasticsearch 的数据文件，即使容器删除，数据仍然保留。</li></ul><hr><h3 id=拉取-elasticsearch-镜像>拉取 Elasticsearch 镜像<a hidden class=anchor aria-hidden=true href=#拉取-elasticsearch-镜像>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker pull docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+</span></span></code></pre></div><ul><li>最新版本可根据官网调整</li><li>国内用户建议使用国内镜像加速：</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker pull registry.cn-hangzhou.aliyuncs.com/library/elasticsearch:8.10.2
+</span></span></code></pre></div><hr><h3 id=启动-elasticsearch-容器>启动 Elasticsearch 容器<a hidden class=anchor aria-hidden=true href=#启动-elasticsearch-容器>#</a></h3><p>Elasticsearch 对系统资源有要求，需要设置内存和一些环境变量：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#ae81ff>docker run -d \</span>
+</span></span><span style=display:flex><span>  --<span style=color:#ae81ff>name es-server \</span>
+</span></span><span style=display:flex><span>  -<span style=color:#ae81ff>p 9200:9200 \</span>
+</span></span><span style=display:flex><span>  -<span style=color:#ae81ff>p 9300:9300 \</span>
+</span></span><span style=display:flex><span>  -<span style=color:#ae81ff>e &#34;discovery.type=single-node&#34; \</span>
+</span></span><span style=display:flex><span>  -<span style=color:#ae81ff>e &#34;ES_JAVA_OPTS=-Xms1g -Xmx1g&#34; \</span>
+</span></span><span style=display:flex><span>  -<span style=color:#ae81ff>v /data/elasticsearch:/usr/share/elasticsearch/data \</span>
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>docker.elastic.co/elasticsearch/elasticsearch:8.10.2</span>
+</span></span></code></pre></div><h4 id=参数说明-2>参数说明<a hidden class=anchor aria-hidden=true href=#参数说明-2>#</a></h4><table><thead><tr><th>参数</th><th>说明</th></tr></thead><tbody><tr><td><code>--name es-server</code></td><td>容器名称</td></tr><tr><td><code>-p 9200:9200</code></td><td>对外 HTTP 接口</td></tr><tr><td><code>-p 9300:9300</code></td><td>节点间通信端口</td></tr><tr><td><code>-e discovery.type=single-node</code></td><td>单节点模式</td></tr><tr><td><code>-e ES_JAVA_OPTS=-Xms1g -Xmx1g</code></td><td>JVM 内存设置，可根据宿主机调整</td></tr><tr><td><code>-v /data/elasticsearch:/usr/share/elasticsearch/data</code></td><td>数据持久化挂载</td></tr></tbody></table><hr><h3 id=验证-elasticsearch-容器运行>验证 Elasticsearch 容器运行<a hidden class=anchor aria-hidden=true href=#验证-elasticsearch-容器运行>#</a></h3><ol><li>查看容器状态：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker ps
+</span></span></code></pre></div><ol><li>测试 HTTP 接口：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>curl http://localhost:9200
+</span></span></code></pre></div><p>示例返回：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;name&#34;</span> : <span style=color:#e6db74>&#34;es-server&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;cluster_name&#34;</span> : <span style=color:#e6db74>&#34;docker-cluster&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;cluster_uuid&#34;</span> : <span style=color:#e6db74>&#34;abcd1234&#34;</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;version&#34;</span> : <span style=color:#f92672>{</span>
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;number&#34;</span> : <span style=color:#e6db74>&#34;8.10.2&#34;</span>,
+</span></span><span style=display:flex><span>    ...
+</span></span><span style=display:flex><span>  <span style=color:#f92672>}</span>,
+</span></span><span style=display:flex><span>  <span style=color:#e6db74>&#34;tagline&#34;</span> : <span style=color:#e6db74>&#34;You Know, for Search&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>}</span>
+</span></span></code></pre></div><hr><h3 id=停止启动重启容器-2>停止/启动/重启容器<a hidden class=anchor aria-hidden=true href=#停止启动重启容器-2>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span><span style=color:#75715e># 停止</span>
+</span></span><span style=display:flex><span>docker stop es-server
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 启动</span>
+</span></span><span style=display:flex><span>docker start es-server
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 重启</span>
+</span></span><span style=display:flex><span>docker restart es-server
+</span></span></code></pre></div><hr><h3 id=删除-elasticsearch-容器>删除 Elasticsearch 容器<a hidden class=anchor aria-hidden=true href=#删除-elasticsearch-容器>#</a></h3><ol><li><strong>停止容器</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker stop es-server
+</span></span></code></pre></div><ol><li><strong>删除容器</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker rm es-server
+</span></span></code></pre></div><ol><li><strong>删除镜像（可选）</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker rmi docker.elastic.co/elasticsearch/elasticsearch:8.10.2
+</span></span></code></pre></div><ol><li><strong>删除数据目录（可选）</strong></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>sudo rm -rf /data/elasticsearch
+</span></span></code></pre></div><hr><h3 id=使用-docker-compose-部署-elasticsearch可选>使用 Docker Compose 部署 Elasticsearch（可选）<a hidden class=anchor aria-hidden=true href=#使用-docker-compose-部署-elasticsearch可选>#</a></h3><p>创建 <code>docker-compose.yml</code>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>version</span>: <span style=color:#e6db74>&#34;3.9&#34;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>services</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>elasticsearch</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>image</span>: <span style=color:#ae81ff>docker.elastic.co/elasticsearch/elasticsearch:8.10.2</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>container_name</span>: <span style=color:#ae81ff>es-server</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>environment</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>discovery.type=single-node</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>ES_JAVA_OPTS=-Xms1g -Xmx1g</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>ports</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;9200:9200&#34;</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;9300:9300&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>volumes</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>/data/elasticsearch:/usr/share/elasticsearch/data</span>
+</span></span></code></pre></div><p>启动：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker-compose up -d
+</span></span></code></pre></div><p>停止并删除：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>docker-compose down
+</span></span></code></pre></div><ul><li>数据仍在 <code>/data/elasticsearch</code> 持久化。</li></ul><hr><h3 id=端口冲突与权限注意>端口冲突与权限注意<a hidden class=anchor aria-hidden=true href=#端口冲突与权限注意>#</a></h3><ol><li><strong>端口冲突</strong><ul><li>宿主机 9200 或 9300 被占用，可用不同端口：</li></ul></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-bash data-lang=bash><span style=display:flex><span>-p 9201:9200 -p 9301:9300
+</span></span></code></pre></div><h2 id=tomcat>Tomcat<a hidden class=anchor aria-hidden=true href=#tomcat>#</a></h2><h2 id=nginx>Nginx<a hidden class=anchor aria-hidden=true href=#nginx>#</a></h2><h2 id=rabbitmq>RabbitMq<a hidden class=anchor aria-hidden=true href=#rabbitmq>#</a></h2></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/wsl/>Wsl</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/linux>Linux</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/wsl-conda/><span class=title>« 上一页</span>
+<span>Wsl Conda</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/wsl-java/><span class=title>下一页 »</span>
+<span>Wsl Java</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

@@ -1,487 +1,41 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>MIT6.S081(3)-OS organization | Kennem&#39;s Blog</title>
-<meta name="keywords" content="MIT6.S081">
-<meta name="description" content="MIT6.S081(3)">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="MIT6.S081(3)-OS organization">
-  <meta property="og:description" content="MIT6.S081(3)">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-08-31T22:30:13+08:00">
-    <meta property="article:modified_time" content="2024-08-31T22:20:13+08:00">
-    <meta property="article:tag" content="MIT6.S081">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="MIT6.S081(3)-OS organization">
-  <meta name="twitter:description" content="MIT6.S081(3)">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "MIT6.S081(3)-OS organization",
-      "item": "https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "MIT6.S081(3)-OS organization",
-  "name": "MIT6.S081(3)-OS organization",
-  "description": "MIT6.S081(3)",
-  "keywords": [
-    "MIT6.S081"
-  ],
-  "articleBody": "MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6\nOS picture apps: sh, echo, … system call interface (open, close,…) OS\nGoal of OS run multiple applications isolate them multiplex them share\nStrawman design: No OS Application directly interacts with hardware CPU cores \u0026 registers DRAM chips Disk blocks … OS library perhaps abstracts some of it\nStrawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”\nStrawman design not conducive to memory isolation all apps share physical memory one app can overwrites another apps memory one app can overwrite OS library\nUnix interface conducive to OS goals abstracts the hardware in way that achieves goals processes (instead of cores): fork OS transparently allocates cores to processes Saves and restore registers Enforces that processes give them up Periodically re-allocates cores memory (instead of physical memory): exec Each process has its “own” memory OS can decide where to place app in memory OS can enforce isolation between memory of different apps OS allows storing image in file system files (instead of disk blocks) OS can provide convenient names OS can allow sharing of files between processes/users pipes (instead of shared physical mem) OS can stop sender/receiver\nOS must be defensive an application shouldn’t be able to crash OS an application shouldn’t be able to break out of its isolation =\u003e need strong isolation between apps and OS approach: hardware support\nuser/kernel mode virtual memory Processors provide user/kernel mode kernel mode: can execute “privileged” instructions e.g., setting kernel/user bit e.g., reprogramming timer chip user mode: cannot execute privileged instructions Run OS in kernel mode, applications in user mode [RISC-V has also an M mode, which we mostly ignore]\nProcessors provide virtual memory Hardware provides page tables that translate virtual address to physical Define what physical memory an application can access OS sets up page tables so that each application can access only its memory\nApps must be able to communicate with kernel Write to storage device, which is shared =\u003e must be protected =\u003e in kernel Exit app …\nSolution: add instruction to change mode in controlled way ecall enters kernel mode at a pre-agreed entry point\nModify OS picture user / kernel (redline) app -\u003e printf() -\u003e write() -\u003e SYSTEM CALL -\u003e sys_write() -\u003e … user-level libraries are app’s private business kernel internal functions are not callable by user\nother way of drawing picture: syscall 1 -\u003e system call stub -\u003e kernel entry -\u003e syscall -\u003e fs syscall 2 -\u003e proc\nsystem call stub executes special instruction to enter kernel hardware switches to kernel mode but only at an entry point specified by the kernel\nsyscall need some way to get at arguments of syscall\n[syscalls the topic of this week’s lab]\nKernel is the Trusted Computing Base (TCB) Kernel must be “correct” Bugs in kernel could allow user apps to circumvent kernel/user Happens often in practice, because kernels are complex See CVEs Kernel must treat user apps as suspect User app may trick kernel to do the wrong thing Kernel must check arguments carefully Setup user/kernel correctly Etc. Kernel in charge of separating applications too One app may try to read/write another app’s memory =\u003e Requires a security mindset Any bug in kernel may be a security exploit\nAside: can one have process isolation WITHOUT h/w-supported kernel/user mode and virtual memory? yes! use a strongly-typed programming language\nFor example, see Singularity O/S the compiler is then the trust computing base (TCB) but h/w user/kernel mode is the most popular plan Monolothic kernel OS runs in kernel space Xv6 does this. Linux etc. too. kernel interface == system call interface one big program with file system, drivers, \u0026c\ngood: easy for subsystems to cooperate one cache shared by file system and virtual memory bad: interactions are complex leads to bugs no isolation within Microkernel design many OS services run as ordinary user programs file system in a file server kernel implements minimal mechanism to run services in user space processes with memory inter-process communication (IPC) kernel interface != system call interface\ngood: more isolation bad: may be hard to get good performance both monolithic and microkernel designs widely used Xv6 case study Monolithic kernel Unix system calls == kernel interface Source code reflects OS organization (by convention) user/ apps in user mode kernel/ code in kernel mode Kernel has several parts kernel/defs.h proc fs .. Goal: read source code and understand it (without consulting book)\nUsing xv6 Makefile builds kernel program user programs mkfs $ make qemu runs xv6 on qemu emulates a RISC-V computer\nBuilding kernel\n.c -\u003e gcc -\u003e .s -\u003e .o \\ .... ld -\u003e a.out .c -\u003e gcc -\u003e .s -\u003e .o / makefile keeps .asm file around for binary see for example, kernel/kernel.asm\nThe RISC-V computer A very simple board (e.g., no display)\nRISC-V processor with 4 cores RAM (128 MB) support for interrupts (PLIC, CLINT) support for UART allows xv6 to talk to console allows xv6 to read from keyboard support for e1000 network card (through PCIe) Development using Qemu More convenient than using the real hardware Qemu emulates several RISC-V computers\nwe use the “virt” one https://github.com/riscv/riscv-qemu/wiki close to the SiFive board (https://www.sifive.com/boards) but with virtio for disk What is “to emulate”? Qemu is a C program that faithfully implements a RISC-V processor\nfor (;;) { read next instructions decode instruction execute instruction (updating processor state) } [big idea: software = hardware]\nBoot xv6 (under gdb)\n$ make CPUS=1 qemu-gdb ​ runs xv6 under gdb (with 1 core) Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld) ​ set breakpoint at _entry ​ look at instruction ​ info reg ​ set breakpoint at main ​ Walk through main ​ single step into userinit ​ Walk through userinit ​ show proc.h ​ show allocproc() ​ show initcode.S/initcode.asm ​ break forkret() ​ walk to userret ​ break syscall ​ print num ​ syscalls[num] ​ exec “/init”\nOperating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab: system calls System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ",
-  "wordCount" : "1800",
-  "inLanguage": "zh",
-  "datePublished": "2024-08-31T22:30:13+08:00",
-  "dateModified": "2024-08-31T22:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      MIT6.S081(3)-OS organization
-    </h1>
-    <div class="post-description">
-      MIT6.S081(3)
-    </div>
-    <div class="post-meta">
-
-<span title='2024-08-31 22:30:13 +0800 CST'>2024-08-31</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1800 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#mit6s0813-os-organization" aria-label="MIT6.S081(3)-OS organization">MIT6.S081(3)-OS organization</a><ul>
-                        
-                <li>
-                    <a href="#lecture-topic" aria-label="Lecture Topic:">Lecture Topic:</a><ul>
-                        
-                <li>
-                    <a href="#os-design" aria-label="OS design">OS design</a></li>
-                <li>
-                    <a href="#os-picture" aria-label="OS picture">OS picture</a></li>
-                <li>
-                    <a href="#goal-of-os" aria-label="Goal of OS">Goal of OS</a></li></ul>
-                </li>
-                <li>
-                    <a href="#operating-system-organization" aria-label="Operating system organization">Operating system organization</a></li>
-                <li>
-                    <a href="#lab-system-calls" aria-label="Lab: system calls"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab: system calls</a></a></li>
-                <li>
-                    <a href="#system-call-tracing-moderate" aria-label="System call tracing (moderate)">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a><ul>
-                        
-                <li>
-                    <a href="#hometopeetprojectxv6-labs-2020makefile" aria-label="/home/topeet/project/xv6-labs-2020/Makefile">/home/topeet/project/xv6-labs-2020/Makefile</a></li>
-                <li>
-                    <a href="#hometopeetprojectxv6-labs-2020userusyspl" aria-label="/home/topeet/project/xv6-labs-2020/user/usys.pl">/home/topeet/project/xv6-labs-2020/user/usys.pl</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelprocc" aria-label="~/project/xv6-labs-2020/kernel/proc.c">~/project/xv6-labs-2020/kernel/proc.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelproch" aria-label="~/project/xv6-labs-2020/kernel/proc.h">~/project/xv6-labs-2020/kernel/proc.h</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelsyscallc" aria-label="~/project/xv6-labs-2020/kernel/syscall.c">~/project/xv6-labs-2020/kernel/syscall.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelsyscallh" aria-label="~/project/xv6-labs-2020/kernel/syscall.h">~/project/xv6-labs-2020/kernel/syscall.h</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelsysprocc" aria-label="~/project/xv6-labs-2020/kernel/sysproc.c">~/project/xv6-labs-2020/kernel/sysproc.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020useruserh" aria-label="~/project/xv6-labs-2020/user/user.h">~/project/xv6-labs-2020/user/user.h</a></li></ul>
-                </li>
-                <li>
-                    <a href="#sysinfo-moderate" aria-label="Sysinfo (moderate)">Sysinfo (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a><ul>
-                        
-                <li>
-                    <a href="#projectxv6-labs-2020makefile" aria-label="~/project/xv6-labs-2020/Makefile">~/project/xv6-labs-2020/Makefile</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kerneldefsh" aria-label="~/project/xv6-labs-2020/kernel/defs.h">~/project/xv6-labs-2020/kernel/defs.h</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelkallocc" aria-label="~/project/xv6-labs-2020/kernel/kalloc.c">~/project/xv6-labs-2020/kernel/kalloc.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelprocc-1" aria-label="~/project/xv6-labs-2020/kernel/proc.c">~/project/xv6-labs-2020/kernel/proc.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelproch-1" aria-label="~/project/xv6-labs-2020/kernel/proc.h">~/project/xv6-labs-2020/kernel/proc.h</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelsyscallc-1" aria-label="~/project/xv6-labs-2020/kernel/syscall.c">~/project/xv6-labs-2020/kernel/syscall.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelsyscallh-1" aria-label="~/project/xv6-labs-2020/kernel/syscall.h">~/project/xv6-labs-2020/kernel/syscall.h</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020kernelsysprocc-1" aria-label="~/project/xv6-labs-2020/kernel/sysproc.c">~/project/xv6-labs-2020/kernel/sysproc.c</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020useruserh-1" aria-label="~/project/xv6-labs-2020/user/user.h">~/project/xv6-labs-2020/user/user.h</a></li>
-                <li>
-                    <a href="#projectxv6-labs-2020userusyspl" aria-label="~/project/xv6-labs-2020/user/usys.pl">~/project/xv6-labs-2020/user/usys.pl</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="mit6s0813-os-organization">MIT6.S081(3)-OS organization<a hidden class="anchor" aria-hidden="true" href="#mit6s0813-os-organization">#</a></h1>
-<h2 id="lecture-topic">Lecture Topic:<a hidden class="anchor" aria-hidden="true" href="#lecture-topic">#</a></h2>
-<h3 id="os-design">OS design<a hidden class="anchor" aria-hidden="true" href="#os-design">#</a></h3>
-<p>​    system calls
-​    micro/monolithic kernel
-First system call in xv6</p>
-<h3 id="os-picture">OS picture<a hidden class="anchor" aria-hidden="true" href="#os-picture">#</a></h3>
-<p>apps: sh, echo, &hellip;
-system call interface (open, close,&hellip;)
-OS</p>
-<h3 id="goal-of-os">Goal of OS<a hidden class="anchor" aria-hidden="true" href="#goal-of-os">#</a></h3>
-<p>run multiple applications
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>MIT6.S081(3)-OS organization | Kennem's Blog</title><meta name=keywords content="MIT6.S081"><meta name=description content="MIT6.S081(3)"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/mit6.s0813-os-organization/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/mit6.s0813-os-organization/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="MIT6.S081(3)-OS organization"><meta property="og:description" content="MIT6.S081(3)"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-08-31T22:30:13+08:00"><meta property="article:modified_time" content="2024-08-31T22:20:13+08:00"><meta property="article:tag" content="MIT6.S081"><meta name=twitter:card content="summary"><meta name=twitter:title content="MIT6.S081(3)-OS organization"><meta name=twitter:description content="MIT6.S081(3)"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"MIT6.S081(3)-OS organization","item":"https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"MIT6.S081(3)-OS organization","name":"MIT6.S081(3)-OS organization","description":"MIT6.S081(3)","keywords":["MIT6.S081"],"articleBody":"MIT6.S081(3)-OS organization Lecture Topic: OS design ​ system calls ​ micro/monolithic kernel First system call in xv6\nOS picture apps: sh, echo, … system call interface (open, close,…) OS\nGoal of OS run multiple applications isolate them multiplex them share\nStrawman design: No OS Application directly interacts with hardware CPU cores \u0026 registers DRAM chips Disk blocks … OS library perhaps abstracts some of it\nStrawman design not conducive to multiplexing each app periodically must give up hardware BUT, weak isolation app forgets to give up, no other app runs apps has end-less loop, no other app runs you cannot even kill the badly app from another app but used by real-time OSes “cooperative scheduling”\nStrawman design not conducive to memory isolation all apps share physical memory one app can overwrites another apps memory one app can overwrite OS library\nUnix interface conducive to OS goals abstracts the hardware in way that achieves goals processes (instead of cores): fork OS transparently allocates cores to processes Saves and restore registers Enforces that processes give them up Periodically re-allocates cores memory (instead of physical memory): exec Each process has its “own” memory OS can decide where to place app in memory OS can enforce isolation between memory of different apps OS allows storing image in file system files (instead of disk blocks) OS can provide convenient names OS can allow sharing of files between processes/users pipes (instead of shared physical mem) OS can stop sender/receiver\nOS must be defensive an application shouldn’t be able to crash OS an application shouldn’t be able to break out of its isolation =\u003e need strong isolation between apps and OS approach: hardware support\nuser/kernel mode virtual memory Processors provide user/kernel mode kernel mode: can execute “privileged” instructions e.g., setting kernel/user bit e.g., reprogramming timer chip user mode: cannot execute privileged instructions Run OS in kernel mode, applications in user mode [RISC-V has also an M mode, which we mostly ignore]\nProcessors provide virtual memory Hardware provides page tables that translate virtual address to physical Define what physical memory an application can access OS sets up page tables so that each application can access only its memory\nApps must be able to communicate with kernel Write to storage device, which is shared =\u003e must be protected =\u003e in kernel Exit app …\nSolution: add instruction to change mode in controlled way ecall enters kernel mode at a pre-agreed entry point\nModify OS picture user / kernel (redline) app -\u003e printf() -\u003e write() -\u003e SYSTEM CALL -\u003e sys_write() -\u003e … user-level libraries are app’s private business kernel internal functions are not callable by user\nother way of drawing picture: syscall 1 -\u003e system call stub -\u003e kernel entry -\u003e syscall -\u003e fs syscall 2 -\u003e proc\nsystem call stub executes special instruction to enter kernel hardware switches to kernel mode but only at an entry point specified by the kernel\nsyscall need some way to get at arguments of syscall\n[syscalls the topic of this week’s lab]\nKernel is the Trusted Computing Base (TCB) Kernel must be “correct” Bugs in kernel could allow user apps to circumvent kernel/user Happens often in practice, because kernels are complex See CVEs Kernel must treat user apps as suspect User app may trick kernel to do the wrong thing Kernel must check arguments carefully Setup user/kernel correctly Etc. Kernel in charge of separating applications too One app may try to read/write another app’s memory =\u003e Requires a security mindset Any bug in kernel may be a security exploit\nAside: can one have process isolation WITHOUT h/w-supported kernel/user mode and virtual memory? yes! use a strongly-typed programming language\nFor example, see Singularity O/S the compiler is then the trust computing base (TCB) but h/w user/kernel mode is the most popular plan Monolothic kernel OS runs in kernel space Xv6 does this. Linux etc. too. kernel interface == system call interface one big program with file system, drivers, \u0026c\ngood: easy for subsystems to cooperate one cache shared by file system and virtual memory bad: interactions are complex leads to bugs no isolation within Microkernel design many OS services run as ordinary user programs file system in a file server kernel implements minimal mechanism to run services in user space processes with memory inter-process communication (IPC) kernel interface != system call interface\ngood: more isolation bad: may be hard to get good performance both monolithic and microkernel designs widely used Xv6 case study Monolithic kernel Unix system calls == kernel interface Source code reflects OS organization (by convention) user/ apps in user mode kernel/ code in kernel mode Kernel has several parts kernel/defs.h proc fs .. Goal: read source code and understand it (without consulting book)\nUsing xv6 Makefile builds kernel program user programs mkfs $ make qemu runs xv6 on qemu emulates a RISC-V computer\nBuilding kernel\n.c -\u003e gcc -\u003e .s -\u003e .o \\ .... ld -\u003e a.out .c -\u003e gcc -\u003e .s -\u003e .o / makefile keeps .asm file around for binary see for example, kernel/kernel.asm\nThe RISC-V computer A very simple board (e.g., no display)\nRISC-V processor with 4 cores RAM (128 MB) support for interrupts (PLIC, CLINT) support for UART allows xv6 to talk to console allows xv6 to read from keyboard support for e1000 network card (through PCIe) Development using Qemu More convenient than using the real hardware Qemu emulates several RISC-V computers\nwe use the “virt” one https://github.com/riscv/riscv-qemu/wiki close to the SiFive board (https://www.sifive.com/boards) but with virtio for disk What is “to emulate”? Qemu is a C program that faithfully implements a RISC-V processor\nfor (;;) { read next instructions decode instruction execute instruction (updating processor state) } [big idea: software = hardware]\nBoot xv6 (under gdb)\n$ make CPUS=1 qemu-gdb ​ runs xv6 under gdb (with 1 core) Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld) ​ set breakpoint at _entry ​ look at instruction ​ info reg ​ set breakpoint at main ​ Walk through main ​ single step into userinit ​ Walk through userinit ​ show proc.h ​ show allocproc() ​ show initcode.S/initcode.asm ​ break forkret() ​ walk to userret ​ break syscall ​ print num ​ syscalls[num] ​ exec “/init”\nOperating system organization 文件名 描述 bio.c 文件系统的磁盘块缓存。 console.c 连接用户键盘和屏幕。 entry.S 最早的引导指令。 exec.c exec() 系统调用。 file.c 文件描述符支持。 fs.c 文件系统。 kalloc.c 物理页面分配器。 kernelvec.S 处理来自内核的陷阱和定时器中断。 log.c 文件系统日志和崩溃恢复。 main.c 控制启动时其他模块的初始化。 pipe.c 管道。 plic.c RISC-V 中断控制器。 printf.c 格式化输出到控制台。 proc.c 进程和调度。 sleeplock.c 让出 CPU 的锁。 spinlock.c 不让出 CPU 的锁。 start.c 机器模式的早期引导代码。 string.c C 字符串和字节数组库。 swtch.S 线程切换。 syscall.c 将系统调用分派给处理函数。 sysfile.c 与文件相关的系统调用。 sysproc.c 与进程相关的系统调用。 trampoline.S 用户和内核之间切换的汇编代码。 trap.c 处理并返回陷阱和中断的 C 代码。 uart.c 串行端口控制台设备驱动程序。 virtio_disk.c 磁盘设备驱动程序。 vm.c 管理页表和地址空间。 Lab: system calls System call tracing (moderate) /home/topeet/project/xv6-labs-2020/Makefile $U/_wc\\ $U/_zombie\\ $U/_trace\\ /home/topeet/project/xv6-labs-2020/user/usys.pl entry(\"trace\"); ~/project/xv6-labs-2020/kernel/proc.c 在fork()函数内部添加如下代码：\n// copy saved user registers. *(np-\u003etrapframe) = *(p-\u003etrapframe); np-\u003etracemask = p-\u003etracemask; // Cause fork to return 0 in the child. np-\u003etrapframe-\u003ea0 = 0; ~/project/xv6-labs-2020/kernel/proc.h 在结构体proc中添加tracemask属性\nchar name[16]; // Process name (debugging) int tracemask; // Trace Mask }; ~/project/xv6-labs-2020/kernel/syscall.c 处理系统调用（system call)的核心代码， 主要作用是实现系统调用的参数提取，处理和结果返回。\n[SYS_mkdir] sys_mkdir, [SYS_close] sys_close, [SYS_trace] sys_trace}; 按照参数顺序保存每个系统调用的名称，便于调试和输出。\nchar *sys_name[] = { \"fork\", \"exit\", \"wait\", \"pipe\", \"read\", \"kill\", \"exec\", \"fstat\", \"chdir\", \"dup\", \"getpid\", \"sbrk\", \"sleep\", \"uptime\", \"open\", \"write\", \"mknod\", \"unlink\", \"link\", \"mkdir\", \"close\", \"trace\"}; 在syscall函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。\nif (num \u003e 0 \u0026\u0026 num \u003c NELEM(syscalls) \u0026\u0026 syscalls[num]) { p-\u003etrapframe-\u003ea0 = syscalls[num](); if (p-\u003etracemask \u003e\u003e (num) \u0026 0x01 == 1) { printf(\"%d: syscall %s -\u003e %d\\n\", p-\u003epid, sys_name[num - 1], p-\u003etrapframe-\u003ea0); } } ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_mkdir 20 #define SYS_close 21 #define SYS_trace 22 ~/project/xv6-labs-2020/kernel/sysproc.c 当命令行输入命令后执行此函数\nuint64 sys_trace(void) { int n; argint(0, \u0026n); myproc()-\u003etracemask = n; return 0; } ~/project/xv6-labs-2020/user/user.h int sleep(int); int uptime(void); int trace(int); Sysinfo (moderate) 实现sysinfo，同时重构上面的 trace\n~/project/xv6-labs-2020/Makefile $U/_sysinfotest\\ ~/project/xv6-labs-2020/kernel/defs.h // sysinfo.c int process_number(); int amount_free_memory(void); ~/project/xv6-labs-2020/kernel/kalloc.c // get free memory int amount_free_memory(void){ struct run *r; r = kmem.freelist; int cnt = 0; for (; r; r = r-\u003enext) { cnt++; } return cnt*PGSIZE; } ~/project/xv6-labs-2020/kernel/proc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/kernel/proc.h char name[16]; // Process name (debugging) int tracemask; // Trace memory }; struct sysinfo; int trace(int mask); void gather_sysinfo(struct sysinfo *info); ~/project/xv6-labs-2020/kernel/syscall.c [SYS_trace] sys_trace, [SYS_sysinfo] sys_sysinfo }; \"close\", \"trace\", \"sysinfo\" }; extern uint64 sys_uptime(void); extern uint64 sys_trace(void); extern uint64 sys_sysinfo(void); ~/project/xv6-labs-2020/kernel/syscall.h #define SYS_close 21 #define SYS_trace 22 #define SYS_sysinfo 23 ~/project/xv6-labs-2020/kernel/sysproc.c #include \"sysinfo.h\" ~/project/xv6-labs-2020/user/user.h struct rtcdate; struct sysinfo; ~/project/xv6-labs-2020/user/usys.pl entry(\"uptime\"); entry(\"trace\"); entry(\"sysinfo\"); ","wordCount":"1800","inLanguage":"zh","datePublished":"2024-08-31T22:30:13+08:00","dateModified":"2024-08-31T22:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/mit6.s0813-os-organization/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">MIT6.S081(3)-OS organization</h1><div class=post-description>MIT6.S081(3)</div><div class=post-meta><span title='2024-08-31 22:30:13 +0800 +0800'>2024-08-31</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1800 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#mit6s0813-os-organization aria-label="MIT6.S081(3)-OS organization">MIT6.S081(3)-OS organization</a><ul><li><a href=#lecture-topic aria-label="Lecture Topic:">Lecture Topic:</a><ul><li><a href=#os-design aria-label="OS design">OS design</a></li><li><a href=#os-picture aria-label="OS picture">OS picture</a></li><li><a href=#goal-of-os aria-label="Goal of OS">Goal of OS</a></li></ul></li><li><a href=#operating-system-organization aria-label="Operating system organization">Operating system organization</a></li><li><a href=#lab-system-calls aria-label="Lab: system calls"><a href=https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html>Lab: system calls</a></a></li><li><a href=#system-call-tracing-moderate aria-label="System call tracing (moderate)">System call tracing (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>moderate</a>)</a><ul><li><a href=#hometopeetprojectxv6-labs-2020makefile aria-label=/home/topeet/project/xv6-labs-2020/Makefile>/home/topeet/project/xv6-labs-2020/Makefile</a></li><li><a href=#hometopeetprojectxv6-labs-2020userusyspl aria-label=/home/topeet/project/xv6-labs-2020/user/usys.pl>/home/topeet/project/xv6-labs-2020/user/usys.pl</a></li><li><a href=#projectxv6-labs-2020kernelprocc aria-label=~/project/xv6-labs-2020/kernel/proc.c>~/project/xv6-labs-2020/kernel/proc.c</a></li><li><a href=#projectxv6-labs-2020kernelproch aria-label=~/project/xv6-labs-2020/kernel/proc.h>~/project/xv6-labs-2020/kernel/proc.h</a></li><li><a href=#projectxv6-labs-2020kernelsyscallc aria-label=~/project/xv6-labs-2020/kernel/syscall.c>~/project/xv6-labs-2020/kernel/syscall.c</a></li><li><a href=#projectxv6-labs-2020kernelsyscallh aria-label=~/project/xv6-labs-2020/kernel/syscall.h>~/project/xv6-labs-2020/kernel/syscall.h</a></li><li><a href=#projectxv6-labs-2020kernelsysprocc aria-label=~/project/xv6-labs-2020/kernel/sysproc.c>~/project/xv6-labs-2020/kernel/sysproc.c</a></li><li><a href=#projectxv6-labs-2020useruserh aria-label=~/project/xv6-labs-2020/user/user.h>~/project/xv6-labs-2020/user/user.h</a></li></ul></li><li><a href=#sysinfo-moderate aria-label="Sysinfo (moderate)">Sysinfo (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>moderate</a>)</a><ul><li><a href=#projectxv6-labs-2020makefile aria-label=~/project/xv6-labs-2020/Makefile>~/project/xv6-labs-2020/Makefile</a></li><li><a href=#projectxv6-labs-2020kerneldefsh aria-label=~/project/xv6-labs-2020/kernel/defs.h>~/project/xv6-labs-2020/kernel/defs.h</a></li><li><a href=#projectxv6-labs-2020kernelkallocc aria-label=~/project/xv6-labs-2020/kernel/kalloc.c>~/project/xv6-labs-2020/kernel/kalloc.c</a></li><li><a href=#projectxv6-labs-2020kernelprocc-1 aria-label=~/project/xv6-labs-2020/kernel/proc.c>~/project/xv6-labs-2020/kernel/proc.c</a></li><li><a href=#projectxv6-labs-2020kernelproch-1 aria-label=~/project/xv6-labs-2020/kernel/proc.h>~/project/xv6-labs-2020/kernel/proc.h</a></li><li><a href=#projectxv6-labs-2020kernelsyscallc-1 aria-label=~/project/xv6-labs-2020/kernel/syscall.c>~/project/xv6-labs-2020/kernel/syscall.c</a></li><li><a href=#projectxv6-labs-2020kernelsyscallh-1 aria-label=~/project/xv6-labs-2020/kernel/syscall.h>~/project/xv6-labs-2020/kernel/syscall.h</a></li><li><a href=#projectxv6-labs-2020kernelsysprocc-1 aria-label=~/project/xv6-labs-2020/kernel/sysproc.c>~/project/xv6-labs-2020/kernel/sysproc.c</a></li><li><a href=#projectxv6-labs-2020useruserh-1 aria-label=~/project/xv6-labs-2020/user/user.h>~/project/xv6-labs-2020/user/user.h</a></li><li><a href=#projectxv6-labs-2020userusyspl aria-label=~/project/xv6-labs-2020/user/usys.pl>~/project/xv6-labs-2020/user/usys.pl</a></li></ul></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=mit6s0813-os-organization>MIT6.S081(3)-OS organization<a hidden class=anchor aria-hidden=true href=#mit6s0813-os-organization>#</a></h1><h2 id=lecture-topic>Lecture Topic:<a hidden class=anchor aria-hidden=true href=#lecture-topic>#</a></h2><h3 id=os-design>OS design<a hidden class=anchor aria-hidden=true href=#os-design>#</a></h3><p>​ system calls
+​ micro/monolithic kernel
+First system call in xv6</p><h3 id=os-picture>OS picture<a hidden class=anchor aria-hidden=true href=#os-picture>#</a></h3><p>apps: sh, echo, &mldr;
+system call interface (open, close,&mldr;)
+OS</p><h3 id=goal-of-os>Goal of OS<a hidden class=anchor aria-hidden=true href=#goal-of-os>#</a></h3><p>run multiple applications
 isolate them
 multiplex them
-share</p>
-<p>Strawman design: No OS
+share</p><p>Strawman design: No OS
 Application directly interacts with hardware
-CPU cores &amp; registers
+CPU cores & registers
 DRAM chips
 Disk blocks
-&hellip;
-OS library perhaps abstracts some of it</p>
-<p>Strawman design not conducive to multiplexing
+&mldr;
+OS library perhaps abstracts some of it</p><p>Strawman design not conducive to multiplexing
 each app periodically must give up hardware
 BUT, weak isolation
 app forgets to give up, no other app runs
 apps has end-less loop, no other app runs
 you cannot even kill the badly app from another app
 but used by real-time OSes
-&ldquo;cooperative scheduling&rdquo;</p>
-<p>Strawman design not conducive to memory isolation
+&ldquo;cooperative scheduling&rdquo;</p><p>Strawman design not conducive to memory isolation
 all apps share physical memory
 one app can overwrites another apps memory
-one app can overwrite OS library</p>
-<p>Unix interface conducive to OS goals
+one app can overwrite OS library</p><p>Unix interface conducive to OS goals
 abstracts the hardware in way that achieves goals
 processes (instead of cores): fork
 OS transparently allocates cores to processes
 Saves and restore registers
 Enforces that processes give them up
-Periodically re-allocates cores  <br>
-memory (instead of physical memory): exec
+Periodically re-allocates cores<br>memory (instead of physical memory): exec
 Each process has its &ldquo;own&rdquo; memory
 OS can decide where to place app in memory
 OS can enforce isolation between memory of different apps
@@ -490,48 +44,32 @@ files (instead of disk blocks)
 OS can provide convenient names
 OS can allow sharing of files between processes/users
 pipes (instead of shared physical mem)
-OS can stop sender/receiver</p>
-<p>OS must be defensive
+OS can stop sender/receiver</p><p>OS must be defensive
 an application shouldn&rsquo;t be able to crash OS
 an application shouldn&rsquo;t be able to break out of its isolation
-=&gt; need strong isolation between apps and OS
-approach: hardware support</p>
-<ul>
-<li>user/kernel mode</li>
-<li>virtual memory</li>
-</ul>
-<p>Processors provide user/kernel mode
+=> need strong isolation between apps and OS
+approach: hardware support</p><ul><li>user/kernel mode</li><li>virtual memory</li></ul><p>Processors provide user/kernel mode
 kernel mode: can execute &ldquo;privileged&rdquo; instructions
 e.g., setting kernel/user bit
 e.g., reprogramming timer chip
 user mode: cannot execute privileged instructions
 Run OS in kernel mode, applications in user mode
-[RISC-V has also an M mode, which we mostly ignore]</p>
-<p>Processors provide virtual memory
+[RISC-V has also an M mode, which we mostly ignore]</p><p>Processors provide virtual memory
 Hardware provides page tables that translate virtual address to physical
 Define what physical memory an application can access
-OS sets up page tables so that each application can access only its memory</p>
-<p>Apps must be able to communicate with kernel
-Write to storage device, which is shared =&gt; must be protected =&gt; in kernel
+OS sets up page tables so that each application can access only its memory</p><p>Apps must be able to communicate with kernel
+Write to storage device, which is shared => must be protected => in kernel
 Exit app
-&hellip;</p>
-<p>Solution: add instruction to change mode in controlled way
-ecall <n>
-enters kernel mode at a pre-agreed entry point</p>
-<p>Modify OS picture
+&mldr;</p><p>Solution: add instruction to change mode in controlled way
+ecall <n>enters kernel mode at a pre-agreed entry point</p><p>Modify OS picture
 user / kernel (redline)
-app -&gt; printf() -&gt; write() -&gt; SYSTEM CALL -&gt; sys_write() -&gt; &hellip;
+app -> printf() -> write() -> SYSTEM CALL -> sys_write() -> &mldr;
 user-level libraries are app&rsquo;s private business
-kernel internal functions are not callable by user</p>
-<p>other way of drawing picture:
-syscall 1  -&gt; system call stub -&gt; kernel entry -&gt; syscall -&gt; fs
-syscall 2                                                 -&gt; proc</p>
-<p>system call stub executes special instruction to enter kernel
+kernel internal functions are not callable by user</p><p>other way of drawing picture:
+syscall 1 -> system call stub -> kernel entry -> syscall -> fs
+syscall 2 -> proc</p><p>system call stub executes special instruction to enter kernel
 hardware switches to kernel mode
-but only at an entry point specified by the kernel</p>
-<p>syscall need some way to get at arguments of syscall</p>
-<p>[syscalls the topic of this week&rsquo;s lab]</p>
-<p>Kernel is the Trusted Computing Base (TCB)
+but only at an entry point specified by the kernel</p><p>syscall need some way to get at arguments of syscall</p><p>[syscalls the topic of this week&rsquo;s lab]</p><p>Kernel is the Trusted Computing Base (TCB)
 Kernel must be &ldquo;correct&rdquo;
 Bugs in kernel could allow user apps to circumvent kernel/user
 Happens often in practice, because kernels are complex
@@ -543,548 +81,188 @@ Setup user/kernel correctly
 Etc.
 Kernel in charge of separating applications too
 One app may try to read/write another app&rsquo;s memory
-=&gt; Requires a security mindset
-Any bug in kernel may be a security exploit</p>
-<p>Aside: can one have process isolation WITHOUT h/w-supported
+=> Requires a security mindset
+Any bug in kernel may be a security exploit</p><p>Aside: can one have process isolation WITHOUT h/w-supported
 kernel/user mode and virtual memory?
-yes! use a strongly-typed programming language</p>
-<ul>
-<li>For example, see Singularity O/S
+yes! use a strongly-typed programming language</p><ul><li>For example, see Singularity O/S
 the compiler is then the trust computing base (TCB)
-but h/w user/kernel mode is the most popular plan</li>
-</ul>
-<p>Monolothic kernel
+but h/w user/kernel mode is the most popular plan</li></ul><p>Monolothic kernel
 OS runs in kernel space
-Xv6 does this.  Linux etc. too.
+Xv6 does this. Linux etc. too.
 kernel interface == system call interface
-one big program with file system, drivers, &amp;c</p>
-<ul>
-<li>good: easy for subsystems to cooperate
-one cache shared by file system and virtual memory</li>
-<li>bad: interactions are complex
+one big program with file system, drivers, &amp;c</p><ul><li>good: easy for subsystems to cooperate
+one cache shared by file system and virtual memory</li><li>bad: interactions are complex
 leads to bugs
-no isolation within</li>
-</ul>
-<p>Microkernel design
+no isolation within</li></ul><p>Microkernel design
 many OS services run as ordinary user programs
 file system in a file server
 kernel implements minimal mechanism to run services in user space
 processes with memory
 inter-process communication (IPC)
-kernel interface != system call interface</p>
-<ul>
-<li>good: more isolation</li>
-<li>bad: may be hard to get good performance
-both monolithic and microkernel designs widely used</li>
-</ul>
-<p>Xv6 case study
+kernel interface != system call interface</p><ul><li>good: more isolation</li><li>bad: may be hard to get good performance
+both monolithic and microkernel designs widely used</li></ul><p>Xv6 case study
 Monolithic kernel
 Unix system calls == kernel interface
 Source code reflects OS organization (by convention)
-user/    apps in user mode
-kernel/  code in kernel mode
+user/ apps in user mode
+kernel/ code in kernel mode
 Kernel has several parts
 kernel/defs.h
 proc
 fs
 ..
-Goal: read source code and understand it (without consulting book)</p>
-<p>Using xv6
+Goal: read source code and understand it (without consulting book)</p><p>Using xv6
 Makefile builds
 kernel program
 user programs
 mkfs
 $ make qemu
 runs xv6 on qemu
-emulates a RISC-V computer</p>
-<p>Building kernel</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  .c -&gt; gcc -&gt; .s -&gt; .o  \
-</span></span><span style="display:flex;"><span>  ....                     ld -&gt; a.out
-</span></span><span style="display:flex;"><span>  .c -&gt; gcc -&gt; .s -&gt; .o  /
+emulates a RISC-V computer</p><p>Building kernel</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  .c -&gt; gcc -&gt; .s -&gt; .o  \
+</span></span><span style=display:flex><span>  ....                     ld -&gt; a.out
+</span></span><span style=display:flex><span>  .c -&gt; gcc -&gt; .s -&gt; .o  /
 </span></span></code></pre></div><p>makefile keeps .asm file around for binary
-see for example, kernel/kernel.asm</p>
-<p>The RISC-V computer
-A very simple board (e.g., no display)</p>
-<ul>
-<li>RISC-V processor with 4 cores</li>
-<li>RAM (128 MB)</li>
-<li>support for interrupts (PLIC, CLINT)</li>
-<li>support for UART
+see for example, kernel/kernel.asm</p><p>The RISC-V computer
+A very simple board (e.g., no display)</p><ul><li>RISC-V processor with 4 cores</li><li>RAM (128 MB)</li><li>support for interrupts (PLIC, CLINT)</li><li>support for UART
 allows xv6 to talk to console
-allows xv6 to read from keyboard</li>
-<li>support for e1000 network card (through PCIe)</li>
-</ul>
-<p>Development using Qemu
+allows xv6 to read from keyboard</li><li>support for e1000 network card (through PCIe)</li></ul><p>Development using Qemu
 More convenient than using the real hardware
-Qemu emulates several RISC-V computers</p>
-<ul>
-<li>we use the &ldquo;virt&rdquo; one
-<a href="https://github.com/riscv/riscv-qemu/wiki">https://github.com/riscv/riscv-qemu/wiki</a></li>
-<li>close to the SiFive board (<a href="https://www.sifive.com/boards">https://www.sifive.com/boards</a>)
-but with virtio for disk</li>
-</ul>
-<p>What is &ldquo;to emulate&rdquo;?
-Qemu is a C program that faithfully implements a RISC-V processor</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  for (;;) {
-</span></span><span style="display:flex;"><span>    read next instructions
-</span></span><span style="display:flex;"><span>    decode instruction
-</span></span><span style="display:flex;"><span>    execute instruction (updating processor state)
-</span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></div><p>[big idea: software = hardware]</p>
-<p>Boot xv6 (under gdb)</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  $ make CPUS=1 qemu-gdb
-</span></span></code></pre></div><p>​    runs xv6 under gdb (with 1 core)
+Qemu emulates several RISC-V computers</p><ul><li>we use the &ldquo;virt&rdquo; one
+<a href=https://github.com/riscv/riscv-qemu/wiki>https://github.com/riscv/riscv-qemu/wiki</a></li><li>close to the SiFive board (<a href=https://www.sifive.com/boards>https://www.sifive.com/boards</a>)
+but with virtio for disk</li></ul><p>What is &ldquo;to emulate&rdquo;?
+Qemu is a C program that faithfully implements a RISC-V processor</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  for (;;) {
+</span></span><span style=display:flex><span>    read next instructions
+</span></span><span style=display:flex><span>    decode instruction
+</span></span><span style=display:flex><span>    execute instruction (updating processor state)
+</span></span><span style=display:flex><span>  }
+</span></span></code></pre></div><p>[big idea: software = hardware]</p><p>Boot xv6 (under gdb)</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  $ make CPUS=1 qemu-gdb
+</span></span></code></pre></div><p>​ runs xv6 under gdb (with 1 core)
 Qemu starts xv6 in kernel/entry.S (see kernel/kernel.ld)
-​    set breakpoint at _entry
-​      look at instruction
-​      info reg
-​    set breakpoint at main
-​      Walk through main
-​    single step into userinit
-​      Walk through userinit
-​      show proc.h
-​      show allocproc()
-​      show initcode.S/initcode.asm
-​    break forkret()
-​      walk to userret
-​    break syscall
-​      print num
-​      syscalls[num]
-​      exec &ldquo;/init&rdquo;</p>
-<h2 id="operating-system-organization">Operating system organization<a hidden class="anchor" aria-hidden="true" href="#operating-system-organization">#</a></h2>
-<table>
-	<thead>
-			<tr>
-					<th>文件名</th>
-					<th>描述</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td>bio.c</td>
-					<td>文件系统的磁盘块缓存。</td>
-			</tr>
-			<tr>
-					<td>console.c</td>
-					<td>连接用户键盘和屏幕。</td>
-			</tr>
-			<tr>
-					<td>entry.S</td>
-					<td>最早的引导指令。</td>
-			</tr>
-			<tr>
-					<td>exec.c</td>
-					<td><code>exec()</code> 系统调用。</td>
-			</tr>
-			<tr>
-					<td>file.c</td>
-					<td>文件描述符支持。</td>
-			</tr>
-			<tr>
-					<td>fs.c</td>
-					<td>文件系统。</td>
-			</tr>
-			<tr>
-					<td>kalloc.c</td>
-					<td>物理页面分配器。</td>
-			</tr>
-			<tr>
-					<td>kernelvec.S</td>
-					<td>处理来自内核的陷阱和定时器中断。</td>
-			</tr>
-			<tr>
-					<td>log.c</td>
-					<td>文件系统日志和崩溃恢复。</td>
-			</tr>
-			<tr>
-					<td>main.c</td>
-					<td>控制启动时其他模块的初始化。</td>
-			</tr>
-			<tr>
-					<td>pipe.c</td>
-					<td>管道。</td>
-			</tr>
-			<tr>
-					<td>plic.c</td>
-					<td>RISC-V 中断控制器。</td>
-			</tr>
-			<tr>
-					<td>printf.c</td>
-					<td>格式化输出到控制台。</td>
-			</tr>
-			<tr>
-					<td>proc.c</td>
-					<td>进程和调度。</td>
-			</tr>
-			<tr>
-					<td>sleeplock.c</td>
-					<td>让出 CPU 的锁。</td>
-			</tr>
-			<tr>
-					<td>spinlock.c</td>
-					<td>不让出 CPU 的锁。</td>
-			</tr>
-			<tr>
-					<td>start.c</td>
-					<td>机器模式的早期引导代码。</td>
-			</tr>
-			<tr>
-					<td>string.c</td>
-					<td>C 字符串和字节数组库。</td>
-			</tr>
-			<tr>
-					<td>swtch.S</td>
-					<td>线程切换。</td>
-			</tr>
-			<tr>
-					<td>syscall.c</td>
-					<td>将系统调用分派给处理函数。</td>
-			</tr>
-			<tr>
-					<td>sysfile.c</td>
-					<td>与文件相关的系统调用。</td>
-			</tr>
-			<tr>
-					<td>sysproc.c</td>
-					<td>与进程相关的系统调用。</td>
-			</tr>
-			<tr>
-					<td>trampoline.S</td>
-					<td>用户和内核之间切换的汇编代码。</td>
-			</tr>
-			<tr>
-					<td>trap.c</td>
-					<td>处理并返回陷阱和中断的 C 代码。</td>
-			</tr>
-			<tr>
-					<td>uart.c</td>
-					<td>串行端口控制台设备驱动程序。</td>
-			</tr>
-			<tr>
-					<td>virtio_disk.c</td>
-					<td>磁盘设备驱动程序。</td>
-			</tr>
-			<tr>
-					<td>vm.c</td>
-					<td>管理页表和地址空间。</td>
-			</tr>
-	</tbody>
-</table>
-<h2 id="lab-system-calls"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html">Lab: system calls</a><a hidden class="anchor" aria-hidden="true" href="#lab-system-calls">#</a></h2>
-<h2 id="system-call-tracing-moderate">System call tracing (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#system-call-tracing-moderate">#</a></h2>
-<h3 id="hometopeetprojectxv6-labs-2020makefile">/home/topeet/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020makefile">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>    $U/_wc<span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>    $U/_zombie<span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span>    $U/_trace<span style="color:#ae81ff">\
-</span></span></span></code></pre></div><h3 id="hometopeetprojectxv6-labs-2020userusyspl">/home/topeet/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#hometopeetprojectxv6-labs-2020userusyspl">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-perl" data-lang="perl"><span style="display:flex;"><span>	entry(<span style="color:#e6db74">&#34;trace&#34;</span>);
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelprocc">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc">#</a></h3>
-<p>在fork()函数内部添加如下代码：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#75715e">// copy saved user registers.
-</span></span></span><span style="display:flex;"><span>  <span style="color:#f92672">*</span>(np<span style="color:#f92672">-&gt;</span>trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe);
-</span></span><span style="display:flex;"><span>  np<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">=</span> p<span style="color:#f92672">-&gt;</span>tracemask;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// Cause fork to return 0 in the child.
-</span></span></span><span style="display:flex;"><span>  np<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelproch">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch">#</a></h3>
-<p>在结构体<code>proc</code>中添加<code>tracemask</code>属性</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> tracemask; <span style="color:#75715e">// Trace Mask
-</span></span></span><span style="display:flex;"><span>};
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallc">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc">#</a></h3>
-<p>处理系统调用（system call)的核心代码， 主要作用是实现系统调用的<strong>参数提取</strong>，<strong>处理</strong>和<strong>结果返回</strong>。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_mkdir] sys_mkdir,
-</span></span><span style="display:flex;"><span>    [SYS_close] sys_close,
-</span></span><span style="display:flex;"><span>    [SYS_trace] sys_trace};
-</span></span></code></pre></div><p>按照参数顺序保存每个系统调用的名称，便于调试和输出。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>sys_name[] <span style="color:#f92672">=</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;fork&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exit&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;wait&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;pipe&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;read&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;kill&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;exec&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;fstat&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;chdir&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;dup&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;getpid&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sbrk&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sleep&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;uptime&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;open&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;write&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mknod&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;unlink&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;link&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;mkdir&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;trace&#34;</span>};
-</span></span></code></pre></div><p>在<code>syscall</code>函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (num <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> num <span style="color:#f92672">&lt;</span> <span style="color:#a6e22e">NELEM</span>(syscalls) <span style="color:#f92672">&amp;&amp;</span> syscalls[num])
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0 <span style="color:#f92672">=</span> syscalls[num]();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">&gt;&gt;</span> (num) <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">0x01</span> <span style="color:#f92672">==</span> <span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>      <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d: syscall %s -&gt; %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, p<span style="color:#f92672">-&gt;</span>pid, sys_name[num <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>], p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>a0);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallh">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_mkdir 20
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close 21
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace 22
-</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsysprocc">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc">#</a></h3>
-<p>当命令行输入命令后执行此函数</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>uint64
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> n;
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>n);
-</span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">myproc</span>()<span style="color:#f92672">-&gt;</span>tracemask <span style="color:#f92672">=</span> n;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020useruserh">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">sleep</span>(<span style="color:#66d9ef">int</span>);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">uptime</span>(<span style="color:#66d9ef">void</span>);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span>);
-</span></span></code></pre></div><h2 id="sysinfo-moderate">Sysinfo (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#sysinfo-moderate">#</a></h2>
-<p>实现<code>sysinfo</code>，同时重构上面的 <code>trace</code></p>
-<h3 id="projectxv6-labs-2020makefile">~/project/xv6-labs-2020/Makefile<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020makefile">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-makefile" data-lang="makefile"><span style="display:flex;"><span>	$U/_sysinfotest<span style="color:#ae81ff">\
-</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kerneldefsh">~/project/xv6-labs-2020/kernel/defs.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kerneldefsh">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// sysinfo.c
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">process_number</span>();
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>             <span style="color:#a6e22e">amount_free_memory</span>(<span style="color:#66d9ef">void</span>);
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelkallocc">~/project/xv6-labs-2020/kernel/kalloc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelkallocc">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// get free memory
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">amount_free_memory</span>(<span style="color:#66d9ef">void</span>){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">struct</span> run <span style="color:#f92672">*</span>r;
-</span></span><span style="display:flex;"><span>    r <span style="color:#f92672">=</span> kmem.freelist;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">int</span> cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> (; r; r <span style="color:#f92672">=</span> r<span style="color:#f92672">-&gt;</span>next) {
-</span></span><span style="display:flex;"><span>      cnt<span style="color:#f92672">++</span>;
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cnt<span style="color:#f92672">*</span>PGSIZE;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelprocc-1">~/project/xv6-labs-2020/kernel/proc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelprocc-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
-</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelproch-1">~/project/xv6-labs-2020/kernel/proc.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelproch-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> name[<span style="color:#ae81ff">16</span>];               <span style="color:#75715e">// Process name (debugging)
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> tracemask; <span style="color:#75715e">// Trace memory
-</span></span></span><span style="display:flex;"><span>};
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">trace</span>(<span style="color:#66d9ef">int</span> mask);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">gather_sysinfo</span>(<span style="color:#66d9ef">struct</span> sysinfo <span style="color:#f92672">*</span>info);
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallc-1">~/project/xv6-labs-2020/kernel/syscall.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallc-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    [SYS_trace] sys_trace,
-</span></span><span style="display:flex;"><span>    [SYS_sysinfo] sys_sysinfo
-</span></span><span style="display:flex;"><span>    };
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;close&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;trace&#34;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#34;sysinfo&#34;</span>
-</span></span><span style="display:flex;"><span>    };
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_uptime</span>(<span style="color:#66d9ef">void</span>);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_trace</span>(<span style="color:#66d9ef">void</span>);
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">extern</span> uint64 <span style="color:#a6e22e">sys_sysinfo</span>(<span style="color:#66d9ef">void</span>);
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsyscallh-1">~/project/xv6-labs-2020/kernel/syscall.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsyscallh-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#define SYS_close  21
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_trace  22
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">#define SYS_sysinfo 23
-</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020kernelsysprocc-1">~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020kernelsysprocc-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">#include</span> <span style="color:#75715e">&#34;sysinfo.h&#34;</span><span style="color:#75715e">
-</span></span></span></code></pre></div><h3 id="projectxv6-labs-2020useruserh-1">~/project/xv6-labs-2020/user/user.h<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020useruserh-1">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> rtcdate;
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">struct</span> sysinfo;
-</span></span></code></pre></div><h3 id="projectxv6-labs-2020userusyspl">~/project/xv6-labs-2020/user/usys.pl<a hidden class="anchor" aria-hidden="true" href="#projectxv6-labs-2020userusyspl">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;uptime&#34;</span>);
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;trace&#34;</span>);
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">entry</span>(<span style="color:#e6db74">&#34;sysinfo&#34;</span>);
-</span></span></code></pre></div>
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0811-os-overview/">
-    <span class="title">« 上一页</span>
-    <span>MIT6.S081(1)-O/S overview</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/read/%E8%81%AA%E6%98%8E%E7%9A%84%E6%8A%95%E8%B5%84%E8%80%85%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%8A%95%E8%B5%84%E4%B8%8E%E6%8A%95%E6%9C%BA%E8%81%AA%E6%98%8E%E6%8A%95%E8%B5%84%E8%80%85%E7%9A%84%E9%A2%84%E6%9C%9F%E6%94%B6%E7%9B%8A/">
-    <span class="title">下一页 »</span>
-    <span>聪明的投资者——第一章</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+​ set breakpoint at _entry
+​ look at instruction
+​ info reg
+​ set breakpoint at main
+​ Walk through main
+​ single step into userinit
+​ Walk through userinit
+​ show proc.h
+​ show allocproc()
+​ show initcode.S/initcode.asm
+​ break forkret()
+​ walk to userret
+​ break syscall
+​ print num
+​ syscalls[num]
+​ exec &ldquo;/init&rdquo;</p><h2 id=operating-system-organization>Operating system organization<a hidden class=anchor aria-hidden=true href=#operating-system-organization>#</a></h2><table><thead><tr><th>文件名</th><th>描述</th></tr></thead><tbody><tr><td>bio.c</td><td>文件系统的磁盘块缓存。</td></tr><tr><td>console.c</td><td>连接用户键盘和屏幕。</td></tr><tr><td>entry.S</td><td>最早的引导指令。</td></tr><tr><td>exec.c</td><td><code>exec()</code> 系统调用。</td></tr><tr><td>file.c</td><td>文件描述符支持。</td></tr><tr><td>fs.c</td><td>文件系统。</td></tr><tr><td>kalloc.c</td><td>物理页面分配器。</td></tr><tr><td>kernelvec.S</td><td>处理来自内核的陷阱和定时器中断。</td></tr><tr><td>log.c</td><td>文件系统日志和崩溃恢复。</td></tr><tr><td>main.c</td><td>控制启动时其他模块的初始化。</td></tr><tr><td>pipe.c</td><td>管道。</td></tr><tr><td>plic.c</td><td>RISC-V 中断控制器。</td></tr><tr><td>printf.c</td><td>格式化输出到控制台。</td></tr><tr><td>proc.c</td><td>进程和调度。</td></tr><tr><td>sleeplock.c</td><td>让出 CPU 的锁。</td></tr><tr><td>spinlock.c</td><td>不让出 CPU 的锁。</td></tr><tr><td>start.c</td><td>机器模式的早期引导代码。</td></tr><tr><td>string.c</td><td>C 字符串和字节数组库。</td></tr><tr><td>swtch.S</td><td>线程切换。</td></tr><tr><td>syscall.c</td><td>将系统调用分派给处理函数。</td></tr><tr><td>sysfile.c</td><td>与文件相关的系统调用。</td></tr><tr><td>sysproc.c</td><td>与进程相关的系统调用。</td></tr><tr><td>trampoline.S</td><td>用户和内核之间切换的汇编代码。</td></tr><tr><td>trap.c</td><td>处理并返回陷阱和中断的 C 代码。</td></tr><tr><td>uart.c</td><td>串行端口控制台设备驱动程序。</td></tr><tr><td>virtio_disk.c</td><td>磁盘设备驱动程序。</td></tr><tr><td>vm.c</td><td>管理页表和地址空间。</td></tr></tbody></table><h2 id=lab-system-calls><a href=https://pdos.csail.mit.edu/6.S081/2020/labs/syscall.html>Lab: system calls</a><a hidden class=anchor aria-hidden=true href=#lab-system-calls>#</a></h2><h2 id=system-call-tracing-moderate>System call tracing (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>moderate</a>)<a hidden class=anchor aria-hidden=true href=#system-call-tracing-moderate>#</a></h2><h3 id=hometopeetprojectxv6-labs-2020makefile>/home/topeet/project/xv6-labs-2020/Makefile<a hidden class=anchor aria-hidden=true href=#hometopeetprojectxv6-labs-2020makefile>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-makefile data-lang=makefile><span style=display:flex><span>    $U/_wc<span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    $U/_zombie<span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span>    $U/_trace<span style=color:#ae81ff>\
+</span></span></span></code></pre></div><h3 id=hometopeetprojectxv6-labs-2020userusyspl>/home/topeet/project/xv6-labs-2020/user/usys.pl<a hidden class=anchor aria-hidden=true href=#hometopeetprojectxv6-labs-2020userusyspl>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-perl data-lang=perl><span style=display:flex><span>	entry(<span style=color:#e6db74>&#34;trace&#34;</span>);
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelprocc>~/project/xv6-labs-2020/kernel/proc.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelprocc>#</a></h3><p>在fork()函数内部添加如下代码：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#75715e>// copy saved user registers.
+</span></span></span><span style=display:flex><span>  <span style=color:#f92672>*</span>(np<span style=color:#f92672>-&gt;</span>trapframe) <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>(p<span style=color:#f92672>-&gt;</span>trapframe);
+</span></span><span style=display:flex><span>  np<span style=color:#f92672>-&gt;</span>tracemask <span style=color:#f92672>=</span> p<span style=color:#f92672>-&gt;</span>tracemask;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// Cause fork to return 0 in the child.
+</span></span></span><span style=display:flex><span>  np<span style=color:#f92672>-&gt;</span>trapframe<span style=color:#f92672>-&gt;</span>a0 <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelproch>~/project/xv6-labs-2020/kernel/proc.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelproch>#</a></h3><p>在结构体<code>proc</code>中添加<code>tracemask</code>属性</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#66d9ef>char</span> name[<span style=color:#ae81ff>16</span>];               <span style=color:#75715e>// Process name (debugging)
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> tracemask; <span style=color:#75715e>// Trace Mask
+</span></span></span><span style=display:flex><span>};
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelsyscallc>~/project/xv6-labs-2020/kernel/syscall.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelsyscallc>#</a></h3><p>处理系统调用（system call)的核心代码， 主要作用是实现系统调用的<strong>参数提取</strong>，<strong>处理</strong>和<strong>结果返回</strong>。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>    [SYS_mkdir] sys_mkdir,
+</span></span><span style=display:flex><span>    [SYS_close] sys_close,
+</span></span><span style=display:flex><span>    [SYS_trace] sys_trace};
+</span></span></code></pre></div><p>按照参数顺序保存每个系统调用的名称，便于调试和输出。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>sys_name[] <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;fork&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;exit&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;wait&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;pipe&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;read&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;kill&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;exec&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;fstat&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;chdir&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;dup&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;getpid&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;sbrk&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;sleep&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;uptime&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;open&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;write&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;mknod&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;unlink&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;link&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;mkdir&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;close&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;trace&#34;</span>};
+</span></span></code></pre></div><p>在<code>syscall</code>函数中添加对应的逻辑：如果tracemask参数对应需要输出对应的system call， 则在调用之后根据tracemask打印输出。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (num <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> num <span style=color:#f92672>&lt;</span> <span style=color:#a6e22e>NELEM</span>(syscalls) <span style=color:#f92672>&amp;&amp;</span> syscalls[num])
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    p<span style=color:#f92672>-&gt;</span>trapframe<span style=color:#f92672>-&gt;</span>a0 <span style=color:#f92672>=</span> syscalls[num]();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (p<span style=color:#f92672>-&gt;</span>tracemask <span style=color:#f92672>&gt;&gt;</span> (num) <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>0x01</span> <span style=color:#f92672>==</span> <span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;%d: syscall %s -&gt; %d</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, p<span style=color:#f92672>-&gt;</span>pid, sys_name[num <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>], p<span style=color:#f92672>-&gt;</span>trapframe<span style=color:#f92672>-&gt;</span>a0);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>  }
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelsyscallh>~/project/xv6-labs-2020/kernel/syscall.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelsyscallh>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define SYS_mkdir 20
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define SYS_close 21
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define SYS_trace 22
+</span></span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelsysprocc>~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelsysprocc>#</a></h3><p>当命令行输入命令后执行此函数</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>uint64
+</span></span><span style=display:flex><span><span style=color:#a6e22e>sys_trace</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> n;
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>argint</span>(<span style=color:#ae81ff>0</span>, <span style=color:#f92672>&amp;</span>n);
+</span></span><span style=display:flex><span>  <span style=color:#a6e22e>myproc</span>()<span style=color:#f92672>-&gt;</span>tracemask <span style=color:#f92672>=</span> n;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020useruserh>~/project/xv6-labs-2020/user/user.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020useruserh>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>sleep</span>(<span style=color:#66d9ef>int</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>uptime</span>(<span style=color:#66d9ef>void</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>trace</span>(<span style=color:#66d9ef>int</span>);
+</span></span></code></pre></div><h2 id=sysinfo-moderate>Sysinfo (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>moderate</a>)<a hidden class=anchor aria-hidden=true href=#sysinfo-moderate>#</a></h2><p>实现<code>sysinfo</code>，同时重构上面的 <code>trace</code></p><h3 id=projectxv6-labs-2020makefile>~/project/xv6-labs-2020/Makefile<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020makefile>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-makefile data-lang=makefile><span style=display:flex><span>	$U/_sysinfotest<span style=color:#ae81ff>\
+</span></span></span></code></pre></div><h3 id=projectxv6-labs-2020kerneldefsh>~/project/xv6-labs-2020/kernel/defs.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kerneldefsh>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// sysinfo.c
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>int</span>             <span style=color:#a6e22e>process_number</span>();
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span>             <span style=color:#a6e22e>amount_free_memory</span>(<span style=color:#66d9ef>void</span>);
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelkallocc>~/project/xv6-labs-2020/kernel/kalloc.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelkallocc>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// get free memory
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>int</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>amount_free_memory</span>(<span style=color:#66d9ef>void</span>){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>struct</span> run <span style=color:#f92672>*</span>r;
+</span></span><span style=display:flex><span>    r <span style=color:#f92672>=</span> kmem.freelist;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>int</span> cnt <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> (; r; r <span style=color:#f92672>=</span> r<span style=color:#f92672>-&gt;</span>next) {
+</span></span><span style=display:flex><span>      cnt<span style=color:#f92672>++</span>;
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> cnt<span style=color:#f92672>*</span>PGSIZE;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelprocc-1>~/project/xv6-labs-2020/kernel/proc.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelprocc-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&#34;sysinfo.h&#34;</span><span style=color:#75715e>
+</span></span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelproch-1>~/project/xv6-labs-2020/kernel/proc.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelproch-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#66d9ef>char</span> name[<span style=color:#ae81ff>16</span>];               <span style=color:#75715e>// Process name (debugging)
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> tracemask; <span style=color:#75715e>// Trace memory
+</span></span></span><span style=display:flex><span>};
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> sysinfo;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>trace</span>(<span style=color:#66d9ef>int</span> mask);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>gather_sysinfo</span>(<span style=color:#66d9ef>struct</span> sysinfo <span style=color:#f92672>*</span>info);
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelsyscallc-1>~/project/xv6-labs-2020/kernel/syscall.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelsyscallc-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>    [SYS_trace] sys_trace,
+</span></span><span style=display:flex><span>    [SYS_sysinfo] sys_sysinfo
+</span></span><span style=display:flex><span>    };
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>    <span style=color:#e6db74>&#34;close&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;trace&#34;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#34;sysinfo&#34;</span>
+</span></span><span style=display:flex><span>    };
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>extern</span> uint64 <span style=color:#a6e22e>sys_uptime</span>(<span style=color:#66d9ef>void</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extern</span> uint64 <span style=color:#a6e22e>sys_trace</span>(<span style=color:#66d9ef>void</span>);
+</span></span><span style=display:flex><span><span style=color:#66d9ef>extern</span> uint64 <span style=color:#a6e22e>sys_sysinfo</span>(<span style=color:#66d9ef>void</span>);
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelsyscallh-1>~/project/xv6-labs-2020/kernel/syscall.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelsyscallh-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#define SYS_close  21
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define SYS_trace  22
+</span></span></span><span style=display:flex><span><span style=color:#75715e>#define SYS_sysinfo 23
+</span></span></span></code></pre></div><h3 id=projectxv6-labs-2020kernelsysprocc-1>~/project/xv6-labs-2020/kernel/sysproc.c<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020kernelsysprocc-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>#include</span> <span style=color:#75715e>&#34;sysinfo.h&#34;</span><span style=color:#75715e>
+</span></span></span></code></pre></div><h3 id=projectxv6-labs-2020useruserh-1>~/project/xv6-labs-2020/user/user.h<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020useruserh-1>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>struct</span> rtcdate;
+</span></span><span style=display:flex><span><span style=color:#66d9ef>struct</span> sysinfo;
+</span></span></code></pre></div><h3 id=projectxv6-labs-2020userusyspl>~/project/xv6-labs-2020/user/usys.pl<a hidden class=anchor aria-hidden=true href=#projectxv6-labs-2020userusyspl>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#a6e22e>entry</span>(<span style=color:#e6db74>&#34;uptime&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#a6e22e>entry</span>(<span style=color:#e6db74>&#34;trace&#34;</span>);
+</span></span><span style=display:flex><span><span style=color:#a6e22e>entry</span>(<span style=color:#e6db74>&#34;sysinfo&#34;</span>);
+</span></span></code></pre></div></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/mit6.s081/>MIT6.S081</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F>操作系统</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/mit6.s0811-os-overview/><span class=title>« 上一页</span>
+<span>MIT6.S081(1)-O/S overview</span>
+</a><a class=next href=https://kennems.github.io/posts/read/%E8%81%AA%E6%98%8E%E7%9A%84%E6%8A%95%E8%B5%84%E8%80%85%E7%AC%AC%E4%B8%80%E7%AB%A0-%E6%8A%95%E8%B5%84%E4%B8%8E%E6%8A%95%E6%9C%BA%E8%81%AA%E6%98%8E%E6%8A%95%E8%B5%84%E8%80%85%E7%9A%84%E9%A2%84%E6%9C%9F%E6%94%B6%E7%9B%8A/><span class=title>下一页 »</span>
+<span>聪明的投资者——第一章</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

@@ -1,444 +1,18 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>MIT6.S081(6)-System Call Entry/Exit | Kennem&#39;s Blog</title>
-<meta name="keywords" content="MIT6.S081">
-<meta name="description" content="MIT6.S081(6)">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="MIT6.S081(6)-System Call Entry/Exit">
-  <meta property="og:description" content="MIT6.S081(6)">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-09-10T19:30:13+08:00">
-    <meta property="article:modified_time" content="2024-09-10T19:20:13+08:00">
-    <meta property="article:tag" content="MIT6.S081">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="MIT6.S081(6)-System Call Entry/Exit">
-  <meta name="twitter:description" content="MIT6.S081(6)">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "MIT6.S081(6)-System Call Entry/Exit",
-      "item": "https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "MIT6.S081(6)-System Call Entry/Exit",
-  "name": "MIT6.S081(6)-System Call Entry\/Exit",
-  "description": "MIT6.S081(6)",
-  "keywords": [
-    "MIT6.S081"
-  ],
-  "articleBody": "MIT6.S081(6)-System Call Entry/Exit Today: user -\u003e kernel transition system calls, faults, interrupts enter the kernel in the same way important for isolation and performance lots of careful design and important detail\nWhat needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs to happen? save 32 user registers and pc switch to supervisor mode switch to kernel page table switch to kernel stack jump to kernel C code high-level goals don’t let user code interfere with user-\u003ekernel transition e.g. don’t execute user code in supervisor mode! transparent to user code – resume without disturbing\nToday we’re focusing on the user/kernel transition and ignoring what the system call implementation does once in the kernel but the sys call impl has to be careful and secure also!\nWhat does the CPU’s “mode” protect? i.e. what does switching mode from user to supervisor allow? supervisor can use CPU control registers: satp – page table physical address stvec – ecall jumps here in kernel; points to trampoline sepc – ecall saves user pc here sscratch – address of trapframe supervisor can use PTEs that have no PTE_U flag but supervisor has no other powers! e.g. can’t use addresses that aren’t the in page table so kernel has to carefully set things up so it can work\npreview: write() write() returns User uservec() in trampoline.S userret() in trampoline.S Kernel usertrap() in trap.c usertrapret() in trap.c syscall() in syscall.c ^ sys_write() in sysfile.c —|\nlet’s watch an xv6 system call entering/leaving the kernel xv6 shell writing its $ prompt sh.c line 137: write(2, “$ “, 2); user/usys.S line 29 this is the write() function, still in user space a7 tells the kernel what system call we want – SYS_write = 16 ecall – triggers the user/kernel transition\nlet’s start by putting a breakpoint on the ecall user/sh.asm says write()’s ecall is at address 0xde6\n$ make qemu-gdb (gdb) b *0xde6 (gdb) c (gdb) delete 1 (gdb) x/3i 0xde4\nlet’s look at the registers (gdb) print $pc (gdb) info reg\n$pc and $sp are at low addresses – user memory starts at zero C on RISC-V puts function arguments in a0, a1, a2, \u0026c write() arguments: a0 is fd, a1 is buf, a2 is n\n(gdb) x/2c $a1\nthe shell is printing the $ prompt\nwhat page table is in use? (gdb) print/x $satp not very useful qemu: control-a c, info mem there are mappings for six pages instructions, data, stack guard (no PTE_U), stack, then two high mystery pages: trapframe and trampoline there are no mappings for kernel memory, devices, physical mem\nlet’s execute the ecall\n(gdb) stepi\nwhere are we? (gdb) print $pc we’re executing at a very high virtual address (gdb) x/6i 0x3ffffff000 these are the instructions we’re about to execute see uservec in kernel/trampoline.S it’s the start of the kernel’s trap handling code (gdb) info reg the registers hold user values (except $pc) qemu: info mem we’re still using the user page table note that $pc is in the trampoline page, the very last page\nwe’re executing in the “trampoline” page, which contains the start of the kernel’s trap handling code. ecall doesn’t switch page tables, so these kernel instructions have to exist somewhere in the user page table. the trampoline page is the answer: the kernel maps it at the top of every user page table. the kernel sets $stvec to the trampoline page’s virtual address. the trampoline is protected: no PTE_U flag.\n(gdb) print/x $stvec\ncan we tell that we’re in supervisor mode? I don’t know a way to find the mode directly but observe $pc is executing in a page with no PTE_U flag lack of crash implies we are in supervisor mode\nhow did we get here? ecall did three things: change mode from user to supervisor save $pc in $sepc (gdb) print/x $sepc jump to $stvec (i.e. set $pc to $stvec) the kernel previously set $stvec, before jumping to user space\nnote: ecall lets user code switch to supervisor mode but the kernel immediately gains control via $stvec so the user program itself can’t execute as supervisor\nwhat needs to happen now? save the 32 user register values (for later transparent resume) switch to kernel page table set up stack for kernel C code jump to kernel C code\nwhy didn’t the RISC-V designers have ecall do these things for us? ecall does as little as possible: to give O/S designers scope for very fast syscalls / faults / intrs maybe O/S can handle some traps w/o switching page tables maybe we can map BOTH user and kernel into a single page table so no page table switch required maybe some registers do not have to be saved maybe no stack is required for simple system calls\nthere have been many clever schemes invented for kernel entry! different amounts of work by CPU different strategies for handler s/w performance here is often super important\nwhat are our options at this point for saving user registers? can we just write them somewhere convenient in physical memory? no, even supervisor mode is constrained to use the page table can we first set satp to the kernel page table? supervisor mode is allowed to set satp… but we don’t know the address of the kernel page table at this point! and we need a free register to even execute csrw satp, $xx\ntwo parts to the solution for where to save the 32 user registers:\nxv6 maps a 2nd kernel page, the trapframe, into every user page table it has space to hold the saved registers the kernel gives each process a different trapframe page the page at 0x3fffffe000 is the trapframe page see struct trapframe in kernel/proc.h (but we still need a register holding the trapframe’s address…) RISC-V provides the sscratch register the kernel puts a pointer to the trapframe in sscratch before entering user space supervisor code can swap any register with sscratch thus both getting hold of the value in sscratch, and simultaneously saving the register’s user value see this at the start of uservec in trapframe.S: csrrw a0, sscratch, a0\nthe csrrw has already been executed due to some gdb quirk…\n(gdb) print/x $a0 address of the trapframe (gdb\u003e print/x $sscratch 0x2, the old first argument (fd)\nnow uservec() has 32 saves of user registers to the trapframe, via a0 so they can be restored later, when the system call returns let’s skip them\n(gdb) b *0x3ffffff076 (gdb) c\nnow we’re setting up to be able to run C code in the kernel first a stack previously, kernel put a pointer to top of this process’s kernel stack in trapframe look at struct trapframe in kernel/proc.h “ld sp, 8(a0)” fetches the kernel stack pointer remember a0 points to the trapframe at this point the only kernel data the code can get at is the trapframe, so everything has to be loaded from there.\n(gdb) stepi\nretrieve hart ID into tp\n(gdb) stepi\nwe want to jump to the kernel C function usertrap(), which the kernel previously saved in the trapframe. “ld t0, 16(a0)” fetches it into t0, we’ll use it in a moment, after switching to the kernel page table\n(gdb) stepi\nload a pointer to the kernel pagetable from the trapframe, and load it into satp, and issue an sfence to clear the TLB.\n(gdb) stepi (gdb) stepi (gdb) stepi\nwhy isn’t there a crash at this point? after all we just switched page tables while executing! answer: the trampoline page is mapped at the same virtual address in the kernel page table as well as every user page table\n(gdb) print $pc qemu: info mem\nwith the kernel page table we can now use kernel functions and data\nthe jr t0 is a jump to usertrap() (using t0 retrieved from trapframe)\n(gdb) print/x $t0 (gdb) x/4i $t0 (gdb) stepi (gdb) tui enable\nwe’re now in usertrap() in kernel/trap.c various traps come here, e.g. errors, device interrupts, and system calls usertrap() looks in the scause register to see the trap cause see Figure 10.3 on page 102 of The RISC-V Reader scause = 8 is a system call\n(gdb) next … until syscall() (gdb) step (gdb) next\nnow we’re in syscall() kernel/syscall.c myproc() uses tp to retrieve current struct proc * p-\u003exxx is usually a slot in the current process’s struct proc\nsyscall() retrieves the system call number from saved register a7 p-\u003etrapframe points to the trapframe, with saved registers p-\u003etrapframe-\u003ea7 holds 16, SYS_write p-\u003etrapframe-\u003ea0 holds write() first argument – fd p-\u003etrapframe-\u003ea1 holds buf p-\u003etrapframe-\u003ea2 holds n\n(gdb) next … (gdb) print num\nthen dispatches through syscall[num], a table of functions\n(gdb) next … (gdb) step\naha, we’re in sys_write. at this point system call implementations are fairly ordinary C code. let’s skip to the end, to see how a system call returns to user space.\n(gdb) finish\nnotice that write() produced console output (the shell’s $ prompt) back to syscall() the p-\u003etf-\u003ea0 assignment causes (eventually) a0 to hold the return value the C calling convention on RISC-V puts return values in a0\n(gdb) next\nback to usertrap()\n(gdb) print p-\u003etrapframe-\u003ea0\nwrite() returned 2 – two characters – $ and space\n(gdb) next (gdb) step\nnow we’re in usertrapret(), which starts the process of returning to the user program\nwe need to prepare for the next user-\u003ekernel transition stvec = uservec (the trampoline), for the next ecall traframe satp = kernel page table, for next uservec traframe sp = top of kernel stack trapframe trap = usertrap trapframe hartid = hartid (in tp)\nat the end, we’ll use the RISC-V sret instruction we need to prepare a few registers that sret uses sstatus – set the “previous mode” bit to user sepc – the saved user program counter (from trap entry)\nwe’re going to switch to the user page table while executing not OK in usertrapret(), since it’s not mapped in the user page table. need a page that’s mapped in both user and kernel page table – the trampoline. jump to userret in trampoline.S\n(gdb) tui disable (gdb) step (gdb) x/8i 0x3ffffff090\na0 holds TRAPFRAME a1 holds user page table address the csrw satp switches to the user address space\n(gdb) stepi (gdb) stepi (gdb) stepi\nthe csrw scratch puts the user a0 into sscratch just before sret we’ll do a swap, so that a0 holds the user a0 and sscratch holds trapframe pointer. which is what uservec expects.\nnow 32 loads from the trapframe into registers these restore the user registers let’s skip over them\n(gdb) b *0x3ffffff10a (gdb) c\nhere’s the csrw that swaps a0 with sscratch\n(gdb) stepi (gdb) print/x $a0 – the return value from write() (gdb) print/x $sscratch – trapframe address for uservec\nnow we’re at the sret instruction\n(gdb) print $pc (gdb) stepi (gdb) print $pc\nnow we’re back in the user program ($pc = 0x0xdea) returning 2 from the write() function\n(gdb) print/x $a0\nand we’re done with a system call!\nsummary system call entry/exit is far more complex than function call much of the complexity is due to the requirement for isolation and the desire for simple and fast hardware mechanisms a few design questions to ponder: can an evil program abuse the entry mechanism? can you think of ways to make the hardware or software simpler? can you think of ways to make traps faster?\nLab: traps RISC-V assembly (easy) Which registers contain arguments to functions? For example, which register holds 13 in main’s call to printf? 13 -\u003e a2\n12 -\u003e a1\n第一个参数-\u003e a0 在printf中代表格式化字符串的地址，在exit(0)中代表参数0\nra(返回地址)\ns0(保存帧指针)\nauipc xx, 0x0 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 xx 中。\nWhere is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.) printf(\"%d %d\\n\", f(8)+1, 13); 24:\t4635 li\ta2,13 26:\t45b1 li\ta1,12 这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。\nAt what address is the function printf located? 34:\t600080e7 jalr\t1536(ra) # 630 $0x630$ 位置\nWhat value is in the register ra just after the jalr to printf in main? 30:\t00000097 auipc\tra,0x0 34:\t600080e7 jalr\t1536(ra) # 630 \u003cprintf\u003e $0x630 = 0x30(ra) + 1536, ra = 0x30$\nRun the following code. unsigned int i = 0x00646c72; printf(\"H%x Wo%s\", 57616, \u0026i); 输出 ： He110 World\n其中57616十六进制数组的ascii码为110\n因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：\n0x72 (ASCII ‘r’)\n0x6c (ASCII ’l')\n0x64 (ASCII ’d')\n0x00 (null terminator)\nIn the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen? printf(\"x=%d y=%d\", 3); 因为printf会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的状态，编译行为和优化，运行环境和内存的管理。\nBacktrace (moderate) defs.h void backtrace(void); printf.c void backtrace(void) { uint64 p = r_fp(); while (p != PGROUNDUP(p)) { uint64 ra = *(uint64 *)(p - 8); uint64 fp = *(uint64 *)(p - 16); printf(\"%p\\n\", ra); p = fp; } } riscv.h Alarm (hard) proc.c p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if ((p-\u003ealarm_trapframe = (struct trapframe *)kalloc()) == 0) { release(\u0026p-\u003elock); return 0; } p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if (p-\u003ealarm_trapframe) kfree((void *)p-\u003ealarm_trapframe); // sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序 // // 参数： // 无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。 // 返回值： // 成功返回0，失败返回-1。 // // 功能： // 该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发 // 用户定义的信号处理程序（handler）。 // // 具体来说： // 1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。 // 2. 在失败的情况下返回-1。 // 3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔） // 和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。 uint64 sys_sigalarm(void) { int ticks; // 用于存储用户传入的tick数（间隔时间） void (*handler)(); // 用于存储用户传入的信号处理程序的指针 // 从第一个参数获取tick数，argint用于获取整数类型的参数。 if (argint(0, \u0026ticks) \u003c 0) return -1; // 获取失败，返回-1 // 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。 if (argaddr(1, (uint64 *)\u0026handler) \u003c 0) return -1; // 获取失败，返回-1 // 获取当前的进程结构体指针 struct proc *p = myproc(); // 设置进程的闹钟间隔 p-\u003ealarm_interval = ticks; // 设置进程的信号处理程序 p-\u003ealarm_handler = handler; // 重置闹钟的计数器 p-\u003ealarm_tick_count = 0; // 初始化闹钟处理状态为未处理 p-\u003ealarm_handling = 0; // 设置成功，返回0 return 0; } // sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序 // // 参数： // 无直接参数。 // 返回值： // 成功返回0。 // // 功能： // 该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时， // 恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括： // 1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。 // 2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。 uint64 sys_sigreturn(void) { struct proc *p = myproc(); // 获取当前进程的指针 // 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。 // trapframe保存了进程在处理信号之前的CPU寄存器状态。 *(p-\u003etrapframe) = *(p-\u003ealarm_trapframe); // 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。 p-\u003ealarm_tick_count = 0; // 重置闹钟的处理状态，表示当前不在信号处理程序中。 p-\u003ealarm_handling = 0; // 成功返回 return 0; } proc.h int alarm_interval; void (*alarm_handler)(); int alarm_tick_count; int alarm_handling; struct trapframe *alarm_trapframe; riscv.h static inline uint64 r_fp() { uint64 x; asm volatile(\"mv %0, s0\" : \"=r\"(x)); return x; } syscall.c syscall.h trap.c // ok if (which_dev == 2) { if (p-\u003ealarm_interval != 0 \u0026\u0026 !p-\u003ealarm_handling) { ++p-\u003ealarm_tick_count; if (p-\u003ealarm_tick_count == p-\u003ealarm_interval) { *(p-\u003ealarm_trapframe) = *(p-\u003etrapframe); p-\u003etrapframe-\u003eepc = (uint64)(p-\u003ealarm_handler); p-\u003ealarm_handling = 1; } } } user.h usys.pl ",
-  "wordCount" : "3444",
-  "inLanguage": "zh",
-  "datePublished": "2024-09-10T19:30:13+08:00",
-  "dateModified": "2024-09-10T19:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      MIT6.S081(6)-System Call Entry/Exit
-    </h1>
-    <div class="post-description">
-      MIT6.S081(6)
-    </div>
-    <div class="post-meta">
-
-<span title='2024-09-10 19:30:13 +0800 CST'>2024-09-10</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3444 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#mit6s0816-system-call-entryexit" aria-label="MIT6.S081(6)-System Call Entry/Exit">MIT6.S081(6)-System Call Entry/Exit</a></li>
-                <li>
-                    <a href="#lab-traps" aria-label="Lab: traps"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/traps.html">Lab: traps</a></a><ul>
-                        
-                <li>
-                    <a href="#risc-v-assembly-easy" aria-label="RISC-V assembly (easy)">RISC-V assembly (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)</a><ul>
-                        
-                <li>
-                    <a href="#which-registers-contain-arguments-to-functions-for-example-which-register-holds-13-in-mains-call-to-printf" aria-label="Which registers contain arguments to functions? For example, which register holds 13 in main&rsquo;s call to printf?">Which registers contain arguments to functions? For example, which register holds 13 in main&rsquo;s call to <code>printf</code>?</a></li>
-                <li>
-                    <a href="#where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions" aria-label="Where is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.)">Where is the call to function <code>f</code> in the assembly code for main? Where is the call to <code>g</code>? (Hint: the compiler may inline functions.)</a></li>
-                <li>
-                    <a href="#at-what-address-is-the-function-printf-located" aria-label="At what address is the function printf located?">At what address is the function <code>printf</code> located?</a></li>
-                <li>
-                    <a href="#what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main" aria-label="What value is in the register ra just after the jalr to printf in main?">What value is in the register <code>ra</code> just after the <code>jalr</code> to <code>printf</code> in <code>main</code>?</a></li>
-                <li>
-                    <a href="#run-the-following-code" aria-label="Run the following code.">Run the following code.</a></li>
-                <li>
-                    <a href="#in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen" aria-label="In the following code, what is going to be printed after &#39;y=&#39;? (note: the answer is not a specific value.) Why does this happen?">In the following code, what is going to be printed after <code>'y='</code>? (note: the answer is not a specific value.) Why does this happen?</a></li></ul>
-                </li>
-                <li>
-                    <a href="#backtrace-moderate" aria-label="Backtrace (moderate)">Backtrace (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)</a><ul>
-                        
-                <li>
-                    <a href="#defsh" aria-label="defs.h">defs.h</a></li>
-                <li>
-                    <a href="#printfc" aria-label="printf.c">printf.c</a></li>
-                <li>
-                    <a href="#riscvh" aria-label="riscv.h">riscv.h</a></li></ul>
-                </li>
-                <li>
-                    <a href="#alarm-hard" aria-label="Alarm (hard)">Alarm (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)</a><ul>
-                        
-                <li>
-                    <a href="#procc" aria-label="proc.c">proc.c</a></li>
-                <li>
-                    <a href="#proch" aria-label="proc.h">proc.h</a></li>
-                <li>
-                    <a href="#riscvh-1" aria-label="riscv.h">riscv.h</a></li>
-                <li>
-                    <a href="#syscallc" aria-label="syscall.c">syscall.c</a></li>
-                <li>
-                    <a href="#syscallh" aria-label="syscall.h">syscall.h</a></li>
-                <li>
-                    <a href="#trapc" aria-label="trap.c">trap.c</a></li>
-                <li>
-                    <a href="#userh" aria-label="user.h">user.h</a></li>
-                <li>
-                    <a href="#usyspl" aria-label="usys.pl">usys.pl</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="mit6s0816-system-call-entryexit">MIT6.S081(6)-System Call Entry/Exit<a hidden class="anchor" aria-hidden="true" href="#mit6s0816-system-call-entryexit">#</a></h1>
-<p>Today: user -&gt; kernel transition
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>MIT6.S081(6)-System Call Entry/Exit | Kennem's Blog</title><meta name=keywords content="MIT6.S081"><meta name=description content="MIT6.S081(6)"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="MIT6.S081(6)-System Call Entry/Exit"><meta property="og:description" content="MIT6.S081(6)"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-09-10T19:30:13+08:00"><meta property="article:modified_time" content="2024-09-10T19:20:13+08:00"><meta property="article:tag" content="MIT6.S081"><meta name=twitter:card content="summary"><meta name=twitter:title content="MIT6.S081(6)-System Call Entry/Exit"><meta name=twitter:description content="MIT6.S081(6)"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"MIT6.S081(6)-System Call Entry/Exit","item":"https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"MIT6.S081(6)-System Call Entry/Exit","name":"MIT6.S081(6)-System Call Entry\/Exit","description":"MIT6.S081(6)","keywords":["MIT6.S081"],"articleBody":"MIT6.S081(6)-System Call Entry/Exit Today: user -\u003e kernel transition system calls, faults, interrupts enter the kernel in the same way important for isolation and performance lots of careful design and important detail\nWhat needs to happen when a program makes a system call, e.g. write()? [CPU | user/kernel diagram] CPU resources are set up for user execution (not kernel) 32 registers, sp, pc, privilege mode, satp, stvec, sepc, … what needs to happen? save 32 user registers and pc switch to supervisor mode switch to kernel page table switch to kernel stack jump to kernel C code high-level goals don’t let user code interfere with user-\u003ekernel transition e.g. don’t execute user code in supervisor mode! transparent to user code – resume without disturbing\nToday we’re focusing on the user/kernel transition and ignoring what the system call implementation does once in the kernel but the sys call impl has to be careful and secure also!\nWhat does the CPU’s “mode” protect? i.e. what does switching mode from user to supervisor allow? supervisor can use CPU control registers: satp – page table physical address stvec – ecall jumps here in kernel; points to trampoline sepc – ecall saves user pc here sscratch – address of trapframe supervisor can use PTEs that have no PTE_U flag but supervisor has no other powers! e.g. can’t use addresses that aren’t the in page table so kernel has to carefully set things up so it can work\npreview: write() write() returns User uservec() in trampoline.S userret() in trampoline.S Kernel usertrap() in trap.c usertrapret() in trap.c syscall() in syscall.c ^ sys_write() in sysfile.c —|\nlet’s watch an xv6 system call entering/leaving the kernel xv6 shell writing its $ prompt sh.c line 137: write(2, “$ “, 2); user/usys.S line 29 this is the write() function, still in user space a7 tells the kernel what system call we want – SYS_write = 16 ecall – triggers the user/kernel transition\nlet’s start by putting a breakpoint on the ecall user/sh.asm says write()’s ecall is at address 0xde6\n$ make qemu-gdb (gdb) b *0xde6 (gdb) c (gdb) delete 1 (gdb) x/3i 0xde4\nlet’s look at the registers (gdb) print $pc (gdb) info reg\n$pc and $sp are at low addresses – user memory starts at zero C on RISC-V puts function arguments in a0, a1, a2, \u0026c write() arguments: a0 is fd, a1 is buf, a2 is n\n(gdb) x/2c $a1\nthe shell is printing the $ prompt\nwhat page table is in use? (gdb) print/x $satp not very useful qemu: control-a c, info mem there are mappings for six pages instructions, data, stack guard (no PTE_U), stack, then two high mystery pages: trapframe and trampoline there are no mappings for kernel memory, devices, physical mem\nlet’s execute the ecall\n(gdb) stepi\nwhere are we? (gdb) print $pc we’re executing at a very high virtual address (gdb) x/6i 0x3ffffff000 these are the instructions we’re about to execute see uservec in kernel/trampoline.S it’s the start of the kernel’s trap handling code (gdb) info reg the registers hold user values (except $pc) qemu: info mem we’re still using the user page table note that $pc is in the trampoline page, the very last page\nwe’re executing in the “trampoline” page, which contains the start of the kernel’s trap handling code. ecall doesn’t switch page tables, so these kernel instructions have to exist somewhere in the user page table. the trampoline page is the answer: the kernel maps it at the top of every user page table. the kernel sets $stvec to the trampoline page’s virtual address. the trampoline is protected: no PTE_U flag.\n(gdb) print/x $stvec\ncan we tell that we’re in supervisor mode? I don’t know a way to find the mode directly but observe $pc is executing in a page with no PTE_U flag lack of crash implies we are in supervisor mode\nhow did we get here? ecall did three things: change mode from user to supervisor save $pc in $sepc (gdb) print/x $sepc jump to $stvec (i.e. set $pc to $stvec) the kernel previously set $stvec, before jumping to user space\nnote: ecall lets user code switch to supervisor mode but the kernel immediately gains control via $stvec so the user program itself can’t execute as supervisor\nwhat needs to happen now? save the 32 user register values (for later transparent resume) switch to kernel page table set up stack for kernel C code jump to kernel C code\nwhy didn’t the RISC-V designers have ecall do these things for us? ecall does as little as possible: to give O/S designers scope for very fast syscalls / faults / intrs maybe O/S can handle some traps w/o switching page tables maybe we can map BOTH user and kernel into a single page table so no page table switch required maybe some registers do not have to be saved maybe no stack is required for simple system calls\nthere have been many clever schemes invented for kernel entry! different amounts of work by CPU different strategies for handler s/w performance here is often super important\nwhat are our options at this point for saving user registers? can we just write them somewhere convenient in physical memory? no, even supervisor mode is constrained to use the page table can we first set satp to the kernel page table? supervisor mode is allowed to set satp… but we don’t know the address of the kernel page table at this point! and we need a free register to even execute csrw satp, $xx\ntwo parts to the solution for where to save the 32 user registers:\nxv6 maps a 2nd kernel page, the trapframe, into every user page table it has space to hold the saved registers the kernel gives each process a different trapframe page the page at 0x3fffffe000 is the trapframe page see struct trapframe in kernel/proc.h (but we still need a register holding the trapframe’s address…) RISC-V provides the sscratch register the kernel puts a pointer to the trapframe in sscratch before entering user space supervisor code can swap any register with sscratch thus both getting hold of the value in sscratch, and simultaneously saving the register’s user value see this at the start of uservec in trapframe.S: csrrw a0, sscratch, a0\nthe csrrw has already been executed due to some gdb quirk…\n(gdb) print/x $a0 address of the trapframe (gdb\u003e print/x $sscratch 0x2, the old first argument (fd)\nnow uservec() has 32 saves of user registers to the trapframe, via a0 so they can be restored later, when the system call returns let’s skip them\n(gdb) b *0x3ffffff076 (gdb) c\nnow we’re setting up to be able to run C code in the kernel first a stack previously, kernel put a pointer to top of this process’s kernel stack in trapframe look at struct trapframe in kernel/proc.h “ld sp, 8(a0)” fetches the kernel stack pointer remember a0 points to the trapframe at this point the only kernel data the code can get at is the trapframe, so everything has to be loaded from there.\n(gdb) stepi\nretrieve hart ID into tp\n(gdb) stepi\nwe want to jump to the kernel C function usertrap(), which the kernel previously saved in the trapframe. “ld t0, 16(a0)” fetches it into t0, we’ll use it in a moment, after switching to the kernel page table\n(gdb) stepi\nload a pointer to the kernel pagetable from the trapframe, and load it into satp, and issue an sfence to clear the TLB.\n(gdb) stepi (gdb) stepi (gdb) stepi\nwhy isn’t there a crash at this point? after all we just switched page tables while executing! answer: the trampoline page is mapped at the same virtual address in the kernel page table as well as every user page table\n(gdb) print $pc qemu: info mem\nwith the kernel page table we can now use kernel functions and data\nthe jr t0 is a jump to usertrap() (using t0 retrieved from trapframe)\n(gdb) print/x $t0 (gdb) x/4i $t0 (gdb) stepi (gdb) tui enable\nwe’re now in usertrap() in kernel/trap.c various traps come here, e.g. errors, device interrupts, and system calls usertrap() looks in the scause register to see the trap cause see Figure 10.3 on page 102 of The RISC-V Reader scause = 8 is a system call\n(gdb) next … until syscall() (gdb) step (gdb) next\nnow we’re in syscall() kernel/syscall.c myproc() uses tp to retrieve current struct proc * p-\u003exxx is usually a slot in the current process’s struct proc\nsyscall() retrieves the system call number from saved register a7 p-\u003etrapframe points to the trapframe, with saved registers p-\u003etrapframe-\u003ea7 holds 16, SYS_write p-\u003etrapframe-\u003ea0 holds write() first argument – fd p-\u003etrapframe-\u003ea1 holds buf p-\u003etrapframe-\u003ea2 holds n\n(gdb) next … (gdb) print num\nthen dispatches through syscall[num], a table of functions\n(gdb) next … (gdb) step\naha, we’re in sys_write. at this point system call implementations are fairly ordinary C code. let’s skip to the end, to see how a system call returns to user space.\n(gdb) finish\nnotice that write() produced console output (the shell’s $ prompt) back to syscall() the p-\u003etf-\u003ea0 assignment causes (eventually) a0 to hold the return value the C calling convention on RISC-V puts return values in a0\n(gdb) next\nback to usertrap()\n(gdb) print p-\u003etrapframe-\u003ea0\nwrite() returned 2 – two characters – $ and space\n(gdb) next (gdb) step\nnow we’re in usertrapret(), which starts the process of returning to the user program\nwe need to prepare for the next user-\u003ekernel transition stvec = uservec (the trampoline), for the next ecall traframe satp = kernel page table, for next uservec traframe sp = top of kernel stack trapframe trap = usertrap trapframe hartid = hartid (in tp)\nat the end, we’ll use the RISC-V sret instruction we need to prepare a few registers that sret uses sstatus – set the “previous mode” bit to user sepc – the saved user program counter (from trap entry)\nwe’re going to switch to the user page table while executing not OK in usertrapret(), since it’s not mapped in the user page table. need a page that’s mapped in both user and kernel page table – the trampoline. jump to userret in trampoline.S\n(gdb) tui disable (gdb) step (gdb) x/8i 0x3ffffff090\na0 holds TRAPFRAME a1 holds user page table address the csrw satp switches to the user address space\n(gdb) stepi (gdb) stepi (gdb) stepi\nthe csrw scratch puts the user a0 into sscratch just before sret we’ll do a swap, so that a0 holds the user a0 and sscratch holds trapframe pointer. which is what uservec expects.\nnow 32 loads from the trapframe into registers these restore the user registers let’s skip over them\n(gdb) b *0x3ffffff10a (gdb) c\nhere’s the csrw that swaps a0 with sscratch\n(gdb) stepi (gdb) print/x $a0 – the return value from write() (gdb) print/x $sscratch – trapframe address for uservec\nnow we’re at the sret instruction\n(gdb) print $pc (gdb) stepi (gdb) print $pc\nnow we’re back in the user program ($pc = 0x0xdea) returning 2 from the write() function\n(gdb) print/x $a0\nand we’re done with a system call!\nsummary system call entry/exit is far more complex than function call much of the complexity is due to the requirement for isolation and the desire for simple and fast hardware mechanisms a few design questions to ponder: can an evil program abuse the entry mechanism? can you think of ways to make the hardware or software simpler? can you think of ways to make traps faster?\nLab: traps RISC-V assembly (easy) Which registers contain arguments to functions? For example, which register holds 13 in main’s call to printf? 13 -\u003e a2\n12 -\u003e a1\n第一个参数-\u003e a0 在printf中代表格式化字符串的地址，在exit(0)中代表参数0\nra(返回地址)\ns0(保存帧指针)\nauipc xx, 0x0 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 xx 中。\nWhere is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.) printf(\"%d %d\\n\", f(8)+1, 13); 24:\t4635 li\ta2,13 26:\t45b1 li\ta1,12 这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。\nAt what address is the function printf located? 34:\t600080e7 jalr\t1536(ra) # 630 $0x630$ 位置\nWhat value is in the register ra just after the jalr to printf in main? 30:\t00000097 auipc\tra,0x0 34:\t600080e7 jalr\t1536(ra) # 630 \u003cprintf\u003e $0x630 = 0x30(ra) + 1536, ra = 0x30$\nRun the following code. unsigned int i = 0x00646c72; printf(\"H%x Wo%s\", 57616, \u0026i); 输出 ： He110 World\n其中57616十六进制数组的ascii码为110\n因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：\n0x72 (ASCII ‘r’)\n0x6c (ASCII ’l')\n0x64 (ASCII ’d')\n0x00 (null terminator)\nIn the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen? printf(\"x=%d y=%d\", 3); 因为printf会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的状态，编译行为和优化，运行环境和内存的管理。\nBacktrace (moderate) defs.h void backtrace(void); printf.c void backtrace(void) { uint64 p = r_fp(); while (p != PGROUNDUP(p)) { uint64 ra = *(uint64 *)(p - 8); uint64 fp = *(uint64 *)(p - 16); printf(\"%p\\n\", ra); p = fp; } } riscv.h Alarm (hard) proc.c p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if ((p-\u003ealarm_trapframe = (struct trapframe *)kalloc()) == 0) { release(\u0026p-\u003elock); return 0; } p-\u003ealarm_interval = 0; p-\u003ealarm_handler = 0; p-\u003ealarm_tick_count = 0; p-\u003ealarm_handling = 0; if (p-\u003ealarm_trapframe) kfree((void *)p-\u003ealarm_trapframe); // sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序 // // 参数： // 无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。 // 返回值： // 成功返回0，失败返回-1。 // // 功能： // 该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发 // 用户定义的信号处理程序（handler）。 // // 具体来说： // 1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。 // 2. 在失败的情况下返回-1。 // 3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔） // 和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。 uint64 sys_sigalarm(void) { int ticks; // 用于存储用户传入的tick数（间隔时间） void (*handler)(); // 用于存储用户传入的信号处理程序的指针 // 从第一个参数获取tick数，argint用于获取整数类型的参数。 if (argint(0, \u0026ticks) \u003c 0) return -1; // 获取失败，返回-1 // 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。 if (argaddr(1, (uint64 *)\u0026handler) \u003c 0) return -1; // 获取失败，返回-1 // 获取当前的进程结构体指针 struct proc *p = myproc(); // 设置进程的闹钟间隔 p-\u003ealarm_interval = ticks; // 设置进程的信号处理程序 p-\u003ealarm_handler = handler; // 重置闹钟的计数器 p-\u003ealarm_tick_count = 0; // 初始化闹钟处理状态为未处理 p-\u003ealarm_handling = 0; // 设置成功，返回0 return 0; } // sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序 // // 参数： // 无直接参数。 // 返回值： // 成功返回0。 // // 功能： // 该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时， // 恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括： // 1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。 // 2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。 uint64 sys_sigreturn(void) { struct proc *p = myproc(); // 获取当前进程的指针 // 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。 // trapframe保存了进程在处理信号之前的CPU寄存器状态。 *(p-\u003etrapframe) = *(p-\u003ealarm_trapframe); // 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。 p-\u003ealarm_tick_count = 0; // 重置闹钟的处理状态，表示当前不在信号处理程序中。 p-\u003ealarm_handling = 0; // 成功返回 return 0; } proc.h int alarm_interval; void (*alarm_handler)(); int alarm_tick_count; int alarm_handling; struct trapframe *alarm_trapframe; riscv.h static inline uint64 r_fp() { uint64 x; asm volatile(\"mv %0, s0\" : \"=r\"(x)); return x; } syscall.c syscall.h trap.c // ok if (which_dev == 2) { if (p-\u003ealarm_interval != 0 \u0026\u0026 !p-\u003ealarm_handling) { ++p-\u003ealarm_tick_count; if (p-\u003ealarm_tick_count == p-\u003ealarm_interval) { *(p-\u003ealarm_trapframe) = *(p-\u003etrapframe); p-\u003etrapframe-\u003eepc = (uint64)(p-\u003ealarm_handler); p-\u003ealarm_handling = 1; } } } user.h usys.pl ","wordCount":"3444","inLanguage":"zh","datePublished":"2024-09-10T19:30:13+08:00","dateModified":"2024-09-10T19:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/mit6.s0816-system-call-entryexit/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">MIT6.S081(6)-System Call Entry/Exit</h1><div class=post-description>MIT6.S081(6)</div><div class=post-meta><span title='2024-09-10 19:30:13 +0800 +0800'>2024-09-10</span>&nbsp;·&nbsp;<span>7 分钟</span>&nbsp;·&nbsp;<span>3444 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#mit6s0816-system-call-entryexit aria-label="MIT6.S081(6)-System Call Entry/Exit">MIT6.S081(6)-System Call Entry/Exit</a></li><li><a href=#lab-traps aria-label="Lab: traps"><a href=https://pdos.csail.mit.edu/6.S081/2020/labs/traps.html>Lab: traps</a></a><ul><li><a href=#risc-v-assembly-easy aria-label="RISC-V assembly (easy)">RISC-V assembly (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>easy</a>)</a><ul><li><a href=#which-registers-contain-arguments-to-functions-for-example-which-register-holds-13-in-mains-call-to-printf aria-label="Which registers contain arguments to functions? For example, which register holds 13 in main&amp;rsquo;s call to printf?">Which registers contain arguments to functions? For example, which register holds 13 in main&rsquo;s call to <code>printf</code>?</a></li><li><a href=#where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions aria-label="Where is the call to function f in the assembly code for main? Where is the call to g? (Hint: the compiler may inline functions.)">Where is the call to function <code>f</code> in the assembly code for main? Where is the call to <code>g</code>? (Hint: the compiler may inline functions.)</a></li><li><a href=#at-what-address-is-the-function-printf-located aria-label="At what address is the function printf located?">At what address is the function <code>printf</code> located?</a></li><li><a href=#what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main aria-label="What value is in the register ra just after the jalr to printf in main?">What value is in the register <code>ra</code> just after the <code>jalr</code> to <code>printf</code> in <code>main</code>?</a></li><li><a href=#run-the-following-code aria-label="Run the following code.">Run the following code.</a></li><li><a href=#in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen aria-label="In the following code, what is going to be printed after 'y='? (note: the answer is not a specific value.) Why does this happen?">In the following code, what is going to be printed after <code>'y='</code>? (note: the answer is not a specific value.) Why does this happen?</a></li></ul></li><li><a href=#backtrace-moderate aria-label="Backtrace (moderate)">Backtrace (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>moderate</a>)</a><ul><li><a href=#defsh aria-label=defs.h>defs.h</a></li><li><a href=#printfc aria-label=printf.c>printf.c</a></li><li><a href=#riscvh aria-label=riscv.h>riscv.h</a></li></ul></li><li><a href=#alarm-hard aria-label="Alarm (hard)">Alarm (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>hard</a>)</a><ul><li><a href=#procc aria-label=proc.c>proc.c</a></li><li><a href=#proch aria-label=proc.h>proc.h</a></li><li><a href=#riscvh-1 aria-label=riscv.h>riscv.h</a></li><li><a href=#syscallc aria-label=syscall.c>syscall.c</a></li><li><a href=#syscallh aria-label=syscall.h>syscall.h</a></li><li><a href=#trapc aria-label=trap.c>trap.c</a></li><li><a href=#userh aria-label=user.h>user.h</a></li><li><a href=#usyspl aria-label=usys.pl>usys.pl</a></li></ul></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=mit6s0816-system-call-entryexit>MIT6.S081(6)-System Call Entry/Exit<a hidden class=anchor aria-hidden=true href=#mit6s0816-system-call-entryexit>#</a></h1><p>Today: user -> kernel transition
 system calls, faults, interrupts enter the kernel in the same way
 important for isolation and performance
-lots of careful design and important detail</p>
-<p>What needs to happen when a program makes a system call, e.g. write()?
+lots of careful design and important detail</p><p>What needs to happen when a program makes a system call, e.g. write()?
 [CPU | user/kernel diagram]
 CPU resources are set up for user execution (not kernel)
-32 registers, sp, pc, privilege mode, satp, stvec, sepc, &hellip;
+32 registers, sp, pc, privilege mode, satp, stvec, sepc, &mldr;
 what needs to happen?
 save 32 user registers and pc
 switch to supervisor mode
@@ -446,13 +20,11 @@ switch to kernel page table
 switch to kernel stack
 jump to kernel C code
 high-level goals
-don&rsquo;t let user code interfere with user-&gt;kernel transition
+don&rsquo;t let user code interfere with user->kernel transition
 e.g. don&rsquo;t execute user code in supervisor mode!
-transparent to user code &ndash; resume without disturbing</p>
-<p>Today we&rsquo;re focusing on the user/kernel transition
+transparent to user code &ndash; resume without disturbing</p><p>Today we&rsquo;re focusing on the user/kernel transition
 and ignoring what the system call implementation does once in the kernel
-but the sys call impl has to be careful and secure also!</p>
-<p>What does the CPU&rsquo;s &ldquo;mode&rdquo; protect?
+but the sys call impl has to be careful and secure also!</p><p>What does the CPU&rsquo;s &ldquo;mode&rdquo; protect?
 i.e. what does switching mode from user to supervisor allow?
 supervisor can use CPU control registers:
 satp &ndash; page table physical address
@@ -462,46 +34,33 @@ sscratch &ndash; address of trapframe
 supervisor can use PTEs that have no PTE_U flag
 but supervisor has no other powers!
 e.g. can&rsquo;t use addresses that aren&rsquo;t the in page table
-so kernel has to carefully set things up so it can work</p>
-<h2 id="write------------------------write-returns--------------user">preview:
-write()                        write() returns              User</h2>
-<p>uservec() in trampoline.S      userret() in trampoline.S   Kernel
-usertrap() in trap.c           usertrapret() in trap.c
-syscall() in syscall.c           ^
-sys_write() in sysfile.c      &mdash;|</p>
-<p>let&rsquo;s watch an xv6 system call entering/leaving the kernel
+so kernel has to carefully set things up so it can work</p><h2 id=write------------------------write-returns--------------user>preview:
+write() write() returns User</h2><p>uservec() in trampoline.S userret() in trampoline.S Kernel
+usertrap() in trap.c usertrapret() in trap.c
+syscall() in syscall.c ^
+sys_write() in sysfile.c &mdash;|</p><p>let&rsquo;s watch an xv6 system call entering/leaving the kernel
 xv6 shell writing its $ prompt
 sh.c line 137: write(2, &ldquo;$ &ldquo;, 2);
 user/usys.S line 29
 this is the write() function, still in user space
 a7 tells the kernel what system call we want &ndash; SYS_write = 16
-ecall &ndash; triggers the user/kernel transition</p>
-<p>let&rsquo;s start by putting a breakpoint on the ecall
-user/sh.asm says write()&rsquo;s ecall is at address 0xde6</p>
-<p>$ make qemu-gdb
+ecall &ndash; triggers the user/kernel transition</p><p>let&rsquo;s start by putting a breakpoint on the ecall
+user/sh.asm says write()&rsquo;s ecall is at address 0xde6</p><p>$ make qemu-gdb
 (gdb) b *0xde6
 (gdb) c
 (gdb) delete 1
-(gdb) x/3i 0xde4</p>
-<p>let&rsquo;s look at the registers
+(gdb) x/3i 0xde4</p><p>let&rsquo;s look at the registers
 (gdb) print $pc
-(gdb) info reg</p>
-<p>$pc and $sp are at low addresses &ndash; user memory starts at zero
+(gdb) info reg</p><p>$pc and $sp are at low addresses &ndash; user memory starts at zero
 C on RISC-V puts function arguments in a0, a1, a2, &amp;c
-write() arguments: a0 is fd, a1 is buf, a2 is n</p>
-<p>(gdb) x/2c $a1</p>
-<p>the shell is printing the $ prompt</p>
-<p>what page table is in use?
+write() arguments: a0 is fd, a1 is buf, a2 is n</p><p>(gdb) x/2c $a1</p><p>the shell is printing the $ prompt</p><p>what page table is in use?
 (gdb) print/x $satp
 not very useful
 qemu: control-a c, info mem
 there are mappings for six pages
 instructions, data, stack guard (no PTE_U), stack,
 then two high mystery pages: trapframe and trampoline
-there are no mappings for kernel memory, devices, physical mem</p>
-<p>let&rsquo;s execute the ecall</p>
-<p>(gdb) stepi</p>
-<p>where are we?
+there are no mappings for kernel memory, devices, physical mem</p><p>let&rsquo;s execute the ecall</p><p>(gdb) stepi</p><p>where are we?
 (gdb) print $pc
 we&rsquo;re executing at a very high virtual address
 (gdb) x/6i 0x3ffffff000
@@ -512,80 +71,60 @@ it&rsquo;s the start of the kernel&rsquo;s trap handling code
 the registers hold user values (except $pc)
 qemu: info mem
 we&rsquo;re still using the user page table
-note that $pc is in the trampoline page, the very last page</p>
-<p>we&rsquo;re executing in the &ldquo;trampoline&rdquo; page, which contains the start of
+note that $pc is in the trampoline page, the very last page</p><p>we&rsquo;re executing in the &ldquo;trampoline&rdquo; page, which contains the start of
 the kernel&rsquo;s trap handling code. ecall doesn&rsquo;t switch page tables, so
 these kernel instructions have to exist somewhere in the user page
 table. the trampoline page is the answer: the kernel maps it at the
 top of every user page table. the kernel sets $stvec to the trampoline
-page&rsquo;s virtual address. the trampoline is protected: no PTE_U flag.</p>
-<p>(gdb) print/x $stvec</p>
-<p>can we tell that we&rsquo;re in supervisor mode?
+page&rsquo;s virtual address. the trampoline is protected: no PTE_U flag.</p><p>(gdb) print/x $stvec</p><p>can we tell that we&rsquo;re in supervisor mode?
 I don&rsquo;t know a way to find the mode directly
 but observe $pc is executing in a page with no PTE_U flag
-lack of crash implies we are in supervisor mode</p>
-<p>how did we get here?
+lack of crash implies we are in supervisor mode</p><p>how did we get here?
 ecall did three things:
 change mode from user to supervisor
 save $pc in $sepc
 (gdb) print/x $sepc
 jump to $stvec (i.e. set $pc to $stvec)
-the kernel previously set $stvec, before jumping to user space</p>
-<p>note: ecall lets user code switch to supervisor mode
+the kernel previously set $stvec, before jumping to user space</p><p>note: ecall lets user code switch to supervisor mode
 but the kernel immediately gains control via $stvec
-so the user program itself can&rsquo;t execute as supervisor</p>
-<p>what needs to happen now?
+so the user program itself can&rsquo;t execute as supervisor</p><p>what needs to happen now?
 save the 32 user register values (for later transparent resume)
 switch to kernel page table
 set up stack for kernel C code
-jump to kernel C code</p>
-<p>why didn&rsquo;t the RISC-V designers have ecall do these things for us?
+jump to kernel C code</p><p>why didn&rsquo;t the RISC-V designers have ecall do these things for us?
 ecall does as little as possible:
 to give O/S designers scope for very fast syscalls / faults / intrs
 maybe O/S can handle some traps w/o switching page tables
 maybe we can map BOTH user and kernel into a single page table
 so no page table switch required
 maybe some registers do not have to be saved
-maybe no stack is required for simple system calls</p>
-<p>there have been many clever schemes invented for kernel entry!
+maybe no stack is required for simple system calls</p><p>there have been many clever schemes invented for kernel entry!
 different amounts of work by CPU
 different strategies for handler s/w
-performance here is often super important</p>
-<p>what are our options at this point for saving user registers?
+performance here is often super important</p><p>what are our options at this point for saving user registers?
 can we just write them somewhere convenient in physical memory?
 no, even supervisor mode is constrained to use the page table
 can we first set satp to the kernel page table?
-supervisor mode is allowed to set satp&hellip;
+supervisor mode is allowed to set satp&mldr;
 but we don&rsquo;t know the address of the kernel page table at this point!
-and we need a free register to even execute csrw satp, $xx</p>
-<p>two parts to the solution for where to save the 32 user registers:</p>
-<ol>
-<li>xv6 maps a 2nd kernel page, the trapframe, into every user page table
+and we need a free register to even execute csrw satp, $xx</p><p>two parts to the solution for where to save the 32 user registers:</p><ol><li>xv6 maps a 2nd kernel page, the trapframe, into every user page table
 it has space to hold the saved registers
 the kernel gives each process a different trapframe page
 the page at 0x3fffffe000 is the trapframe page
 see struct trapframe in kernel/proc.h
-(but we still need a register holding the trapframe&rsquo;s address&hellip;)</li>
-<li>RISC-V provides the sscratch register
+(but we still need a register holding the trapframe&rsquo;s address&mldr;)</li><li>RISC-V provides the sscratch register
 the kernel puts a pointer to the trapframe in sscratch
 before entering user space
 supervisor code can swap any register with sscratch
 thus both getting hold of the value in sscratch,
-and simultaneously saving the register&rsquo;s user value</li>
-</ol>
-<p>see this at the start of uservec in trapframe.S:
-csrrw a0, sscratch, a0</p>
-<p>the csrrw has already been executed due to some gdb quirk&hellip;</p>
-<p>(gdb) print/x $a0
+and simultaneously saving the register&rsquo;s user value</li></ol><p>see this at the start of uservec in trapframe.S:
+csrrw a0, sscratch, a0</p><p>the csrrw has already been executed due to some gdb quirk&mldr;</p><p>(gdb) print/x $a0
 address of the trapframe
-(gdb&gt; print/x $sscratch
-0x2, the old first argument (fd)</p>
-<p>now uservec() has 32 saves of user registers to the trapframe, via a0
+(gdb> print/x $sscratch
+0x2, the old first argument (fd)</p><p>now uservec() has 32 saves of user registers to the trapframe, via a0
 so they can be restored later, when the system call returns
-let&rsquo;s skip them</p>
-<p>(gdb) b *0x3ffffff076
-(gdb) c</p>
-<p>now we&rsquo;re setting up to be able to run C code in the kernel
+let&rsquo;s skip them</p><p>(gdb) b *0x3ffffff076
+(gdb) c</p><p>now we&rsquo;re setting up to be able to run C code in the kernel
 first a stack
 previously, kernel put a pointer to top of this process&rsquo;s
 kernel stack in trapframe
@@ -593,702 +132,223 @@ look at struct trapframe in kernel/proc.h
 &ldquo;ld sp, 8(a0)&rdquo; fetches the kernel stack pointer
 remember a0 points to the trapframe
 at this point the only kernel data the code can
-get at is the trapframe, so everything has to be loaded from there.</p>
-<p>(gdb) stepi</p>
-<p>retrieve hart ID into tp</p>
-<p>(gdb) stepi</p>
-<p>we want to jump to the kernel C function usertrap(), which
+get at is the trapframe, so everything has to be loaded from there.</p><p>(gdb) stepi</p><p>retrieve hart ID into tp</p><p>(gdb) stepi</p><p>we want to jump to the kernel C function usertrap(), which
 the kernel previously saved in the trapframe.
 &ldquo;ld t0, 16(a0)&rdquo; fetches it into t0, we&rsquo;ll use it in a moment,
-after switching to the kernel page table</p>
-<p>(gdb) stepi</p>
-<p>load a pointer to the kernel pagetable from the trapframe,
-and load it into satp, and issue an sfence to clear the TLB.</p>
-<p>(gdb) stepi
+after switching to the kernel page table</p><p>(gdb) stepi</p><p>load a pointer to the kernel pagetable from the trapframe,
+and load it into satp, and issue an sfence to clear the TLB.</p><p>(gdb) stepi
 (gdb) stepi
-(gdb) stepi</p>
-<p>why isn&rsquo;t there a crash at this point?
+(gdb) stepi</p><p>why isn&rsquo;t there a crash at this point?
 after all we just switched page tables while executing!
 answer: the trampoline page is mapped at the same virtual address
-in the kernel page table as well as every user page table</p>
-<p>(gdb) print $pc
-qemu: info mem</p>
-<p>with the kernel page table we can now use kernel functions and data</p>
-<p>the jr t0 is a jump to usertrap() (using t0 retrieved from trapframe)</p>
-<p>(gdb) print/x $t0
+in the kernel page table as well as every user page table</p><p>(gdb) print $pc
+qemu: info mem</p><p>with the kernel page table we can now use kernel functions and data</p><p>the jr t0 is a jump to usertrap() (using t0 retrieved from trapframe)</p><p>(gdb) print/x $t0
 (gdb) x/4i $t0
 (gdb) stepi
-(gdb) tui enable</p>
-<p>we&rsquo;re now in usertrap() in kernel/trap.c
+(gdb) tui enable</p><p>we&rsquo;re now in usertrap() in kernel/trap.c
 various traps come here, e.g. errors, device interrupts, and system calls
 usertrap() looks in the scause register to see the trap cause
 see Figure 10.3 on page 102 of The RISC-V Reader
-scause = 8 is a system call</p>
-<p>(gdb) next &hellip; until syscall()
+scause = 8 is a system call</p><p>(gdb) next &mldr; until syscall()
 (gdb) step
-(gdb) next</p>
-<p>now we&rsquo;re in syscall() kernel/syscall.c
+(gdb) next</p><p>now we&rsquo;re in syscall() kernel/syscall.c
 myproc() uses tp to retrieve current struct proc *
-p-&gt;xxx is usually a slot in the current process&rsquo;s struct proc</p>
-<p>syscall() retrieves the system call number from saved register a7
-p-&gt;trapframe points to the trapframe, with saved registers
-p-&gt;trapframe-&gt;a7 holds 16, SYS_write
-p-&gt;trapframe-&gt;a0 holds write() first argument &ndash; fd
-p-&gt;trapframe-&gt;a1 holds buf
-p-&gt;trapframe-&gt;a2 holds n</p>
-<p>(gdb) next &hellip;
-(gdb) print num</p>
-<p>then dispatches through syscall[num], a table of functions</p>
-<p>(gdb) next &hellip;
-(gdb) step</p>
-<p>aha, we&rsquo;re in sys_write.
+p->xxx is usually a slot in the current process&rsquo;s struct proc</p><p>syscall() retrieves the system call number from saved register a7
+p->trapframe points to the trapframe, with saved registers
+p->trapframe->a7 holds 16, SYS_write
+p->trapframe->a0 holds write() first argument &ndash; fd
+p->trapframe->a1 holds buf
+p->trapframe->a2 holds n</p><p>(gdb) next &mldr;
+(gdb) print num</p><p>then dispatches through syscall[num], a table of functions</p><p>(gdb) next &mldr;
+(gdb) step</p><p>aha, we&rsquo;re in sys_write.
 at this point system call implementations are fairly ordinary C code.
-let&rsquo;s skip to the end, to see how a system call returns to user space.</p>
-<p>(gdb) finish</p>
-<p>notice that write() produced console output (the shell&rsquo;s $ prompt)
+let&rsquo;s skip to the end, to see how a system call returns to user space.</p><p>(gdb) finish</p><p>notice that write() produced console output (the shell&rsquo;s $ prompt)
 back to syscall()
-the p-&gt;tf-&gt;a0 assignment causes (eventually) a0 to hold the return value
-the C calling convention on RISC-V puts return values in a0</p>
-<p>(gdb) next</p>
-<p>back to usertrap()</p>
-<p>(gdb) print p-&gt;trapframe-&gt;a0</p>
-<p>write() returned 2 &ndash; two characters &ndash; $ and space</p>
-<p>(gdb) next
-(gdb) step</p>
-<p>now we&rsquo;re in usertrapret(), which starts the process of returning
-to the user program</p>
-<p>we need to prepare for the next user-&gt;kernel transition
+the p->tf->a0 assignment causes (eventually) a0 to hold the return value
+the C calling convention on RISC-V puts return values in a0</p><p>(gdb) next</p><p>back to usertrap()</p><p>(gdb) print p->trapframe->a0</p><p>write() returned 2 &ndash; two characters &ndash; $ and space</p><p>(gdb) next
+(gdb) step</p><p>now we&rsquo;re in usertrapret(), which starts the process of returning
+to the user program</p><p>we need to prepare for the next user->kernel transition
 stvec = uservec (the trampoline), for the next ecall
 traframe satp = kernel page table, for next uservec
 traframe sp = top of kernel stack
 trapframe trap = usertrap
-trapframe hartid = hartid (in tp)</p>
-<p>at the end, we&rsquo;ll use the RISC-V sret instruction
+trapframe hartid = hartid (in tp)</p><p>at the end, we&rsquo;ll use the RISC-V sret instruction
 we need to prepare a few registers that sret uses
 sstatus &ndash; set the &ldquo;previous mode&rdquo; bit to user
-sepc &ndash; the saved user program counter (from trap entry)</p>
-<p>we&rsquo;re going to switch to the user page table while executing
+sepc &ndash; the saved user program counter (from trap entry)</p><p>we&rsquo;re going to switch to the user page table while executing
 not OK in usertrapret(), since it&rsquo;s not mapped in the user page table.
 need a page that&rsquo;s mapped in both user and kernel page table &ndash; the trampoline.
-jump to userret in trampoline.S</p>
-<p>(gdb) tui disable
+jump to userret in trampoline.S</p><p>(gdb) tui disable
 (gdb) step
-(gdb) x/8i 0x3ffffff090</p>
-<p>a0 holds TRAPFRAME
+(gdb) x/8i 0x3ffffff090</p><p>a0 holds TRAPFRAME
 a1 holds user page table address
-the csrw satp switches to the user address space</p>
-<p>(gdb) stepi
+the csrw satp switches to the user address space</p><p>(gdb) stepi
 (gdb) stepi
-(gdb) stepi</p>
-<p>the csrw scratch puts the user a0 into sscratch
+(gdb) stepi</p><p>the csrw scratch puts the user a0 into sscratch
 just before sret we&rsquo;ll do a swap,
 so that a0 holds the user a0 and sscratch holds trapframe pointer.
-which is what uservec expects.</p>
-<p>now 32 loads from the trapframe into registers
+which is what uservec expects.</p><p>now 32 loads from the trapframe into registers
 these restore the user registers
-let&rsquo;s skip over them</p>
-<p>(gdb) b *0x3ffffff10a
-(gdb) c</p>
-<p>here&rsquo;s the csrw that swaps a0 with sscratch</p>
-<p>(gdb) stepi
+let&rsquo;s skip over them</p><p>(gdb) b *0x3ffffff10a
+(gdb) c</p><p>here&rsquo;s the csrw that swaps a0 with sscratch</p><p>(gdb) stepi
 (gdb) print/x $a0 &ndash; the return value from write()
-(gdb) print/x $sscratch &ndash; trapframe address for uservec</p>
-<p>now we&rsquo;re at the sret instruction</p>
-<p>(gdb) print $pc
+(gdb) print/x $sscratch &ndash; trapframe address for uservec</p><p>now we&rsquo;re at the sret instruction</p><p>(gdb) print $pc
 (gdb) stepi
-(gdb) print $pc</p>
-<p>now we&rsquo;re back in the user program ($pc = 0x0xdea)
-returning 2 from the write() function</p>
-<p>(gdb) print/x $a0</p>
-<p>and we&rsquo;re done with a system call!</p>
-<p>summary
+(gdb) print $pc</p><p>now we&rsquo;re back in the user program ($pc = 0x0xdea)
+returning 2 from the write() function</p><p>(gdb) print/x $a0</p><p>and we&rsquo;re done with a system call!</p><p>summary
 system call entry/exit is far more complex than function call
 much of the complexity is due to the requirement for isolation
 and the desire for simple and fast hardware mechanisms
 a few design questions to ponder:
 can an evil program abuse the entry mechanism?
 can you think of ways to make the hardware or software simpler?
-can you think of ways to make traps faster?</p>
-<h1 id="lab-traps"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/traps.html">Lab: traps</a><a hidden class="anchor" aria-hidden="true" href="#lab-traps">#</a></h1>
-<h2 id="risc-v-assembly-easy">RISC-V assembly (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">easy</a>)<a hidden class="anchor" aria-hidden="true" href="#risc-v-assembly-easy">#</a></h2>
-<h3 id="which-registers-contain-arguments-to-functions-for-example-which-register-holds-13-in-mains-call-to-printf">Which registers contain arguments to functions? For example, which register holds 13 in main&rsquo;s call to <code>printf</code>?<a hidden class="anchor" aria-hidden="true" href="#which-registers-contain-arguments-to-functions-for-example-which-register-holds-13-in-mains-call-to-printf">#</a></h3>
-<p>13 <code>-&gt;</code> a2</p>
-<p>12 <code>-&gt;</code> a1</p>
-<p>第一个参数<code>-&gt;</code> a0 在printf中代表格式化字符串的地址，在exit(0)中代表参数0</p>
-<p><code>ra</code>(返回地址)</p>
-<p><code>s0</code>(保存帧指针)</p>
-<p><code>auipc xx, 0x0</code> 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 <code>x</code>x 中。</p>
-<h3 id="where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions">Where is the call to function <code>f</code> in the assembly code for main? Where is the call to <code>g</code>? (Hint: the compiler may inline functions.)<a hidden class="anchor" aria-hidden="true" href="#where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%d %d</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, <span style="color:#a6e22e">f</span>(<span style="color:#ae81ff">8</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">13</span>);
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">24</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">4635</span>                	li	a2,<span style="color:#ae81ff">13</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">26</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">45</span>b1                	li	a1,<span style="color:#ae81ff">12</span>
-</span></span></code></pre></div><p>这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。</p>
-<h3 id="at-what-address-is-the-function-printf-located">At what address is the function <code>printf</code> located?<a hidden class="anchor" aria-hidden="true" href="#at-what-address-is-the-function-printf-located">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-asm" data-lang="asm"><span style="display:flex;"><span>  <span style="color:#960050;background-color:#1e0010">34:</span>	<span style="color:#960050;background-color:#1e0010">600080</span><span style="color:#a6e22e">e7</span>          	<span style="color:#66d9ef">jalr</span>	<span style="color:#ae81ff">1536</span>(<span style="color:#66d9ef">ra</span>) <span style="color:#75715e"># 630 &lt;printf&gt;
-</span></span></span></code></pre></div><p>$0x630$ 位置</p>
-<h3 id="what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main">What value is in the register <code>ra</code> just after the <code>jalr</code> to <code>printf</code> in <code>main</code>?<a hidden class="anchor" aria-hidden="true" href="#what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#ae81ff">30</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">000000</span><span style="color:#ae81ff">97</span>          	auipc	ra,<span style="color:#ae81ff">0x0</span>
-</span></span><span style="display:flex;"><span>  <span style="color:#ae81ff">34</span><span style="color:#f92672">:</span>	<span style="color:#ae81ff">600080e7</span>          	jalr	<span style="color:#ae81ff">1536</span>(ra) <span style="color:#960050;background-color:#1e0010">#</span> <span style="color:#ae81ff">630</span> <span style="color:#f92672">&lt;</span>printf<span style="color:#f92672">&gt;</span>
-</span></span></code></pre></div><p>$0x630 = 0x30(ra) + 1536, ra = 0x30$</p>
-<h3 id="run-the-following-code">Run the following code.<a hidden class="anchor" aria-hidden="true" href="#run-the-following-code">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>	<span style="color:#66d9ef">unsigned</span> <span style="color:#66d9ef">int</span> i <span style="color:#f92672">=</span> <span style="color:#ae81ff">0x00646c72</span>;
-</span></span><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;H%x Wo%s&#34;</span>, <span style="color:#ae81ff">57616</span>, <span style="color:#f92672">&amp;</span>i);
-</span></span></code></pre></div><p>输出 ： He110 World</p>
-<p>其中57616十六进制数组的ascii码为110</p>
-<p>因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：</p>
-<ul>
-<li>
-<p><code>0x72</code> (ASCII &lsquo;r&rsquo;)</p>
-</li>
-<li>
-<p><code>0x6c</code> (ASCII &rsquo;l')</p>
-</li>
-<li>
-<p><code>0x64</code> (ASCII &rsquo;d')</p>
-</li>
-<li>
-<p><code>0x00</code> (null terminator)</p>
-</li>
-</ul>
-<h3 id="in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen">In the following code, what is going to be printed after <code>'y='</code>? (note: the answer is not a specific value.) Why does this happen?<a hidden class="anchor" aria-hidden="true" href="#in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>	<span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;x=%d y=%d&#34;</span>, <span style="color:#ae81ff">3</span>);
-</span></span></code></pre></div><p>因为<code>printf</code>会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的状态，编译行为和优化，运行环境和内存的管理。</p>
-<h2 id="backtrace-moderate">Backtrace (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">moderate</a>)<a hidden class="anchor" aria-hidden="true" href="#backtrace-moderate">#</a></h2>
-<h3 id="defsh">defs.h<a hidden class="anchor" aria-hidden="true" href="#defsh">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span>            <span style="color:#a6e22e">backtrace</span>(<span style="color:#66d9ef">void</span>);
-</span></span></code></pre></div><h3 id="printfc">printf.c<a hidden class="anchor" aria-hidden="true" href="#printfc">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240918143751681.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240918143751681.png" alt="image-20240918143751681"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">backtrace</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  uint64 p <span style="color:#f92672">=</span> <span style="color:#a6e22e">r_fp</span>();
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">while</span> (p <span style="color:#f92672">!=</span> <span style="color:#a6e22e">PGROUNDUP</span>(p))
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    uint64 ra <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(uint64 <span style="color:#f92672">*</span>)(p <span style="color:#f92672">-</span> <span style="color:#ae81ff">8</span>);
-</span></span><span style="display:flex;"><span>    uint64 fp <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(uint64 <span style="color:#f92672">*</span>)(p <span style="color:#f92672">-</span> <span style="color:#ae81ff">16</span>);
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">printf</span>(<span style="color:#e6db74">&#34;%p</span><span style="color:#ae81ff">\n</span><span style="color:#e6db74">&#34;</span>, ra);
-</span></span><span style="display:flex;"><span>    p <span style="color:#f92672">=</span> fp;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174643360.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174643360.png" alt="image-20240911174643360"  />
-        </a>
-    </div>
-</p>
-<h3 id="riscvh">riscv.h<a hidden class="anchor" aria-hidden="true" href="#riscvh">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174713519.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174713519.png" alt="image-20240911174713519"  />
-        </a>
-    </div>
-</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174745719.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174745719.png" alt="image-20240911174745719"  />
-        </a>
-    </div>
-</p>
-<h2 id="alarm-hard">Alarm (<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#alarm-hard">#</a></h2>
-<h3 id="procc">proc.c<a hidden class="anchor" aria-hidden="true" href="#procc">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174828163.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174828163.png" alt="image-20240911174828163"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handler <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((p<span style="color:#f92672">-&gt;</span>alarm_trapframe <span style="color:#f92672">=</span> (<span style="color:#66d9ef">struct</span> trapframe <span style="color:#f92672">*</span>)<span style="color:#a6e22e">kalloc</span>()) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">release</span>(<span style="color:#f92672">&amp;</span>p<span style="color:#f92672">-&gt;</span>lock);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></div><p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174852761.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174852761.png" alt="image-20240911174852761"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handler <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>alarm_trapframe)
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">kfree</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)p<span style="color:#f92672">-&gt;</span>alarm_trapframe);
-</span></span></code></pre></div><p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174918091.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174918091.png" alt="image-20240911174918091"  />
-        </a>
-    </div>
-</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174935724.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174935724.png" alt="image-20240911174935724"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 参数：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 返回值：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   成功返回0，失败返回-1。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 功能：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   用户定义的信号处理程序（handler）。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   具体来说：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   2. 在失败的情况下返回-1。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔）
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//      和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>uint64 <span style="color:#a6e22e">sys_sigalarm</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> ticks;         <span style="color:#75715e">// 用于存储用户传入的tick数（间隔时间）
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>handler)(); <span style="color:#75715e">// 用于存储用户传入的信号处理程序的指针
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从第一个参数获取tick数，argint用于获取整数类型的参数。
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">argint</span>(<span style="color:#ae81ff">0</span>, <span style="color:#f92672">&amp;</span>ticks) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 获取失败，返回-1
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">argaddr</span>(<span style="color:#ae81ff">1</span>, (uint64 <span style="color:#f92672">*</span>)<span style="color:#f92672">&amp;</span>handler) <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>; <span style="color:#75715e">// 获取失败，返回-1
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取当前的进程结构体指针
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置进程的闹钟间隔
-</span></span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">=</span> ticks;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置进程的信号处理程序
-</span></span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handler <span style="color:#f92672">=</span> handler;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 重置闹钟的计数器
-</span></span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 初始化闹钟处理状态为未处理
-</span></span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 设置成功，返回0
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 参数：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   无直接参数。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 返回值：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   成功返回0。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 功能：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时，
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//   2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>uint64 <span style="color:#a6e22e">sys_sigreturn</span>(<span style="color:#66d9ef">void</span>)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> proc <span style="color:#f92672">*</span>p <span style="color:#f92672">=</span> <span style="color:#a6e22e">myproc</span>(); <span style="color:#75715e">// 获取当前进程的指针
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。
-</span></span></span><span style="display:flex;"><span>  <span style="color:#75715e">// trapframe保存了进程在处理信号之前的CPU寄存器状态。
-</span></span></span><span style="display:flex;"><span>  <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>alarm_trapframe);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。
-</span></span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 重置闹钟的处理状态，表示当前不在信号处理程序中。
-</span></span></span><span style="display:flex;"><span>  p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 成功返回
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="proch">proc.h<a hidden class="anchor" aria-hidden="true" href="#proch">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175018175.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175018175.png" alt="image-20240911175018175"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> alarm_interval;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">void</span> (<span style="color:#f92672">*</span>alarm_handler)();
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> alarm_tick_count;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">int</span> alarm_handling;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">struct</span> trapframe <span style="color:#f92672">*</span>alarm_trapframe;
-</span></span></code></pre></div><h3 id="riscvh-1">riscv.h<a hidden class="anchor" aria-hidden="true" href="#riscvh-1">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175042873.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175042873.png" alt="image-20240911175042873"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#66d9ef">static</span> <span style="color:#66d9ef">inline</span> uint64
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">r_fp</span>()
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  uint64 x;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">asm</span> <span style="color:#66d9ef">volatile</span>(<span style="color:#e6db74">&#34;mv %0, s0&#34;</span> <span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;=r&#34;</span>(x));
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> x;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="syscallc">syscall.c<a hidden class="anchor" aria-hidden="true" href="#syscallc">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175143670.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175143670.png" alt="image-20240911175143670"  />
-        </a>
-    </div>
-</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175120740.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175120740.png" alt="image-20240911175120740"  />
-        </a>
-    </div>
-</p>
-<h3 id="syscallh">syscall.h<a hidden class="anchor" aria-hidden="true" href="#syscallh">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175157747.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175157747.png" alt="image-20240911175157747"  />
-        </a>
-    </div>
-</p>
-<h3 id="trapc">trap.c<a hidden class="anchor" aria-hidden="true" href="#trapc">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175236189.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175236189.png" alt="image-20240911175236189"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span>    <span style="color:#75715e">// ok
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> (which_dev <span style="color:#f92672">==</span> <span style="color:#ae81ff">2</span>)
-</span></span><span style="display:flex;"><span>    {
-</span></span><span style="display:flex;"><span>      <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>alarm_interval <span style="color:#f92672">!=</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">&amp;&amp;</span> <span style="color:#f92672">!</span>p<span style="color:#f92672">-&gt;</span>alarm_handling)
-</span></span><span style="display:flex;"><span>      {
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">++</span>p<span style="color:#f92672">-&gt;</span>alarm_tick_count;
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (p<span style="color:#f92672">-&gt;</span>alarm_tick_count <span style="color:#f92672">==</span> p<span style="color:#f92672">-&gt;</span>alarm_interval)
-</span></span><span style="display:flex;"><span>        {
-</span></span><span style="display:flex;"><span>          <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>alarm_trapframe) <span style="color:#f92672">=</span> <span style="color:#f92672">*</span>(p<span style="color:#f92672">-&gt;</span>trapframe);
-</span></span><span style="display:flex;"><span>          p<span style="color:#f92672">-&gt;</span>trapframe<span style="color:#f92672">-&gt;</span>epc <span style="color:#f92672">=</span> (uint64)(p<span style="color:#f92672">-&gt;</span>alarm_handler);
-</span></span><span style="display:flex;"><span>          p<span style="color:#f92672">-&gt;</span>alarm_handling <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>      }
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h3 id="userh">user.h<a hidden class="anchor" aria-hidden="true" href="#userh">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175252234.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175252234.png" alt="image-20240911175252234"  />
-        </a>
-    </div>
-</p>
-<h3 id="usyspl">usys.pl<a hidden class="anchor" aria-hidden="true" href="#usyspl">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175321847.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175321847.png" alt="image-20240911175321847"  />
-        </a>
-    </div>
-</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s0817-qa/">
-    <span class="title">« 上一页</span>
-    <span>MIT6.S081(7)-Q&amp;A</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/">
-    <span class="title">下一页 »</span>
-    <span>MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+can you think of ways to make traps faster?</p><h1 id=lab-traps><a href=https://pdos.csail.mit.edu/6.S081/2020/labs/traps.html>Lab: traps</a><a hidden class=anchor aria-hidden=true href=#lab-traps>#</a></h1><h2 id=risc-v-assembly-easy>RISC-V assembly (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>easy</a>)<a hidden class=anchor aria-hidden=true href=#risc-v-assembly-easy>#</a></h2><h3 id=which-registers-contain-arguments-to-functions-for-example-which-register-holds-13-in-mains-call-to-printf>Which registers contain arguments to functions? For example, which register holds 13 in main&rsquo;s call to <code>printf</code>?<a hidden class=anchor aria-hidden=true href=#which-registers-contain-arguments-to-functions-for-example-which-register-holds-13-in-mains-call-to-printf>#</a></h3><p>13 <code>-></code> a2</p><p>12 <code>-></code> a1</p><p>第一个参数<code>-></code> a0 在printf中代表格式化字符串的地址，在exit(0)中代表参数0</p><p><code>ra</code>(返回地址)</p><p><code>s0</code>(保存帧指针)</p><p><code>auipc xx, 0x0</code> 通过将当前PC的高20位加上一个立即数（在这个例子中是0x0，表示没有偏移）来形成一个高地址部分。这个结果会存储在目标寄存器 <code>x</code>x 中。</p><h3 id=where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions>Where is the call to function <code>f</code> in the assembly code for main? Where is the call to <code>g</code>? (Hint: the compiler may inline functions.)<a hidden class=anchor aria-hidden=true href=#where-is-the-call-to-function-f-in-the-assembly-code-for-main-where-is-the-call-to-g-hint-the-compiler-may-inline-functions>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;%d %d</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, <span style=color:#a6e22e>f</span>(<span style=color:#ae81ff>8</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>13</span>);
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>24</span><span style=color:#f92672>:</span>	<span style=color:#ae81ff>4635</span>                	li	a2,<span style=color:#ae81ff>13</span>
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>26</span><span style=color:#f92672>:</span>	<span style=color:#ae81ff>45</span>b1                	li	a1,<span style=color:#ae81ff>12</span>
+</span></span></code></pre></div><p>这里直接将计算后的值写入到寄存器中，通过内联的方式调用函数。</p><h3 id=at-what-address-is-the-function-printf-located>At what address is the function <code>printf</code> located?<a hidden class=anchor aria-hidden=true href=#at-what-address-is-the-function-printf-located>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-asm data-lang=asm><span style=display:flex><span>  <span style=color:#960050;background-color:#1e0010>34:</span>	<span style=color:#960050;background-color:#1e0010>600080</span><span style=color:#a6e22e>e7</span>          	<span style=color:#66d9ef>jalr</span>	<span style=color:#ae81ff>1536</span>(<span style=color:#66d9ef>ra</span>) <span style=color:#75715e># 630 &lt;printf&gt;
+</span></span></span></code></pre></div><p>$0x630$ 位置</p><h3 id=what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main>What value is in the register <code>ra</code> just after the <code>jalr</code> to <code>printf</code> in <code>main</code>?<a hidden class=anchor aria-hidden=true href=#what-value-is-in-the-register-ra-just-after-the-jalr-to-printf-in-main>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#ae81ff>30</span><span style=color:#f92672>:</span>	<span style=color:#ae81ff>000000</span><span style=color:#ae81ff>97</span>          	auipc	ra,<span style=color:#ae81ff>0x0</span>
+</span></span><span style=display:flex><span>  <span style=color:#ae81ff>34</span><span style=color:#f92672>:</span>	<span style=color:#ae81ff>600080e7</span>          	jalr	<span style=color:#ae81ff>1536</span>(ra) <span style=color:#960050;background-color:#1e0010>#</span> <span style=color:#ae81ff>630</span> <span style=color:#f92672>&lt;</span>printf<span style=color:#f92672>&gt;</span>
+</span></span></code></pre></div><p>$0x630 = 0x30(ra) + 1536, ra = 0x30$</p><h3 id=run-the-following-code>Run the following code.<a hidden class=anchor aria-hidden=true href=#run-the-following-code>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>	<span style=color:#66d9ef>unsigned</span> <span style=color:#66d9ef>int</span> i <span style=color:#f92672>=</span> <span style=color:#ae81ff>0x00646c72</span>;
+</span></span><span style=display:flex><span>	<span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;H%x Wo%s&#34;</span>, <span style=color:#ae81ff>57616</span>, <span style=color:#f92672>&amp;</span>i);
+</span></span></code></pre></div><p>输出 ： He110 World</p><p>其中57616十六进制数组的ascii码为110</p><p>因为 RISC-V 是 little-endian. 内存中存储i为逆序的，所以会倒序 ：</p><ul><li><p><code>0x72</code> (ASCII &lsquo;r&rsquo;)</p></li><li><p><code>0x6c</code> (ASCII &rsquo;l')</p></li><li><p><code>0x64</code> (ASCII &rsquo;d')</p></li><li><p><code>0x00</code> (null terminator)</p></li></ul><h3 id=in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen>In the following code, what is going to be printed after <code>'y='</code>? (note: the answer is not a specific value.) Why does this happen?<a hidden class=anchor aria-hidden=true href=#in-the-following-code-what-is-going-to-be-printed-after-y-note-the-answer-is-not-a-specific-value-why-does-this-happen>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>	<span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;x=%d y=%d&#34;</span>, <span style=color:#ae81ff>3</span>);
+</span></span></code></pre></div><p>因为<code>printf</code>会尝试从栈或者内存上读取这个缺失的参数，这会导致未定义的行为，可能会获取到任意的内存产生未知的值，具体取决于栈和内存的状态，编译行为和优化，运行环境和内存的管理。</p><h2 id=backtrace-moderate>Backtrace (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>moderate</a>)<a hidden class=anchor aria-hidden=true href=#backtrace-moderate>#</a></h2><h3 id=defsh>defs.h<a hidden class=anchor aria-hidden=true href=#defsh>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span>            <span style=color:#a6e22e>backtrace</span>(<span style=color:#66d9ef>void</span>);
+</span></span></code></pre></div><h3 id=printfc>printf.c<a hidden class=anchor aria-hidden=true href=#printfc>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240918143751681.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240918143751681.png alt=image-20240918143751681></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>backtrace</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  uint64 p <span style=color:#f92672>=</span> <span style=color:#a6e22e>r_fp</span>();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>while</span> (p <span style=color:#f92672>!=</span> <span style=color:#a6e22e>PGROUNDUP</span>(p))
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    uint64 ra <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>(uint64 <span style=color:#f92672>*</span>)(p <span style=color:#f92672>-</span> <span style=color:#ae81ff>8</span>);
+</span></span><span style=display:flex><span>    uint64 fp <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>(uint64 <span style=color:#f92672>*</span>)(p <span style=color:#f92672>-</span> <span style=color:#ae81ff>16</span>);
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>printf</span>(<span style=color:#e6db74>&#34;%p</span><span style=color:#ae81ff>\n</span><span style=color:#e6db74>&#34;</span>, ra);
+</span></span><span style=display:flex><span>    p <span style=color:#f92672>=</span> fp;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174643360.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174643360.png alt=image-20240911174643360></a></div></p><h3 id=riscvh>riscv.h<a hidden class=anchor aria-hidden=true href=#riscvh>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174713519.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174713519.png alt=image-20240911174713519></a></div></p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174745719.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174745719.png alt=image-20240911174745719></a></div></p><h2 id=alarm-hard>Alarm (<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>hard</a>)<a hidden class=anchor aria-hidden=true href=#alarm-hard>#</a></h2><h3 id=procc>proc.c<a hidden class=anchor aria-hidden=true href=#procc>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174828163.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174828163.png alt=image-20240911174828163></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_interval <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handler <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_tick_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handling <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((p<span style=color:#f92672>-&gt;</span>alarm_trapframe <span style=color:#f92672>=</span> (<span style=color:#66d9ef>struct</span> trapframe <span style=color:#f92672>*</span>)<span style=color:#a6e22e>kalloc</span>()) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>release</span>(<span style=color:#f92672>&amp;</span>p<span style=color:#f92672>-&gt;</span>lock);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span></code></pre></div><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174852761.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174852761.png alt=image-20240911174852761></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_interval <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handler <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_tick_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handling <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (p<span style=color:#f92672>-&gt;</span>alarm_trapframe)
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>kfree</span>((<span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>)p<span style=color:#f92672>-&gt;</span>alarm_trapframe);
+</span></span></code></pre></div><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174918091.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174918091.png alt=image-20240911174918091></a></div></p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174935724.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911174935724.png alt=image-20240911174935724></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// sys_sigalarm - 系统调用，用于设置一个进程的定时闹钟信号处理程序
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 参数：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   无直接参数。使用了argint()和argaddr()来从系统调用参数中提取值。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 返回值：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   成功返回0，失败返回-1。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 功能：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   该函数设置一个进程的定时闹钟，当计时器达到指定的tick数时，触发
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   用户定义的信号处理程序（handler）。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   具体来说：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   1. 从系统调用参数中获取指定的tick数和信号处理程序的地址。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   2. 在失败的情况下返回-1。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   3. 如果成功获取到这些参数，更新当前进程的alarm_interval（闹钟间隔）
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//      和alarm_handler（闹钟处理程序），并重置闹钟的计数器和状态。
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>uint64 <span style=color:#a6e22e>sys_sigalarm</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> ticks;         <span style=color:#75715e>// 用于存储用户传入的tick数（间隔时间）
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span> (<span style=color:#f92672>*</span>handler)(); <span style=color:#75715e>// 用于存储用户传入的信号处理程序的指针
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 从第一个参数获取tick数，argint用于获取整数类型的参数。
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>argint</span>(<span style=color:#ae81ff>0</span>, <span style=color:#f92672>&amp;</span>ticks) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>; <span style=color:#75715e>// 获取失败，返回-1
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 从第二个参数获取信号处理程序的地址，argaddr用于获取指针类型的参数。
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>argaddr</span>(<span style=color:#ae81ff>1</span>, (uint64 <span style=color:#f92672>*</span>)<span style=color:#f92672>&amp;</span>handler) <span style=color:#f92672>&lt;</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>; <span style=color:#75715e>// 获取失败，返回-1
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 获取当前的进程结构体指针
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> proc <span style=color:#f92672>*</span>p <span style=color:#f92672>=</span> <span style=color:#a6e22e>myproc</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 设置进程的闹钟间隔
+</span></span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_interval <span style=color:#f92672>=</span> ticks;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 设置进程的信号处理程序
+</span></span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handler <span style=color:#f92672>=</span> handler;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 重置闹钟的计数器
+</span></span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_tick_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 初始化闹钟处理状态为未处理
+</span></span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handling <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 设置成功，返回0
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// sys_sigreturn - 系统调用，用于从信号处理程序返回到主程序
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 参数：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   无直接参数。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 返回值：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   成功返回0。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 功能：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   该函数用于当信号处理程序（如通过sys_sigalarm设置的处理程序）执行完毕时，
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   恢复进程的上下文状态，使其返回到处理信号前的执行状态。具体步骤包括：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   1. 恢复陷阱帧（trapframe），将保存的alarm_trapframe内容恢复到当前的trapframe中。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//   2. 重置闹钟的计数器和处理状态，表示信号处理已经完成。
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>uint64 <span style=color:#a6e22e>sys_sigreturn</span>(<span style=color:#66d9ef>void</span>)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> proc <span style=color:#f92672>*</span>p <span style=color:#f92672>=</span> <span style=color:#a6e22e>myproc</span>(); <span style=color:#75715e>// 获取当前进程的指针
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 恢复进程的trapframe，将保存的alarm_trapframe内容复制回当前trapframe。
+</span></span></span><span style=display:flex><span>  <span style=color:#75715e>// trapframe保存了进程在处理信号之前的CPU寄存器状态。
+</span></span></span><span style=display:flex><span>  <span style=color:#f92672>*</span>(p<span style=color:#f92672>-&gt;</span>trapframe) <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>(p<span style=color:#f92672>-&gt;</span>alarm_trapframe);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 重置闹钟的计数器，表示闹钟信号处理程序已经执行完毕。
+</span></span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_tick_count <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 重置闹钟的处理状态，表示当前不在信号处理程序中。
+</span></span></span><span style=display:flex><span>  p<span style=color:#f92672>-&gt;</span>alarm_handling <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 成功返回
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=proch>proc.h<a hidden class=anchor aria-hidden=true href=#proch>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175018175.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175018175.png alt=image-20240911175018175></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>  <span style=color:#66d9ef>int</span> alarm_interval;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>void</span> (<span style=color:#f92672>*</span>alarm_handler)();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> alarm_tick_count;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>int</span> alarm_handling;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>struct</span> trapframe <span style=color:#f92672>*</span>alarm_trapframe;
+</span></span></code></pre></div><h3 id=riscvh-1>riscv.h<a hidden class=anchor aria-hidden=true href=#riscvh-1>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175042873.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175042873.png alt=image-20240911175042873></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#66d9ef>static</span> <span style=color:#66d9ef>inline</span> uint64
+</span></span><span style=display:flex><span><span style=color:#a6e22e>r_fp</span>()
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  uint64 x;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>asm</span> <span style=color:#66d9ef>volatile</span>(<span style=color:#e6db74>&#34;mv %0, s0&#34;</span> <span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;=r&#34;</span>(x));
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> x;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=syscallc>syscall.c<a hidden class=anchor aria-hidden=true href=#syscallc>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175143670.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175143670.png alt=image-20240911175143670></a></div></p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175120740.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175120740.png alt=image-20240911175120740></a></div></p><h3 id=syscallh>syscall.h<a hidden class=anchor aria-hidden=true href=#syscallh>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175157747.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175157747.png alt=image-20240911175157747></a></div></p><h3 id=trapc>trap.c<a hidden class=anchor aria-hidden=true href=#trapc>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175236189.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175236189.png alt=image-20240911175236189></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span>    <span style=color:#75715e>// ok
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> (which_dev <span style=color:#f92672>==</span> <span style=color:#ae81ff>2</span>)
+</span></span><span style=display:flex><span>    {
+</span></span><span style=display:flex><span>      <span style=color:#66d9ef>if</span> (p<span style=color:#f92672>-&gt;</span>alarm_interval <span style=color:#f92672>!=</span> <span style=color:#ae81ff>0</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#f92672>!</span>p<span style=color:#f92672>-&gt;</span>alarm_handling)
+</span></span><span style=display:flex><span>      {
+</span></span><span style=display:flex><span>        <span style=color:#f92672>++</span>p<span style=color:#f92672>-&gt;</span>alarm_tick_count;
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (p<span style=color:#f92672>-&gt;</span>alarm_tick_count <span style=color:#f92672>==</span> p<span style=color:#f92672>-&gt;</span>alarm_interval)
+</span></span><span style=display:flex><span>        {
+</span></span><span style=display:flex><span>          <span style=color:#f92672>*</span>(p<span style=color:#f92672>-&gt;</span>alarm_trapframe) <span style=color:#f92672>=</span> <span style=color:#f92672>*</span>(p<span style=color:#f92672>-&gt;</span>trapframe);
+</span></span><span style=display:flex><span>          p<span style=color:#f92672>-&gt;</span>trapframe<span style=color:#f92672>-&gt;</span>epc <span style=color:#f92672>=</span> (uint64)(p<span style=color:#f92672>-&gt;</span>alarm_handler);
+</span></span><span style=display:flex><span>          p<span style=color:#f92672>-&gt;</span>alarm_handling <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h3 id=userh>user.h<a hidden class=anchor aria-hidden=true href=#userh>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175252234.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175252234.png alt=image-20240911175252234></a></div></p><h3 id=usyspl>usys.pl<a hidden class=anchor aria-hidden=true href=#usyspl>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175321847.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240911175321847.png alt=image-20240911175321847></a></div></p></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/mit6.s081/>MIT6.S081</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F>操作系统</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/mit6.s0817-qa/><span class=title>« 上一页</span>
+<span>MIT6.S081(7)-Q&amp;A</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/mit6.s0815-risc-v-calling-convention-stack-frames-and-gdb/><span class=title>下一页 »</span>
+<span>MIT6.S081(5)-RISC-V calling convention, stack frames, and gdb</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

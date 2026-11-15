@@ -1,1216 +1,234 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>RabbitMQ | Kennem&#39;s Blog</title>
-<meta name="keywords" content="RabbitMQ">
-<meta name="description" content="RabbitMQ">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/rabbitmq/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/rabbitmq/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/rabbitmq/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="RabbitMQ">
-  <meta property="og:description" content="RabbitMQ">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-11-05T22:30:13+08:00">
-    <meta property="article:modified_time" content="2024-11-06T22:20:13+08:00">
-    <meta property="article:tag" content="RabbitMQ">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="RabbitMQ">
-  <meta name="twitter:description" content="RabbitMQ">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "RabbitMQ",
-      "item": "https://kennems.github.io/posts/tech/rabbitmq/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "RabbitMQ",
-  "name": "RabbitMQ",
-  "description": "RabbitMQ",
-  "keywords": [
-    "RabbitMQ"
-  ],
-  "articleBody": "RabbitMQ 同步通讯 和 异步通讯\n同步调用 同步调用的问题：\n拓展性差 性能下降 级联失败 异步调用 异步调用方式其实就是基于消息通知的方式，一般包含三个角色：\n消息发送者：投递消息的人，就是原来的调用方 消息代理：管理、暂存、转发消息，可以理解为微信服务器 消息接收者：接受和处理消息的人，就是原来的服务提供方 支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。\n具备下列优势：\n解除耦合，拓展性强 无需等待，性能好 故障隔离 缓存消息，流量削峰填谷 缺点：\n不能立刻得到调用结果，时效性差 不确定下游业务执行是否成功 业务安全依赖于Broker的可靠性 MQ MQ（MessageQueue），消息队列，存放消息的队列，也就是异步调用中的Broker。\n特性 RabbitMQ ActiveMQ RocketMQ Kafka 公司/社区 Rabbit Apache 阿里 Apache 开发语言 Erlang Java Java Scala \u0026 Java 协议支持 AMQP, XMPP, SMTP, STOMP OpenWire, STOMP, REST, XMPP, AMQP 自定义协议 自定义协议 可用性 高 一般 高 非常高 单机吞吐量 一般 差 高 非常高 消息延迟 微秒级 毫秒级 毫秒级 毫秒以内 消息可靠性 高 一般 高 一般 RabbitMQ的整体架构及核心概念 virtual-host：虚拟主机，起到数据隔离的作用 publisher：消息发送者 consumer：消息的消费者 queue：队列，存储消息 exchange：交换机，负责路由消息 快速入门 启动MQ docker run \\ -e RABBITMQ_DEFAULT_USER=itheima \\ -e RABBITMQ_DEFAULT_PASS=123321 \\ -v mq-plugins:/plugins \\ --name mq \\ --hostname mq \\ -p 15672:15672 \\ -p 5672:5672 \\ --network hmall \\ -d \\ rabbitmq:3.8-management 程序控制 AMQP Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。\nSpring AMQP Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。\n发送者 @SpringBootTest public class SpringAmqpTest { @Autowired private RabbitTemplate rabbitTemplate; @Test void testSendMessage2Queue(){ String queueName = \"simple.queue\"; String msg = \"hello, rabbitmq\"; rabbitTemplate.convertAndSend(queueName, msg); } } 监听者 @Slf4j @Component public class MqListener { @RabbitListener(queues = \"simple.queue\") public void listenSimpleQueue(String msg) { System.out.println(\"消费者收到消息：【\" + msg + \"】\"); } } Work模型的使用：\n多个消费者绑定到一个队列，可以加快消息处理速度 同一条消息只会被一个消费者处理 通过设置prefetch来控制消费者预取的消息数量，处理完一条再处理下一条，实现能者多劳 交换机 真正生产环境都会经过exchange来发送消息，而不是直接发送到队列，交换机的类型有以下三种：\nFanout：广播 Direct：定向 Topic：话题 Fanout交换机 Fanout Exchange会将接受到的消息广播到每一个跟其绑定的queue，所以也叫广播模式\nDirect交换机 Direct Exchange会将接收到的消息根据规则路由到指定的Queue，因此称为定向路由。\n每一个Queue都与Exchange设置一个BindingKey 发布者发送消息时，指定消息的RoutingKey Exchange将消息路由到BindingKey与消息RoutingKey一致的队列 Topic交换机 TopicExchange与DirectExchange类似，区别在于routingKey可以是多个单词的列表，并且以.分割。\nQueue与Exchange指定BindingKey时可以使用通配符：\n# ：代指0个或多个单词 *：代指一个单词 声明队列和交换机 SpringAMQP提供了几个类，用来声明队列、交换机及其绑定关系：\nQueue：用于声明队列，可以用工厂类QueueBuilder构建 Exchange：用于声明交换机，可以用工厂类ExchangeBuilder构建 Binding：用于声明队列和交换机的绑定关系，可以用工厂类BindingBuilder构建 @Configuration public class DirectConfiguration { @Bean public DirectExchange directExchange() { return new DirectExchange(\"hmall.direct\"); } @Bean public Queue directQueue1() { return new Queue(\"direct.queue1\"); } @Bean public Binding directQueue1BindingRed(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"red\"); } @Bean public Binding directQueue1BindingBlue(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"blue\"); } @Bean public Queue directQueue2() { return new Queue(\"direct.queue2\"); } @Bean public Binding directQueue2BindingRed(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"red\"); } @Bean public Binding directQueue2BindingYellow(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"yellow\"); } } 基于注解声明 @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue1\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"blue\", \"Kennem\"} )) public void listenDirectQueue1(String msg) throws InterruptedException { System.out.println(\"消费者1 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue2\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"yellow\"} )) public void listenDirectQueue2(String msg) throws InterruptedException { System.out.println(\"消费者2 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } 消息转换器 导入依赖\ncom.fasterxml.jackson.dataformat jackson-dataformat-xml 定义转换器\n@Bean public MessageConverter jackonMessageConverter() { return new Jackson2JsonMessageConverter(); } 业务改造 需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态\nMQ高级 消息可靠性问题 发送者的可靠性 生产者重连 由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。\nspring: rabbitmq: connection-timeout: 1s template: retry: enabled: true SpringAMQP提供的重试机制是阻塞式的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。\n如果对于业务性能有要求，建议禁用重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码\n生产者确认 RabbitMQ提供了Publisher Confirm和Publisher Return两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：\n消息投递到了MQ，但是路由失败。此时会通过PublisherReturn返回路由异常原因，然后返回ACK，告知投递成功 临时消息投递到了MQ，并且入队成功，返回ACK，告知投递成功 持久消息投递到了MQ，并且入队完成持久化，返回ACK，告知投递成功 其他情况都会返回NACK，告知投递失败 在publisher这个微服务的application.yml中添加配置： spring: rabbitmq: publisher-confirm-type: correlated publisher-returns: true 配置说明：\npublisher-comfirm-type有三种模式可选：\nnone：关闭confirm机制 simple：同步阻塞等待MQ的回执消息 correlated：MQ异步回调方式返回回执消息 每个RabbitTemplate只能配置ReturnCallback，因此需要在项目启动过程中配置： @Slf4j @Configuration public class CommonConfig implements ApplicationContextAware { @Override public void setApplicationContext(ApplicationContext applicationContext) throws BeansException { // 获取RabbitTemplate RabbitTemplate rabbitTemplate = applicationContext.getBean(RabbitTemplate.class); // 设置ReturnCallback rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -\u003e { log.info(\"消息发送失败, 应答码{}, 原因{}, 交换机{}, 路由键{},消息{}\", replyCode, replyText, exchange, routingKey, message.toString()); }); } } 发送消息，指定消息ID、消息ConfirmCallback @Test void testPublisherConfirm() throws InterruptedException { // 1. 创建CorrelationData CorrelationData cd = new CorrelationData(); // 2. 给Future添加ConfirmCallback cd.getFuture().addCallback(new ListenableFutureCallback\u003cCorrelationData.Confirm\u003e() { @Override public void onFailure(Throwable ex) { // 2.1.Future发生异常时的处理逻辑,基本不会触发 log.error(\"handle message ack fail\", ex); } @Override public void onSuccess(CorrelationData.Confirm result) { // 2.2.Future接收到回执的处理逻辑,参数中的result就是回执内容 if(result.isAck()){ // result.isAck(), boolean类型, true代表ack回执, false 代表 nack回执 log.debug(\"发送消息成功, 收到 ack!\"); }else{ // result.getReason(), String类型, 返回nack时的异常描述 log.error(\"发送消息失败, 收到 nack, reason : {}\", result.getReason()); } } }); // 3. 发送消息 rabbitTemplate.convertAndSend(\"hmall.direct\", \"red1\", \"hello\", cd);d } 生产者确认需要额外的网络和系统资源开销，尽量不要使用 如果一定要用，无需开启Publisher-Return机制，因为一般路由失败是自己业务问题 对于nack消息可以有限次数重试，依然失败则记录异常消息 MQ的可靠性 在默认情况下，RabbitMQ会将接收到的消息保存在内存中以降低消息收发的延迟。这样会导致两个问题：\n一旦MQ宕机，内存中的消息会丢失 内存空间有限，当消费者故障或处理过慢时，会导致消息积压，引发MQ阻塞 数据持久化 Rabbit MQ实现的数据持久化包括3个方面：\n交换机持久化 指定durable 队列持久化 指定durable 消息持久化 指定persistent LazyQueue 从RabbitMQ的3.6.0版本开始，就增加了Lazy Queue的概念，也就是惰性队列\n惰性队列的特征如下：\n接收到消息后直接存入磁盘而非内存（内存中只保留最近的消息，默认2048条） 消费者要消费消息时才会从磁盘中读取并加载到内存 支持数百万条的消息存储 在3.12版本之后，所有队列都是Lazy Queue模式，无法更改\n定义queue形式\n@Bean public Queue lazyQueue(){ return QueueBuilder .durable(\"lazy.queue\") .lazy() // 开启Lazy模式 .build(); } 基于注解形式：\n@RabbitListener(queuesToDeclare = @Queue( name = \"lazy.queue\", durable = \"true\", arguments = @Argument(name = \"x-queue-mode\", value = \"lazy\") )) public void listenLazyQueue(String msg){ log.info(\"接收到 lazy.queue的消息: {}\", msg); } 开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。 消费者的可靠性 消费者确认机制 为了确认消费者是否成功处理消息，RabbitMQ提供了消费者确认机制（Consumer Acknowledgement）。当消费者处理消息结束后，应该向RabbitMQ发送一个回执，告知RabbitMQ自己消息处理状态。回执有三种可选值：\nack：成功处理消息，RabbitMQ从队列中删除消息 nack：消息处理失败，RabbitMQ需要再次投递消息 reject：消息处理失败并拒绝该消息，RabbitMQ从队列中删除该消息 SpringAMQP已经实现了消息确认功能。并允许我们通过配置文件选择ACK处理方式，有三种方式：\nnone：不处理。即消息投递给消费者后立刻ack，消息会立刻从MQ删除。非常不安全，不建议使用 manual：手动模式。需要自己在业务代码中调用api，发送ack和reject，存在业务入侵，但更灵活 auto：自动模式。SpringAMQP利用AOP对我们的消息处理逻辑做了环绕增强，当业务正常执行时刻自动返回ack，当业务出现异常时，根据异常判断返回不同结果： 如果业务异常，会自动返回nack 如果是消息处理或校验异常，自动返回reject 失败消息处理策略 在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有MessageRecoverer接口来处理，它包含三种不同的实现：\nRejectAndDontRequeueRecoverer：重试耗尽后，直接reject，丢弃消息。默认就是这种方式。 ImmediateRequeueMessageRecoverer：重试耗尽后，返回nack，消息重新入队 RepublishMessageRecoverer：重试耗尽后，将失败消息投递到指定的交换机 RepublishMessageRecoverer 多次重试耗尽后，将错误转发到error.direct交换机中\n@Configuration @ConditionalOnProperty(prefix = \"spring.rabbitmq.listener.simple.retry\", name = \"enabled\", havingValue = \"true\") public class ErrorConfiguration { @Bean public DirectExchange errorExchange(){ return new DirectExchange(\"error.direct\"); } @Bean public Queue errorQueue(){ return new Queue(\"error.queue\"); } @Bean public Binding errorBinding(Queue errorQueue, DirectExchange errorExchange){ return BindingBuilder.bind(errorQueue).to(errorExchange).with(\"error\"); } @Bean public MessageRecoverer messageRecoverer(RabbitTemplate rabbitTemplate){ return new RepublishMessageRecoverer(rabbitTemplate, \"error.direct\", \"error\"); } } 业务幂等性 幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。\n查询和删除操作天生幂等 唯一消息Id 方案一，给每个消息都设置一个唯一的id，利用id区分是否是重复消息：\n每一条消息都生成一个唯一的id，与消息一起投递给消费者 消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中 如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理 @Bean public MessageConverter jackonMessageConverter() { Jackson2JsonMessageConverter jjmc = new Jackson2JsonMessageConverter(); jjmc.setCreateMessageIds(true); return jjmc; } 方案二，结合业务逻辑，基于业务本身做判断。\n面试题 如何保证支付服务与交易服务之间的订单状态一致性？ 首先，支付服务会正在用户支付成功以后利用MQ消息通知交易服务，完成订单状态同步。 其次，为了保证MQ消息的可靠性，我们采用了生产者确认机制、消费者确认、消费者失败重试等策略，确保消息投递和处理的可靠性。同时也开启了MQ的持久化，避免因服务宕机导致消息丢失。 最后，我们还在交易服务更新订单状态时做了业务幂等判断，避免了因为重复消费导致订单状态异常。 如何交易服务消息处理失败，有没有什么兜底方案？ 我们可以在交易服务设置定时任务，定时查询订单支付状态。这样即便MQ通知失败，还可以利用定时任务作为兜底方案，确保订单支付状态的最终一致性。 延迟消息 延迟消息：生产者发送消息时指定一个时间，消费者不会立刻收到消息，而是在指定时间之后才收到消息\n延迟任务：设置在一定时间之后才执行的任务\n死信交换机 当一个队列中的消息满足下列情况之一时，就会成为死信（dead letter）：\n消费者使用 basic.reject 或 basic.nack 声明消费失败，并且消息的requeue参数设置为false 消息是一个过期消息（达到了队列或消息本身设置的过期时间），超时无人消费 要投递的队列消息堆积满了，最早的消息可能称为死信 如果队列通过dead-letter-exchange属性制定了一个交换机，那么该队列中的死信就会投递到这个交换机中。这个交换机称为死信交换机（Dead Letter Exchange， 简称DLX）\n延迟消息插件 docker 查看mq的插件挂载目录：\ndocker volume inspect mq-plugins docker中mq安装插件\ndocker exec -it mq rabbitmq-plugins enable rabbitmq_delayed_message_exchange @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"delay.queue\", durable = \"true\"), exchange = @Exchange(name = \"delay.direct\", delayed = \"true\"), key = \"delay\" )) public void listenDelayMessage(String msg) { log.info(\"接收到delay.queue的延迟消息: {}\", msg); } @Bean public DirectExchange delayExchange() { return ExchangeBuilder .directExchange(\"delay.direct\") .delayed() // 设置delay的属性为true .durable(true) // 持久化 .build(); } 发送消息通过消息头x-delay来设置过期时间：\n@Test public void testSendDelayMessage(){ rabbitTemplate.convertAndSend(\"delay.direct\", \"hi\", \"hello delay\", new MessagePostProcessor() { @Override public Message postProcessMessage(Message message) throws AmqpException { message.getMessageProperties().setDelay(10000); return message; } }); log.info(\"发送消息成功！\"); } 延时功能对性能消耗较大，只适用于延时时间较短的场景。\n",
-  "wordCount" : "5321",
-  "inLanguage": "zh",
-  "datePublished": "2024-11-05T22:30:13+08:00",
-  "dateModified": "2024-11-06T22:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/rabbitmq/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      RabbitMQ
-    </h1>
-    <div class="post-description">
-      RabbitMQ
-    </div>
-    <div class="post-meta">
-
-<span title='2024-11-05 22:30:13 +0800 CST'>2024-11-05</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5321 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#rabbitmq" aria-label="RabbitMQ">RabbitMQ</a><ul>
-                        
-                <li>
-                    <a href="#%e5%90%8c%e6%ad%a5%e8%b0%83%e7%94%a8" aria-label="同步调用">同步调用</a></li>
-                <li>
-                    <a href="#%e5%bc%82%e6%ad%a5%e8%b0%83%e7%94%a8" aria-label="异步调用">异步调用</a></li>
-                <li>
-                    <a href="#mq" aria-label="MQ">MQ</a></li>
-                <li>
-                    <a href="#rabbitmq%e7%9a%84%e6%95%b4%e4%bd%93%e6%9e%b6%e6%9e%84%e5%8f%8a%e6%a0%b8%e5%bf%83%e6%a6%82%e5%bf%b5" aria-label="RabbitMQ的整体架构及核心概念">RabbitMQ的整体架构及核心概念</a></li>
-                <li>
-                    <a href="#%e5%bf%ab%e9%80%9f%e5%85%a5%e9%97%a8" aria-label="快速入门">快速入门</a><ul>
-                        
-                <li>
-                    <a href="#%e5%90%af%e5%8a%a8mq" aria-label="启动MQ">启动MQ</a></li>
-                <li>
-                    <a href="#%e7%a8%8b%e5%ba%8f%e6%8e%a7%e5%88%b6" aria-label="程序控制">程序控制</a><ul>
-                        
-                <li>
-                    <a href="#amqp" aria-label="AMQP">AMQP</a></li></ul>
-                </li>
-                <li>
-                    <a href="#spring-amqp" aria-label="Spring AMQP">Spring AMQP</a><ul>
-                        
-                <li>
-                    <a href="#%e5%8f%91%e9%80%81%e8%80%85" aria-label="发送者">发送者</a></li>
-                <li>
-                    <a href="#%e7%9b%91%e5%90%ac%e8%80%85" aria-label="监听者">监听者</a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#%e4%ba%a4%e6%8d%a2%e6%9c%ba" aria-label="交换机">交换机</a><ul>
-                        
-                <li>
-                    <a href="#fanout%e4%ba%a4%e6%8d%a2%e6%9c%ba" aria-label="Fanout交换机">Fanout交换机</a></li>
-                <li>
-                    <a href="#direct%e4%ba%a4%e6%8d%a2%e6%9c%ba" aria-label="Direct交换机">Direct交换机</a></li>
-                <li>
-                    <a href="#topic%e4%ba%a4%e6%8d%a2%e6%9c%ba" aria-label="Topic交换机">Topic交换机</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e5%a3%b0%e6%98%8e%e9%98%9f%e5%88%97%e5%92%8c%e4%ba%a4%e6%8d%a2%e6%9c%ba" aria-label="声明队列和交换机">声明队列和交换机</a><ul>
-                        
-                <li>
-                    <a href="#%e5%9f%ba%e4%ba%8e%e6%b3%a8%e8%a7%a3%e5%a3%b0%e6%98%8e" aria-label="基于注解声明">基于注解声明</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e6%b6%88%e6%81%af%e8%bd%ac%e6%8d%a2%e5%99%a8" aria-label="消息转换器">消息转换器</a></li>
-                <li>
-                    <a href="#%e4%b8%9a%e5%8a%a1%e6%94%b9%e9%80%a0" aria-label="业务改造">业务改造</a></li></ul>
-                </li>
-                <li>
-                    <a href="#mq%e9%ab%98%e7%ba%a7" aria-label="MQ高级">MQ高级</a><ul>
-                        
-                <li>
-                    <a href="#%e6%b6%88%e6%81%af%e5%8f%af%e9%9d%a0%e6%80%a7%e9%97%ae%e9%a2%98" aria-label="消息可靠性问题">消息可靠性问题</a><ul>
-                        
-                <li>
-                    <a href="#%e5%8f%91%e9%80%81%e8%80%85%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7" aria-label="发送者的可靠性">发送者的可靠性</a><ul>
-                        
-                <li>
-                    <a href="#%e7%94%9f%e4%ba%a7%e8%80%85%e9%87%8d%e8%bf%9e" aria-label="生产者重连">生产者重连</a></li>
-                <li>
-                    <a href="#%e7%94%9f%e4%ba%a7%e8%80%85%e7%a1%ae%e8%ae%a4" aria-label="生产者确认">生产者确认</a></li></ul>
-                </li>
-                <li>
-                    <a href="#mq%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7" aria-label="MQ的可靠性">MQ的可靠性</a><ul>
-                        
-                <li>
-                    <a href="#%e6%95%b0%e6%8d%ae%e6%8c%81%e4%b9%85%e5%8c%96" aria-label="数据持久化">数据持久化</a></li>
-                <li>
-                    <a href="#lazyqueue" aria-label="LazyQueue">LazyQueue</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e6%b6%88%e8%b4%b9%e8%80%85%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7" aria-label="消费者的可靠性">消费者的可靠性</a><ul>
-                        
-                <li>
-                    <a href="#%e6%b6%88%e8%b4%b9%e8%80%85%e7%a1%ae%e8%ae%a4%e6%9c%ba%e5%88%b6" aria-label="消费者确认机制">消费者确认机制</a></li>
-                <li>
-                    <a href="#%e5%a4%b1%e8%b4%a5%e6%b6%88%e6%81%af%e5%a4%84%e7%90%86%e7%ad%96%e7%95%a5" aria-label="失败消息处理策略">失败消息处理策略</a><ul>
-                        
-                <li>
-                    <a href="#republishmessagerecoverer" aria-label="RepublishMessageRecoverer">RepublishMessageRecoverer</a></li></ul>
-                </li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#%e4%b8%9a%e5%8a%a1%e5%b9%82%e7%ad%89%e6%80%a7" aria-label="业务幂等性">业务幂等性</a><ul>
-                        
-                <li>
-                    <a href="#%e5%94%af%e4%b8%80%e6%b6%88%e6%81%afid" aria-label="唯一消息Id">唯一消息Id</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%9d%a2%e8%af%95%e9%a2%98" aria-label="面试题">面试题</a><ul>
-                        
-                <li>
-                    <a href="#%e5%a6%82%e4%bd%95%e4%bf%9d%e8%af%81%e6%94%af%e4%bb%98%e6%9c%8d%e5%8a%a1%e4%b8%8e%e4%ba%a4%e6%98%93%e6%9c%8d%e5%8a%a1%e4%b9%8b%e9%97%b4%e7%9a%84%e8%ae%a2%e5%8d%95%e7%8a%b6%e6%80%81%e4%b8%80%e8%87%b4%e6%80%a7" aria-label="如何保证支付服务与交易服务之间的订单状态一致性？">如何保证支付服务与交易服务之间的订单状态一致性？</a></li>
-                <li>
-                    <a href="#%e5%a6%82%e4%bd%95%e4%ba%a4%e6%98%93%e6%9c%8d%e5%8a%a1%e6%b6%88%e6%81%af%e5%a4%84%e7%90%86%e5%a4%b1%e8%b4%a5%e6%9c%89%e6%b2%a1%e6%9c%89%e4%bb%80%e4%b9%88%e5%85%9c%e5%ba%95%e6%96%b9%e6%a1%88" aria-label="如何交易服务消息处理失败，有没有什么兜底方案？">如何交易服务消息处理失败，有没有什么兜底方案？</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e5%bb%b6%e8%bf%9f%e6%b6%88%e6%81%af" aria-label="延迟消息">延迟消息</a><ul>
-                        
-                <li>
-                    <a href="#%e6%ad%bb%e4%bf%a1%e4%ba%a4%e6%8d%a2%e6%9c%ba" aria-label="死信交换机">死信交换机</a></li>
-                <li>
-                    <a href="#%e5%bb%b6%e8%bf%9f%e6%b6%88%e6%81%af%e6%8f%92%e4%bb%b6" aria-label="延迟消息插件">延迟消息插件</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="rabbitmq">RabbitMQ<a hidden class="anchor" aria-hidden="true" href="#rabbitmq">#</a></h1>
-<p>同步通讯 和 异步通讯</p>
-<h2 id="同步调用">同步调用<a hidden class="anchor" aria-hidden="true" href="#同步调用">#</a></h2>
-<p>同步调用的问题：</p>
-<ul>
-<li>拓展性差</li>
-<li>性能下降</li>
-<li>级联失败</li>
-</ul>
-<h2 id="异步调用">异步调用<a hidden class="anchor" aria-hidden="true" href="#异步调用">#</a></h2>
-<p>异步调用方式其实就是基于消息通知的方式，一般包含三个角色：</p>
-<ul>
-<li>消息发送者：投递消息的人，就是原来的调用方</li>
-<li>消息代理：管理、暂存、转发消息，可以理解为微信服务器</li>
-<li>消息接收者：接受和处理消息的人，就是原来的服务提供方</li>
-</ul>
-<p>支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。</p>
-<p>具备下列<strong>优势</strong>：</p>
-<ul>
-<li>解除耦合，拓展性强</li>
-<li>无需等待，性能好</li>
-<li>故障隔离</li>
-<li>缓存消息，流量削峰填谷</li>
-</ul>
-<p><strong>缺点</strong>：</p>
-<ul>
-<li>不能立刻得到调用结果，时效性差</li>
-<li>不确定下游业务执行是否成功</li>
-<li>业务安全依赖于Broker的可靠性</li>
-</ul>
-<h2 id="mq">MQ<a hidden class="anchor" aria-hidden="true" href="#mq">#</a></h2>
-<p>MQ（MessageQueue），消息队列，存放消息的队列，也就是异步调用中的Broker。</p>
-<table>
-	<thead>
-			<tr>
-					<th>特性</th>
-					<th>RabbitMQ</th>
-					<th>ActiveMQ</th>
-					<th>RocketMQ</th>
-					<th>Kafka</th>
-			</tr>
-	</thead>
-	<tbody>
-			<tr>
-					<td>公司/社区</td>
-					<td>Rabbit</td>
-					<td>Apache</td>
-					<td>阿里</td>
-					<td>Apache</td>
-			</tr>
-			<tr>
-					<td>开发语言</td>
-					<td>Erlang</td>
-					<td>Java</td>
-					<td>Java</td>
-					<td>Scala &amp; Java</td>
-			</tr>
-			<tr>
-					<td>协议支持</td>
-					<td>AMQP, XMPP, SMTP, STOMP</td>
-					<td>OpenWire, STOMP, REST, XMPP, AMQP</td>
-					<td>自定义协议</td>
-					<td>自定义协议</td>
-			</tr>
-			<tr>
-					<td>可用性</td>
-					<td>高</td>
-					<td>一般</td>
-					<td>高</td>
-					<td>非常高</td>
-			</tr>
-			<tr>
-					<td>单机吞吐量</td>
-					<td>一般</td>
-					<td>差</td>
-					<td>高</td>
-					<td>非常高</td>
-			</tr>
-			<tr>
-					<td>消息延迟</td>
-					<td>微秒级</td>
-					<td>毫秒级</td>
-					<td>毫秒级</td>
-					<td>毫秒以内</td>
-			</tr>
-			<tr>
-					<td>消息可靠性</td>
-					<td>高</td>
-					<td>一般</td>
-					<td>高</td>
-					<td>一般</td>
-			</tr>
-	</tbody>
-</table>
-<h2 id="rabbitmq的整体架构及核心概念">RabbitMQ的整体架构及核心概念<a hidden class="anchor" aria-hidden="true" href="#rabbitmq的整体架构及核心概念">#</a></h2>
-<ul>
-<li>virtual-host：虚拟主机，起到数据隔离的作用</li>
-<li>publisher：消息发送者</li>
-<li>consumer：消息的消费者</li>
-<li>queue：队列，存储消息</li>
-<li>exchange：交换机，负责路由消息</li>
-</ul>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241105133632006.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241105133632006.png" alt="image-20241105133632006"  />
-        </a>
-    </div>
-</p>
-<h2 id="快速入门">快速入门<a hidden class="anchor" aria-hidden="true" href="#快速入门">#</a></h2>
-<h3 id="启动mq">启动MQ<a hidden class="anchor" aria-hidden="true" href="#启动mq">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker run <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> -e RABBITMQ_DEFAULT_USER<span style="color:#f92672">=</span>itheima <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> -e RABBITMQ_DEFAULT_PASS<span style="color:#f92672">=</span><span style="color:#ae81ff">123321</span> <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> -v mq-plugins:/plugins <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> --name mq <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> --hostname mq <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> -p 15672:15672 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> -p 5672:5672 <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> --network hmall <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> -d <span style="color:#ae81ff">\
-</span></span></span><span style="display:flex;"><span> rabbitmq:3.8-management
-</span></span></code></pre></div><h3 id="程序控制">程序控制<a hidden class="anchor" aria-hidden="true" href="#程序控制">#</a></h3>
-<h4 id="amqp">AMQP<a hidden class="anchor" aria-hidden="true" href="#amqp">#</a></h4>
-<p>Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。</p>
-<h3 id="spring-amqp">Spring AMQP<a hidden class="anchor" aria-hidden="true" href="#spring-amqp">#</a></h3>
-<p>Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。</p>
-<h4 id="发送者">发送者<a hidden class="anchor" aria-hidden="true" href="#发送者">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@SpringBootTest</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SpringAmqpTest</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> RabbitTemplate rabbitTemplate;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testSendMessage2Queue</span>(){
-</span></span><span style="display:flex;"><span>        String queueName <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;simple.queue&#34;</span>;
-</span></span><span style="display:flex;"><span>        String msg <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hello, rabbitmq&#34;</span>;
-</span></span><span style="display:flex;"><span>        rabbitTemplate.<span style="color:#a6e22e">convertAndSend</span>(queueName, msg);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="监听者">监听者<a hidden class="anchor" aria-hidden="true" href="#监听者">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MqListener</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@RabbitListener</span>(queues <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;simple.queue&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenSimpleQueue</span>(String msg) {
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;消费者收到消息：【&#34;</span> <span style="color:#f92672">+</span> msg <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;】&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>Work模型的使用：</p>
-<ul>
-<li>多个消费者绑定到一个队列，可以加快消息处理速度</li>
-<li>同一条消息只会被一个消费者处理</li>
-<li>通过设置prefetch来控制消费者预取的消息数量，处理完一条再处理下一条，实现能者多劳</li>
-</ul>
-<h2 id="交换机">交换机<a hidden class="anchor" aria-hidden="true" href="#交换机">#</a></h2>
-<p>真正生产环境都会经过exchange来发送消息，而不是直接发送到队列，交换机的类型有以下三种：</p>
-<ul>
-<li>Fanout：广播</li>
-<li>Direct：定向</li>
-<li>Topic：话题</li>
-</ul>
-<h3 id="fanout交换机">Fanout交换机<a hidden class="anchor" aria-hidden="true" href="#fanout交换机">#</a></h3>
-<p>Fanout Exchange会将接受到的消息广播到每一个跟其绑定的queue，所以也叫广播模式</p>
-<h3 id="direct交换机">Direct交换机<a hidden class="anchor" aria-hidden="true" href="#direct交换机">#</a></h3>
-<p>Direct Exchange会将接收到的消息根据规则路由到指定的Queue，因此称为定向路由。</p>
-<ul>
-<li>每一个Queue都与Exchange设置一个<code>BindingKey</code></li>
-<li>发布者发送消息时，指定消息的<code>RoutingKey</code></li>
-<li>Exchange将消息路由到<code>BindingKey</code>与消息<code>RoutingKey</code>一致的队列</li>
-</ul>
-<h3 id="topic交换机">Topic交换机<a hidden class="anchor" aria-hidden="true" href="#topic交换机">#</a></h3>
-<p><code>TopicExchange</code>与<code>DirectExchange</code>类似，区别在于<code>routingKey</code>可以是多个单词的列表，并且以<code>.</code>分割。</p>
-<p>Queue与Exchange指定<code>BindingKey</code>时可以使用通配符：</p>
-<ul>
-<li><code># </code>：代指0个或多个单词</li>
-<li><code>*</code>：代指一个单词</li>
-</ul>
-<h2 id="声明队列和交换机">声明队列和交换机<a hidden class="anchor" aria-hidden="true" href="#声明队列和交换机">#</a></h2>
-<p><code>SpringAMQP</code>提供了几个类，用来声明队列、交换机及其绑定关系：</p>
-<ul>
-<li>Queue：用于声明队列，可以用工厂类<code>QueueBuilder</code>构建</li>
-<li>Exchange：用于声明交换机，可以用工厂类<code>ExchangeBuilder</code>构建</li>
-<li>Binding：用于声明队列和交换机的绑定关系，可以用工厂类<code>BindingBuilder</code>构建</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DirectConfiguration</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> DirectExchange <span style="color:#a6e22e">directExchange</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> DirectExchange(<span style="color:#e6db74">&#34;hmall.direct&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Queue <span style="color:#a6e22e">directQueue1</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Queue(<span style="color:#e6db74">&#34;direct.queue1&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Binding <span style="color:#a6e22e">directQueue1BindingRed</span>(Queue directQueue1, DirectExchange directExchange) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> BindingBuilder.<span style="color:#a6e22e">bind</span>(directQueue1).<span style="color:#a6e22e">to</span>(directExchange).<span style="color:#a6e22e">with</span>(<span style="color:#e6db74">&#34;red&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Binding <span style="color:#a6e22e">directQueue1BindingBlue</span>(Queue directQueue1, DirectExchange directExchange) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> BindingBuilder.<span style="color:#a6e22e">bind</span>(directQueue1).<span style="color:#a6e22e">to</span>(directExchange).<span style="color:#a6e22e">with</span>(<span style="color:#e6db74">&#34;blue&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Queue <span style="color:#a6e22e">directQueue2</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Queue(<span style="color:#e6db74">&#34;direct.queue2&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Binding <span style="color:#a6e22e">directQueue2BindingRed</span>(Queue directQueue2, DirectExchange directExchange) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> BindingBuilder.<span style="color:#a6e22e">bind</span>(directQueue2).<span style="color:#a6e22e">to</span>(directExchange).<span style="color:#a6e22e">with</span>(<span style="color:#e6db74">&#34;red&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Binding <span style="color:#a6e22e">directQueue2BindingYellow</span>(Queue directQueue2, DirectExchange directExchange) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> BindingBuilder.<span style="color:#a6e22e">bind</span>(directQueue2).<span style="color:#a6e22e">to</span>(directExchange).<span style="color:#a6e22e">with</span>(<span style="color:#e6db74">&#34;yellow&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="基于注解声明">基于注解声明<a hidden class="anchor" aria-hidden="true" href="#基于注解声明">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@RabbitListener</span>(bindings <span style="color:#f92672">=</span> <span style="color:#a6e22e">@QueueBinding</span>(
-</span></span><span style="display:flex;"><span>            value <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;direct.queue1&#34;</span>, durable <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>),
-</span></span><span style="display:flex;"><span>            exchange <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Exchange</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hmall.direct&#34;</span>, type <span style="color:#f92672">=</span> ExchangeTypes.<span style="color:#a6e22e">DIRECT</span>),
-</span></span><span style="display:flex;"><span>            key <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;red&#34;</span>, <span style="color:#e6db74">&#34;blue&#34;</span>, <span style="color:#e6db74">&#34;Kennem&#34;</span>}
-</span></span><span style="display:flex;"><span>    ))
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenDirectQueue1</span>(String msg) <span style="color:#66d9ef">throws</span> InterruptedException {
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;消费者1 收到 direct.queue1 消息：【&#34;</span> <span style="color:#f92672">+</span> msg <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;】.......&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@RabbitListener</span>(bindings <span style="color:#f92672">=</span> <span style="color:#a6e22e">@QueueBinding</span>(
-</span></span><span style="display:flex;"><span>            value <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;direct.queue2&#34;</span>, durable <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>),
-</span></span><span style="display:flex;"><span>            exchange <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Exchange</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;hmall.direct&#34;</span>, type <span style="color:#f92672">=</span> ExchangeTypes.<span style="color:#a6e22e">DIRECT</span>),
-</span></span><span style="display:flex;"><span>            key <span style="color:#f92672">=</span> {<span style="color:#e6db74">&#34;red&#34;</span>, <span style="color:#e6db74">&#34;yellow&#34;</span>}
-</span></span><span style="display:flex;"><span>    ))
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenDirectQueue2</span>(String msg) <span style="color:#66d9ef">throws</span> InterruptedException {
-</span></span><span style="display:flex;"><span>        System.<span style="color:#a6e22e">out</span>.<span style="color:#a6e22e">println</span>(<span style="color:#e6db74">&#34;消费者2 收到 direct.queue1 消息：【&#34;</span> <span style="color:#f92672">+</span> msg <span style="color:#f92672">+</span> <span style="color:#e6db74">&#34;】.......&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h2 id="消息转换器">消息转换器<a hidden class="anchor" aria-hidden="true" href="#消息转换器">#</a></h2>
-<p>导入依赖</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>        <span style="color:#75715e">&lt;!--Jackon--&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;dependency&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;groupId&gt;</span>com.fasterxml.jackson.dataformat<span style="color:#f92672">&lt;/groupId&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;artifactId&gt;</span>jackson-dataformat-xml<span style="color:#f92672">&lt;/artifactId&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/dependency&gt;</span>
-</span></span></code></pre></div><p>定义转换器</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> MessageConverter <span style="color:#a6e22e">jackonMessageConverter</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Jackson2JsonMessageConverter();
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h2 id="业务改造">业务改造<a hidden class="anchor" aria-hidden="true" href="#业务改造">#</a></h2>
-<p>需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态</p>
-<h1 id="mq高级">MQ高级<a hidden class="anchor" aria-hidden="true" href="#mq高级">#</a></h1>
-<h2 id="消息可靠性问题">消息可靠性问题<a hidden class="anchor" aria-hidden="true" href="#消息可靠性问题">#</a></h2>
-<h3 id="发送者的可靠性">发送者的可靠性<a hidden class="anchor" aria-hidden="true" href="#发送者的可靠性">#</a></h3>
-<h4 id="生产者重连">生产者重连<a hidden class="anchor" aria-hidden="true" href="#生产者重连">#</a></h4>
-<p>由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rabbitmq</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">connection-timeout</span>: <span style="color:#ae81ff">1s</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">template</span>:
-</span></span><span style="display:flex;"><span>      <span style="color:#f92672">retry</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">enabled</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></div><p><code>SpringAMQP</code>提供的重试机制是<strong>阻塞式</strong>的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。</p>
-<p>如果对于业务性能有要求，建议<strong>禁用</strong>重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码</p>
-<h4 id="生产者确认">生产者确认<a hidden class="anchor" aria-hidden="true" href="#生产者确认">#</a></h4>
-<p>RabbitMQ提供了<strong>Publisher Confirm</strong>和<strong>Publisher Return</strong>两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：</p>
-<ul>
-<li>消息投递到了MQ，但是路由失败。此时会通过<code>PublisherReturn</code>返回路由异常原因，然后返回ACK，告知投递成功</li>
-<li>临时消息投递到了MQ，并且入队成功，返回ACK，告知投递成功</li>
-<li>持久消息投递到了MQ，并且入队完成持久化，返回ACK，告知投递成功</li>
-<li>其他情况都会返回NACK，告知投递失败</li>
-</ul>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106115429064.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106115429064.png" alt="image-20241106115429064"  />
-        </a>
-    </div>
-</p>
-<ol>
-<li>在publisher这个微服务的application.yml中添加配置：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-yml" data-lang="yml"><span style="display:flex;"><span><span style="color:#f92672">spring</span>:
-</span></span><span style="display:flex;"><span>  <span style="color:#f92672">rabbitmq</span>:
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">publisher-confirm-type</span>: <span style="color:#ae81ff">correlated</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">publisher-returns</span>: <span style="color:#66d9ef">true</span>
-</span></span></code></pre></div><p>配置说明：</p>
-<p>publisher-comfirm-type有三种模式可选：</p>
-<ul>
-<li>none：关闭confirm机制</li>
-<li>simple：同步阻塞等待MQ的回执消息</li>
-<li>correlated：MQ异步回调方式返回回执消息</li>
-</ul>
-<ol start="2">
-<li>每个<code>RabbitTemplate</code>只能配置<code>ReturnCallback</code>，因此需要在项目启动过程中配置：</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CommonConfig</span> <span style="color:#66d9ef">implements</span> ApplicationContextAware {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">setApplicationContext</span>(ApplicationContext applicationContext) <span style="color:#66d9ef">throws</span> BeansException {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取RabbitTemplate</span>
-</span></span><span style="display:flex;"><span>        RabbitTemplate rabbitTemplate <span style="color:#f92672">=</span> applicationContext.<span style="color:#a6e22e">getBean</span>(RabbitTemplate.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置ReturnCallback</span>
-</span></span><span style="display:flex;"><span>        rabbitTemplate.<span style="color:#a6e22e">setReturnCallback</span>((message, replyCode, replyText, exchange, routingKey) <span style="color:#f92672">-&gt;</span> {
-</span></span><span style="display:flex;"><span>            log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;消息发送失败, 应答码{}, 原因{}, 交换机{}, 路由键{},消息{}&#34;</span>,
-</span></span><span style="display:flex;"><span>                    replyCode, replyText, exchange, routingKey, message.<span style="color:#a6e22e">toString</span>());
-</span></span><span style="display:flex;"><span>        });
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><ol start="3">
-<li>发送消息，指定消息ID、消息<code>ConfirmCallback</code></li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testPublisherConfirm</span>() <span style="color:#66d9ef">throws</span> InterruptedException {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 1. 创建CorrelationData</span>
-</span></span><span style="display:flex;"><span>    CorrelationData cd <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> CorrelationData();
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 2. 给Future添加ConfirmCallback</span>
-</span></span><span style="display:flex;"><span>    cd.<span style="color:#a6e22e">getFuture</span>().<span style="color:#a6e22e">addCallback</span>(<span style="color:#66d9ef">new</span> ListenableFutureCallback<span style="color:#f92672">&lt;</span>CorrelationData.<span style="color:#a6e22e">Confirm</span><span style="color:#f92672">&gt;</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onFailure</span>(Throwable ex) {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 2.1.Future发生异常时的处理逻辑,基本不会触发</span>
-</span></span><span style="display:flex;"><span>            log.<span style="color:#a6e22e">error</span>(<span style="color:#e6db74">&#34;handle message ack fail&#34;</span>, ex);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onSuccess</span>(CorrelationData.<span style="color:#a6e22e">Confirm</span> result) {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 2.2.Future接收到回执的处理逻辑,参数中的result就是回执内容</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span>(result.<span style="color:#a6e22e">isAck</span>()){ <span style="color:#75715e">// result.isAck(), boolean类型, true代表ack回执, false 代表 nack回执</span>
-</span></span><span style="display:flex;"><span>                log.<span style="color:#a6e22e">debug</span>(<span style="color:#e6db74">&#34;发送消息成功, 收到 ack!&#34;</span>);
-</span></span><span style="display:flex;"><span>            }<span style="color:#66d9ef">else</span>{ <span style="color:#75715e">// result.getReason(), String类型, 返回nack时的异常描述</span>
-</span></span><span style="display:flex;"><span>                log.<span style="color:#a6e22e">error</span>(<span style="color:#e6db74">&#34;发送消息失败, 收到 nack, reason : {}&#34;</span>, result.<span style="color:#a6e22e">getReason</span>());
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    });
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 3. 发送消息</span>
-</span></span><span style="display:flex;"><span>    rabbitTemplate.<span style="color:#a6e22e">convertAndSend</span>(<span style="color:#e6db74">&#34;hmall.direct&#34;</span>, <span style="color:#e6db74">&#34;red1&#34;</span>, <span style="color:#e6db74">&#34;hello&#34;</span>, cd);d
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><ul>
-<li>生产者确认需要额外的网络和系统资源开销，尽量不要使用</li>
-<li>如果一定要用，无需开启<code>Publisher-Return</code>机制，因为一般路由失败是自己业务问题</li>
-<li>对于<strong>nack</strong>消息可以有限次数重试，依然失败则记录异常消息</li>
-</ul>
-<h3 id="mq的可靠性">MQ的可靠性<a hidden class="anchor" aria-hidden="true" href="#mq的可靠性">#</a></h3>
-<p>在默认情况下，RabbitMQ会将接收到的消息保存在内存中以降低消息收发的延迟。这样会导致两个问题：</p>
-<ul>
-<li>一旦MQ宕机，内存中的消息会丢失</li>
-<li>内存空间有限，当消费者故障或处理过慢时，会导致消息积压，引发MQ阻塞</li>
-</ul>
-<h4 id="数据持久化">数据持久化<a hidden class="anchor" aria-hidden="true" href="#数据持久化">#</a></h4>
-<p>Rabbit MQ实现的数据持久化包括3个方面：</p>
-<ul>
-<li>交换机持久化 <strong>指定durable</strong></li>
-<li>队列持久化  <strong>指定durable</strong></li>
-<li>消息持久化 <strong>指定persistent</strong></li>
-</ul>
-<h4 id="lazyqueue">LazyQueue<a hidden class="anchor" aria-hidden="true" href="#lazyqueue">#</a></h4>
-<p>从RabbitMQ的3.6.0版本开始，就增加了Lazy Queue的概念，也就是惰性队列</p>
-<p>惰性队列的特征如下：</p>
-<ul>
-<li>接收到消息后直接存入磁盘而非内存（内存中只保留最近的消息，默认2048条）</li>
-<li>消费者要消费消息时才会从磁盘中读取并加载到内存</li>
-<li>支持数百万条的消息存储</li>
-</ul>
-<p>在3.12版本之后，所有队列都是Lazy Queue模式，无法更改</p>
-<p>定义queue形式</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Queue <span style="color:#a6e22e">lazyQueue</span>(){
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> QueueBuilder
-</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">durable</span>(<span style="color:#e6db74">&#34;lazy.queue&#34;</span>)
-</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">lazy</span>() <span style="color:#75715e">// 开启Lazy模式</span>
-</span></span><span style="display:flex;"><span>            .<span style="color:#a6e22e">build</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>基于注解形式：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RabbitListener</span>(queuesToDeclare <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(
-</span></span><span style="display:flex;"><span>        name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lazy.queue&#34;</span>,
-</span></span><span style="display:flex;"><span>        durable <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>,
-</span></span><span style="display:flex;"><span>        arguments <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Argument</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;x-queue-mode&#34;</span>, value <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;lazy&#34;</span>)
-</span></span><span style="display:flex;"><span>))
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenLazyQueue</span>(String msg){
-</span></span><span style="display:flex;"><span>    log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;接收到 lazy.queue的消息: {}&#34;</span>, msg);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><ul>
-<li>开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。</li>
-</ul>
-<h3 id="消费者的可靠性">消费者的可靠性<a hidden class="anchor" aria-hidden="true" href="#消费者的可靠性">#</a></h3>
-<h4 id="消费者确认机制">消费者确认机制<a hidden class="anchor" aria-hidden="true" href="#消费者确认机制">#</a></h4>
-<p>为了确认消费者是否成功处理消息，RabbitMQ提供了消费者确认机制（Consumer Acknowledgement）。当消费者处理消息结束后，应该向RabbitMQ发送一个回执，告知RabbitMQ自己消息处理状态。回执有三种可选值：</p>
-<ul>
-<li><strong>ack</strong>：成功处理消息，RabbitMQ从队列中删除消息</li>
-<li><strong>nack</strong>：消息处理失败，RabbitMQ需要再次投递消息</li>
-<li><strong>reject</strong>：消息处理失败并拒绝该消息，RabbitMQ从队列中删除该消息</li>
-</ul>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106152545586.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106152545586.png" alt="image-20241106152545586"  />
-        </a>
-    </div>
-</p>
-<p>SpringAMQP已经实现了消息确认功能。并允许我们通过配置文件选择ACK处理方式，有三种方式：</p>
-<ul>
-<li>none：不处理。即消息投递给消费者后立刻ack，消息会立刻从MQ删除。非常不安全，不建议使用</li>
-<li>manual：手动模式。需要自己在业务代码中调用api，发送ack和reject，存在业务入侵，但更灵活</li>
-<li><strong>auto</strong>：<strong>自动模式</strong>。<code>SpringAMQP</code>利用AOP对我们的消息处理逻辑做了环绕增强，当业务正常执行时刻自动返回ack，当业务出现异常时，根据异常判断返回不同结果：
-<ul>
-<li>如果业务异常，会自动返回nack</li>
-<li>如果是消息处理或校验异常，自动返回reject</li>
-</ul>
-</li>
-</ul>
-<h4 id="失败消息处理策略">失败消息处理策略<a hidden class="anchor" aria-hidden="true" href="#失败消息处理策略">#</a></h4>
-<p>在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有<code>MessageRecoverer</code>接口来处理，它包含三种不同的实现：</p>
-<ul>
-<li><code>RejectAndDontRequeueRecoverer</code>：重试耗尽后，直接reject，丢弃消息。默认就是这种方式。</li>
-<li><code>ImmediateRequeueMessageRecoverer</code>：重试耗尽后，返回<code>nack</code>，消息重新入队</li>
-<li><code>RepublishMessageRecoverer</code>：重试耗尽后，将失败消息投递到指定的交换机</li>
-</ul>
-<h5 id="republishmessagerecoverer">RepublishMessageRecoverer<a hidden class="anchor" aria-hidden="true" href="#republishmessagerecoverer">#</a></h5>
-<p>多次重试耗尽后，将错误转发到<code>error.direct</code>交换机中</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Configuration</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ConditionalOnProperty</span>(prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;spring.rabbitmq.listener.simple.retry&#34;</span>, name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;enabled&#34;</span>, havingValue <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ErrorConfiguration</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> DirectExchange <span style="color:#a6e22e">errorExchange</span>(){
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> DirectExchange(<span style="color:#e6db74">&#34;error.direct&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Queue <span style="color:#a6e22e">errorQueue</span>(){
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Queue(<span style="color:#e6db74">&#34;error.queue&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Binding <span style="color:#a6e22e">errorBinding</span>(Queue errorQueue, DirectExchange errorExchange){
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> BindingBuilder.<span style="color:#a6e22e">bind</span>(errorQueue).<span style="color:#a6e22e">to</span>(errorExchange).<span style="color:#a6e22e">with</span>(<span style="color:#e6db74">&#34;error&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> MessageRecoverer <span style="color:#a6e22e">messageRecoverer</span>(RabbitTemplate rabbitTemplate){
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> RepublishMessageRecoverer(rabbitTemplate, <span style="color:#e6db74">&#34;error.direct&#34;</span>, <span style="color:#e6db74">&#34;error&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="业务幂等性">业务幂等性<a hidden class="anchor" aria-hidden="true" href="#业务幂等性">#</a></h2>
-<p>幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。</p>
-<ul>
-<li>查询和删除操作天生幂等</li>
-</ul>
-<h3 id="唯一消息id">唯一消息Id<a hidden class="anchor" aria-hidden="true" href="#唯一消息id">#</a></h3>
-<p>方案一，给每个消息都设置一个<strong>唯一的id</strong>，利用id区分是否是重复消息：</p>
-<ol>
-<li>每一条消息都生成一个唯一的id，与消息一起投递给消费者</li>
-<li>消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中</li>
-<li>如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> MessageConverter <span style="color:#a6e22e">jackonMessageConverter</span>() {
-</span></span><span style="display:flex;"><span>        Jackson2JsonMessageConverter jjmc <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Jackson2JsonMessageConverter();
-</span></span><span style="display:flex;"><span>        jjmc.<span style="color:#a6e22e">setCreateMessageIds</span>(<span style="color:#66d9ef">true</span>);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> jjmc;
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><p>方案二，结合业务逻辑，基于业务本身做判断。</p>
-<h2 id="面试题">面试题<a hidden class="anchor" aria-hidden="true" href="#面试题">#</a></h2>
-<h3 id="如何保证支付服务与交易服务之间的订单状态一致性">如何保证支付服务与交易服务之间的订单状态一致性？<a hidden class="anchor" aria-hidden="true" href="#如何保证支付服务与交易服务之间的订单状态一致性">#</a></h3>
-<ul>
-<li>首先，支付服务会正在用户支付成功以后利用MQ消息通知交易服务，完成订单状态同步。</li>
-<li>其次，为了保证MQ消息的可靠性，我们采用了生产者确认机制、消费者确认、消费者失败重试等策略，确保消息投递和处理的可靠性。同时也开启了MQ的持久化，避免因服务宕机导致消息丢失。</li>
-<li>最后，我们还在交易服务更新订单状态时做了业务幂等判断，避免了因为重复消费导致订单状态异常。</li>
-</ul>
-<h3 id="如何交易服务消息处理失败有没有什么兜底方案">如何交易服务消息处理失败，有没有什么兜底方案？<a hidden class="anchor" aria-hidden="true" href="#如何交易服务消息处理失败有没有什么兜底方案">#</a></h3>
-<ul>
-<li>我们可以在交易服务设置定时任务，定时查询订单支付状态。这样即便MQ通知失败，还可以利用定时任务作为兜底方案，确保订单支付状态的最终一致性。</li>
-</ul>
-<h2 id="延迟消息">延迟消息<a hidden class="anchor" aria-hidden="true" href="#延迟消息">#</a></h2>
-<p><strong>延迟消息</strong>：生产者发送消息时指定一个时间，消费者不会立刻收到消息，而是在指定时间之后才收到消息</p>
-<p><strong>延迟任务</strong>：设置在一定时间之后才执行的任务</p>
-<h3 id="死信交换机">死信交换机<a hidden class="anchor" aria-hidden="true" href="#死信交换机">#</a></h3>
-<p>当一个队列中的消息满足下列情况之一时，就会成为<strong>死信（dead letter）</strong>：</p>
-<ul>
-<li>消费者使用 <code>basic.reject</code> 或 <code>basic.nack</code> 声明消费失败，并且消息的requeue参数设置为false</li>
-<li>消息是一个过期消息（达到了队列或消息本身设置的过期时间），超时无人消费</li>
-<li>要投递的队列消息堆积满了，最早的消息可能称为死信</li>
-</ul>
-<p>如果队列通过dead-letter-exchange属性制定了一个交换机，那么该队列中的死信就会投递到这个交换机中。这个交换机称为死信交换机（Dead Letter Exchange， 简称DLX）</p>
-<h3 id="延迟消息插件">延迟消息插件<a hidden class="anchor" aria-hidden="true" href="#延迟消息插件">#</a></h3>
-<p>docker 查看mq的插件挂载目录：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker volume inspect mq-plugins
-</span></span></code></pre></div><p>docker中mq安装插件</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-shell" data-lang="shell"><span style="display:flex;"><span>docker exec -it mq rabbitmq-plugins enable rabbitmq_delayed_message_exchange
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@RabbitListener</span>(bindings <span style="color:#f92672">=</span> <span style="color:#a6e22e">@QueueBinding</span>(
-</span></span><span style="display:flex;"><span>    value <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Queue</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;delay.queue&#34;</span>, durable <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>),
-</span></span><span style="display:flex;"><span>    exchange <span style="color:#f92672">=</span> <span style="color:#a6e22e">@Exchange</span>(name <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;delay.direct&#34;</span>, delayed <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;true&#34;</span>),
-</span></span><span style="display:flex;"><span>    key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;delay&#34;</span>
-</span></span><span style="display:flex;"><span>))
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">listenDelayMessage</span>(String msg) {
-</span></span><span style="display:flex;"><span>    log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;接收到delay.queue的延迟消息: {}&#34;</span>, msg);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Bean</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> DirectExchange <span style="color:#a6e22e">delayExchange</span>() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> ExchangeBuilder
-</span></span><span style="display:flex;"><span>        .<span style="color:#a6e22e">directExchange</span>(<span style="color:#e6db74">&#34;delay.direct&#34;</span>)
-</span></span><span style="display:flex;"><span>        .<span style="color:#a6e22e">delayed</span>() <span style="color:#75715e">// 设置delay的属性为true</span>
-</span></span><span style="display:flex;"><span>        .<span style="color:#a6e22e">durable</span>(<span style="color:#66d9ef">true</span>) <span style="color:#75715e">// 持久化</span>
-</span></span><span style="display:flex;"><span>        .<span style="color:#a6e22e">build</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>发送消息通过消息头<code>x-delay</code>来设置过期时间：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">testSendDelayMessage</span>(){
-</span></span><span style="display:flex;"><span>        rabbitTemplate.<span style="color:#a6e22e">convertAndSend</span>(<span style="color:#e6db74">&#34;delay.direct&#34;</span>, <span style="color:#e6db74">&#34;hi&#34;</span>, <span style="color:#e6db74">&#34;hello delay&#34;</span>, <span style="color:#66d9ef">new</span> MessagePostProcessor() {
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">public</span> Message <span style="color:#a6e22e">postProcessMessage</span>(Message message) <span style="color:#66d9ef">throws</span> AmqpException {
-</span></span><span style="display:flex;"><span>                message.<span style="color:#a6e22e">getMessageProperties</span>().<span style="color:#a6e22e">setDelay</span>(10000);
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> message;
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        });
-</span></span><span style="display:flex;"><span>        log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;发送消息成功！&#34;</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><p>延时功能对性能消耗较大，只适用于延时时间较短的场景。</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/rabbitmq/">RabbitMQ</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/rabbitmq">RabbitMQ</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/%E9%9D%A2%E7%BB%8F2/">
-    <span class="title">« 上一页</span>
-    <span>面经（2）</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91day1/">
-    <span class="title">下一页 »</span>
-    <span>苍穹外卖前端开发(Day1)</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>RabbitMQ | Kennem's Blog</title><meta name=keywords content="RabbitMQ"><meta name=description content="RabbitMQ"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/rabbitmq/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/rabbitmq/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/rabbitmq/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="RabbitMQ"><meta property="og:description" content="RabbitMQ"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-11-05T22:30:13+08:00"><meta property="article:modified_time" content="2024-11-06T22:20:13+08:00"><meta property="article:tag" content="RabbitMQ"><meta name=twitter:card content="summary"><meta name=twitter:title content="RabbitMQ"><meta name=twitter:description content="RabbitMQ"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"RabbitMQ","item":"https://kennems.github.io/posts/tech/rabbitmq/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"RabbitMQ","name":"RabbitMQ","description":"RabbitMQ","keywords":["RabbitMQ"],"articleBody":"RabbitMQ 同步通讯 和 异步通讯\n同步调用 同步调用的问题：\n拓展性差 性能下降 级联失败 异步调用 异步调用方式其实就是基于消息通知的方式，一般包含三个角色：\n消息发送者：投递消息的人，就是原来的调用方 消息代理：管理、暂存、转发消息，可以理解为微信服务器 消息接收者：接受和处理消息的人，就是原来的服务提供方 支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。\n具备下列优势：\n解除耦合，拓展性强 无需等待，性能好 故障隔离 缓存消息，流量削峰填谷 缺点：\n不能立刻得到调用结果，时效性差 不确定下游业务执行是否成功 业务安全依赖于Broker的可靠性 MQ MQ（MessageQueue），消息队列，存放消息的队列，也就是异步调用中的Broker。\n特性 RabbitMQ ActiveMQ RocketMQ Kafka 公司/社区 Rabbit Apache 阿里 Apache 开发语言 Erlang Java Java Scala \u0026 Java 协议支持 AMQP, XMPP, SMTP, STOMP OpenWire, STOMP, REST, XMPP, AMQP 自定义协议 自定义协议 可用性 高 一般 高 非常高 单机吞吐量 一般 差 高 非常高 消息延迟 微秒级 毫秒级 毫秒级 毫秒以内 消息可靠性 高 一般 高 一般 RabbitMQ的整体架构及核心概念 virtual-host：虚拟主机，起到数据隔离的作用 publisher：消息发送者 consumer：消息的消费者 queue：队列，存储消息 exchange：交换机，负责路由消息 快速入门 启动MQ docker run \\ -e RABBITMQ_DEFAULT_USER=itheima \\ -e RABBITMQ_DEFAULT_PASS=123321 \\ -v mq-plugins:/plugins \\ --name mq \\ --hostname mq \\ -p 15672:15672 \\ -p 5672:5672 \\ --network hmall \\ -d \\ rabbitmq:3.8-management 程序控制 AMQP Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。\nSpring AMQP Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。\n发送者 @SpringBootTest public class SpringAmqpTest { @Autowired private RabbitTemplate rabbitTemplate; @Test void testSendMessage2Queue(){ String queueName = \"simple.queue\"; String msg = \"hello, rabbitmq\"; rabbitTemplate.convertAndSend(queueName, msg); } } 监听者 @Slf4j @Component public class MqListener { @RabbitListener(queues = \"simple.queue\") public void listenSimpleQueue(String msg) { System.out.println(\"消费者收到消息：【\" + msg + \"】\"); } } Work模型的使用：\n多个消费者绑定到一个队列，可以加快消息处理速度 同一条消息只会被一个消费者处理 通过设置prefetch来控制消费者预取的消息数量，处理完一条再处理下一条，实现能者多劳 交换机 真正生产环境都会经过exchange来发送消息，而不是直接发送到队列，交换机的类型有以下三种：\nFanout：广播 Direct：定向 Topic：话题 Fanout交换机 Fanout Exchange会将接受到的消息广播到每一个跟其绑定的queue，所以也叫广播模式\nDirect交换机 Direct Exchange会将接收到的消息根据规则路由到指定的Queue，因此称为定向路由。\n每一个Queue都与Exchange设置一个BindingKey 发布者发送消息时，指定消息的RoutingKey Exchange将消息路由到BindingKey与消息RoutingKey一致的队列 Topic交换机 TopicExchange与DirectExchange类似，区别在于routingKey可以是多个单词的列表，并且以.分割。\nQueue与Exchange指定BindingKey时可以使用通配符：\n# ：代指0个或多个单词 *：代指一个单词 声明队列和交换机 SpringAMQP提供了几个类，用来声明队列、交换机及其绑定关系：\nQueue：用于声明队列，可以用工厂类QueueBuilder构建 Exchange：用于声明交换机，可以用工厂类ExchangeBuilder构建 Binding：用于声明队列和交换机的绑定关系，可以用工厂类BindingBuilder构建 @Configuration public class DirectConfiguration { @Bean public DirectExchange directExchange() { return new DirectExchange(\"hmall.direct\"); } @Bean public Queue directQueue1() { return new Queue(\"direct.queue1\"); } @Bean public Binding directQueue1BindingRed(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"red\"); } @Bean public Binding directQueue1BindingBlue(Queue directQueue1, DirectExchange directExchange) { return BindingBuilder.bind(directQueue1).to(directExchange).with(\"blue\"); } @Bean public Queue directQueue2() { return new Queue(\"direct.queue2\"); } @Bean public Binding directQueue2BindingRed(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"red\"); } @Bean public Binding directQueue2BindingYellow(Queue directQueue2, DirectExchange directExchange) { return BindingBuilder.bind(directQueue2).to(directExchange).with(\"yellow\"); } } 基于注解声明 @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue1\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"blue\", \"Kennem\"} )) public void listenDirectQueue1(String msg) throws InterruptedException { System.out.println(\"消费者1 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"direct.queue2\", durable = \"true\"), exchange = @Exchange(name = \"hmall.direct\", type = ExchangeTypes.DIRECT), key = {\"red\", \"yellow\"} )) public void listenDirectQueue2(String msg) throws InterruptedException { System.out.println(\"消费者2 收到 direct.queue1 消息：【\" + msg + \"】.......\"); } 消息转换器 导入依赖\ncom.fasterxml.jackson.dataformat jackson-dataformat-xml 定义转换器\n@Bean public MessageConverter jackonMessageConverter() { return new Jackson2JsonMessageConverter(); } 业务改造 需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态\nMQ高级 消息可靠性问题 发送者的可靠性 生产者重连 由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。\nspring: rabbitmq: connection-timeout: 1s template: retry: enabled: true SpringAMQP提供的重试机制是阻塞式的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。\n如果对于业务性能有要求，建议禁用重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码\n生产者确认 RabbitMQ提供了Publisher Confirm和Publisher Return两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：\n消息投递到了MQ，但是路由失败。此时会通过PublisherReturn返回路由异常原因，然后返回ACK，告知投递成功 临时消息投递到了MQ，并且入队成功，返回ACK，告知投递成功 持久消息投递到了MQ，并且入队完成持久化，返回ACK，告知投递成功 其他情况都会返回NACK，告知投递失败 在publisher这个微服务的application.yml中添加配置： spring: rabbitmq: publisher-confirm-type: correlated publisher-returns: true 配置说明：\npublisher-comfirm-type有三种模式可选：\nnone：关闭confirm机制 simple：同步阻塞等待MQ的回执消息 correlated：MQ异步回调方式返回回执消息 每个RabbitTemplate只能配置ReturnCallback，因此需要在项目启动过程中配置： @Slf4j @Configuration public class CommonConfig implements ApplicationContextAware { @Override public void setApplicationContext(ApplicationContext applicationContext) throws BeansException { // 获取RabbitTemplate RabbitTemplate rabbitTemplate = applicationContext.getBean(RabbitTemplate.class); // 设置ReturnCallback rabbitTemplate.setReturnCallback((message, replyCode, replyText, exchange, routingKey) -\u003e { log.info(\"消息发送失败, 应答码{}, 原因{}, 交换机{}, 路由键{},消息{}\", replyCode, replyText, exchange, routingKey, message.toString()); }); } } 发送消息，指定消息ID、消息ConfirmCallback @Test void testPublisherConfirm() throws InterruptedException { // 1. 创建CorrelationData CorrelationData cd = new CorrelationData(); // 2. 给Future添加ConfirmCallback cd.getFuture().addCallback(new ListenableFutureCallback\u003cCorrelationData.Confirm\u003e() { @Override public void onFailure(Throwable ex) { // 2.1.Future发生异常时的处理逻辑,基本不会触发 log.error(\"handle message ack fail\", ex); } @Override public void onSuccess(CorrelationData.Confirm result) { // 2.2.Future接收到回执的处理逻辑,参数中的result就是回执内容 if(result.isAck()){ // result.isAck(), boolean类型, true代表ack回执, false 代表 nack回执 log.debug(\"发送消息成功, 收到 ack!\"); }else{ // result.getReason(), String类型, 返回nack时的异常描述 log.error(\"发送消息失败, 收到 nack, reason : {}\", result.getReason()); } } }); // 3. 发送消息 rabbitTemplate.convertAndSend(\"hmall.direct\", \"red1\", \"hello\", cd);d } 生产者确认需要额外的网络和系统资源开销，尽量不要使用 如果一定要用，无需开启Publisher-Return机制，因为一般路由失败是自己业务问题 对于nack消息可以有限次数重试，依然失败则记录异常消息 MQ的可靠性 在默认情况下，RabbitMQ会将接收到的消息保存在内存中以降低消息收发的延迟。这样会导致两个问题：\n一旦MQ宕机，内存中的消息会丢失 内存空间有限，当消费者故障或处理过慢时，会导致消息积压，引发MQ阻塞 数据持久化 Rabbit MQ实现的数据持久化包括3个方面：\n交换机持久化 指定durable 队列持久化 指定durable 消息持久化 指定persistent LazyQueue 从RabbitMQ的3.6.0版本开始，就增加了Lazy Queue的概念，也就是惰性队列\n惰性队列的特征如下：\n接收到消息后直接存入磁盘而非内存（内存中只保留最近的消息，默认2048条） 消费者要消费消息时才会从磁盘中读取并加载到内存 支持数百万条的消息存储 在3.12版本之后，所有队列都是Lazy Queue模式，无法更改\n定义queue形式\n@Bean public Queue lazyQueue(){ return QueueBuilder .durable(\"lazy.queue\") .lazy() // 开启Lazy模式 .build(); } 基于注解形式：\n@RabbitListener(queuesToDeclare = @Queue( name = \"lazy.queue\", durable = \"true\", arguments = @Argument(name = \"x-queue-mode\", value = \"lazy\") )) public void listenLazyQueue(String msg){ log.info(\"接收到 lazy.queue的消息: {}\", msg); } 开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。 消费者的可靠性 消费者确认机制 为了确认消费者是否成功处理消息，RabbitMQ提供了消费者确认机制（Consumer Acknowledgement）。当消费者处理消息结束后，应该向RabbitMQ发送一个回执，告知RabbitMQ自己消息处理状态。回执有三种可选值：\nack：成功处理消息，RabbitMQ从队列中删除消息 nack：消息处理失败，RabbitMQ需要再次投递消息 reject：消息处理失败并拒绝该消息，RabbitMQ从队列中删除该消息 SpringAMQP已经实现了消息确认功能。并允许我们通过配置文件选择ACK处理方式，有三种方式：\nnone：不处理。即消息投递给消费者后立刻ack，消息会立刻从MQ删除。非常不安全，不建议使用 manual：手动模式。需要自己在业务代码中调用api，发送ack和reject，存在业务入侵，但更灵活 auto：自动模式。SpringAMQP利用AOP对我们的消息处理逻辑做了环绕增强，当业务正常执行时刻自动返回ack，当业务出现异常时，根据异常判断返回不同结果： 如果业务异常，会自动返回nack 如果是消息处理或校验异常，自动返回reject 失败消息处理策略 在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有MessageRecoverer接口来处理，它包含三种不同的实现：\nRejectAndDontRequeueRecoverer：重试耗尽后，直接reject，丢弃消息。默认就是这种方式。 ImmediateRequeueMessageRecoverer：重试耗尽后，返回nack，消息重新入队 RepublishMessageRecoverer：重试耗尽后，将失败消息投递到指定的交换机 RepublishMessageRecoverer 多次重试耗尽后，将错误转发到error.direct交换机中\n@Configuration @ConditionalOnProperty(prefix = \"spring.rabbitmq.listener.simple.retry\", name = \"enabled\", havingValue = \"true\") public class ErrorConfiguration { @Bean public DirectExchange errorExchange(){ return new DirectExchange(\"error.direct\"); } @Bean public Queue errorQueue(){ return new Queue(\"error.queue\"); } @Bean public Binding errorBinding(Queue errorQueue, DirectExchange errorExchange){ return BindingBuilder.bind(errorQueue).to(errorExchange).with(\"error\"); } @Bean public MessageRecoverer messageRecoverer(RabbitTemplate rabbitTemplate){ return new RepublishMessageRecoverer(rabbitTemplate, \"error.direct\", \"error\"); } } 业务幂等性 幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。\n查询和删除操作天生幂等 唯一消息Id 方案一，给每个消息都设置一个唯一的id，利用id区分是否是重复消息：\n每一条消息都生成一个唯一的id，与消息一起投递给消费者 消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中 如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理 @Bean public MessageConverter jackonMessageConverter() { Jackson2JsonMessageConverter jjmc = new Jackson2JsonMessageConverter(); jjmc.setCreateMessageIds(true); return jjmc; } 方案二，结合业务逻辑，基于业务本身做判断。\n面试题 如何保证支付服务与交易服务之间的订单状态一致性？ 首先，支付服务会正在用户支付成功以后利用MQ消息通知交易服务，完成订单状态同步。 其次，为了保证MQ消息的可靠性，我们采用了生产者确认机制、消费者确认、消费者失败重试等策略，确保消息投递和处理的可靠性。同时也开启了MQ的持久化，避免因服务宕机导致消息丢失。 最后，我们还在交易服务更新订单状态时做了业务幂等判断，避免了因为重复消费导致订单状态异常。 如何交易服务消息处理失败，有没有什么兜底方案？ 我们可以在交易服务设置定时任务，定时查询订单支付状态。这样即便MQ通知失败，还可以利用定时任务作为兜底方案，确保订单支付状态的最终一致性。 延迟消息 延迟消息：生产者发送消息时指定一个时间，消费者不会立刻收到消息，而是在指定时间之后才收到消息\n延迟任务：设置在一定时间之后才执行的任务\n死信交换机 当一个队列中的消息满足下列情况之一时，就会成为死信（dead letter）：\n消费者使用 basic.reject 或 basic.nack 声明消费失败，并且消息的requeue参数设置为false 消息是一个过期消息（达到了队列或消息本身设置的过期时间），超时无人消费 要投递的队列消息堆积满了，最早的消息可能称为死信 如果队列通过dead-letter-exchange属性制定了一个交换机，那么该队列中的死信就会投递到这个交换机中。这个交换机称为死信交换机（Dead Letter Exchange， 简称DLX）\n延迟消息插件 docker 查看mq的插件挂载目录：\ndocker volume inspect mq-plugins docker中mq安装插件\ndocker exec -it mq rabbitmq-plugins enable rabbitmq_delayed_message_exchange @RabbitListener(bindings = @QueueBinding( value = @Queue(name = \"delay.queue\", durable = \"true\"), exchange = @Exchange(name = \"delay.direct\", delayed = \"true\"), key = \"delay\" )) public void listenDelayMessage(String msg) { log.info(\"接收到delay.queue的延迟消息: {}\", msg); } @Bean public DirectExchange delayExchange() { return ExchangeBuilder .directExchange(\"delay.direct\") .delayed() // 设置delay的属性为true .durable(true) // 持久化 .build(); } 发送消息通过消息头x-delay来设置过期时间：\n@Test public void testSendDelayMessage(){ rabbitTemplate.convertAndSend(\"delay.direct\", \"hi\", \"hello delay\", new MessagePostProcessor() { @Override public Message postProcessMessage(Message message) throws AmqpException { message.getMessageProperties().setDelay(10000); return message; } }); log.info(\"发送消息成功！\"); } 延时功能对性能消耗较大，只适用于延时时间较短的场景。\n","wordCount":"5321","inLanguage":"zh","datePublished":"2024-11-05T22:30:13+08:00","dateModified":"2024-11-06T22:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/rabbitmq/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">RabbitMQ</h1><div class=post-description>RabbitMQ</div><div class=post-meta><span title='2024-11-05 22:30:13 +0800 +0800'>2024-11-05</span>&nbsp;·&nbsp;<span>11 分钟</span>&nbsp;·&nbsp;<span>5321 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#rabbitmq aria-label=RabbitMQ>RabbitMQ</a><ul><li><a href=#%e5%90%8c%e6%ad%a5%e8%b0%83%e7%94%a8 aria-label=同步调用>同步调用</a></li><li><a href=#%e5%bc%82%e6%ad%a5%e8%b0%83%e7%94%a8 aria-label=异步调用>异步调用</a></li><li><a href=#mq aria-label=MQ>MQ</a></li><li><a href=#rabbitmq%e7%9a%84%e6%95%b4%e4%bd%93%e6%9e%b6%e6%9e%84%e5%8f%8a%e6%a0%b8%e5%bf%83%e6%a6%82%e5%bf%b5 aria-label=RabbitMQ的整体架构及核心概念>RabbitMQ的整体架构及核心概念</a></li><li><a href=#%e5%bf%ab%e9%80%9f%e5%85%a5%e9%97%a8 aria-label=快速入门>快速入门</a><ul><li><a href=#%e5%90%af%e5%8a%a8mq aria-label=启动MQ>启动MQ</a></li><li><a href=#%e7%a8%8b%e5%ba%8f%e6%8e%a7%e5%88%b6 aria-label=程序控制>程序控制</a><ul><li><a href=#amqp aria-label=AMQP>AMQP</a></li></ul></li><li><a href=#spring-amqp aria-label="Spring AMQP">Spring AMQP</a><ul><li><a href=#%e5%8f%91%e9%80%81%e8%80%85 aria-label=发送者>发送者</a></li><li><a href=#%e7%9b%91%e5%90%ac%e8%80%85 aria-label=监听者>监听者</a></li></ul></li></ul></li><li><a href=#%e4%ba%a4%e6%8d%a2%e6%9c%ba aria-label=交换机>交换机</a><ul><li><a href=#fanout%e4%ba%a4%e6%8d%a2%e6%9c%ba aria-label=Fanout交换机>Fanout交换机</a></li><li><a href=#direct%e4%ba%a4%e6%8d%a2%e6%9c%ba aria-label=Direct交换机>Direct交换机</a></li><li><a href=#topic%e4%ba%a4%e6%8d%a2%e6%9c%ba aria-label=Topic交换机>Topic交换机</a></li></ul></li><li><a href=#%e5%a3%b0%e6%98%8e%e9%98%9f%e5%88%97%e5%92%8c%e4%ba%a4%e6%8d%a2%e6%9c%ba aria-label=声明队列和交换机>声明队列和交换机</a><ul><li><a href=#%e5%9f%ba%e4%ba%8e%e6%b3%a8%e8%a7%a3%e5%a3%b0%e6%98%8e aria-label=基于注解声明>基于注解声明</a></li></ul></li><li><a href=#%e6%b6%88%e6%81%af%e8%bd%ac%e6%8d%a2%e5%99%a8 aria-label=消息转换器>消息转换器</a></li><li><a href=#%e4%b8%9a%e5%8a%a1%e6%94%b9%e9%80%a0 aria-label=业务改造>业务改造</a></li></ul></li><li><a href=#mq%e9%ab%98%e7%ba%a7 aria-label=MQ高级>MQ高级</a><ul><li><a href=#%e6%b6%88%e6%81%af%e5%8f%af%e9%9d%a0%e6%80%a7%e9%97%ae%e9%a2%98 aria-label=消息可靠性问题>消息可靠性问题</a><ul><li><a href=#%e5%8f%91%e9%80%81%e8%80%85%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7 aria-label=发送者的可靠性>发送者的可靠性</a><ul><li><a href=#%e7%94%9f%e4%ba%a7%e8%80%85%e9%87%8d%e8%bf%9e aria-label=生产者重连>生产者重连</a></li><li><a href=#%e7%94%9f%e4%ba%a7%e8%80%85%e7%a1%ae%e8%ae%a4 aria-label=生产者确认>生产者确认</a></li></ul></li><li><a href=#mq%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7 aria-label=MQ的可靠性>MQ的可靠性</a><ul><li><a href=#%e6%95%b0%e6%8d%ae%e6%8c%81%e4%b9%85%e5%8c%96 aria-label=数据持久化>数据持久化</a></li><li><a href=#lazyqueue aria-label=LazyQueue>LazyQueue</a></li></ul></li><li><a href=#%e6%b6%88%e8%b4%b9%e8%80%85%e7%9a%84%e5%8f%af%e9%9d%a0%e6%80%a7 aria-label=消费者的可靠性>消费者的可靠性</a><ul><li><a href=#%e6%b6%88%e8%b4%b9%e8%80%85%e7%a1%ae%e8%ae%a4%e6%9c%ba%e5%88%b6 aria-label=消费者确认机制>消费者确认机制</a></li><li><a href=#%e5%a4%b1%e8%b4%a5%e6%b6%88%e6%81%af%e5%a4%84%e7%90%86%e7%ad%96%e7%95%a5 aria-label=失败消息处理策略>失败消息处理策略</a><ul><li><a href=#republishmessagerecoverer aria-label=RepublishMessageRecoverer>RepublishMessageRecoverer</a></li></ul></li></ul></li></ul></li><li><a href=#%e4%b8%9a%e5%8a%a1%e5%b9%82%e7%ad%89%e6%80%a7 aria-label=业务幂等性>业务幂等性</a><ul><li><a href=#%e5%94%af%e4%b8%80%e6%b6%88%e6%81%afid aria-label=唯一消息Id>唯一消息Id</a></li></ul></li><li><a href=#%e9%9d%a2%e8%af%95%e9%a2%98 aria-label=面试题>面试题</a><ul><li><a href=#%e5%a6%82%e4%bd%95%e4%bf%9d%e8%af%81%e6%94%af%e4%bb%98%e6%9c%8d%e5%8a%a1%e4%b8%8e%e4%ba%a4%e6%98%93%e6%9c%8d%e5%8a%a1%e4%b9%8b%e9%97%b4%e7%9a%84%e8%ae%a2%e5%8d%95%e7%8a%b6%e6%80%81%e4%b8%80%e8%87%b4%e6%80%a7 aria-label=如何保证支付服务与交易服务之间的订单状态一致性？>如何保证支付服务与交易服务之间的订单状态一致性？</a></li><li><a href=#%e5%a6%82%e4%bd%95%e4%ba%a4%e6%98%93%e6%9c%8d%e5%8a%a1%e6%b6%88%e6%81%af%e5%a4%84%e7%90%86%e5%a4%b1%e8%b4%a5%e6%9c%89%e6%b2%a1%e6%9c%89%e4%bb%80%e4%b9%88%e5%85%9c%e5%ba%95%e6%96%b9%e6%a1%88 aria-label=如何交易服务消息处理失败，有没有什么兜底方案？>如何交易服务消息处理失败，有没有什么兜底方案？</a></li></ul></li><li><a href=#%e5%bb%b6%e8%bf%9f%e6%b6%88%e6%81%af aria-label=延迟消息>延迟消息</a><ul><li><a href=#%e6%ad%bb%e4%bf%a1%e4%ba%a4%e6%8d%a2%e6%9c%ba aria-label=死信交换机>死信交换机</a></li><li><a href=#%e5%bb%b6%e8%bf%9f%e6%b6%88%e6%81%af%e6%8f%92%e4%bb%b6 aria-label=延迟消息插件>延迟消息插件</a></li></ul></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=rabbitmq>RabbitMQ<a hidden class=anchor aria-hidden=true href=#rabbitmq>#</a></h1><p>同步通讯 和 异步通讯</p><h2 id=同步调用>同步调用<a hidden class=anchor aria-hidden=true href=#同步调用>#</a></h2><p>同步调用的问题：</p><ul><li>拓展性差</li><li>性能下降</li><li>级联失败</li></ul><h2 id=异步调用>异步调用<a hidden class=anchor aria-hidden=true href=#异步调用>#</a></h2><p>异步调用方式其实就是基于消息通知的方式，一般包含三个角色：</p><ul><li>消息发送者：投递消息的人，就是原来的调用方</li><li>消息代理：管理、暂存、转发消息，可以理解为微信服务器</li><li>消息接收者：接受和处理消息的人，就是原来的服务提供方</li></ul><p>支付服务不再同步调用业务关联度低的服务，而是发送消息通知到Broker。</p><p>具备下列<strong>优势</strong>：</p><ul><li>解除耦合，拓展性强</li><li>无需等待，性能好</li><li>故障隔离</li><li>缓存消息，流量削峰填谷</li></ul><p><strong>缺点</strong>：</p><ul><li>不能立刻得到调用结果，时效性差</li><li>不确定下游业务执行是否成功</li><li>业务安全依赖于Broker的可靠性</li></ul><h2 id=mq>MQ<a hidden class=anchor aria-hidden=true href=#mq>#</a></h2><p>MQ（MessageQueue），消息队列，存放消息的队列，也就是异步调用中的Broker。</p><table><thead><tr><th>特性</th><th>RabbitMQ</th><th>ActiveMQ</th><th>RocketMQ</th><th>Kafka</th></tr></thead><tbody><tr><td>公司/社区</td><td>Rabbit</td><td>Apache</td><td>阿里</td><td>Apache</td></tr><tr><td>开发语言</td><td>Erlang</td><td>Java</td><td>Java</td><td>Scala & Java</td></tr><tr><td>协议支持</td><td>AMQP, XMPP, SMTP, STOMP</td><td>OpenWire, STOMP, REST, XMPP, AMQP</td><td>自定义协议</td><td>自定义协议</td></tr><tr><td>可用性</td><td>高</td><td>一般</td><td>高</td><td>非常高</td></tr><tr><td>单机吞吐量</td><td>一般</td><td>差</td><td>高</td><td>非常高</td></tr><tr><td>消息延迟</td><td>微秒级</td><td>毫秒级</td><td>毫秒级</td><td>毫秒以内</td></tr><tr><td>消息可靠性</td><td>高</td><td>一般</td><td>高</td><td>一般</td></tr></tbody></table><h2 id=rabbitmq的整体架构及核心概念>RabbitMQ的整体架构及核心概念<a hidden class=anchor aria-hidden=true href=#rabbitmq的整体架构及核心概念>#</a></h2><ul><li>virtual-host：虚拟主机，起到数据隔离的作用</li><li>publisher：消息发送者</li><li>consumer：消息的消费者</li><li>queue：队列，存储消息</li><li>exchange：交换机，负责路由消息</li></ul><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241105133632006.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241105133632006.png alt=image-20241105133632006></a></div></p><h2 id=快速入门>快速入门<a hidden class=anchor aria-hidden=true href=#快速入门>#</a></h2><h3 id=启动mq>启动MQ<a hidden class=anchor aria-hidden=true href=#启动mq>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>docker run <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> -e RABBITMQ_DEFAULT_USER<span style=color:#f92672>=</span>itheima <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> -e RABBITMQ_DEFAULT_PASS<span style=color:#f92672>=</span><span style=color:#ae81ff>123321</span> <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> -v mq-plugins:/plugins <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> --name mq <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> --hostname mq <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> -p 15672:15672 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> -p 5672:5672 <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> --network hmall <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> -d <span style=color:#ae81ff>\
+</span></span></span><span style=display:flex><span> rabbitmq:3.8-management
+</span></span></code></pre></div><h3 id=程序控制>程序控制<a hidden class=anchor aria-hidden=true href=#程序控制>#</a></h3><h4 id=amqp>AMQP<a hidden class=anchor aria-hidden=true href=#amqp>#</a></h4><p>Advanced Message Queuing Protocol， 是用于在应用程序之间传递业务消息的开放标准。改协议与语言和平台无关，更符合微服务中独立性的要求。</p><h3 id=spring-amqp>Spring AMQP<a hidden class=anchor aria-hidden=true href=#spring-amqp>#</a></h3><p>Spring AMQP 是基于AMQP协议定义的一套API规范，提供了模板来发送和接受消息。包含两部分，其中spring-amqp是基础抽象，spring-rabbit是底层的默认实现。</p><h4 id=发送者>发送者<a hidden class=anchor aria-hidden=true href=#发送者>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@SpringBootTest</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SpringAmqpTest</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> RabbitTemplate rabbitTemplate;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>testSendMessage2Queue</span>(){
+</span></span><span style=display:flex><span>        String queueName <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;simple.queue&#34;</span>;
+</span></span><span style=display:flex><span>        String msg <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;hello, rabbitmq&#34;</span>;
+</span></span><span style=display:flex><span>        rabbitTemplate.<span style=color:#a6e22e>convertAndSend</span>(queueName, msg);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=监听者>监听者<a hidden class=anchor aria-hidden=true href=#监听者>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Slf4j</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Component</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MqListener</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@RabbitListener</span>(queues <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;simple.queue&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>listenSimpleQueue</span>(String msg) {
+</span></span><span style=display:flex><span>        System.<span style=color:#a6e22e>out</span>.<span style=color:#a6e22e>println</span>(<span style=color:#e6db74>&#34;消费者收到消息：【&#34;</span> <span style=color:#f92672>+</span> msg <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;】&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>Work模型的使用：</p><ul><li>多个消费者绑定到一个队列，可以加快消息处理速度</li><li>同一条消息只会被一个消费者处理</li><li>通过设置prefetch来控制消费者预取的消息数量，处理完一条再处理下一条，实现能者多劳</li></ul><h2 id=交换机>交换机<a hidden class=anchor aria-hidden=true href=#交换机>#</a></h2><p>真正生产环境都会经过exchange来发送消息，而不是直接发送到队列，交换机的类型有以下三种：</p><ul><li>Fanout：广播</li><li>Direct：定向</li><li>Topic：话题</li></ul><h3 id=fanout交换机>Fanout交换机<a hidden class=anchor aria-hidden=true href=#fanout交换机>#</a></h3><p>Fanout Exchange会将接受到的消息广播到每一个跟其绑定的queue，所以也叫广播模式</p><h3 id=direct交换机>Direct交换机<a hidden class=anchor aria-hidden=true href=#direct交换机>#</a></h3><p>Direct Exchange会将接收到的消息根据规则路由到指定的Queue，因此称为定向路由。</p><ul><li>每一个Queue都与Exchange设置一个<code>BindingKey</code></li><li>发布者发送消息时，指定消息的<code>RoutingKey</code></li><li>Exchange将消息路由到<code>BindingKey</code>与消息<code>RoutingKey</code>一致的队列</li></ul><h3 id=topic交换机>Topic交换机<a hidden class=anchor aria-hidden=true href=#topic交换机>#</a></h3><p><code>TopicExchange</code>与<code>DirectExchange</code>类似，区别在于<code>routingKey</code>可以是多个单词的列表，并且以<code>.</code>分割。</p><p>Queue与Exchange指定<code>BindingKey</code>时可以使用通配符：</p><ul><li><code># </code>：代指0个或多个单词</li><li><code>*</code>：代指一个单词</li></ul><h2 id=声明队列和交换机>声明队列和交换机<a hidden class=anchor aria-hidden=true href=#声明队列和交换机>#</a></h2><p><code>SpringAMQP</code>提供了几个类，用来声明队列、交换机及其绑定关系：</p><ul><li>Queue：用于声明队列，可以用工厂类<code>QueueBuilder</code>构建</li><li>Exchange：用于声明交换机，可以用工厂类<code>ExchangeBuilder</code>构建</li><li>Binding：用于声明队列和交换机的绑定关系，可以用工厂类<code>BindingBuilder</code>构建</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Configuration</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DirectConfiguration</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> DirectExchange <span style=color:#a6e22e>directExchange</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> DirectExchange(<span style=color:#e6db74>&#34;hmall.direct&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Queue <span style=color:#a6e22e>directQueue1</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Queue(<span style=color:#e6db74>&#34;direct.queue1&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Binding <span style=color:#a6e22e>directQueue1BindingRed</span>(Queue directQueue1, DirectExchange directExchange) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> BindingBuilder.<span style=color:#a6e22e>bind</span>(directQueue1).<span style=color:#a6e22e>to</span>(directExchange).<span style=color:#a6e22e>with</span>(<span style=color:#e6db74>&#34;red&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Binding <span style=color:#a6e22e>directQueue1BindingBlue</span>(Queue directQueue1, DirectExchange directExchange) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> BindingBuilder.<span style=color:#a6e22e>bind</span>(directQueue1).<span style=color:#a6e22e>to</span>(directExchange).<span style=color:#a6e22e>with</span>(<span style=color:#e6db74>&#34;blue&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Queue <span style=color:#a6e22e>directQueue2</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Queue(<span style=color:#e6db74>&#34;direct.queue2&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Binding <span style=color:#a6e22e>directQueue2BindingRed</span>(Queue directQueue2, DirectExchange directExchange) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> BindingBuilder.<span style=color:#a6e22e>bind</span>(directQueue2).<span style=color:#a6e22e>to</span>(directExchange).<span style=color:#a6e22e>with</span>(<span style=color:#e6db74>&#34;red&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Binding <span style=color:#a6e22e>directQueue2BindingYellow</span>(Queue directQueue2, DirectExchange directExchange) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> BindingBuilder.<span style=color:#a6e22e>bind</span>(directQueue2).<span style=color:#a6e22e>to</span>(directExchange).<span style=color:#a6e22e>with</span>(<span style=color:#e6db74>&#34;yellow&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=基于注解声明>基于注解声明<a hidden class=anchor aria-hidden=true href=#基于注解声明>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span>    <span style=color:#a6e22e>@RabbitListener</span>(bindings <span style=color:#f92672>=</span> <span style=color:#a6e22e>@QueueBinding</span>(
+</span></span><span style=display:flex><span>            value <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Queue</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;direct.queue1&#34;</span>, durable <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;true&#34;</span>),
+</span></span><span style=display:flex><span>            exchange <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Exchange</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;hmall.direct&#34;</span>, type <span style=color:#f92672>=</span> ExchangeTypes.<span style=color:#a6e22e>DIRECT</span>),
+</span></span><span style=display:flex><span>            key <span style=color:#f92672>=</span> {<span style=color:#e6db74>&#34;red&#34;</span>, <span style=color:#e6db74>&#34;blue&#34;</span>, <span style=color:#e6db74>&#34;Kennem&#34;</span>}
+</span></span><span style=display:flex><span>    ))
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>listenDirectQueue1</span>(String msg) <span style=color:#66d9ef>throws</span> InterruptedException {
+</span></span><span style=display:flex><span>        System.<span style=color:#a6e22e>out</span>.<span style=color:#a6e22e>println</span>(<span style=color:#e6db74>&#34;消费者1 收到 direct.queue1 消息：【&#34;</span> <span style=color:#f92672>+</span> msg <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;】.......&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@RabbitListener</span>(bindings <span style=color:#f92672>=</span> <span style=color:#a6e22e>@QueueBinding</span>(
+</span></span><span style=display:flex><span>            value <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Queue</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;direct.queue2&#34;</span>, durable <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;true&#34;</span>),
+</span></span><span style=display:flex><span>            exchange <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Exchange</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;hmall.direct&#34;</span>, type <span style=color:#f92672>=</span> ExchangeTypes.<span style=color:#a6e22e>DIRECT</span>),
+</span></span><span style=display:flex><span>            key <span style=color:#f92672>=</span> {<span style=color:#e6db74>&#34;red&#34;</span>, <span style=color:#e6db74>&#34;yellow&#34;</span>}
+</span></span><span style=display:flex><span>    ))
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>listenDirectQueue2</span>(String msg) <span style=color:#66d9ef>throws</span> InterruptedException {
+</span></span><span style=display:flex><span>        System.<span style=color:#a6e22e>out</span>.<span style=color:#a6e22e>println</span>(<span style=color:#e6db74>&#34;消费者2 收到 direct.queue1 消息：【&#34;</span> <span style=color:#f92672>+</span> msg <span style=color:#f92672>+</span> <span style=color:#e6db74>&#34;】.......&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h2 id=消息转换器>消息转换器<a hidden class=anchor aria-hidden=true href=#消息转换器>#</a></h2><p>导入依赖</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-xml data-lang=xml><span style=display:flex><span>        <span style=color:#75715e>&lt;!--Jackon--&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;dependency&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;groupId&gt;</span>com.fasterxml.jackson.dataformat<span style=color:#f92672>&lt;/groupId&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;artifactId&gt;</span>jackson-dataformat-xml<span style=color:#f92672>&lt;/artifactId&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;/dependency&gt;</span>
+</span></span></code></pre></div><p>定义转换器</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> MessageConverter <span style=color:#a6e22e>jackonMessageConverter</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Jackson2JsonMessageConverter();
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h2 id=业务改造>业务改造<a hidden class=anchor aria-hidden=true href=#业务改造>#</a></h2><p>需求：改造余额支付功能，不再同步调用交易服务的OpenFeign接口，而是采用异步MQ通知交易服务更新订单状态</p><h1 id=mq高级>MQ高级<a hidden class=anchor aria-hidden=true href=#mq高级>#</a></h1><h2 id=消息可靠性问题>消息可靠性问题<a hidden class=anchor aria-hidden=true href=#消息可靠性问题>#</a></h2><h3 id=发送者的可靠性>发送者的可靠性<a hidden class=anchor aria-hidden=true href=#发送者的可靠性>#</a></h3><h4 id=生产者重连>生产者重连<a hidden class=anchor aria-hidden=true href=#生产者重连>#</a></h4><p>由于网络波动，可能会出现客户端连接MQ失败的情况。通过配置我们可以开启连接失败后的重连机制。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yml data-lang=yml><span style=display:flex><span><span style=color:#f92672>spring</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>rabbitmq</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>connection-timeout</span>: <span style=color:#ae81ff>1s</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>template</span>:
+</span></span><span style=display:flex><span>      <span style=color:#f92672>retry</span>:
+</span></span><span style=display:flex><span>        <span style=color:#f92672>enabled</span>: <span style=color:#66d9ef>true</span>
+</span></span></code></pre></div><p><code>SpringAMQP</code>提供的重试机制是<strong>阻塞式</strong>的重试，也就是说多次重试等待的过程中，当前线程是被阻塞的，会影响业务性能。</p><p>如果对于业务性能有要求，建议<strong>禁用</strong>重试机制。如果一定要用，请合理配置等待时长和重试次数，也可以考虑使用异步线程来执行发送消息的代码</p><h4 id=生产者确认>生产者确认<a hidden class=anchor aria-hidden=true href=#生产者确认>#</a></h4><p>RabbitMQ提供了<strong>Publisher Confirm</strong>和<strong>Publisher Return</strong>两种确认机制。开启确认机制后会返回确认消息给生产者。返回的结果有以下几种情况：</p><ul><li>消息投递到了MQ，但是路由失败。此时会通过<code>PublisherReturn</code>返回路由异常原因，然后返回ACK，告知投递成功</li><li>临时消息投递到了MQ，并且入队成功，返回ACK，告知投递成功</li><li>持久消息投递到了MQ，并且入队完成持久化，返回ACK，告知投递成功</li><li>其他情况都会返回NACK，告知投递失败</li></ul><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106115429064.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106115429064.png alt=image-20241106115429064></a></div></p><ol><li>在publisher这个微服务的application.yml中添加配置：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-yml data-lang=yml><span style=display:flex><span><span style=color:#f92672>spring</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>rabbitmq</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>publisher-confirm-type</span>: <span style=color:#ae81ff>correlated</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>publisher-returns</span>: <span style=color:#66d9ef>true</span>
+</span></span></code></pre></div><p>配置说明：</p><p>publisher-comfirm-type有三种模式可选：</p><ul><li>none：关闭confirm机制</li><li>simple：同步阻塞等待MQ的回执消息</li><li>correlated：MQ异步回调方式返回回执消息</li></ul><ol start=2><li>每个<code>RabbitTemplate</code>只能配置<code>ReturnCallback</code>，因此需要在项目启动过程中配置：</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Slf4j</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Configuration</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CommonConfig</span> <span style=color:#66d9ef>implements</span> ApplicationContextAware {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Override</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>setApplicationContext</span>(ApplicationContext applicationContext) <span style=color:#66d9ef>throws</span> BeansException {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取RabbitTemplate</span>
+</span></span><span style=display:flex><span>        RabbitTemplate rabbitTemplate <span style=color:#f92672>=</span> applicationContext.<span style=color:#a6e22e>getBean</span>(RabbitTemplate.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 设置ReturnCallback</span>
+</span></span><span style=display:flex><span>        rabbitTemplate.<span style=color:#a6e22e>setReturnCallback</span>((message, replyCode, replyText, exchange, routingKey) <span style=color:#f92672>-&gt;</span> {
+</span></span><span style=display:flex><span>            log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;消息发送失败, 应答码{}, 原因{}, 交换机{}, 路由键{},消息{}&#34;</span>,
+</span></span><span style=display:flex><span>                    replyCode, replyText, exchange, routingKey, message.<span style=color:#a6e22e>toString</span>());
+</span></span><span style=display:flex><span>        });
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ol start=3><li>发送消息，指定消息ID、消息<code>ConfirmCallback</code></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>void</span> <span style=color:#a6e22e>testPublisherConfirm</span>() <span style=color:#66d9ef>throws</span> InterruptedException {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 1. 创建CorrelationData</span>
+</span></span><span style=display:flex><span>    CorrelationData cd <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> CorrelationData();
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 2. 给Future添加ConfirmCallback</span>
+</span></span><span style=display:flex><span>    cd.<span style=color:#a6e22e>getFuture</span>().<span style=color:#a6e22e>addCallback</span>(<span style=color:#66d9ef>new</span> ListenableFutureCallback<span style=color:#f92672>&lt;</span>CorrelationData.<span style=color:#a6e22e>Confirm</span><span style=color:#f92672>&gt;</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>@Override</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>onFailure</span>(Throwable ex) {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 2.1.Future发生异常时的处理逻辑,基本不会触发</span>
+</span></span><span style=display:flex><span>            log.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#34;handle message ack fail&#34;</span>, ex);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>@Override</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>onSuccess</span>(CorrelationData.<span style=color:#a6e22e>Confirm</span> result) {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 2.2.Future接收到回执的处理逻辑,参数中的result就是回执内容</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span>(result.<span style=color:#a6e22e>isAck</span>()){ <span style=color:#75715e>// result.isAck(), boolean类型, true代表ack回执, false 代表 nack回执</span>
+</span></span><span style=display:flex><span>                log.<span style=color:#a6e22e>debug</span>(<span style=color:#e6db74>&#34;发送消息成功, 收到 ack!&#34;</span>);
+</span></span><span style=display:flex><span>            }<span style=color:#66d9ef>else</span>{ <span style=color:#75715e>// result.getReason(), String类型, 返回nack时的异常描述</span>
+</span></span><span style=display:flex><span>                log.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#34;发送消息失败, 收到 nack, reason : {}&#34;</span>, result.<span style=color:#a6e22e>getReason</span>());
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    });
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 3. 发送消息</span>
+</span></span><span style=display:flex><span>    rabbitTemplate.<span style=color:#a6e22e>convertAndSend</span>(<span style=color:#e6db74>&#34;hmall.direct&#34;</span>, <span style=color:#e6db74>&#34;red1&#34;</span>, <span style=color:#e6db74>&#34;hello&#34;</span>, cd);d
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ul><li>生产者确认需要额外的网络和系统资源开销，尽量不要使用</li><li>如果一定要用，无需开启<code>Publisher-Return</code>机制，因为一般路由失败是自己业务问题</li><li>对于<strong>nack</strong>消息可以有限次数重试，依然失败则记录异常消息</li></ul><h3 id=mq的可靠性>MQ的可靠性<a hidden class=anchor aria-hidden=true href=#mq的可靠性>#</a></h3><p>在默认情况下，RabbitMQ会将接收到的消息保存在内存中以降低消息收发的延迟。这样会导致两个问题：</p><ul><li>一旦MQ宕机，内存中的消息会丢失</li><li>内存空间有限，当消费者故障或处理过慢时，会导致消息积压，引发MQ阻塞</li></ul><h4 id=数据持久化>数据持久化<a hidden class=anchor aria-hidden=true href=#数据持久化>#</a></h4><p>Rabbit MQ实现的数据持久化包括3个方面：</p><ul><li>交换机持久化 <strong>指定durable</strong></li><li>队列持久化 <strong>指定durable</strong></li><li>消息持久化 <strong>指定persistent</strong></li></ul><h4 id=lazyqueue>LazyQueue<a hidden class=anchor aria-hidden=true href=#lazyqueue>#</a></h4><p>从RabbitMQ的3.6.0版本开始，就增加了Lazy Queue的概念，也就是惰性队列</p><p>惰性队列的特征如下：</p><ul><li>接收到消息后直接存入磁盘而非内存（内存中只保留最近的消息，默认2048条）</li><li>消费者要消费消息时才会从磁盘中读取并加载到内存</li><li>支持数百万条的消息存储</li></ul><p>在3.12版本之后，所有队列都是Lazy Queue模式，无法更改</p><p>定义queue形式</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> Queue <span style=color:#a6e22e>lazyQueue</span>(){
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> QueueBuilder
+</span></span><span style=display:flex><span>            .<span style=color:#a6e22e>durable</span>(<span style=color:#e6db74>&#34;lazy.queue&#34;</span>)
+</span></span><span style=display:flex><span>            .<span style=color:#a6e22e>lazy</span>() <span style=color:#75715e>// 开启Lazy模式</span>
+</span></span><span style=display:flex><span>            .<span style=color:#a6e22e>build</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>基于注解形式：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@RabbitListener</span>(queuesToDeclare <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Queue</span>(
+</span></span><span style=display:flex><span>        name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;lazy.queue&#34;</span>,
+</span></span><span style=display:flex><span>        durable <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;true&#34;</span>,
+</span></span><span style=display:flex><span>        arguments <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Argument</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;x-queue-mode&#34;</span>, value <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;lazy&#34;</span>)
+</span></span><span style=display:flex><span>))
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>listenLazyQueue</span>(String msg){
+</span></span><span style=display:flex><span>    log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;接收到 lazy.queue的消息: {}&#34;</span>, msg);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><ul><li>开启持久化和生产者确认时，RabbitMQ只有在消息持久化完成后才会给生产者返回ACK回执。</li></ul><h3 id=消费者的可靠性>消费者的可靠性<a hidden class=anchor aria-hidden=true href=#消费者的可靠性>#</a></h3><h4 id=消费者确认机制>消费者确认机制<a hidden class=anchor aria-hidden=true href=#消费者确认机制>#</a></h4><p>为了确认消费者是否成功处理消息，RabbitMQ提供了消费者确认机制（Consumer Acknowledgement）。当消费者处理消息结束后，应该向RabbitMQ发送一个回执，告知RabbitMQ自己消息处理状态。回执有三种可选值：</p><ul><li><strong>ack</strong>：成功处理消息，RabbitMQ从队列中删除消息</li><li><strong>nack</strong>：消息处理失败，RabbitMQ需要再次投递消息</li><li><strong>reject</strong>：消息处理失败并拒绝该消息，RabbitMQ从队列中删除该消息</li></ul><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106152545586.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241106152545586.png alt=image-20241106152545586></a></div></p><p>SpringAMQP已经实现了消息确认功能。并允许我们通过配置文件选择ACK处理方式，有三种方式：</p><ul><li>none：不处理。即消息投递给消费者后立刻ack，消息会立刻从MQ删除。非常不安全，不建议使用</li><li>manual：手动模式。需要自己在业务代码中调用api，发送ack和reject，存在业务入侵，但更灵活</li><li><strong>auto</strong>：<strong>自动模式</strong>。<code>SpringAMQP</code>利用AOP对我们的消息处理逻辑做了环绕增强，当业务正常执行时刻自动返回ack，当业务出现异常时，根据异常判断返回不同结果：<ul><li>如果业务异常，会自动返回nack</li><li>如果是消息处理或校验异常，自动返回reject</li></ul></li></ul><h4 id=失败消息处理策略>失败消息处理策略<a hidden class=anchor aria-hidden=true href=#失败消息处理策略>#</a></h4><p>在开启重试模式后，重试次数耗尽，如果消息依然失败，则需要有<code>MessageRecoverer</code>接口来处理，它包含三种不同的实现：</p><ul><li><code>RejectAndDontRequeueRecoverer</code>：重试耗尽后，直接reject，丢弃消息。默认就是这种方式。</li><li><code>ImmediateRequeueMessageRecoverer</code>：重试耗尽后，返回<code>nack</code>，消息重新入队</li><li><code>RepublishMessageRecoverer</code>：重试耗尽后，将失败消息投递到指定的交换机</li></ul><h5 id=republishmessagerecoverer>RepublishMessageRecoverer<a hidden class=anchor aria-hidden=true href=#republishmessagerecoverer>#</a></h5><p>多次重试耗尽后，将错误转发到<code>error.direct</code>交换机中</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Configuration</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@ConditionalOnProperty</span>(prefix <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;spring.rabbitmq.listener.simple.retry&#34;</span>, name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;enabled&#34;</span>, havingValue <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;true&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ErrorConfiguration</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> DirectExchange <span style=color:#a6e22e>errorExchange</span>(){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> DirectExchange(<span style=color:#e6db74>&#34;error.direct&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Queue <span style=color:#a6e22e>errorQueue</span>(){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> Queue(<span style=color:#e6db74>&#34;error.queue&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Binding <span style=color:#a6e22e>errorBinding</span>(Queue errorQueue, DirectExchange errorExchange){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> BindingBuilder.<span style=color:#a6e22e>bind</span>(errorQueue).<span style=color:#a6e22e>to</span>(errorExchange).<span style=color:#a6e22e>with</span>(<span style=color:#e6db74>&#34;error&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> MessageRecoverer <span style=color:#a6e22e>messageRecoverer</span>(RabbitTemplate rabbitTemplate){
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> RepublishMessageRecoverer(rabbitTemplate, <span style=color:#e6db74>&#34;error.direct&#34;</span>, <span style=color:#e6db74>&#34;error&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=业务幂等性>业务幂等性<a hidden class=anchor aria-hidden=true href=#业务幂等性>#</a></h2><p>幂等是一个数学概念，用函数表达式来描述：$f(x) = f(f(x))$。在程序开发中，则指同一个业务，执行多次对业务状态的影响是一致的。</p><ul><li>查询和删除操作天生幂等</li></ul><h3 id=唯一消息id>唯一消息Id<a hidden class=anchor aria-hidden=true href=#唯一消息id>#</a></h3><p>方案一，给每个消息都设置一个<strong>唯一的id</strong>，利用id区分是否是重复消息：</p><ol><li>每一条消息都生成一个唯一的id，与消息一起投递给消费者</li><li>消费者接收到消息后处理自己的业务，业务处理成功后将消息ID保存到数据库中</li><li>如果下次又收到相同的消息，去数据库查询判断是否存在，存在则为重复消息放弃处理</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span>    <span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> MessageConverter <span style=color:#a6e22e>jackonMessageConverter</span>() {
+</span></span><span style=display:flex><span>        Jackson2JsonMessageConverter jjmc <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Jackson2JsonMessageConverter();
+</span></span><span style=display:flex><span>        jjmc.<span style=color:#a6e22e>setCreateMessageIds</span>(<span style=color:#66d9ef>true</span>);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> jjmc;
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><p>方案二，结合业务逻辑，基于业务本身做判断。</p><h2 id=面试题>面试题<a hidden class=anchor aria-hidden=true href=#面试题>#</a></h2><h3 id=如何保证支付服务与交易服务之间的订单状态一致性>如何保证支付服务与交易服务之间的订单状态一致性？<a hidden class=anchor aria-hidden=true href=#如何保证支付服务与交易服务之间的订单状态一致性>#</a></h3><ul><li>首先，支付服务会正在用户支付成功以后利用MQ消息通知交易服务，完成订单状态同步。</li><li>其次，为了保证MQ消息的可靠性，我们采用了生产者确认机制、消费者确认、消费者失败重试等策略，确保消息投递和处理的可靠性。同时也开启了MQ的持久化，避免因服务宕机导致消息丢失。</li><li>最后，我们还在交易服务更新订单状态时做了业务幂等判断，避免了因为重复消费导致订单状态异常。</li></ul><h3 id=如何交易服务消息处理失败有没有什么兜底方案>如何交易服务消息处理失败，有没有什么兜底方案？<a hidden class=anchor aria-hidden=true href=#如何交易服务消息处理失败有没有什么兜底方案>#</a></h3><ul><li>我们可以在交易服务设置定时任务，定时查询订单支付状态。这样即便MQ通知失败，还可以利用定时任务作为兜底方案，确保订单支付状态的最终一致性。</li></ul><h2 id=延迟消息>延迟消息<a hidden class=anchor aria-hidden=true href=#延迟消息>#</a></h2><p><strong>延迟消息</strong>：生产者发送消息时指定一个时间，消费者不会立刻收到消息，而是在指定时间之后才收到消息</p><p><strong>延迟任务</strong>：设置在一定时间之后才执行的任务</p><h3 id=死信交换机>死信交换机<a hidden class=anchor aria-hidden=true href=#死信交换机>#</a></h3><p>当一个队列中的消息满足下列情况之一时，就会成为<strong>死信（dead letter）</strong>：</p><ul><li>消费者使用 <code>basic.reject</code> 或 <code>basic.nack</code> 声明消费失败，并且消息的requeue参数设置为false</li><li>消息是一个过期消息（达到了队列或消息本身设置的过期时间），超时无人消费</li><li>要投递的队列消息堆积满了，最早的消息可能称为死信</li></ul><p>如果队列通过dead-letter-exchange属性制定了一个交换机，那么该队列中的死信就会投递到这个交换机中。这个交换机称为死信交换机（Dead Letter Exchange， 简称DLX）</p><h3 id=延迟消息插件>延迟消息插件<a hidden class=anchor aria-hidden=true href=#延迟消息插件>#</a></h3><p>docker 查看mq的插件挂载目录：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>docker volume inspect mq-plugins
+</span></span></code></pre></div><p>docker中mq安装插件</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-shell data-lang=shell><span style=display:flex><span>docker exec -it mq rabbitmq-plugins enable rabbitmq_delayed_message_exchange
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@RabbitListener</span>(bindings <span style=color:#f92672>=</span> <span style=color:#a6e22e>@QueueBinding</span>(
+</span></span><span style=display:flex><span>    value <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Queue</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;delay.queue&#34;</span>, durable <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;true&#34;</span>),
+</span></span><span style=display:flex><span>    exchange <span style=color:#f92672>=</span> <span style=color:#a6e22e>@Exchange</span>(name <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;delay.direct&#34;</span>, delayed <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;true&#34;</span>),
+</span></span><span style=display:flex><span>    key <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;delay&#34;</span>
+</span></span><span style=display:flex><span>))
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>listenDelayMessage</span>(String msg) {
+</span></span><span style=display:flex><span>    log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;接收到delay.queue的延迟消息: {}&#34;</span>, msg);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Bean</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> DirectExchange <span style=color:#a6e22e>delayExchange</span>() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> ExchangeBuilder
+</span></span><span style=display:flex><span>        .<span style=color:#a6e22e>directExchange</span>(<span style=color:#e6db74>&#34;delay.direct&#34;</span>)
+</span></span><span style=display:flex><span>        .<span style=color:#a6e22e>delayed</span>() <span style=color:#75715e>// 设置delay的属性为true</span>
+</span></span><span style=display:flex><span>        .<span style=color:#a6e22e>durable</span>(<span style=color:#66d9ef>true</span>) <span style=color:#75715e>// 持久化</span>
+</span></span><span style=display:flex><span>        .<span style=color:#a6e22e>build</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>发送消息通过消息头<code>x-delay</code>来设置过期时间：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>testSendDelayMessage</span>(){
+</span></span><span style=display:flex><span>        rabbitTemplate.<span style=color:#a6e22e>convertAndSend</span>(<span style=color:#e6db74>&#34;delay.direct&#34;</span>, <span style=color:#e6db74>&#34;hi&#34;</span>, <span style=color:#e6db74>&#34;hello delay&#34;</span>, <span style=color:#66d9ef>new</span> MessagePostProcessor() {
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>@Override</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>public</span> Message <span style=color:#a6e22e>postProcessMessage</span>(Message message) <span style=color:#66d9ef>throws</span> AmqpException {
+</span></span><span style=display:flex><span>                message.<span style=color:#a6e22e>getMessageProperties</span>().<span style=color:#a6e22e>setDelay</span>(10000);
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> message;
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        });
+</span></span><span style=display:flex><span>        log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;发送消息成功！&#34;</span>);
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><p>延时功能对性能消耗较大，只适用于延时时间较短的场景。</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/rabbitmq/>RabbitMQ</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/rabbitmq>RabbitMQ</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/%E9%9D%A2%E7%BB%8F2/><span class=title>« 上一页</span>
+<span>面经（2）</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%89%8D%E7%AB%AF%E5%BC%80%E5%8F%91day1/><span class=title>下一页 »</span>
+<span>苍穹外卖前端开发(Day1)</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

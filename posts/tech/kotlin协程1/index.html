@@ -1,1173 +1,373 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>Kotlin协程(1) | Kennem&#39;s Blog</title>
-<meta name="keywords" content="Kotlin">
-<meta name="description" content="Kotlin协程(1)">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="Kotlin协程(1)">
-  <meta property="og:description" content="Kotlin协程(1)">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-08-06T22:30:13+08:00">
-    <meta property="article:modified_time" content="2024-08-13T22:20:13+08:00">
-    <meta property="article:tag" content="Kotlin">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Kotlin协程(1)">
-  <meta name="twitter:description" content="Kotlin协程(1)">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "Kotlin协程(1)",
-      "item": "https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Kotlin协程(1)",
-  "name": "Kotlin协程(1)",
-  "description": "Kotlin协程(1)",
-  "keywords": [
-    "Kotlin"
-  ],
-  "articleBody": "Kotlin协程(1) 看明白，讲清楚。\n协程处理的问题：\n处理耗时任务， 这种任务常常会阻塞主线程 保证主线程安全，即确保安全的从主线程调用任何suspend函数 异步任务 协程让异步逻辑同步化，杜绝回调地狱 协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复 协程的挂起与恢复 常规函数基础操作包括 ： invoke(call) 和 return, 协程新增了 suspend 和 resume ； suspend —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量 resume——用于让已暂停的协程从其暂停处继续执行 挂起函数 使用suspend关键字修饰的函数叫做挂起函数 挂起函数只能在协程体内或其他挂起函数内调用 Kotlin协程的两部分 基础设施层次，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持 业务框架层，协程的上层框架支持 调度器 所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。\nDispatchers.Main Android上的主线程，用来处理UI交互和一些轻量级任务\n调用suspend函数 调用UI函数 更新LiveData Dispatchers.IO 专为磁盘和网络IO进行了优化\n数据库 文件读写 网络处理 Dispatchers.Default 非主线程，专为CPU密集型任务进行了优化\n数组排序 JSON数据解析 处理差异判断 任务泄漏 类似内存泄漏\n结构化并发：\n取消任务：当某项任务不再需要时取消它\n追踪任务，当任务正在执行时，追踪它 发出错误信号，当协程失败时， 发出错误信号表明有错误发生 Coroutine Scope 定义协程必须指定其CoroutineScope， 它会跟踪所有协程，同样它还可以取消由它启动的所有协程\n重用的相关API有：\nGlobalScope：生命周期是process级别的，即使Activity， Fragment 已经被销毁，协程仍然在执行 MainScope，在Activity中使用，可以在onDestroy()中取消协程 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期 lifecycleScope，只能在Activity，Fragment中使用，会绑定Activity 和 Fragment的生命周期 协程使用 retrofit API // 定义 UserServiceApi 接口，用于声明与用户相关的API请求 interface UserServiceApi { // 声明一个 GET 请求，用于加载指定名称的用户信息 // @Query 注解表示请求中的查询参数 \"name\"，会附加到URL中 // 返回类型是 Call，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行 @GET(\"user\") fun loadUser(@Query(\"name\") name: String): Call // 声明一个 GET 请求，使用 Kotlin 的协程机制 // suspend 关键字表示这是一个挂起函数，可以在协程中被调用 // 返回类型是 User，表示直接返回解析后的用户对象 @GET(\"user\") suspend fun getUser(@Query(\"name\") name: String): User } // 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器 val userServiceApi: UserServiceApi by lazy { // 使用 Retrofit.Builder 构建 Retrofit 实例 val retrofit = retrofit2.Retrofit.Builder() // 设置 API 请求的基础 URL .baseUrl(\"https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/\") // 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据 .addConverterFactory(MoshiConverterFactory.create()) // 构建 Retrofit 实例 .build() // 创建并返回 UserServiceApi 的具体实现 retrofit.create(UserServiceApi::class.java) } User data class User(val name: String, val address: String) UserRepository.kt class UserRepository { // 声明一个挂起函数 getUser，用于获取用户信息 // 该函数在协程中执行 suspend fun getUser(name: String): User { // 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数 // userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息 return userServiceApi.getUser(name) } } MainViewModel.kt // MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑 class MainViewModel : ViewModel() { // MutableLiveData 用于存储和观察用户数据的 LiveData // 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI val userLiveData = MutableLiveData() // 创建 UserRepository 实例，用于获取用户数据 private val userRepository = UserRepository() // getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中 fun getUser(name: String) { // 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围 viewModelScope.launch { // 调用 UserRepository 的 getUser 方法，获取用户信息 // 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI userLiveData.value = userRepository.getUser(name) } } } Activity // MainActivity7 继承自 AppCompatActivity，用于显示主界面 class MainActivity7 : AppCompatActivity() { // 使用 viewModels 委托来获取 MainViewModel 实例 private val mainViewModel: MainViewModel by viewModels() // 存储对 TextView 的引用（可选，后续可以用来更新 UI） private var nameTextView: TextView? = null // 创建一个 MainScope 实例，用于管理协程生命周期 // 工厂设计模式实例化 MainScope private val mainScope = MainScope() @SuppressLint(\"StaticFieldLeak\") // SuppressLint 注解用于忽略静态字段泄漏警告 override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) // 启用边缘到边缘模式，以使布局填充整个屏幕 enableEdgeToEdge() // 设置活动的布局 setContentView(R.layout.activity_main7) // 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距 ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets -\u003e // 获取系统窗口的内边距 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) // 设置视图的内边距，避免被系统窗口遮挡 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) // 返回处理后的 insets insets } // 使用 DataBindingUtil 绑定布局文件与视图模型 val binding = DataBindingUtil.setContentView(this, R.layout.activity_main7) // 将 ViewModel 绑定到布局 binding.viewModel = mainViewModel // 设置生命周期所有者，使数据绑定可以观察 LiveData binding.lifecycleOwner = this // 设置提交按钮的点击监听器 binding.submitButton.setOnClickListener(View.OnClickListener { // 当按钮被点击时，调用 ViewModel 的 getUser 方法 // 这里使用 \"ken\" 作为查询参数 mainViewModel.getUser(\"ken\") }) } // 活动销毁时取消协程，释放资源 override fun onDestroy() { super.onDestroy() // 取消所有在 MainScope 中启动的协程 mainScope.cancel() } } 协程构建器 launch与async构建器都用来启动新协程 launch，返回 Job 并且不附带任何结果值 async，返回一个Deferred，Deferred也是一个Job，可以使用.await()在一个延期的值上得到它的最终结果 等待一个作业 join和await 组合并发 协程的启动模式 DEFAULT：协程创建后，立即开始调度，在调度前如果协程被取消，其将直接进入取消响应的状态 ATOMIC：协程创建后，立即开始调度，协程执行到第一个挂起点之前不响应取消 LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态 UNDISPATCHED：协程创建后立即在当前函数调用栈中执行，直到遇到第一个真正挂起的点 import kotlinx.coroutines.* fun main() = runBlocking { val job1 = launch(start = CoroutineStart.DEFAULT) { println(\"DEFAULT start\") } val job2 = launch(start = CoroutineStart.ATOMIC) { println(\"ATOMIC start\") delay(100) println(\"ATOMIC end\") } val job3 = async(start = CoroutineStart.LAZY) { println(\"LAZY start\") 42 } val job4 = launch(start = CoroutineStart.UNDISPATCHED) { println(\"UNDISPATCHED start\") delay(100) println(\"UNDISPATCHED resumed\") } println(\"Triggering lazy job...\") println(job3.await()) joinAll(job1, job2, job3, job4) } coroutineScope 与 runBlocking runBlocking是常规函数，而coroutineScope是挂起函数 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途 区别：\ncoroutineScope：一个协程失败了，所有其他兄弟协程也会被取消 supervisorScope：一个协程失败了，不会影响其他兄弟协程 Job对象 对于每一个创建的协程（通过launch或者async），会返回一个Job实例，该实例是协程的唯一标识，并且负责管理协程的生命周期 一个任务可以包含一系列状态，新创建（New）、活跃（Active）、完成中（Completing）、已完成（Completed）、取消中（Cancelling）和已取消（Cancelled）。可以访问Job的属性：isActive，isCancelled和isCompleted。 Job的生命周期 如果协程处于活跃状态，协程运行出错或者调用 job.cancel() 都会将当前任务置为取消中（Cancelling）状态（isActive = false, isCancelled = true）。当所有的子协程都完成后，协程会进入已取消（Cancelled）。\n@Test fun `test scope cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 // delay(100) // 取消 scope 中的所有协程 // scope.cancel() // 两个均不打印 // 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话） delay(1500) // 两个可以正常打印 } @Test fun `test brother cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" val job1 = scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" val job2 = scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 delay(100) // 取消 job1，但不取消 job2 job1.cancel() // 延迟 1500 毫秒，确保可以看到 job2 的输出 delay(1500) } 取消协程 在cancel()后保证协程被取消\n@Test fun `test cancel cpu task by isActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次或协程被取消 while (i \u003c 5 \u0026\u0026 isActive) { // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } @Test fun `test cancel cpu task by ensureActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次 while (i \u003c 5) { // 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException ensureActive() // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } CPU密集型任务取消 isActive是一个可以被使用在CoroutineScope中的扩展属性，检查Job是否处于活跃状态\nensureActive()， 如果job处于非活跃状态，这个方法会立即抛出异常\nyield函数会检查所在协程的状态，如果已经取消，则抛出CancellationException予以相应。此外，它还会尝试让出线程的执行权，给其他协程提供执行机会。\n协程取消的副作用 在finally中释放资源。\n@Test fun `test release resources`() = runBlocking { val job = launch { try { repeat(1000){ it-\u003e println(\"job : I'm sleeping $it ...\") delay(500L) } } catch (e: Exception) { println(\"Job: I'm running finally\") // 释放资源 } } delay(1300) println(\"main : I'm tired of waiting\") job.cancelAndJoin() println(\"main : Now I can quit.\") } use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。\n@Test fun `test use function`() = runBlocking { // 使用 use 函数自动管理资源 // use 函数会自动关闭资源，无需手动调用 close BufferedReader(FileReader(\"D:\\\\test\\\\test.txt\")).use { var line: String? // 无限循环读取文件内容，直到文件末尾 while (true) { // 读取一行内容，如果为 null（文件末尾），则退出循环 line = it.readLine() ?: break println(line) // 打印每一行内容 } } } 不能被取消的任务 @Test fun `test cancel with NonCancellable`() = runBlocking { // 启动一个新的协程 val job = launch { try { // 在协程中重复执行任务1000次 repeat(1000) { it -\u003e println(\"job : I'm sleeping $it ...\") // 打印当前任务的状态 delay(500L) // 暂停500毫秒 } } finally { // 这里的代码块在协程取消时执行 // 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消 withContext(NonCancellable) { println(\"job: I'm running finally\") // 打印消息，表示进入了 finally 部分 delay(1000L) // 这里的延迟不会被取消，即使协程已经被取消 println(\"job: And I've just delayed for 1 sec \") // 打印延迟后的消息 } } } // 主协程延迟1300毫秒，给子协程足够的时间运行 delay(1300) println(\"main: I'm tired of waiting!\") // 打印主协程等待的消息 // 取消子协程并等待它完成 job.cancelAndJoin() println(\"main: Now I can quit.\") // 打印主协程完成后的消息 } 超时任务 取消协程的理由是有可能超时 withTimeoutOrNull 通过返回null来进行超时操作，从而替代抛出一个异常 @Test fun `test deal with timeout`() = runBlocking { // 使用 withTimeout 函数设置超时时间 withTimeout(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } } } @Test fun `test deal with timeout return null`() = runBlocking { // 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null val result = withTimeoutOrNull(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } \"Done\" // 如果在1300毫秒内完成所有任务，将返回 \"Done\" } // 打印 result 结果，如果任务在超时时间内完成，则 result 为 \"Done\"，否则为 null println(\"Result is $result\") } 协程上下文 CoroutineContext是一组用于定义协程行为的元素，它由如下几项构成：\nJob：控制协程的生命周期 CoroutineDispatcher：向合适的线程分发任务 CoroutineName：协程的名称，调试的时候很有用 CoroutineExceptionHandler：处理未被捕捉的异常 组合上下文中的元素 有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。 @Test fun `test CoroutineContext`() = runBlocking { launch(Dispatchers.Default + CoroutineName(\"test\")) { println(\"I'm working in thread ${Thread.currentThread().name}\") } } 协程上下文的继承 协程的上下文 = 默认值 + 继承的CoroutineContext + 参数\n",
-  "wordCount" : "4864",
-  "inLanguage": "zh",
-  "datePublished": "2024-08-06T22:30:13+08:00",
-  "dateModified": "2024-08-13T22:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      Kotlin协程(1)
-    </h1>
-    <div class="post-description">
-      Kotlin协程(1)
-    </div>
-    <div class="post-meta">
-
-<span title='2024-08-06 22:30:13 +0800 CST'>2024-08-06</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4864 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#kotlin%e5%8d%8f%e7%a8%8b1" aria-label="Kotlin协程(1)">Kotlin协程(1)</a><ul>
-                        
-                <li>
-                    <a href="#%e5%bc%82%e6%ad%a5%e4%bb%bb%e5%8a%a1" aria-label="异步任务">异步任务</a></li>
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e7%9a%84%e6%8c%82%e8%b5%b7%e4%b8%8e%e6%81%a2%e5%a4%8d" aria-label="协程的挂起与恢复">协程的挂起与恢复</a><ul>
-                        
-                <li>
-                    <a href="#%e6%8c%82%e8%b5%b7%e5%87%bd%e6%95%b0" aria-label="挂起函数">挂起函数</a></li>
-                <li>
-                    <a href="#kotlin%e5%8d%8f%e7%a8%8b%e7%9a%84%e4%b8%a4%e9%83%a8%e5%88%86" aria-label="Kotlin协程的两部分">Kotlin协程的两部分</a></li>
-                <li>
-                    <a href="#%e8%b0%83%e5%ba%a6%e5%99%a8" aria-label="调度器">调度器</a><ul>
-                        
-                <li>
-                    <a href="#dispatchersmain" aria-label="Dispatchers.Main">Dispatchers.Main</a></li>
-                <li>
-                    <a href="#dispatchersio" aria-label="Dispatchers.IO">Dispatchers.IO</a></li>
-                <li>
-                    <a href="#dispatchersdefault" aria-label="Dispatchers.Default">Dispatchers.Default</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e4%bb%bb%e5%8a%a1%e6%b3%84%e6%bc%8f" aria-label="任务泄漏">任务泄漏</a></li>
-                <li>
-                    <a href="#coroutine-scope" aria-label="Coroutine Scope">Coroutine Scope</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e4%bd%bf%e7%94%a8" aria-label="协程使用">协程使用</a><ul>
-                        <ul>
-                        
-                <li>
-                    <a href="#retrofit-api" aria-label="retrofit API">retrofit API</a></li>
-                <li>
-                    <a href="#user" aria-label="User">User</a></li>
-                <li>
-                    <a href="#userrepositorykt" aria-label="UserRepository.kt">UserRepository.kt</a></li>
-                <li>
-                    <a href="#mainviewmodelkt" aria-label="MainViewModel.kt">MainViewModel.kt</a></li>
-                <li>
-                    <a href="#activity" aria-label="Activity">Activity</a></li></ul>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e6%9e%84%e5%bb%ba%e5%99%a8" aria-label="协程构建器">协程构建器</a><ul>
-                        
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e7%9a%84%e5%90%af%e5%8a%a8%e6%a8%a1%e5%bc%8f" aria-label="协程的启动模式">协程的启动模式</a></li></ul>
-                </li>
-                <li>
-                    <a href="#coroutinescope-%e4%b8%8e-runblocking" aria-label="coroutineScope 与 runBlocking">coroutineScope 与 runBlocking</a><ul>
-                        
-                <li>
-                    <a href="#job%e5%af%b9%e8%b1%a1" aria-label="Job对象">Job对象</a></li>
-                <li>
-                    <a href="#job%e7%9a%84%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f" aria-label="Job的生命周期">Job的生命周期</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e5%8f%96%e6%b6%88%e5%8d%8f%e7%a8%8b" aria-label="取消协程">取消协程</a><ul>
-                        
-                <li>
-                    <a href="#cpu%e5%af%86%e9%9b%86%e5%9e%8b%e4%bb%bb%e5%8a%a1%e5%8f%96%e6%b6%88" aria-label="CPU密集型任务取消">CPU密集型任务取消</a></li>
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e5%8f%96%e6%b6%88%e7%9a%84%e5%89%af%e4%bd%9c%e7%94%a8" aria-label="协程取消的副作用">协程取消的副作用</a></li>
-                <li>
-                    <a href="#%e4%b8%8d%e8%83%bd%e8%a2%ab%e5%8f%96%e6%b6%88%e7%9a%84%e4%bb%bb%e5%8a%a1" aria-label="不能被取消的任务">不能被取消的任务</a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e8%b6%85%e6%97%b6%e4%bb%bb%e5%8a%a1" aria-label="超时任务">超时任务</a></li>
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e4%b8%8a%e4%b8%8b%e6%96%87" aria-label="协程上下文">协程上下文</a><ul>
-                        
-                <li>
-                    <a href="#%e7%bb%84%e5%90%88%e4%b8%8a%e4%b8%8b%e6%96%87%e4%b8%ad%e7%9a%84%e5%85%83%e7%b4%a0" aria-label="组合上下文中的元素">组合上下文中的元素</a></li>
-                <li>
-                    <a href="#%e5%8d%8f%e7%a8%8b%e4%b8%8a%e4%b8%8b%e6%96%87%e7%9a%84%e7%bb%a7%e6%89%bf" aria-label="协程上下文的继承">协程上下文的继承</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="kotlin协程1">Kotlin协程(1)<a hidden class="anchor" aria-hidden="true" href="#kotlin协程1">#</a></h1>
-<p>看明白，讲清楚。</p>
-<p>协程处理的问题：</p>
-<ul>
-<li>处理耗时任务， 这种任务常常会阻塞主线程</li>
-<li>保证主线程安全，即确保安全的从主线程调用任何<code>suspend</code>函数</li>
-</ul>
-<h2 id="异步任务">异步任务<a hidden class="anchor" aria-hidden="true" href="#异步任务">#</a></h2>
-<ul>
-<li>协程让异步逻辑同步化，杜绝回调地狱</li>
-<li>协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复</li>
-</ul>
-<h2 id="协程的挂起与恢复">协程的挂起与恢复<a hidden class="anchor" aria-hidden="true" href="#协程的挂起与恢复">#</a></h2>
-<ul>
-<li>常规函数基础操作包括 ： <code>invoke(call)</code> 和 <code>return</code>, 协程新增了 <code>suspend</code> 和 <code>resume </code> ；
-<ul>
-<li><code>suspend</code> —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量</li>
-<li><code>resume</code>——用于让已暂停的协程从其暂停处继续执行</li>
-</ul>
-</li>
-</ul>
-<h3 id="挂起函数">挂起函数<a hidden class="anchor" aria-hidden="true" href="#挂起函数">#</a></h3>
-<ul>
-<li>使用suspend关键字修饰的函数叫做挂起函数</li>
-<li>挂起函数只能在协程体内或其他挂起函数内调用</li>
-</ul>
-<h3 id="kotlin协程的两部分">Kotlin协程的两部分<a hidden class="anchor" aria-hidden="true" href="#kotlin协程的两部分">#</a></h3>
-<ul>
-<li><strong>基础设施层次</strong>，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持</li>
-<li><strong>业务框架层</strong>，协程的上层框架支持</li>
-</ul>
-<h3 id="调度器">调度器<a hidden class="anchor" aria-hidden="true" href="#调度器">#</a></h3>
-<p>所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。</p>
-<h4 id="dispatchersmain">Dispatchers.Main<a hidden class="anchor" aria-hidden="true" href="#dispatchersmain">#</a></h4>
-<p>Android上的主线程，用来处理UI交互和一些轻量级任务</p>
-<ul>
-<li>调用suspend函数</li>
-<li>调用UI函数</li>
-<li>更新LiveData</li>
-</ul>
-<h4 id="dispatchersio">Dispatchers.IO<a hidden class="anchor" aria-hidden="true" href="#dispatchersio">#</a></h4>
-<p>专为磁盘和网络IO进行了优化</p>
-<ul>
-<li>数据库</li>
-<li>文件读写</li>
-<li>网络处理</li>
-</ul>
-<h4 id="dispatchersdefault">Dispatchers.Default<a hidden class="anchor" aria-hidden="true" href="#dispatchersdefault">#</a></h4>
-<p>非主线程，专为CPU密集型任务进行了优化</p>
-<ul>
-<li>数组排序</li>
-<li>JSON数据解析</li>
-<li>处理差异判断</li>
-</ul>
-<h3 id="任务泄漏">任务泄漏<a hidden class="anchor" aria-hidden="true" href="#任务泄漏">#</a></h3>
-<p>类似内存泄漏</p>
-<p>结构化并发：</p>
-<p>取消任务：当某项任务不再需要时取消它</p>
-<ul>
-<li>追踪任务，当任务正在执行时，追踪它</li>
-<li>发出错误信号，当协程失败时， 发出错误信号表明有错误发生</li>
-</ul>
-<h3 id="coroutine-scope">Coroutine Scope<a hidden class="anchor" aria-hidden="true" href="#coroutine-scope">#</a></h3>
-<ul>
-<li>
-<p>定义协程必须指定其<code>CoroutineScope</code>， 它会跟踪所有协程，同样它还可以取消由它启动的所有协程</p>
-</li>
-<li>
-<p>重用的相关API有：</p>
-<ul>
-<li><code>GlobalScope</code>：生命周期是process级别的，即使Activity， Fragment 已经被销毁，协程仍然在执行</li>
-<li><code>MainScope</code>，在Activity中使用，可以在<code>onDestroy()</code>中取消协程</li>
-<li><code>viewModelScope</code>，只能在<code>ViewModel</code>中使用，绑定<code>ViewModel</code>的生命周期</li>
-<li><code>lifecycleScope</code>，只能在Activity，Fragment中使用，会绑定Activity 和 Fragment的生命周期</li>
-</ul>
-</li>
-</ul>
-<h2 id="协程使用">协程使用<a hidden class="anchor" aria-hidden="true" href="#协程使用">#</a></h2>
-<h4 id="retrofit-api">retrofit API<a hidden class="anchor" aria-hidden="true" href="#retrofit-api">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// 定义 UserServiceApi 接口，用于声明与用户相关的API请求
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">UserServiceApi</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个 GET 请求，用于加载指定名称的用户信息
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// @Query 注解表示请求中的查询参数 &#34;name&#34;，会附加到URL中
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 返回类型是 Call&lt;User&gt;，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行
-</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">loadUser</span>(<span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;name&#34;</span>) name: String): Call&lt;User&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个 GET 请求，使用 Kotlin 的协程机制
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// suspend 关键字表示这是一个挂起函数，可以在协程中被调用
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 返回类型是 User，表示直接返回解析后的用户对象
-</span></span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@GET</span>(<span style="color:#e6db74">&#34;user&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(<span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;name&#34;</span>) name: String): User
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">val</span> userServiceApi: UserServiceApi <span style="color:#66d9ef">by</span> lazy {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 Retrofit.Builder 构建 Retrofit 实例
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> retrofit = retrofit2.<span style="color:#a6e22e">Retrofit</span>.Builder()
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置 API 请求的基础 URL
-</span></span></span><span style="display:flex;"><span>        .baseUrl(<span style="color:#e6db74">&#34;https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/&#34;</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据
-</span></span></span><span style="display:flex;"><span>        .addConverterFactory(<span style="color:#a6e22e">MoshiConverterFactory</span>.create())
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 构建 Retrofit 实例
-</span></span></span><span style="display:flex;"><span>        .build()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建并返回 UserServiceApi 的具体实现
-</span></span></span><span style="display:flex;"><span>    retrofit.create(UserServiceApi<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="user">User<a hidden class="anchor" aria-hidden="true" href="#user">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span>(<span style="color:#66d9ef">val</span> name: String, <span style="color:#66d9ef">val</span> address: String)
-</span></span></code></pre></div><h4 id="userrepositorykt">UserRepository.kt<a hidden class="anchor" aria-hidden="true" href="#userrepositorykt">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">UserRepository</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 声明一个挂起函数 getUser，用于获取用户信息
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 该函数在协程中执行
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">suspend</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(name: String): User {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数
-</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> userServiceApi.getUser(name)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="mainviewmodelkt">MainViewModel.kt<a hidden class="anchor" aria-hidden="true" href="#mainviewmodelkt">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainViewModel</span> : ViewModel() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// MutableLiveData 用于存储和观察用户数据的 LiveData
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> userLiveData = MutableLiveData&lt;User&gt;()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建 UserRepository 实例，用于获取用户数据
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> userRepository = UserRepository()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getUser</span>(name: String) {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围
-</span></span></span><span style="display:flex;"><span>        viewModelScope.launch {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 调用 UserRepository 的 getUser 方法，获取用户信息
-</span></span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI
-</span></span></span><span style="display:flex;"><span>            userLiveData.<span style="color:#66d9ef">value</span> = userRepository.getUser(name)
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="activity">Activity<a hidden class="anchor" aria-hidden="true" href="#activity">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#75715e">// MainActivity7 继承自 AppCompatActivity，用于显示主界面
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainActivity7</span> : AppCompatActivity() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 使用 viewModels 委托来获取 MainViewModel 实例
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> mainViewModel: MainViewModel <span style="color:#66d9ef">by</span> viewModels()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 存储对 TextView 的引用（可选，后续可以用来更新 UI）
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">var</span> nameTextView: TextView? = <span style="color:#66d9ef">null</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 创建一个 MainScope 实例，用于管理协程生命周期
-</span></span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 工厂设计模式实例化 MainScope
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> mainScope = MainScope()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@SuppressLint</span>(<span style="color:#e6db74">&#34;StaticFieldLeak&#34;</span>) <span style="color:#75715e">// SuppressLint 注解用于忽略静态字段泄漏警告
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>(savedInstanceState: Bundle?) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onCreate(savedInstanceState)
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启用边缘到边缘模式，以使布局填充整个屏幕
-</span></span></span><span style="display:flex;"><span>        enableEdgeToEdge()
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置活动的布局
-</span></span></span><span style="display:flex;"><span>        setContentView(<span style="color:#a6e22e">R</span>.layout.activity_main7)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距
-</span></span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ViewCompat</span>.setOnApplyWindowInsetsListener(findViewById(<span style="color:#a6e22e">R</span>.id.main)) { v, insets <span style="color:#f92672">-&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 获取系统窗口的内边距
-</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">val</span> systemBars = insets.getInsets(<span style="color:#a6e22e">WindowInsetsCompat</span>.<span style="color:#a6e22e">Type</span>.systemBars())
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 设置视图的内边距，避免被系统窗口遮挡
-</span></span></span><span style="display:flex;"><span>            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 返回处理后的 insets
-</span></span></span><span style="display:flex;"><span>            insets
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 DataBindingUtil 绑定布局文件与视图模型
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> binding =
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">DataBindingUtil</span>.setContentView&lt;ActivityMain7Binding&gt;(<span style="color:#66d9ef">this</span>, <span style="color:#a6e22e">R</span>.layout.activity_main7)
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 将 ViewModel 绑定到布局
-</span></span></span><span style="display:flex;"><span>        binding.viewModel = mainViewModel
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置生命周期所有者，使数据绑定可以观察 LiveData
-</span></span></span><span style="display:flex;"><span>        binding.lifecycleOwner = <span style="color:#66d9ef">this</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 设置提交按钮的点击监听器
-</span></span></span><span style="display:flex;"><span>        binding.submitButton.setOnClickListener(<span style="color:#a6e22e">View</span>.OnClickListener {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 当按钮被点击时，调用 ViewModel 的 getUser 方法
-</span></span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 这里使用 &#34;ken&#34; 作为查询参数
-</span></span></span><span style="display:flex;"><span>            mainViewModel.getUser(<span style="color:#e6db74">&#34;ken&#34;</span>)
-</span></span><span style="display:flex;"><span>        })
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 活动销毁时取消协程，释放资源
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onDestroy</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onDestroy()
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消所有在 MainScope 中启动的协程
-</span></span></span><span style="display:flex;"><span>        mainScope.cancel()
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="协程构建器">协程构建器<a hidden class="anchor" aria-hidden="true" href="#协程构建器">#</a></h2>
-<ul>
-<li>launch与async构建器都用来启动新协程
-<ul>
-<li>launch，返回 Job 并且不附带任何结果值</li>
-<li>async，返回一个Deferred，Deferred也是一个Job，可以使用<code>.await()</code>在一个延期的值上得到它的最终结果</li>
-</ul>
-</li>
-<li>等待一个作业
-<ul>
-<li>join和await</li>
-<li>组合并发</li>
-</ul>
-</li>
-</ul>
-<h3 id="协程的启动模式">协程的启动模式<a hidden class="anchor" aria-hidden="true" href="#协程的启动模式">#</a></h3>
-<ul>
-<li>DEFAULT：协程创建后，立即开始调度，在调度前如果协程被取消，其将直接进入取消响应的状态</li>
-<li>ATOMIC：协程创建后，立即开始调度，协程执行到第一个挂起点之前不响应取消</li>
-<li>LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态</li>
-<li>UNDISPATCHED：协程创建后立即在<strong>当前函数调用栈</strong>中执行，直到遇到第一个真正挂起的点</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">import</span> kotlinx.coroutines.*
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">main</span>() = runBlocking {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> job1 = launch(start = <span style="color:#a6e22e">CoroutineStart</span>.DEFAULT) {
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;DEFAULT start&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> job2 = launch(start = <span style="color:#a6e22e">CoroutineStart</span>.ATOMIC) {
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;ATOMIC start&#34;</span>)
-</span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">100</span>)
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;ATOMIC end&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> job3 = async(start = <span style="color:#a6e22e">CoroutineStart</span>.LAZY) {
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;LAZY start&#34;</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#ae81ff">42</span>
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">val</span> job4 = launch(start = <span style="color:#a6e22e">CoroutineStart</span>.UNDISPATCHED) {
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;UNDISPATCHED start&#34;</span>)
-</span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">100</span>)
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;UNDISPATCHED resumed&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    println(<span style="color:#e6db74">&#34;Triggering lazy job...&#34;</span>)
-</span></span><span style="display:flex;"><span>    println(job3.await())
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    joinAll(job1, job2, job3, job4)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="coroutinescope-与-runblocking">coroutineScope 与 runBlocking<a hidden class="anchor" aria-hidden="true" href="#coroutinescope-与-runblocking">#</a></h2>
-<ul>
-<li>runBlocking是常规函数，而coroutineScope是挂起函数</li>
-<li>它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途</li>
-</ul>
-<p>区别：</p>
-<ul>
-<li><code>coroutineScope</code>：一个协程失败了，所有其他兄弟协程也会被取消</li>
-<li><code>supervisorScope</code>：一个协程失败了，不会影响其他兄弟协程</li>
-</ul>
-<h3 id="job对象">Job对象<a hidden class="anchor" aria-hidden="true" href="#job对象">#</a></h3>
-<ul>
-<li>对于每一个创建的协程（通过launch或者async），会返回一个Job实例，该实例是协程的唯一标识，并且负责管理协程的生命周期</li>
-<li>一个任务可以包含一系列状态，新创建（New）、活跃（Active）、完成中（Completing）、已完成（Completed）、取消中（Cancelling）和已取消（Cancelled）。可以访问Job的属性：isActive，isCancelled和isCompleted。</li>
-</ul>
-<h3 id="job的生命周期">Job的生命周期<a hidden class="anchor" aria-hidden="true" href="#job的生命周期">#</a></h3>
-<p>如果协程处于活跃状态，协程运行出错或者调用 <code>job.cancel()</code> 都会将当前任务置为取消中（<code>Cancelling</code>）状态（<code>isActive = false</code>, <code>isCancelled = true</code>）。当所有的子协程都完成后，协程会进入已取消（<code>Cancelled</code>）。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test scope cancel`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个 CoroutineScope，指定使用 Default 调度器
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.Default)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第一个协程，延迟 1000 毫秒后打印 &#34;job 1&#34;
-</span></span></span><span style="display:flex;"><span>        scope.launch {
-</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
-</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 1&#34;</span>)
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第二个协程，延迟 1000 毫秒后打印 &#34;job 2&#34;
-</span></span></span><span style="display:flex;"><span>        scope.launch {
-</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
-</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 2&#34;</span>)
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 100 毫秒，确保前面两个协程有时间启动
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//        delay(100)
-</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 scope 中的所有协程
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">//        scope.cancel() // 两个均不打印
-</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话）
-</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1500</span>) <span style="color:#75715e">// 两个可以正常打印
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test brother cancel`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 创建一个 CoroutineScope，指定使用 Default 调度器
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> scope = CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.Default)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第一个协程，延迟 1000 毫秒后打印 &#34;job 1&#34;
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job1 = scope.launch {
-</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
-</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 1&#34;</span>)
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动第二个协程，延迟 1000 毫秒后打印 &#34;job 2&#34;
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job2 = scope.launch {
-</span></span><span style="display:flex;"><span>            delay(<span style="color:#ae81ff">1000</span>)
-</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;job 2&#34;</span>)
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 100 毫秒，确保前面两个协程有时间启动
-</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">100</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 job1，但不取消 job2
-</span></span></span><span style="display:flex;"><span>        job1.cancel()
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1500 毫秒，确保可以看到 job2 的输出
-</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1500</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h2 id="取消协程">取消协程<a hidden class="anchor" aria-hidden="true" href="#取消协程">#</a></h2>
-<p>在<code>cancel()</code>后保证协程被取消</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel cpu task by isActive`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前时间的毫秒数，用于计算任务执行的时间点
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个协程，运行在默认调度器上（通常是后台线程）
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch(<span style="color:#a6e22e">Dispatchers</span>.Default) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> nextPrintTime = startTime <span style="color:#75715e">// 下次打印信息的时间
-</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> i = <span style="color:#ae81ff">0</span> <span style="color:#75715e">// 计数器，用于限制任务执行次数
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 循环执行，直到达到5次或协程被取消
-</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (i &lt; <span style="color:#ae81ff">5</span> <span style="color:#f92672">&amp;&amp;</span> isActive) {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 检查是否到达下一个打印时间点
-</span></span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#f92672">&gt;=</span> nextPrintTime) {
-</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 打印当前状态和计数器
-</span></span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">${i++}</span><span style="color:#e6db74">&#34;</span>)
-</span></span><span style="display:flex;"><span>                    nextPrintTime <span style="color:#f92672">+=</span> <span style="color:#ae81ff">500</span> <span style="color:#75715e">// 更新下次打印的时间
-</span></span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1300 毫秒，模拟主线程的等待时间
-</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示等待的时间结束
-</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 job 协程并等待其完全结束
-</span></span></span><span style="display:flex;"><span>        job.cancelAndJoin()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示可以退出了
-</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel cpu task by ensureActive`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前时间的毫秒数，用于计算任务执行的时间点
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> startTime = <span style="color:#a6e22e">System</span>.currentTimeMillis()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个协程，运行在默认调度器上（通常是后台线程）
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch(<span style="color:#a6e22e">Dispatchers</span>.Default) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> nextPrintTime = startTime <span style="color:#75715e">// 下次打印信息的时间
-</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> i = <span style="color:#ae81ff">0</span> <span style="color:#75715e">// 计数器，用于限制任务执行次数
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 循环执行，直到达到5次
-</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (i &lt; <span style="color:#ae81ff">5</span>) {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException
-</span></span></span><span style="display:flex;"><span>                ensureActive()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 检查是否到达下一个打印时间点
-</span></span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">System</span>.currentTimeMillis() <span style="color:#f92672">&gt;=</span> nextPrintTime) {
-</span></span><span style="display:flex;"><span>                    <span style="color:#75715e">// 打印当前状态和计数器
-</span></span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">${i++}</span><span style="color:#e6db74">&#34;</span>)
-</span></span><span style="display:flex;"><span>                    nextPrintTime <span style="color:#f92672">+=</span> <span style="color:#ae81ff">500</span> <span style="color:#75715e">// 更新下次打印的时间
-</span></span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 延迟 1300 毫秒，模拟主线程的等待时间
-</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示等待的时间结束
-</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消 job 协程并等待其完全结束
-</span></span></span><span style="display:flex;"><span>        job.cancelAndJoin()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主线程输出，表示可以退出了
-</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h3 id="cpu密集型任务取消">CPU密集型任务取消<a hidden class="anchor" aria-hidden="true" href="#cpu密集型任务取消">#</a></h3>
-<ul>
-<li>
-<p><code>isActive</code>是一个可以被使用在<code>CoroutineScope</code>中的扩展属性，检查Job是否处于活跃状态</p>
-</li>
-<li>
-<p><code>ensureActive()</code>， 如果job处于非活跃状态，这个方法会立即抛出异常</p>
-</li>
-<li>
-<p><code>yield</code>函数会检查所在协程的状态，如果已经取消，则抛出<code>CancellationException</code>予以相应。此外，它还会尝试让出线程的执行权，给其他协程提供执行机会。</p>
-</li>
-</ul>
-<h3 id="协程取消的副作用">协程取消的副作用<a hidden class="anchor" aria-hidden="true" href="#协程取消的副作用">#</a></h3>
-<ul>
-<li>
-<p>在finally中释放资源。</p>
-<ul>
-<li>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test release resources`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>                repeat(<span style="color:#ae81ff">1000</span>){
-</span></span><span style="display:flex;"><span>                    <span style="color:#66d9ef">it</span><span style="color:#f92672">-&gt;</span>
-</span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job : I&#39;m sleeping </span><span style="color:#e6db74">$it</span><span style="color:#e6db74"> ...&#34;</span>)
-</span></span><span style="display:flex;"><span>                    delay(<span style="color:#ae81ff">500L</span>)
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">catch</span> (e: Exception) {
-</span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;Job: I&#39;m running finally&#34;</span>)
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 释放资源
-</span></span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : I&#39;m tired of waiting&#34;</span>)
-</span></span><span style="display:flex;"><span>        job.cancelAndJoin()
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main : Now I can quit.&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div></li>
-</ul>
-</li>
-<li>
-<p>use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。</p>
-<ul>
-<li>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test use function`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 use 函数自动管理资源
-</span></span></span><span style="display:flex;"><span>        <span style="color:#75715e">// use 函数会自动关闭资源，无需手动调用 close
-</span></span></span><span style="display:flex;"><span>        BufferedReader(FileReader(<span style="color:#e6db74">&#34;D:</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">test</span><span style="color:#ae81ff">\\</span><span style="color:#e6db74">test.txt&#34;</span>)).use {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">var</span> line: String?
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 无限循环读取文件内容，直到文件末尾
-</span></span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> (<span style="color:#66d9ef">true</span>) {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 读取一行内容，如果为 null（文件末尾），则退出循环
-</span></span></span><span style="display:flex;"><span>                line = <span style="color:#66d9ef">it</span>.readLine() <span style="color:#f92672">?:</span> <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>                println(line) <span style="color:#75715e">// 打印每一行内容
-</span></span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div></li>
-</ul>
-<h3 id="不能被取消的任务">不能被取消的任务<a hidden class="anchor" aria-hidden="true" href="#不能被取消的任务">#</a></h3>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test cancel with NonCancellable`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 启动一个新的协程
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> job = launch {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 在协程中重复执行任务1000次
-</span></span></span><span style="display:flex;"><span>                repeat(<span style="color:#ae81ff">1000</span>) { <span style="color:#66d9ef">it</span> <span style="color:#f92672">-&gt;</span>
-</span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job : I&#39;m sleeping </span><span style="color:#e6db74">$it</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
-</span></span></span><span style="display:flex;"><span>                    delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 暂停500毫秒
-</span></span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">finally</span> {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 这里的代码块在协程取消时执行
-</span></span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消
-</span></span></span><span style="display:flex;"><span>                withContext(NonCancellable) {
-</span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: I&#39;m running finally&#34;</span>)  <span style="color:#75715e">// 打印消息，表示进入了 finally 部分
-</span></span></span><span style="display:flex;"><span>                    delay(<span style="color:#ae81ff">1000L</span>)  <span style="color:#75715e">// 这里的延迟不会被取消，即使协程已经被取消
-</span></span></span><span style="display:flex;"><span>                    println(<span style="color:#e6db74">&#34;job: And I&#39;ve just delayed for 1 sec &#34;</span>)  <span style="color:#75715e">// 打印延迟后的消息
-</span></span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 主协程延迟1300毫秒，给子协程足够的时间运行
-</span></span></span><span style="display:flex;"><span>        delay(<span style="color:#ae81ff">1300</span>)
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main: I&#39;m tired of waiting!&#34;</span>)  <span style="color:#75715e">// 打印主协程等待的消息
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 取消子协程并等待它完成
-</span></span></span><span style="display:flex;"><span>        job.cancelAndJoin()
-</span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;main: Now I can quit.&#34;</span>)  <span style="color:#75715e">// 打印主协程完成后的消息
-</span></span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h2 id="超时任务">超时任务<a hidden class="anchor" aria-hidden="true" href="#超时任务">#</a></h2>
-<ul>
-<li>取消协程的理由是有可能超时</li>
-<li><code>withTimeoutOrNull</code> 通过返回null来进行超时操作，从而替代抛出一个异常</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test deal with timeout`</span>() = runBlocking {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 withTimeout 函数设置超时时间
-</span></span></span><span style="display:flex;"><span>        withTimeout(<span style="color:#ae81ff">1300L</span>) {  <span style="color:#75715e">// 设置最大执行时间为1300毫秒
-</span></span></span><span style="display:flex;"><span>            repeat(<span style="color:#ae81ff">1000</span>) { i <span style="color:#f92672">-&gt;</span>  <span style="color:#75715e">// 计划执行1000次任务
-</span></span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">$i</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
-</span></span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 每个任务暂停500毫秒
-</span></span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test deal with timeout return null`</span>() = runBlocking {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> result = withTimeoutOrNull(<span style="color:#ae81ff">1300L</span>) {  <span style="color:#75715e">// 设置最大执行时间为1300毫秒
-</span></span></span><span style="display:flex;"><span>            repeat(<span style="color:#ae81ff">1000</span>) { i <span style="color:#f92672">-&gt;</span>  <span style="color:#75715e">// 计划执行1000次任务
-</span></span></span><span style="display:flex;"><span>                println(<span style="color:#e6db74">&#34;job: I&#39;m sleeping </span><span style="color:#e6db74">$i</span><span style="color:#e6db74"> ...&#34;</span>)  <span style="color:#75715e">// 打印当前任务的状态
-</span></span></span><span style="display:flex;"><span>                delay(<span style="color:#ae81ff">500L</span>)  <span style="color:#75715e">// 每个任务暂停500毫秒
-</span></span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>            <span style="color:#e6db74">&#34;Done&#34;</span>  <span style="color:#75715e">// 如果在1300毫秒内完成所有任务，将返回 &#34;Done&#34;
-</span></span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 打印 result 结果，如果任务在超时时间内完成，则 result 为 &#34;Done&#34;，否则为 null
-</span></span></span><span style="display:flex;"><span>        println(<span style="color:#e6db74">&#34;Result is </span><span style="color:#e6db74">$result</span><span style="color:#e6db74">&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h2 id="协程上下文">协程上下文<a hidden class="anchor" aria-hidden="true" href="#协程上下文">#</a></h2>
-<p><code>CoroutineContext</code>是一组用于定义协程行为的元素，它由如下几项构成：</p>
-<ul>
-<li><code>Job</code>：控制协程的生命周期</li>
-<li><code>CoroutineDispatcher</code>：向合适的线程分发任务</li>
-<li><code>CoroutineName</code>：协程的名称，调试的时候很有用</li>
-<li><code>CoroutineExceptionHandler</code>：处理未被捕捉的异常</li>
-</ul>
-<h3 id="组合上下文中的元素">组合上下文中的元素<a hidden class="anchor" aria-hidden="true" href="#组合上下文中的元素">#</a></h3>
-<ul>
-<li>有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">`test CoroutineContext`</span>() = runBlocking&lt;Unit&gt; {
-</span></span><span style="display:flex;"><span>        launch(<span style="color:#a6e22e">Dispatchers</span>.Default + CoroutineName(<span style="color:#e6db74">&#34;test&#34;</span>)) {
-</span></span><span style="display:flex;"><span>            println(<span style="color:#e6db74">&#34;I&#39;m working in thread </span><span style="color:#e6db74">${Thread.currentThread().name}</span><span style="color:#e6db74">&#34;</span>)
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span></code></pre></div><h3 id="协程上下文的继承">协程上下文的继承<a hidden class="anchor" aria-hidden="true" href="#协程上下文的继承">#</a></h3>
-<p>协程的上下文 = 默认值 + 继承的<code>CoroutineContext</code> + 参数</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/kotlin/">Kotlin</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/kotlin%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">Kotlin学习笔记</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B2/">
-    <span class="title">« 上一页</span>
-    <span>Kotlin协程(2)</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B5/">
-    <span class="title">下一页 »</span>
-    <span>Kotlin协程(5)</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>Kotlin协程(1) | Kennem's Blog</title><meta name=keywords content="Kotlin"><meta name=description content="Kotlin协程(1)"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="Kotlin协程(1)"><meta property="og:description" content="Kotlin协程(1)"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-08-06T22:30:13+08:00"><meta property="article:modified_time" content="2024-08-13T22:20:13+08:00"><meta property="article:tag" content="Kotlin"><meta name=twitter:card content="summary"><meta name=twitter:title content="Kotlin协程(1)"><meta name=twitter:description content="Kotlin协程(1)"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"Kotlin协程(1)","item":"https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Kotlin协程(1)","name":"Kotlin协程(1)","description":"Kotlin协程(1)","keywords":["Kotlin"],"articleBody":"Kotlin协程(1) 看明白，讲清楚。\n协程处理的问题：\n处理耗时任务， 这种任务常常会阻塞主线程 保证主线程安全，即确保安全的从主线程调用任何suspend函数 异步任务 协程让异步逻辑同步化，杜绝回调地狱 协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复 协程的挂起与恢复 常规函数基础操作包括 ： invoke(call) 和 return, 协程新增了 suspend 和 resume ； suspend —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量 resume——用于让已暂停的协程从其暂停处继续执行 挂起函数 使用suspend关键字修饰的函数叫做挂起函数 挂起函数只能在协程体内或其他挂起函数内调用 Kotlin协程的两部分 基础设施层次，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持 业务框架层，协程的上层框架支持 调度器 所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。\nDispatchers.Main Android上的主线程，用来处理UI交互和一些轻量级任务\n调用suspend函数 调用UI函数 更新LiveData Dispatchers.IO 专为磁盘和网络IO进行了优化\n数据库 文件读写 网络处理 Dispatchers.Default 非主线程，专为CPU密集型任务进行了优化\n数组排序 JSON数据解析 处理差异判断 任务泄漏 类似内存泄漏\n结构化并发：\n取消任务：当某项任务不再需要时取消它\n追踪任务，当任务正在执行时，追踪它 发出错误信号，当协程失败时， 发出错误信号表明有错误发生 Coroutine Scope 定义协程必须指定其CoroutineScope， 它会跟踪所有协程，同样它还可以取消由它启动的所有协程\n重用的相关API有：\nGlobalScope：生命周期是process级别的，即使Activity， Fragment 已经被销毁，协程仍然在执行 MainScope，在Activity中使用，可以在onDestroy()中取消协程 viewModelScope，只能在ViewModel中使用，绑定ViewModel的生命周期 lifecycleScope，只能在Activity，Fragment中使用，会绑定Activity 和 Fragment的生命周期 协程使用 retrofit API // 定义 UserServiceApi 接口，用于声明与用户相关的API请求 interface UserServiceApi { // 声明一个 GET 请求，用于加载指定名称的用户信息 // @Query 注解表示请求中的查询参数 \"name\"，会附加到URL中 // 返回类型是 Call，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行 @GET(\"user\") fun loadUser(@Query(\"name\") name: String): Call // 声明一个 GET 请求，使用 Kotlin 的协程机制 // suspend 关键字表示这是一个挂起函数，可以在协程中被调用 // 返回类型是 User，表示直接返回解析后的用户对象 @GET(\"user\") suspend fun getUser(@Query(\"name\") name: String): User } // 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器 val userServiceApi: UserServiceApi by lazy { // 使用 Retrofit.Builder 构建 Retrofit 实例 val retrofit = retrofit2.Retrofit.Builder() // 设置 API 请求的基础 URL .baseUrl(\"https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/\") // 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据 .addConverterFactory(MoshiConverterFactory.create()) // 构建 Retrofit 实例 .build() // 创建并返回 UserServiceApi 的具体实现 retrofit.create(UserServiceApi::class.java) } User data class User(val name: String, val address: String) UserRepository.kt class UserRepository { // 声明一个挂起函数 getUser，用于获取用户信息 // 该函数在协程中执行 suspend fun getUser(name: String): User { // 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数 // userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息 return userServiceApi.getUser(name) } } MainViewModel.kt // MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑 class MainViewModel : ViewModel() { // MutableLiveData 用于存储和观察用户数据的 LiveData // 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI val userLiveData = MutableLiveData() // 创建 UserRepository 实例，用于获取用户数据 private val userRepository = UserRepository() // getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中 fun getUser(name: String) { // 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围 viewModelScope.launch { // 调用 UserRepository 的 getUser 方法，获取用户信息 // 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI userLiveData.value = userRepository.getUser(name) } } } Activity // MainActivity7 继承自 AppCompatActivity，用于显示主界面 class MainActivity7 : AppCompatActivity() { // 使用 viewModels 委托来获取 MainViewModel 实例 private val mainViewModel: MainViewModel by viewModels() // 存储对 TextView 的引用（可选，后续可以用来更新 UI） private var nameTextView: TextView? = null // 创建一个 MainScope 实例，用于管理协程生命周期 // 工厂设计模式实例化 MainScope private val mainScope = MainScope() @SuppressLint(\"StaticFieldLeak\") // SuppressLint 注解用于忽略静态字段泄漏警告 override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) // 启用边缘到边缘模式，以使布局填充整个屏幕 enableEdgeToEdge() // 设置活动的布局 setContentView(R.layout.activity_main7) // 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距 ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets -\u003e // 获取系统窗口的内边距 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars()) // 设置视图的内边距，避免被系统窗口遮挡 v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom) // 返回处理后的 insets insets } // 使用 DataBindingUtil 绑定布局文件与视图模型 val binding = DataBindingUtil.setContentView(this, R.layout.activity_main7) // 将 ViewModel 绑定到布局 binding.viewModel = mainViewModel // 设置生命周期所有者，使数据绑定可以观察 LiveData binding.lifecycleOwner = this // 设置提交按钮的点击监听器 binding.submitButton.setOnClickListener(View.OnClickListener { // 当按钮被点击时，调用 ViewModel 的 getUser 方法 // 这里使用 \"ken\" 作为查询参数 mainViewModel.getUser(\"ken\") }) } // 活动销毁时取消协程，释放资源 override fun onDestroy() { super.onDestroy() // 取消所有在 MainScope 中启动的协程 mainScope.cancel() } } 协程构建器 launch与async构建器都用来启动新协程 launch，返回 Job 并且不附带任何结果值 async，返回一个Deferred，Deferred也是一个Job，可以使用.await()在一个延期的值上得到它的最终结果 等待一个作业 join和await 组合并发 协程的启动模式 DEFAULT：协程创建后，立即开始调度，在调度前如果协程被取消，其将直接进入取消响应的状态 ATOMIC：协程创建后，立即开始调度，协程执行到第一个挂起点之前不响应取消 LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态 UNDISPATCHED：协程创建后立即在当前函数调用栈中执行，直到遇到第一个真正挂起的点 import kotlinx.coroutines.* fun main() = runBlocking { val job1 = launch(start = CoroutineStart.DEFAULT) { println(\"DEFAULT start\") } val job2 = launch(start = CoroutineStart.ATOMIC) { println(\"ATOMIC start\") delay(100) println(\"ATOMIC end\") } val job3 = async(start = CoroutineStart.LAZY) { println(\"LAZY start\") 42 } val job4 = launch(start = CoroutineStart.UNDISPATCHED) { println(\"UNDISPATCHED start\") delay(100) println(\"UNDISPATCHED resumed\") } println(\"Triggering lazy job...\") println(job3.await()) joinAll(job1, job2, job3, job4) } coroutineScope 与 runBlocking runBlocking是常规函数，而coroutineScope是挂起函数 它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途 区别：\ncoroutineScope：一个协程失败了，所有其他兄弟协程也会被取消 supervisorScope：一个协程失败了，不会影响其他兄弟协程 Job对象 对于每一个创建的协程（通过launch或者async），会返回一个Job实例，该实例是协程的唯一标识，并且负责管理协程的生命周期 一个任务可以包含一系列状态，新创建（New）、活跃（Active）、完成中（Completing）、已完成（Completed）、取消中（Cancelling）和已取消（Cancelled）。可以访问Job的属性：isActive，isCancelled和isCompleted。 Job的生命周期 如果协程处于活跃状态，协程运行出错或者调用 job.cancel() 都会将当前任务置为取消中（Cancelling）状态（isActive = false, isCancelled = true）。当所有的子协程都完成后，协程会进入已取消（Cancelled）。\n@Test fun `test scope cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 // delay(100) // 取消 scope 中的所有协程 // scope.cancel() // 两个均不打印 // 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话） delay(1500) // 两个可以正常打印 } @Test fun `test brother cancel`() = runBlocking { // 创建一个 CoroutineScope，指定使用 Default 调度器 val scope = CoroutineScope(Dispatchers.Default) // 启动第一个协程，延迟 1000 毫秒后打印 \"job 1\" val job1 = scope.launch { delay(1000) println(\"job 1\") } // 启动第二个协程，延迟 1000 毫秒后打印 \"job 2\" val job2 = scope.launch { delay(1000) println(\"job 2\") } // 延迟 100 毫秒，确保前面两个协程有时间启动 delay(100) // 取消 job1，但不取消 job2 job1.cancel() // 延迟 1500 毫秒，确保可以看到 job2 的输出 delay(1500) } 取消协程 在cancel()后保证协程被取消\n@Test fun `test cancel cpu task by isActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次或协程被取消 while (i \u003c 5 \u0026\u0026 isActive) { // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } @Test fun `test cancel cpu task by ensureActive`() = runBlocking { // 获取当前时间的毫秒数，用于计算任务执行的时间点 val startTime = System.currentTimeMillis() // 启动一个协程，运行在默认调度器上（通常是后台线程） val job = launch(Dispatchers.Default) { var nextPrintTime = startTime // 下次打印信息的时间 var i = 0 // 计数器，用于限制任务执行次数 // 循环执行，直到达到5次 while (i \u003c 5) { // 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException ensureActive() // 检查是否到达下一个打印时间点 if (System.currentTimeMillis() \u003e= nextPrintTime) { // 打印当前状态和计数器 println(\"job: I'm sleeping ${i++}\") nextPrintTime += 500 // 更新下次打印的时间 } } } // 延迟 1300 毫秒，模拟主线程的等待时间 delay(1300) // 主线程输出，表示等待的时间结束 println(\"main : I'm tired of waiting\") // 取消 job 协程并等待其完全结束 job.cancelAndJoin() // 主线程输出，表示可以退出了 println(\"main : Now I can quit.\") } CPU密集型任务取消 isActive是一个可以被使用在CoroutineScope中的扩展属性，检查Job是否处于活跃状态\nensureActive()， 如果job处于非活跃状态，这个方法会立即抛出异常\nyield函数会检查所在协程的状态，如果已经取消，则抛出CancellationException予以相应。此外，它还会尝试让出线程的执行权，给其他协程提供执行机会。\n协程取消的副作用 在finally中释放资源。\n@Test fun `test release resources`() = runBlocking { val job = launch { try { repeat(1000){ it-\u003e println(\"job : I'm sleeping $it ...\") delay(500L) } } catch (e: Exception) { println(\"Job: I'm running finally\") // 释放资源 } } delay(1300) println(\"main : I'm tired of waiting\") job.cancelAndJoin() println(\"main : Now I can quit.\") } use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。\n@Test fun `test use function`() = runBlocking { // 使用 use 函数自动管理资源 // use 函数会自动关闭资源，无需手动调用 close BufferedReader(FileReader(\"D:\\\\test\\\\test.txt\")).use { var line: String? // 无限循环读取文件内容，直到文件末尾 while (true) { // 读取一行内容，如果为 null（文件末尾），则退出循环 line = it.readLine() ?: break println(line) // 打印每一行内容 } } } 不能被取消的任务 @Test fun `test cancel with NonCancellable`() = runBlocking { // 启动一个新的协程 val job = launch { try { // 在协程中重复执行任务1000次 repeat(1000) { it -\u003e println(\"job : I'm sleeping $it ...\") // 打印当前任务的状态 delay(500L) // 暂停500毫秒 } } finally { // 这里的代码块在协程取消时执行 // 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消 withContext(NonCancellable) { println(\"job: I'm running finally\") // 打印消息，表示进入了 finally 部分 delay(1000L) // 这里的延迟不会被取消，即使协程已经被取消 println(\"job: And I've just delayed for 1 sec \") // 打印延迟后的消息 } } } // 主协程延迟1300毫秒，给子协程足够的时间运行 delay(1300) println(\"main: I'm tired of waiting!\") // 打印主协程等待的消息 // 取消子协程并等待它完成 job.cancelAndJoin() println(\"main: Now I can quit.\") // 打印主协程完成后的消息 } 超时任务 取消协程的理由是有可能超时 withTimeoutOrNull 通过返回null来进行超时操作，从而替代抛出一个异常 @Test fun `test deal with timeout`() = runBlocking { // 使用 withTimeout 函数设置超时时间 withTimeout(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } } } @Test fun `test deal with timeout return null`() = runBlocking { // 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null val result = withTimeoutOrNull(1300L) { // 设置最大执行时间为1300毫秒 repeat(1000) { i -\u003e // 计划执行1000次任务 println(\"job: I'm sleeping $i ...\") // 打印当前任务的状态 delay(500L) // 每个任务暂停500毫秒 } \"Done\" // 如果在1300毫秒内完成所有任务，将返回 \"Done\" } // 打印 result 结果，如果任务在超时时间内完成，则 result 为 \"Done\"，否则为 null println(\"Result is $result\") } 协程上下文 CoroutineContext是一组用于定义协程行为的元素，它由如下几项构成：\nJob：控制协程的生命周期 CoroutineDispatcher：向合适的线程分发任务 CoroutineName：协程的名称，调试的时候很有用 CoroutineExceptionHandler：处理未被捕捉的异常 组合上下文中的元素 有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。 @Test fun `test CoroutineContext`() = runBlocking { launch(Dispatchers.Default + CoroutineName(\"test\")) { println(\"I'm working in thread ${Thread.currentThread().name}\") } } 协程上下文的继承 协程的上下文 = 默认值 + 继承的CoroutineContext + 参数\n","wordCount":"4864","inLanguage":"zh","datePublished":"2024-08-06T22:30:13+08:00","dateModified":"2024-08-13T22:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B1/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">Kotlin协程(1)</h1><div class=post-description>Kotlin协程(1)</div><div class=post-meta><span title='2024-08-06 22:30:13 +0800 +0800'>2024-08-06</span>&nbsp;·&nbsp;<span>10 分钟</span>&nbsp;·&nbsp;<span>4864 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#kotlin%e5%8d%8f%e7%a8%8b1 aria-label=Kotlin协程(1)>Kotlin协程(1)</a><ul><li><a href=#%e5%bc%82%e6%ad%a5%e4%bb%bb%e5%8a%a1 aria-label=异步任务>异步任务</a></li><li><a href=#%e5%8d%8f%e7%a8%8b%e7%9a%84%e6%8c%82%e8%b5%b7%e4%b8%8e%e6%81%a2%e5%a4%8d aria-label=协程的挂起与恢复>协程的挂起与恢复</a><ul><li><a href=#%e6%8c%82%e8%b5%b7%e5%87%bd%e6%95%b0 aria-label=挂起函数>挂起函数</a></li><li><a href=#kotlin%e5%8d%8f%e7%a8%8b%e7%9a%84%e4%b8%a4%e9%83%a8%e5%88%86 aria-label=Kotlin协程的两部分>Kotlin协程的两部分</a></li><li><a href=#%e8%b0%83%e5%ba%a6%e5%99%a8 aria-label=调度器>调度器</a><ul><li><a href=#dispatchersmain aria-label=Dispatchers.Main>Dispatchers.Main</a></li><li><a href=#dispatchersio aria-label=Dispatchers.IO>Dispatchers.IO</a></li><li><a href=#dispatchersdefault aria-label=Dispatchers.Default>Dispatchers.Default</a></li></ul></li><li><a href=#%e4%bb%bb%e5%8a%a1%e6%b3%84%e6%bc%8f aria-label=任务泄漏>任务泄漏</a></li><li><a href=#coroutine-scope aria-label="Coroutine Scope">Coroutine Scope</a></li></ul></li><li><a href=#%e5%8d%8f%e7%a8%8b%e4%bd%bf%e7%94%a8 aria-label=协程使用>协程使用</a><ul><ul><li><a href=#retrofit-api aria-label="retrofit API">retrofit API</a></li><li><a href=#user aria-label=User>User</a></li><li><a href=#userrepositorykt aria-label=UserRepository.kt>UserRepository.kt</a></li><li><a href=#mainviewmodelkt aria-label=MainViewModel.kt>MainViewModel.kt</a></li><li><a href=#activity aria-label=Activity>Activity</a></li></ul></ul></li><li><a href=#%e5%8d%8f%e7%a8%8b%e6%9e%84%e5%bb%ba%e5%99%a8 aria-label=协程构建器>协程构建器</a><ul><li><a href=#%e5%8d%8f%e7%a8%8b%e7%9a%84%e5%90%af%e5%8a%a8%e6%a8%a1%e5%bc%8f aria-label=协程的启动模式>协程的启动模式</a></li></ul></li><li><a href=#coroutinescope-%e4%b8%8e-runblocking aria-label="coroutineScope 与 runBlocking">coroutineScope 与 runBlocking</a><ul><li><a href=#job%e5%af%b9%e8%b1%a1 aria-label=Job对象>Job对象</a></li><li><a href=#job%e7%9a%84%e7%94%9f%e5%91%bd%e5%91%a8%e6%9c%9f aria-label=Job的生命周期>Job的生命周期</a></li></ul></li><li><a href=#%e5%8f%96%e6%b6%88%e5%8d%8f%e7%a8%8b aria-label=取消协程>取消协程</a><ul><li><a href=#cpu%e5%af%86%e9%9b%86%e5%9e%8b%e4%bb%bb%e5%8a%a1%e5%8f%96%e6%b6%88 aria-label=CPU密集型任务取消>CPU密集型任务取消</a></li><li><a href=#%e5%8d%8f%e7%a8%8b%e5%8f%96%e6%b6%88%e7%9a%84%e5%89%af%e4%bd%9c%e7%94%a8 aria-label=协程取消的副作用>协程取消的副作用</a></li><li><a href=#%e4%b8%8d%e8%83%bd%e8%a2%ab%e5%8f%96%e6%b6%88%e7%9a%84%e4%bb%bb%e5%8a%a1 aria-label=不能被取消的任务>不能被取消的任务</a></li></ul></li><li><a href=#%e8%b6%85%e6%97%b6%e4%bb%bb%e5%8a%a1 aria-label=超时任务>超时任务</a></li><li><a href=#%e5%8d%8f%e7%a8%8b%e4%b8%8a%e4%b8%8b%e6%96%87 aria-label=协程上下文>协程上下文</a><ul><li><a href=#%e7%bb%84%e5%90%88%e4%b8%8a%e4%b8%8b%e6%96%87%e4%b8%ad%e7%9a%84%e5%85%83%e7%b4%a0 aria-label=组合上下文中的元素>组合上下文中的元素</a></li><li><a href=#%e5%8d%8f%e7%a8%8b%e4%b8%8a%e4%b8%8b%e6%96%87%e7%9a%84%e7%bb%a7%e6%89%bf aria-label=协程上下文的继承>协程上下文的继承</a></li></ul></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=kotlin协程1>Kotlin协程(1)<a hidden class=anchor aria-hidden=true href=#kotlin协程1>#</a></h1><p>看明白，讲清楚。</p><p>协程处理的问题：</p><ul><li>处理耗时任务， 这种任务常常会阻塞主线程</li><li>保证主线程安全，即确保安全的从主线程调用任何<code>suspend</code>函数</li></ul><h2 id=异步任务>异步任务<a hidden class=anchor aria-hidden=true href=#异步任务>#</a></h2><ul><li>协程让异步逻辑同步化，杜绝回调地狱</li><li>协程最核心的点就是：函数或一段程序能够被挂起，稍后再在挂起的位置恢复</li></ul><h2 id=协程的挂起与恢复>协程的挂起与恢复<a hidden class=anchor aria-hidden=true href=#协程的挂起与恢复>#</a></h2><ul><li>常规函数基础操作包括 ： <code>invoke(call)</code> 和 <code>return</code>, 协程新增了 <code>suspend</code> 和 <code>resume </code>；<ul><li><code>suspend</code> —— 也称为挂起或暂停，用于暂停执行当前协程，并保存所有局部变量</li><li><code>resume</code>——用于让已暂停的协程从其暂停处继续执行</li></ul></li></ul><h3 id=挂起函数>挂起函数<a hidden class=anchor aria-hidden=true href=#挂起函数>#</a></h3><ul><li>使用suspend关键字修饰的函数叫做挂起函数</li><li>挂起函数只能在协程体内或其他挂起函数内调用</li></ul><h3 id=kotlin协程的两部分>Kotlin协程的两部分<a hidden class=anchor aria-hidden=true href=#kotlin协程的两部分>#</a></h3><ul><li><strong>基础设施层次</strong>，标准库的协程API， 主要对协程提供了概念和语义上最基本的支持</li><li><strong>业务框架层</strong>，协程的上层框架支持</li></ul><h3 id=调度器>调度器<a hidden class=anchor aria-hidden=true href=#调度器>#</a></h3><p>所有协程必须在调度器中运行，即使它们在主线程上运行也是如此。</p><h4 id=dispatchersmain>Dispatchers.Main<a hidden class=anchor aria-hidden=true href=#dispatchersmain>#</a></h4><p>Android上的主线程，用来处理UI交互和一些轻量级任务</p><ul><li>调用suspend函数</li><li>调用UI函数</li><li>更新LiveData</li></ul><h4 id=dispatchersio>Dispatchers.IO<a hidden class=anchor aria-hidden=true href=#dispatchersio>#</a></h4><p>专为磁盘和网络IO进行了优化</p><ul><li>数据库</li><li>文件读写</li><li>网络处理</li></ul><h4 id=dispatchersdefault>Dispatchers.Default<a hidden class=anchor aria-hidden=true href=#dispatchersdefault>#</a></h4><p>非主线程，专为CPU密集型任务进行了优化</p><ul><li>数组排序</li><li>JSON数据解析</li><li>处理差异判断</li></ul><h3 id=任务泄漏>任务泄漏<a hidden class=anchor aria-hidden=true href=#任务泄漏>#</a></h3><p>类似内存泄漏</p><p>结构化并发：</p><p>取消任务：当某项任务不再需要时取消它</p><ul><li>追踪任务，当任务正在执行时，追踪它</li><li>发出错误信号，当协程失败时， 发出错误信号表明有错误发生</li></ul><h3 id=coroutine-scope>Coroutine Scope<a hidden class=anchor aria-hidden=true href=#coroutine-scope>#</a></h3><ul><li><p>定义协程必须指定其<code>CoroutineScope</code>， 它会跟踪所有协程，同样它还可以取消由它启动的所有协程</p></li><li><p>重用的相关API有：</p><ul><li><code>GlobalScope</code>：生命周期是process级别的，即使Activity， Fragment 已经被销毁，协程仍然在执行</li><li><code>MainScope</code>，在Activity中使用，可以在<code>onDestroy()</code>中取消协程</li><li><code>viewModelScope</code>，只能在<code>ViewModel</code>中使用，绑定<code>ViewModel</code>的生命周期</li><li><code>lifecycleScope</code>，只能在Activity，Fragment中使用，会绑定Activity 和 Fragment的生命周期</li></ul></li></ul><h2 id=协程使用>协程使用<a hidden class=anchor aria-hidden=true href=#协程使用>#</a></h2><h4 id=retrofit-api>retrofit API<a hidden class=anchor aria-hidden=true href=#retrofit-api>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#75715e>// 定义 UserServiceApi 接口，用于声明与用户相关的API请求
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>UserServiceApi</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 声明一个 GET 请求，用于加载指定名称的用户信息
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// @Query 注解表示请求中的查询参数 &#34;name&#34;，会附加到URL中
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// 返回类型是 Call&lt;User&gt;，表示一个异步的 HTTP 请求，可以通过 enqueue 方法执行
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>@GET</span>(<span style=color:#e6db74>&#34;user&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>loadUser</span>(<span style=color:#a6e22e>@Query</span>(<span style=color:#e6db74>&#34;name&#34;</span>) name: String): Call&lt;User&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 声明一个 GET 请求，使用 Kotlin 的协程机制
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// suspend 关键字表示这是一个挂起函数，可以在协程中被调用
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// 返回类型是 User，表示直接返回解析后的用户对象
+</span></span></span><span style=display:flex><span>    <span style=color:#a6e22e>@GET</span>(<span style=color:#e6db74>&#34;user&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>suspend</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>getUser</span>(<span style=color:#a6e22e>@Query</span>(<span style=color:#e6db74>&#34;name&#34;</span>) name: String): User
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// 创建一个懒加载的 userServiceApi 实例，使用 Retrofit 构建器
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>val</span> userServiceApi: UserServiceApi <span style=color:#66d9ef>by</span> lazy {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 使用 Retrofit.Builder 构建 Retrofit 实例
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>val</span> retrofit = retrofit2.<span style=color:#a6e22e>Retrofit</span>.Builder()
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 设置 API 请求的基础 URL
+</span></span></span><span style=display:flex><span>        .baseUrl(<span style=color:#e6db74>&#34;https://apifoxmock.com/m1/4944163-4601795-default/kotlinstudyserver/&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 添加一个转换工厂，这里使用 MoshiConverterFactory 来解析 JSON 数据
+</span></span></span><span style=display:flex><span>        .addConverterFactory(<span style=color:#a6e22e>MoshiConverterFactory</span>.create())
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 构建 Retrofit 实例
+</span></span></span><span style=display:flex><span>        .build()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 创建并返回 UserServiceApi 的具体实现
+</span></span></span><span style=display:flex><span>    retrofit.create(UserServiceApi<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>.java)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=user>User<a hidden class=anchor aria-hidden=true href=#user>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>data</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>User</span>(<span style=color:#66d9ef>val</span> name: String, <span style=color:#66d9ef>val</span> address: String)
+</span></span></code></pre></div><h4 id=userrepositorykt>UserRepository.kt<a hidden class=anchor aria-hidden=true href=#userrepositorykt>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>UserRepository</span> {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 声明一个挂起函数 getUser，用于获取用户信息
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// 该函数在协程中执行
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>suspend</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>getUser</span>(name: String): User {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 调用 userServiceApi 的 getUser 方法，传递用户名称作为参数
+</span></span></span><span style=display:flex><span>        <span style=color:#75715e>// userServiceApi 是一个 API 接口实例，返回的 User 对象表示用户信息
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> userServiceApi.getUser(name)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=mainviewmodelkt>MainViewModel.kt<a hidden class=anchor aria-hidden=true href=#mainviewmodelkt>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#75715e>// MainViewModel 继承自 ViewModel，用于管理与用户相关的 UI 数据和业务逻辑
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MainViewModel</span> : ViewModel() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// MutableLiveData 用于存储和观察用户数据的 LiveData
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// 可以在 UI 组件中观察 userLiveData，当数据发生变化时更新 UI
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>val</span> userLiveData = MutableLiveData&lt;User&gt;()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 创建 UserRepository 实例，用于获取用户数据
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>val</span> userRepository = UserRepository()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// getUser 函数用于从 UserRepository 获取用户数据，并将其存储到 userLiveData 中
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>getUser</span>(name: String) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 viewModelScope 启动协程，viewModelScope 是一个与 ViewModel 生命周期相关联的协程范围
+</span></span></span><span style=display:flex><span>        viewModelScope.launch {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 调用 UserRepository 的 getUser 方法，获取用户信息
+</span></span></span><span style=display:flex><span>            <span style=color:#75715e>// 将获取的用户信息设置到 userLiveData 中，触发观察者更新 UI
+</span></span></span><span style=display:flex><span>            userLiveData.<span style=color:#66d9ef>value</span> = userRepository.getUser(name)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=activity>Activity<a hidden class=anchor aria-hidden=true href=#activity>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#75715e>// MainActivity7 继承自 AppCompatActivity，用于显示主界面
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MainActivity7</span> : AppCompatActivity() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 使用 viewModels 委托来获取 MainViewModel 实例
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>val</span> mainViewModel: MainViewModel <span style=color:#66d9ef>by</span> viewModels()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 存储对 TextView 的引用（可选，后续可以用来更新 UI）
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> nameTextView: TextView? = <span style=color:#66d9ef>null</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 创建一个 MainScope 实例，用于管理协程生命周期
+</span></span></span><span style=display:flex><span>    <span style=color:#75715e>// 工厂设计模式实例化 MainScope
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>val</span> mainScope = MainScope()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@SuppressLint</span>(<span style=color:#e6db74>&#34;StaticFieldLeak&#34;</span>) <span style=color:#75715e>// SuppressLint 注解用于忽略静态字段泄漏警告
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onCreate</span>(savedInstanceState: Bundle?) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onCreate(savedInstanceState)
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启用边缘到边缘模式，以使布局填充整个屏幕
+</span></span></span><span style=display:flex><span>        enableEdgeToEdge()
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 设置活动的布局
+</span></span></span><span style=display:flex><span>        setContentView(<span style=color:#a6e22e>R</span>.layout.activity_main7)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 ViewCompat 和 WindowInsetsCompat 处理系统窗口的内边距
+</span></span></span><span style=display:flex><span>        <span style=color:#a6e22e>ViewCompat</span>.setOnApplyWindowInsetsListener(findViewById(<span style=color:#a6e22e>R</span>.id.main)) { v, insets <span style=color:#f92672>-&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 获取系统窗口的内边距
+</span></span></span><span style=display:flex><span>            <span style=color:#66d9ef>val</span> systemBars = insets.getInsets(<span style=color:#a6e22e>WindowInsetsCompat</span>.<span style=color:#a6e22e>Type</span>.systemBars())
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 设置视图的内边距，避免被系统窗口遮挡
+</span></span></span><span style=display:flex><span>            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 返回处理后的 insets
+</span></span></span><span style=display:flex><span>            insets
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 DataBindingUtil 绑定布局文件与视图模型
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> binding =
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>DataBindingUtil</span>.setContentView&lt;ActivityMain7Binding&gt;(<span style=color:#66d9ef>this</span>, <span style=color:#a6e22e>R</span>.layout.activity_main7)
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 将 ViewModel 绑定到布局
+</span></span></span><span style=display:flex><span>        binding.viewModel = mainViewModel
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 设置生命周期所有者，使数据绑定可以观察 LiveData
+</span></span></span><span style=display:flex><span>        binding.lifecycleOwner = <span style=color:#66d9ef>this</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 设置提交按钮的点击监听器
+</span></span></span><span style=display:flex><span>        binding.submitButton.setOnClickListener(<span style=color:#a6e22e>View</span>.OnClickListener {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 当按钮被点击时，调用 ViewModel 的 getUser 方法
+</span></span></span><span style=display:flex><span>            <span style=color:#75715e>// 这里使用 &#34;ken&#34; 作为查询参数
+</span></span></span><span style=display:flex><span>            mainViewModel.getUser(<span style=color:#e6db74>&#34;ken&#34;</span>)
+</span></span><span style=display:flex><span>        })
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 活动销毁时取消协程，释放资源
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onDestroy</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onDestroy()
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 取消所有在 MainScope 中启动的协程
+</span></span></span><span style=display:flex><span>        mainScope.cancel()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=协程构建器>协程构建器<a hidden class=anchor aria-hidden=true href=#协程构建器>#</a></h2><ul><li>launch与async构建器都用来启动新协程<ul><li>launch，返回 Job 并且不附带任何结果值</li><li>async，返回一个Deferred，Deferred也是一个Job，可以使用<code>.await()</code>在一个延期的值上得到它的最终结果</li></ul></li><li>等待一个作业<ul><li>join和await</li><li>组合并发</li></ul></li></ul><h3 id=协程的启动模式>协程的启动模式<a hidden class=anchor aria-hidden=true href=#协程的启动模式>#</a></h3><ul><li>DEFAULT：协程创建后，立即开始调度，在调度前如果协程被取消，其将直接进入取消响应的状态</li><li>ATOMIC：协程创建后，立即开始调度，协程执行到第一个挂起点之前不响应取消</li><li>LAZY：只有协程被需要时，包括主动调用协程的start，join或者await等函数时才会开始调度，如果调度前就被取消，那么该协程将直接进入异常结束状态</li><li>UNDISPATCHED：协程创建后立即在<strong>当前函数调用栈</strong>中执行，直到遇到第一个真正挂起的点</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>import</span> kotlinx.coroutines.*
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>main</span>() = runBlocking {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>val</span> job1 = launch(start = <span style=color:#a6e22e>CoroutineStart</span>.DEFAULT) {
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;DEFAULT start&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>val</span> job2 = launch(start = <span style=color:#a6e22e>CoroutineStart</span>.ATOMIC) {
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;ATOMIC start&#34;</span>)
+</span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;ATOMIC end&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>val</span> job3 = async(start = <span style=color:#a6e22e>CoroutineStart</span>.LAZY) {
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;LAZY start&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#ae81ff>42</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>val</span> job4 = launch(start = <span style=color:#a6e22e>CoroutineStart</span>.UNDISPATCHED) {
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;UNDISPATCHED start&#34;</span>)
+</span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;UNDISPATCHED resumed&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    println(<span style=color:#e6db74>&#34;Triggering lazy job...&#34;</span>)
+</span></span><span style=display:flex><span>    println(job3.await())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    joinAll(job1, job2, job3, job4)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=coroutinescope-与-runblocking>coroutineScope 与 runBlocking<a hidden class=anchor aria-hidden=true href=#coroutinescope-与-runblocking>#</a></h2><ul><li>runBlocking是常规函数，而coroutineScope是挂起函数</li><li>它们都会等待其协程体以及所有子协程结束，主要区别在于runBlocking方法会阻塞当前线程来等待，而coroutineScope只是挂起，会释放底层线程用于其他用途</li></ul><p>区别：</p><ul><li><code>coroutineScope</code>：一个协程失败了，所有其他兄弟协程也会被取消</li><li><code>supervisorScope</code>：一个协程失败了，不会影响其他兄弟协程</li></ul><h3 id=job对象>Job对象<a hidden class=anchor aria-hidden=true href=#job对象>#</a></h3><ul><li>对于每一个创建的协程（通过launch或者async），会返回一个Job实例，该实例是协程的唯一标识，并且负责管理协程的生命周期</li><li>一个任务可以包含一系列状态，新创建（New）、活跃（Active）、完成中（Completing）、已完成（Completed）、取消中（Cancelling）和已取消（Cancelled）。可以访问Job的属性：isActive，isCancelled和isCompleted。</li></ul><h3 id=job的生命周期>Job的生命周期<a hidden class=anchor aria-hidden=true href=#job的生命周期>#</a></h3><p>如果协程处于活跃状态，协程运行出错或者调用 <code>job.cancel()</code> 都会将当前任务置为取消中（<code>Cancelling</code>）状态（<code>isActive = false</code>, <code>isCancelled = true</code>）。当所有的子协程都完成后，协程会进入已取消（<code>Cancelled</code>）。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test scope cancel`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 创建一个 CoroutineScope，指定使用 Default 调度器
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> scope = CoroutineScope(<span style=color:#a6e22e>Dispatchers</span>.Default)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动第一个协程，延迟 1000 毫秒后打印 &#34;job 1&#34;
+</span></span></span><span style=display:flex><span>        scope.launch {
+</span></span><span style=display:flex><span>            delay(<span style=color:#ae81ff>1000</span>)
+</span></span><span style=display:flex><span>            println(<span style=color:#e6db74>&#34;job 1&#34;</span>)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动第二个协程，延迟 1000 毫秒后打印 &#34;job 2&#34;
+</span></span></span><span style=display:flex><span>        scope.launch {
+</span></span><span style=display:flex><span>            delay(<span style=color:#ae81ff>1000</span>)
+</span></span><span style=display:flex><span>            println(<span style=color:#e6db74>&#34;job 2&#34;</span>)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 延迟 100 毫秒，确保前面两个协程有时间启动
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//        delay(100)
+</span></span></span><span style=display:flex><span>        <span style=color:#75715e>// 取消 scope 中的所有协程
+</span></span></span><span style=display:flex><span><span style=color:#75715e>//        scope.cancel() // 两个均不打印
+</span></span></span><span style=display:flex><span>        <span style=color:#75715e>// 延迟 1500 毫秒，确保可以看到协程的输出（如果它们没有被取消的话）
+</span></span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>1500</span>) <span style=color:#75715e>// 两个可以正常打印
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test brother cancel`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 创建一个 CoroutineScope，指定使用 Default 调度器
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> scope = CoroutineScope(<span style=color:#a6e22e>Dispatchers</span>.Default)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动第一个协程，延迟 1000 毫秒后打印 &#34;job 1&#34;
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> job1 = scope.launch {
+</span></span><span style=display:flex><span>            delay(<span style=color:#ae81ff>1000</span>)
+</span></span><span style=display:flex><span>            println(<span style=color:#e6db74>&#34;job 1&#34;</span>)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动第二个协程，延迟 1000 毫秒后打印 &#34;job 2&#34;
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> job2 = scope.launch {
+</span></span><span style=display:flex><span>            delay(<span style=color:#ae81ff>1000</span>)
+</span></span><span style=display:flex><span>            println(<span style=color:#e6db74>&#34;job 2&#34;</span>)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 延迟 100 毫秒，确保前面两个协程有时间启动
+</span></span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>100</span>)
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 取消 job1，但不取消 job2
+</span></span></span><span style=display:flex><span>        job1.cancel()
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 延迟 1500 毫秒，确保可以看到 job2 的输出
+</span></span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>1500</span>)
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h2 id=取消协程>取消协程<a hidden class=anchor aria-hidden=true href=#取消协程>#</a></h2><p>在<code>cancel()</code>后保证协程被取消</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test cancel cpu task by isActive`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取当前时间的毫秒数，用于计算任务执行的时间点
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> startTime = <span style=color:#a6e22e>System</span>.currentTimeMillis()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动一个协程，运行在默认调度器上（通常是后台线程）
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> job = launch(<span style=color:#a6e22e>Dispatchers</span>.Default) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> nextPrintTime = startTime <span style=color:#75715e>// 下次打印信息的时间
+</span></span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> i = <span style=color:#ae81ff>0</span> <span style=color:#75715e>// 计数器，用于限制任务执行次数
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 循环执行，直到达到5次或协程被取消
+</span></span></span><span style=display:flex><span>            <span style=color:#66d9ef>while</span> (i &lt; <span style=color:#ae81ff>5</span> <span style=color:#f92672>&amp;&amp;</span> isActive) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 检查是否到达下一个打印时间点
+</span></span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>System</span>.currentTimeMillis() <span style=color:#f92672>&gt;=</span> nextPrintTime) {
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// 打印当前状态和计数器
+</span></span></span><span style=display:flex><span>                    println(<span style=color:#e6db74>&#34;job: I&#39;m sleeping </span><span style=color:#e6db74>${i++}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>                    nextPrintTime <span style=color:#f92672>+=</span> <span style=color:#ae81ff>500</span> <span style=color:#75715e>// 更新下次打印的时间
+</span></span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 延迟 1300 毫秒，模拟主线程的等待时间
+</span></span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>1300</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 主线程输出，表示等待的时间结束
+</span></span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main : I&#39;m tired of waiting&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 取消 job 协程并等待其完全结束
+</span></span></span><span style=display:flex><span>        job.cancelAndJoin()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 主线程输出，表示可以退出了
+</span></span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main : Now I can quit.&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test cancel cpu task by ensureActive`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取当前时间的毫秒数，用于计算任务执行的时间点
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> startTime = <span style=color:#a6e22e>System</span>.currentTimeMillis()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动一个协程，运行在默认调度器上（通常是后台线程）
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> job = launch(<span style=color:#a6e22e>Dispatchers</span>.Default) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> nextPrintTime = startTime <span style=color:#75715e>// 下次打印信息的时间
+</span></span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> i = <span style=color:#ae81ff>0</span> <span style=color:#75715e>// 计数器，用于限制任务执行次数
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 循环执行，直到达到5次
+</span></span></span><span style=display:flex><span>            <span style=color:#66d9ef>while</span> (i &lt; <span style=color:#ae81ff>5</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 确保协程处于活跃状态，如果协程已取消则会抛出 CancellationException
+</span></span></span><span style=display:flex><span>                ensureActive()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 检查是否到达下一个打印时间点
+</span></span></span><span style=display:flex><span>                <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>System</span>.currentTimeMillis() <span style=color:#f92672>&gt;=</span> nextPrintTime) {
+</span></span><span style=display:flex><span>                    <span style=color:#75715e>// 打印当前状态和计数器
+</span></span></span><span style=display:flex><span>                    println(<span style=color:#e6db74>&#34;job: I&#39;m sleeping </span><span style=color:#e6db74>${i++}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>                    nextPrintTime <span style=color:#f92672>+=</span> <span style=color:#ae81ff>500</span> <span style=color:#75715e>// 更新下次打印的时间
+</span></span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 延迟 1300 毫秒，模拟主线程的等待时间
+</span></span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>1300</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 主线程输出，表示等待的时间结束
+</span></span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main : I&#39;m tired of waiting&#34;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 取消 job 协程并等待其完全结束
+</span></span></span><span style=display:flex><span>        job.cancelAndJoin()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 主线程输出，表示可以退出了
+</span></span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main : Now I can quit.&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h3 id=cpu密集型任务取消>CPU密集型任务取消<a hidden class=anchor aria-hidden=true href=#cpu密集型任务取消>#</a></h3><ul><li><p><code>isActive</code>是一个可以被使用在<code>CoroutineScope</code>中的扩展属性，检查Job是否处于活跃状态</p></li><li><p><code>ensureActive()</code>， 如果job处于非活跃状态，这个方法会立即抛出异常</p></li><li><p><code>yield</code>函数会检查所在协程的状态，如果已经取消，则抛出<code>CancellationException</code>予以相应。此外，它还会尝试让出线程的执行权，给其他协程提供执行机会。</p></li></ul><h3 id=协程取消的副作用>协程取消的副作用<a hidden class=anchor aria-hidden=true href=#协程取消的副作用>#</a></h3><ul><li><p>在finally中释放资源。</p><ul><li><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test release resources`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> job = launch {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>                repeat(<span style=color:#ae81ff>1000</span>){
+</span></span><span style=display:flex><span>                    <span style=color:#66d9ef>it</span><span style=color:#f92672>-&gt;</span>
+</span></span><span style=display:flex><span>                    println(<span style=color:#e6db74>&#34;job : I&#39;m sleeping </span><span style=color:#e6db74>$it</span><span style=color:#e6db74> ...&#34;</span>)
+</span></span><span style=display:flex><span>                    delay(<span style=color:#ae81ff>500L</span>)
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>catch</span> (e: Exception) {
+</span></span><span style=display:flex><span>                println(<span style=color:#e6db74>&#34;Job: I&#39;m running finally&#34;</span>)
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 释放资源
+</span></span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>1300</span>)
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main : I&#39;m tired of waiting&#34;</span>)
+</span></span><span style=display:flex><span>        job.cancelAndJoin()
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main : Now I can quit.&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div></li></ul></li><li><p>use函数：该函数只能被实现了Closeable的对象使用，程序结束的时候会自动调用close方法，适合文件对象。</p><ul><li><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test use function`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 use 函数自动管理资源
+</span></span></span><span style=display:flex><span>        <span style=color:#75715e>// use 函数会自动关闭资源，无需手动调用 close
+</span></span></span><span style=display:flex><span>        BufferedReader(FileReader(<span style=color:#e6db74>&#34;D:</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>test</span><span style=color:#ae81ff>\\</span><span style=color:#e6db74>test.txt&#34;</span>)).use {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>var</span> line: String?
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 无限循环读取文件内容，直到文件末尾
+</span></span></span><span style=display:flex><span>            <span style=color:#66d9ef>while</span> (<span style=color:#66d9ef>true</span>) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 读取一行内容，如果为 null（文件末尾），则退出循环
+</span></span></span><span style=display:flex><span>                line = <span style=color:#66d9ef>it</span>.readLine() <span style=color:#f92672>?:</span> <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>                println(line) <span style=color:#75715e>// 打印每一行内容
+</span></span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div></li></ul><h3 id=不能被取消的任务>不能被取消的任务<a hidden class=anchor aria-hidden=true href=#不能被取消的任务>#</a></h3></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test cancel with NonCancellable`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 启动一个新的协程
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> job = launch {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 在协程中重复执行任务1000次
+</span></span></span><span style=display:flex><span>                repeat(<span style=color:#ae81ff>1000</span>) { <span style=color:#66d9ef>it</span> <span style=color:#f92672>-&gt;</span>
+</span></span><span style=display:flex><span>                    println(<span style=color:#e6db74>&#34;job : I&#39;m sleeping </span><span style=color:#e6db74>$it</span><span style=color:#e6db74> ...&#34;</span>)  <span style=color:#75715e>// 打印当前任务的状态
+</span></span></span><span style=display:flex><span>                    delay(<span style=color:#ae81ff>500L</span>)  <span style=color:#75715e>// 暂停500毫秒
+</span></span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>finally</span> {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 这里的代码块在协程取消时执行
+</span></span></span><span style=display:flex><span>                <span style=color:#75715e>// 使用 NonCancellable 上下文，确保这个代码块中的任务不会被取消
+</span></span></span><span style=display:flex><span>                withContext(NonCancellable) {
+</span></span><span style=display:flex><span>                    println(<span style=color:#e6db74>&#34;job: I&#39;m running finally&#34;</span>)  <span style=color:#75715e>// 打印消息，表示进入了 finally 部分
+</span></span></span><span style=display:flex><span>                    delay(<span style=color:#ae81ff>1000L</span>)  <span style=color:#75715e>// 这里的延迟不会被取消，即使协程已经被取消
+</span></span></span><span style=display:flex><span>                    println(<span style=color:#e6db74>&#34;job: And I&#39;ve just delayed for 1 sec &#34;</span>)  <span style=color:#75715e>// 打印延迟后的消息
+</span></span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 主协程延迟1300毫秒，给子协程足够的时间运行
+</span></span></span><span style=display:flex><span>        delay(<span style=color:#ae81ff>1300</span>)
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main: I&#39;m tired of waiting!&#34;</span>)  <span style=color:#75715e>// 打印主协程等待的消息
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 取消子协程并等待它完成
+</span></span></span><span style=display:flex><span>        job.cancelAndJoin()
+</span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;main: Now I can quit.&#34;</span>)  <span style=color:#75715e>// 打印主协程完成后的消息
+</span></span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h2 id=超时任务>超时任务<a hidden class=anchor aria-hidden=true href=#超时任务>#</a></h2><ul><li>取消协程的理由是有可能超时</li><li><code>withTimeoutOrNull</code> 通过返回null来进行超时操作，从而替代抛出一个异常</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test deal with timeout`</span>() = runBlocking {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 withTimeout 函数设置超时时间
+</span></span></span><span style=display:flex><span>        withTimeout(<span style=color:#ae81ff>1300L</span>) {  <span style=color:#75715e>// 设置最大执行时间为1300毫秒
+</span></span></span><span style=display:flex><span>            repeat(<span style=color:#ae81ff>1000</span>) { i <span style=color:#f92672>-&gt;</span>  <span style=color:#75715e>// 计划执行1000次任务
+</span></span></span><span style=display:flex><span>                println(<span style=color:#e6db74>&#34;job: I&#39;m sleeping </span><span style=color:#e6db74>$i</span><span style=color:#e6db74> ...&#34;</span>)  <span style=color:#75715e>// 打印当前任务的状态
+</span></span></span><span style=display:flex><span>                delay(<span style=color:#ae81ff>500L</span>)  <span style=color:#75715e>// 每个任务暂停500毫秒
+</span></span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test deal with timeout return null`</span>() = runBlocking {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 withTimeoutOrNull 函数设置超时时间并处理超时返回 null
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> result = withTimeoutOrNull(<span style=color:#ae81ff>1300L</span>) {  <span style=color:#75715e>// 设置最大执行时间为1300毫秒
+</span></span></span><span style=display:flex><span>            repeat(<span style=color:#ae81ff>1000</span>) { i <span style=color:#f92672>-&gt;</span>  <span style=color:#75715e>// 计划执行1000次任务
+</span></span></span><span style=display:flex><span>                println(<span style=color:#e6db74>&#34;job: I&#39;m sleeping </span><span style=color:#e6db74>$i</span><span style=color:#e6db74> ...&#34;</span>)  <span style=color:#75715e>// 打印当前任务的状态
+</span></span></span><span style=display:flex><span>                delay(<span style=color:#ae81ff>500L</span>)  <span style=color:#75715e>// 每个任务暂停500毫秒
+</span></span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>            <span style=color:#e6db74>&#34;Done&#34;</span>  <span style=color:#75715e>// 如果在1300毫秒内完成所有任务，将返回 &#34;Done&#34;
+</span></span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 打印 result 结果，如果任务在超时时间内完成，则 result 为 &#34;Done&#34;，否则为 null
+</span></span></span><span style=display:flex><span>        println(<span style=color:#e6db74>&#34;Result is </span><span style=color:#e6db74>$result</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h2 id=协程上下文>协程上下文<a hidden class=anchor aria-hidden=true href=#协程上下文>#</a></h2><p><code>CoroutineContext</code>是一组用于定义协程行为的元素，它由如下几项构成：</p><ul><li><code>Job</code>：控制协程的生命周期</li><li><code>CoroutineDispatcher</code>：向合适的线程分发任务</li><li><code>CoroutineName</code>：协程的名称，调试的时候很有用</li><li><code>CoroutineExceptionHandler</code>：处理未被捕捉的异常</li></ul><h3 id=组合上下文中的元素>组合上下文中的元素<a hidden class=anchor aria-hidden=true href=#组合上下文中的元素>#</a></h3><ul><li>有时我们需要在协程上下文中定义多个元素。可以使用 + 操作符来实现。</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>`test CoroutineContext`</span>() = runBlocking&lt;Unit&gt; {
+</span></span><span style=display:flex><span>        launch(<span style=color:#a6e22e>Dispatchers</span>.Default + CoroutineName(<span style=color:#e6db74>&#34;test&#34;</span>)) {
+</span></span><span style=display:flex><span>            println(<span style=color:#e6db74>&#34;I&#39;m working in thread </span><span style=color:#e6db74>${Thread.currentThread().name}</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span></code></pre></div><h3 id=协程上下文的继承>协程上下文的继承<a hidden class=anchor aria-hidden=true href=#协程上下文的继承>#</a></h3><p>协程的上下文 = 默认值 + 继承的<code>CoroutineContext</code> + 参数</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/kotlin/>Kotlin</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/kotlin%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0>Kotlin学习笔记</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B2/><span class=title>« 上一页</span>
+<span>Kotlin协程(2)</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/kotlin%E5%8D%8F%E7%A8%8B5/><span class=title>下一页 »</span>
+<span>Kotlin协程(5)</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

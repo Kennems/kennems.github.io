@@ -1,1030 +1,280 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>苍穹外卖后端开发(Day3) | Kennem&#39;s Blog</title>
-<meta name="keywords" content="JavaWeb项目-苍穹外卖">
-<meta name="description" content="苍穹外卖后端开发(Day3)">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="苍穹外卖后端开发(Day3)">
-  <meta property="og:description" content="苍穹外卖后端开发(Day3)">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-10-14T22:30:13+08:00">
-    <meta property="article:modified_time" content="2024-10-14T22:20:13+08:00">
-    <meta property="article:tag" content="JavaWeb项目-苍穹外卖">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="苍穹外卖后端开发(Day3)">
-  <meta name="twitter:description" content="苍穹外卖后端开发(Day3)">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "苍穹外卖后端开发(Day3)",
-      "item": "https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "苍穹外卖后端开发(Day3)",
-  "name": "苍穹外卖后端开发(Day3)",
-  "description": "苍穹外卖后端开发(Day3)",
-  "keywords": [
-    "JavaWeb项目-苍穹外卖"
-  ],
-  "articleBody": "苍穹外卖后端开发(Day3) 菜品管理 公共字段自动填充 对于创建时间、创建人id，修改时间，修改人id等字段 重复性代码进行统一编写\n自定义注解AutoFill，用于标识需要进行公共字段自动填充的方法 package com.sky.annotation; /** * 自定义注解，用于标识某个方法需要进行功能字段自动填充处理。 * 这个注解可以应用于方法上，用于指示在特定的数据库操作时 * 需要自动填充某些功能字段。 */ @Target(ElementType.METHOD) // 指定注解可以用于方法 @Retention(RetentionPolicy.RUNTIME) // 指定注解在运行时可用 public @interface AutoFill { /** * 数据库操作类型：用于指示自动填充的操作类型。 * 可选值包括 UPDATE 和 INSERT。 * * @return 操作类型 */ OperationType value(); } 自定义切面类AutoFillAspect， 统一拦截加入了AutoFill注解的方法，通过反射为公共字段赋值。 package com.sky.aspect; /** * 自定义切面， 实现公共字段自动填充 */ @Aspect @Component @Slf4j public class AutoFillAspect { /** * 定义切入点，匹配com.sky.mapper包下的所有方法，并且方法上需有@AutoFill注解 */ @Pointcut(\"execution(* com.sky.mapper.*.*(..)) \u0026\u0026 @annotation(com.sky.annotation.AutoFill)\") public void autoFillPointCut() { } /** * 前置通知，在目标方法执行前进行公共字段赋值 * * @param joinPoint 连接点，表示被拦截的方法调用 */ @Before(\"autoFillPointCut()\") public void autoFill(JoinPoint joinPoint) { log.info(\"开始进行公共字段自动填充...\"); // 获取当前被拦截方法的签名（方法信息） MethodSignature signature = (MethodSignature) joinPoint.getSignature(); // 从方法签名中获取@AutoFill注解 AutoFill autoFill = signature.getMethod().getAnnotation(AutoFill.class); // 获取操作类型（INSERT或UPDATE） OperationType operationType = autoFill.value(); // 获取目标方法的参数（假设第一个参数是实体对象） Object[] args = joinPoint.getArgs(); if (args == null || args.length == 0) { return; // 如果没有参数则直接返回 } // 获取实体对象（目标方法的第一个参数） Object entity = args[0]; // 获取当前时间和当前操作用户ID LocalDateTime now = LocalDateTime.now(); Long currentId = BaseContext.getCurrentId(); // 根据操作类型判断是INSERT还是UPDATE操作 if (operationType == OperationType.INSERT) { try { // 通过反射调用实体对象的set方法，赋值创建和更新时间、创建和更新用户 Method setCreateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_TIME, LocalDateTime.class); Method setCreateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_USER, Long.class); Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class); Method setUpdateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_USER, Long.class); // 调用方法进行赋值 setCreateTime.invoke(entity, now); setCreateUser.invoke(entity, currentId); setUpdateTime.invoke(entity, now); setUpdateUser.invoke(entity, currentId); } catch (Exception e) { e.printStackTrace(); // 捕获异常并打印 } } else if (operationType == OperationType.UPDATE) { try { // 通过反射调用实体对象的set方法，赋值更新时间和更新用户 Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class); Method setUpdateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_USER, Long.class); // 调用方法进行赋值 setUpdateTime.invoke(entity, now); setUpdateUser.invoke(entity, currentId); } catch (Exception e) { e.printStackTrace(); // 捕获异常并打印 } } } } 在Mapper的方法上加入AutoFill注解 @AutoFill(value = OperationType.INSERT) @AutoFill(value = OperationType.UPDATE) 新增菜品 产品原型 业务规则： 菜品名称必须是唯一的 菜品必须属于某个分类下，不能单独存在 新增菜品时可以根据情况选择菜品的口味 每个菜品必须对应一张图片 接口设计： 根据类型查询分配 文件上传 新增菜品 数据库设计（dish菜品表和dish_flavor口味表）： 配置OSS图像存储服务\n可以通过下面的Properties文件配置OSS的属性。\npackage com.sky.properties; @Component @ConfigurationProperties(prefix = \"sky.alioss\") @Data public class AliOssProperties { private String endpoint; private String accessKeyId; private String accessKeySecret; private String bucketName; } 在application-dev中详细配置id, key等。\n通用接口 package com.sky.controller.admin; /** * 通用接口 */ @RestController @RequestMapping(\"/admin/common\") @Api(tags = \"通用接口\") @Slf4j public class CommonController { @Autowired private AliOssUtil aliOssUtil; /** * 文件上传 * @param file * @return */ @PostMapping(\"/upload\") public Result\u003cString\u003e upload(MultipartFile file){ log.info(\"文件上传：{}\",file); try { // 原始文件名 String originalFilename = file.getOriginalFilename(); // 截取原始文件名的后缀 String extension = originalFilename.substring(originalFilename.lastIndexOf('.')); // 构造新文件名称 String objectName = UUID.randomUUID().toString() + extension; // 文件的请求路径 String filePath = aliOssUtil.upload(file.getBytes(), objectName); return Result.success(filePath); } catch (IOException e) { log.error(\"文件上传失败：{}\", e); } return Result.error(MessageConstant.UPLOAD_FAILED); } } 菜品接口 package com.sky.controller.admin; @RestController @RequestMapping(\"/admin/dish\") @Api(tags = \"菜品相关接口\") @Slf4j public class DishController { @Autowired private DishService dishService; @PostMapping @ApiOperation(\"新增菜品\") public Result save(@RequestBody DishDTO dishDTO){ log.info(\"新增菜品：{}\", dishDTO); dishService.saveWithFlavor(dishDTO); return Result.success(); } } 在DishServiceImpl中实现saveWithFlavor\npackage com.sky.service.impl; @Service public class DishServiceImpl implements DishService { @Autowired private DishMapper dishMapper; @Autowired private DishFlavorMapper dishFlavorMapper; /** * 新增菜品和对应的口味 * @param dishDTO */ @Transactional public void saveWithFlavor(DishDTO dishDTO) { Dish dish = new Dish(); BeanUtils.copyProperties(dishDTO, dish); // 向菜品表插入1条数据 dishMapper.insert(dish); Long dishId = dish.getId(); List\u003cDishFlavor\u003e flavors = dishDTO.getFlavors(); if (flavors != null \u0026\u0026 flavors.size() \u003e 0) { flavors.forEach(dishFlavor -\u003e dishFlavor.setDishId(dishId)); // 向口味表插入n条数据 dishFlavorMapper.insertBatch(flavors); } } } 在Mapper中实现SQL DishMapper \u003c?xml version=\"1.0\" encoding=\"UTF-8\" ?\u003e \u003c!DOCTYPE mapper PUBLIC \"-//mybatis.org//DTD Mapper 3.0//EN\" \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\" \u003e ",
-  "wordCount" : "2026",
-  "inLanguage": "zh",
-  "datePublished": "2024-10-14T22:30:13+08:00",
-  "dateModified": "2024-10-14T22:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      苍穹外卖后端开发(Day3)
-    </h1>
-    <div class="post-description">
-      苍穹外卖后端开发(Day3)
-    </div>
-    <div class="post-meta">
-
-<span title='2024-10-14 22:30:13 +0800 CST'>2024-10-14</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2026 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#%e8%8b%8d%e7%a9%b9%e5%a4%96%e5%8d%96%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91day3" aria-label="苍穹外卖后端开发(Day3)">苍穹外卖后端开发(Day3)</a><ul>
-                        
-                <li>
-                    <a href="#%e8%8f%9c%e5%93%81%e7%ae%a1%e7%90%86" aria-label="菜品管理">菜品管理</a><ul>
-                        
-                <li>
-                    <a href="#%e5%85%ac%e5%85%b1%e5%ad%97%e6%ae%b5%e8%87%aa%e5%8a%a8%e5%a1%ab%e5%85%85" aria-label="公共字段自动填充">公共字段自动填充</a><ul>
-                        
-                <li>
-                    <a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e6%b3%a8%e8%a7%a3autofill%e7%94%a8%e4%ba%8e%e6%a0%87%e8%af%86%e9%9c%80%e8%a6%81%e8%bf%9b%e8%a1%8c%e5%85%ac%e5%85%b1%e5%ad%97%e6%ae%b5%e8%87%aa%e5%8a%a8%e5%a1%ab%e5%85%85%e7%9a%84%e6%96%b9%e6%b3%95" aria-label="自定义注解AutoFill，用于标识需要进行公共字段自动填充的方法">自定义注解<code>AutoFill</code>，用于标识需要进行公共字段自动填充的方法</a></li>
-                <li>
-                    <a href="#%e8%87%aa%e5%ae%9a%e4%b9%89%e5%88%87%e9%9d%a2%e7%b1%bbautofillaspect-%e7%bb%9f%e4%b8%80%e6%8b%a6%e6%88%aa%e5%8a%a0%e5%85%a5%e4%ba%86autofill%e6%b3%a8%e8%a7%a3%e7%9a%84%e6%96%b9%e6%b3%95%e9%80%9a%e8%bf%87%e5%8f%8d%e5%b0%84%e4%b8%ba%e5%85%ac%e5%85%b1%e5%ad%97%e6%ae%b5%e8%b5%8b%e5%80%bc" aria-label="自定义切面类AutoFillAspect， 统一拦截加入了AutoFill注解的方法，通过反射为公共字段赋值。">自定义切面类<code>AutoFillAspect</code>， 统一拦截加入了<code>AutoFill</code>注解的方法，通过反射为公共字段赋值。</a></li>
-                <li>
-                    <a href="#%e5%9c%a8mapper%e7%9a%84%e6%96%b9%e6%b3%95%e4%b8%8a%e5%8a%a0%e5%85%a5autofill%e6%b3%a8%e8%a7%a3" aria-label="在Mapper的方法上加入AutoFill注解">在<code>Mapper</code>的方法上加入<code>AutoFill</code>注解</a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#%e6%96%b0%e5%a2%9e%e8%8f%9c%e5%93%81" aria-label="新增菜品">新增菜品</a><ul>
-                        
-                <li>
-                    <a href="#%e4%ba%a7%e5%93%81%e5%8e%9f%e5%9e%8b" aria-label="产品原型">产品原型</a></li>
-                <li>
-                    <a href="#%e4%b8%9a%e5%8a%a1%e8%a7%84%e5%88%99" aria-label="业务规则：">业务规则：</a></li>
-                <li>
-                    <a href="#%e6%8e%a5%e5%8f%a3%e8%ae%be%e8%ae%a1" aria-label="接口设计：">接口设计：</a></li>
-                <li>
-                    <a href="#%e6%95%b0%e6%8d%ae%e5%ba%93%e8%ae%be%e8%ae%a1dish%e8%8f%9c%e5%93%81%e8%a1%a8%e5%92%8cdish_flavor%e5%8f%a3%e5%91%b3%e8%a1%a8" aria-label="数据库设计（dish菜品表和dish_flavor口味表）：">数据库设计（dish菜品表和dish_flavor口味表）：</a></li>
-                <li>
-                    <a href="#%e9%80%9a%e7%94%a8%e6%8e%a5%e5%8f%a3" aria-label="通用接口">通用接口</a></li>
-                <li>
-                    <a href="#%e8%8f%9c%e5%93%81%e6%8e%a5%e5%8f%a3" aria-label="菜品接口">菜品接口</a></li>
-                <li>
-                    <a href="#%e5%9c%a8mapper%e4%b8%ad%e5%ae%9e%e7%8e%b0sql" aria-label="在Mapper中实现SQL">在Mapper中实现SQL</a><ul>
-                        
-                <li>
-                    <a href="#dishmapper" aria-label="DishMapper">DishMapper</a></li>
-                <li>
-                    <a href="#dishflavormapper" aria-label="DishFlavorMapper">DishFlavorMapper</a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#%e8%8f%9c%e5%93%81%e5%88%86%e9%a1%b5%e6%9f%a5%e8%af%a2" aria-label="菜品分页查询">菜品分页查询</a><ul>
-                        
-                <li>
-                    <a href="#%e9%9c%80%e6%b1%82%e5%88%86%e6%9e%90%e5%92%8c%e8%ae%be%e8%ae%a1" aria-label="需求分析和设计">需求分析和设计</a><ul>
-                        
-                <li>
-                    <a href="#dishcontroller" aria-label="DishController">DishController</a></li>
-                <li>
-                    <a href="#%e5%ae%9e%e7%8e%b0pagequery" aria-label="实现pageQuery">实现pageQuery</a></li>
-                <li>
-                    <a href="#mapper" aria-label="Mapper">Mapper</a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#%e8%8f%9c%e5%93%81%e5%88%a0%e9%99%a4" aria-label="菜品删除">菜品删除</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="苍穹外卖后端开发day3">苍穹外卖后端开发(Day3)<a hidden class="anchor" aria-hidden="true" href="#苍穹外卖后端开发day3">#</a></h1>
-<h2 id="菜品管理">菜品管理<a hidden class="anchor" aria-hidden="true" href="#菜品管理">#</a></h2>
-<h3 id="公共字段自动填充">公共字段自动填充<a hidden class="anchor" aria-hidden="true" href="#公共字段自动填充">#</a></h3>
-<p>对于创建时间、创建人id，修改时间，修改人id等字段 重复性代码进行统一编写</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014140028159.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014140028159.png" alt="image-20241014140028159"  />
-        </a>
-    </div>
-</p>
-<h4 id="自定义注解autofill用于标识需要进行公共字段自动填充的方法">自定义注解<code>AutoFill</code>，用于标识需要进行公共字段自动填充的方法<a hidden class="anchor" aria-hidden="true" href="#自定义注解autofill用于标识需要进行公共字段自动填充的方法">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.sky.annotation;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 自定义注解，用于标识某个方法需要进行功能字段自动填充处理。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 这个注解可以应用于方法上，用于指示在特定的数据库操作时
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 需要自动填充某些功能字段。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Target</span>(ElementType.<span style="color:#a6e22e">METHOD</span>) <span style="color:#75715e">// 指定注解可以用于方法</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Retention</span>(RetentionPolicy.<span style="color:#a6e22e">RUNTIME</span>) <span style="color:#75715e">// 指定注解在运行时可用</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#a6e22e">@interface</span> AutoFill {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 数据库操作类型：用于指示自动填充的操作类型。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 可选值包括 UPDATE 和 INSERT。
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return 操作类型
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    OperationType <span style="color:#a6e22e">value</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="自定义切面类autofillaspect-统一拦截加入了autofill注解的方法通过反射为公共字段赋值">自定义切面类<code>AutoFillAspect</code>， 统一拦截加入了<code>AutoFill</code>注解的方法，通过反射为公共字段赋值。<a hidden class="anchor" aria-hidden="true" href="#自定义切面类autofillaspect-统一拦截加入了autofill注解的方法通过反射为公共字段赋值">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.sky.aspect;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 自定义切面， 实现公共字段自动填充
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Aspect</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AutoFillAspect</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 定义切入点，匹配com.sky.mapper包下的所有方法，并且方法上需有@AutoFill注解
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Pointcut</span>(<span style="color:#e6db74">&#34;execution(* com.sky.mapper.*.*(..)) &amp;&amp; @annotation(com.sky.annotation.AutoFill)&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">autoFillPointCut</span>() {
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 前置通知，在目标方法执行前进行公共字段赋值
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     *
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param joinPoint 连接点，表示被拦截的方法调用
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Before</span>(<span style="color:#e6db74">&#34;autoFillPointCut()&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">autoFill</span>(JoinPoint joinPoint) {
-</span></span><span style="display:flex;"><span>        log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;开始进行公共字段自动填充...&#34;</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前被拦截方法的签名（方法信息）</span>
-</span></span><span style="display:flex;"><span>        MethodSignature signature <span style="color:#f92672">=</span> (MethodSignature) joinPoint.<span style="color:#a6e22e">getSignature</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 从方法签名中获取@AutoFill注解</span>
-</span></span><span style="display:flex;"><span>        AutoFill autoFill <span style="color:#f92672">=</span> signature.<span style="color:#a6e22e">getMethod</span>().<span style="color:#a6e22e">getAnnotation</span>(AutoFill.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取操作类型（INSERT或UPDATE）</span>
-</span></span><span style="display:flex;"><span>        OperationType operationType <span style="color:#f92672">=</span> autoFill.<span style="color:#a6e22e">value</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取目标方法的参数（假设第一个参数是实体对象）</span>
-</span></span><span style="display:flex;"><span>        Object<span style="color:#f92672">[]</span> args <span style="color:#f92672">=</span> joinPoint.<span style="color:#a6e22e">getArgs</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (args <span style="color:#f92672">==</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">||</span> args.<span style="color:#a6e22e">length</span> <span style="color:#f92672">==</span> 0) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span>;  <span style="color:#75715e">// 如果没有参数则直接返回</span>
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取实体对象（目标方法的第一个参数）</span>
-</span></span><span style="display:flex;"><span>        Object entity <span style="color:#f92672">=</span> args<span style="color:#f92672">[</span>0<span style="color:#f92672">]</span>;
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取当前时间和当前操作用户ID</span>
-</span></span><span style="display:flex;"><span>        LocalDateTime now <span style="color:#f92672">=</span> LocalDateTime.<span style="color:#a6e22e">now</span>();
-</span></span><span style="display:flex;"><span>        Long currentId <span style="color:#f92672">=</span> BaseContext.<span style="color:#a6e22e">getCurrentId</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 根据操作类型判断是INSERT还是UPDATE操作</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (operationType <span style="color:#f92672">==</span> OperationType.<span style="color:#a6e22e">INSERT</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 通过反射调用实体对象的set方法，赋值创建和更新时间、创建和更新用户</span>
-</span></span><span style="display:flex;"><span>                Method setCreateTime <span style="color:#f92672">=</span> entity.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(AutoFillConstant.<span style="color:#a6e22e">SET_CREATE_TIME</span>, LocalDateTime.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>                Method setCreateUser <span style="color:#f92672">=</span> entity.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(AutoFillConstant.<span style="color:#a6e22e">SET_CREATE_USER</span>, Long.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>                Method setUpdateTime <span style="color:#f92672">=</span> entity.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(AutoFillConstant.<span style="color:#a6e22e">SET_UPDATE_TIME</span>, LocalDateTime.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>                Method setUpdateUser <span style="color:#f92672">=</span> entity.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(AutoFillConstant.<span style="color:#a6e22e">SET_UPDATE_USER</span>, Long.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 调用方法进行赋值</span>
-</span></span><span style="display:flex;"><span>                setCreateTime.<span style="color:#a6e22e">invoke</span>(entity, now);
-</span></span><span style="display:flex;"><span>                setCreateUser.<span style="color:#a6e22e">invoke</span>(entity, currentId);
-</span></span><span style="display:flex;"><span>                setUpdateTime.<span style="color:#a6e22e">invoke</span>(entity, now);
-</span></span><span style="display:flex;"><span>                setUpdateUser.<span style="color:#a6e22e">invoke</span>(entity, currentId);
-</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">catch</span> (Exception e) {
-</span></span><span style="display:flex;"><span>                e.<span style="color:#a6e22e">printStackTrace</span>();  <span style="color:#75715e">// 捕获异常并打印</span>
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">else</span> <span style="color:#66d9ef">if</span> (operationType <span style="color:#f92672">==</span> OperationType.<span style="color:#a6e22e">UPDATE</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 通过反射调用实体对象的set方法，赋值更新时间和更新用户</span>
-</span></span><span style="display:flex;"><span>                Method setUpdateTime <span style="color:#f92672">=</span> entity.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(AutoFillConstant.<span style="color:#a6e22e">SET_UPDATE_TIME</span>, LocalDateTime.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>                Method setUpdateUser <span style="color:#f92672">=</span> entity.<span style="color:#a6e22e">getClass</span>().<span style="color:#a6e22e">getDeclaredMethod</span>(AutoFillConstant.<span style="color:#a6e22e">SET_UPDATE_USER</span>, Long.<span style="color:#a6e22e">class</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 调用方法进行赋值</span>
-</span></span><span style="display:flex;"><span>                setUpdateTime.<span style="color:#a6e22e">invoke</span>(entity, now);
-</span></span><span style="display:flex;"><span>                setUpdateUser.<span style="color:#a6e22e">invoke</span>(entity, currentId);
-</span></span><span style="display:flex;"><span>            } <span style="color:#66d9ef">catch</span> (Exception e) {
-</span></span><span style="display:flex;"><span>                e.<span style="color:#a6e22e">printStackTrace</span>();  <span style="color:#75715e">// 捕获异常并打印</span>
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="在mapper的方法上加入autofill注解">在<code>Mapper</code>的方法上加入<code>AutoFill</code>注解<a hidden class="anchor" aria-hidden="true" href="#在mapper的方法上加入autofill注解">#</a></h4>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014144841925.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014144841925.png" alt="image-20241014144841925"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@AutoFill</span>(value <span style="color:#f92672">=</span> OperationType.<span style="color:#a6e22e">INSERT</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@AutoFill</span>(value <span style="color:#f92672">=</span> OperationType.<span style="color:#a6e22e">UPDATE</span>)
-</span></span></code></pre></div><h2 id="新增菜品">新增菜品<a hidden class="anchor" aria-hidden="true" href="#新增菜品">#</a></h2>
-<h3 id="产品原型">产品原型<a hidden class="anchor" aria-hidden="true" href="#产品原型">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145217798.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145217798.png" alt="image-20241014145217798"  />
-        </a>
-    </div>
-</p>
-<h3 id="业务规则">业务规则：<a hidden class="anchor" aria-hidden="true" href="#业务规则">#</a></h3>
-<ul>
-<li>菜品名称必须是唯一的</li>
-<li>菜品必须属于某个分类下，不能单独存在</li>
-<li>新增菜品时可以根据情况选择菜品的口味</li>
-<li>每个菜品必须对应一张图片</li>
-</ul>
-<h3 id="接口设计">接口设计：<a hidden class="anchor" aria-hidden="true" href="#接口设计">#</a></h3>
-<ul>
-<li>根据类型查询分配</li>
-<li>文件上传</li>
-<li>新增菜品</li>
-</ul>
-<h3 id="数据库设计dish菜品表和dish_flavor口味表">数据库设计（dish菜品表和dish_flavor口味表）：<a hidden class="anchor" aria-hidden="true" href="#数据库设计dish菜品表和dish_flavor口味表">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145855210.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145855210.png" alt="image-20241014145855210"  />
-        </a>
-    </div>
-</p>
-<p>配置OSS图像存储服务</p>
-<p>可以通过下面的Properties文件配置OSS的属性。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.sky.properties;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Component</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ConfigurationProperties</span>(prefix <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;sky.alioss&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Data</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AliOssProperties</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String endpoint;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String accessKeyId;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String accessKeySecret;
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> String bucketName;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014170935265.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014170935265.png" alt="image-20241014170935265"  />
-        </a>
-    </div>
-</p>
-<p>在<code>application-dev</code>中详细配置id, key等。</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014171007674.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014171007674.png" alt="image-20241014171007674"  />
-        </a>
-    </div>
-</p>
-<h3 id="通用接口">通用接口<a hidden class="anchor" aria-hidden="true" href="#通用接口">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.sky.controller.admin;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 通用接口
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RequestMapping</span>(<span style="color:#e6db74">&#34;/admin/common&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Api</span>(tags <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;通用接口&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">CommonController</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> AliOssUtil aliOssUtil;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 文件上传
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param file
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @return
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@PostMapping</span>(<span style="color:#e6db74">&#34;/upload&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Result<span style="color:#f92672">&lt;</span>String<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">upload</span>(MultipartFile file){
-</span></span><span style="display:flex;"><span>        log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;文件上传：{}&#34;</span>,file);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">try</span> {
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 原始文件名</span>
-</span></span><span style="display:flex;"><span>            String originalFilename <span style="color:#f92672">=</span> file.<span style="color:#a6e22e">getOriginalFilename</span>();
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 截取原始文件名的后缀</span>
-</span></span><span style="display:flex;"><span>            String extension <span style="color:#f92672">=</span> originalFilename.<span style="color:#a6e22e">substring</span>(originalFilename.<span style="color:#a6e22e">lastIndexOf</span>(<span style="color:#e6db74">&#39;.&#39;</span>));
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 构造新文件名称</span>
-</span></span><span style="display:flex;"><span>            String objectName <span style="color:#f92672">=</span> UUID.<span style="color:#a6e22e">randomUUID</span>().<span style="color:#a6e22e">toString</span>() <span style="color:#f92672">+</span> extension;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 文件的请求路径</span>
-</span></span><span style="display:flex;"><span>            String filePath <span style="color:#f92672">=</span> aliOssUtil.<span style="color:#a6e22e">upload</span>(file.<span style="color:#a6e22e">getBytes</span>(), objectName);
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>(filePath);
-</span></span><span style="display:flex;"><span>        } <span style="color:#66d9ef">catch</span> (IOException e) {
-</span></span><span style="display:flex;"><span>            log.<span style="color:#a6e22e">error</span>(<span style="color:#e6db74">&#34;文件上传失败：{}&#34;</span>, e);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">error</span>(MessageConstant.<span style="color:#a6e22e">UPLOAD_FAILED</span>);
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="菜品接口">菜品接口<a hidden class="anchor" aria-hidden="true" href="#菜品接口">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.sky.controller.admin;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RestController</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@RequestMapping</span>(<span style="color:#e6db74">&#34;/admin/dish&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Api</span>(tags <span style="color:#f92672">=</span> <span style="color:#e6db74">&#34;菜品相关接口&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Slf4j</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DishController</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> DishService dishService;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@PostMapping</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@ApiOperation</span>(<span style="color:#e6db74">&#34;新增菜品&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> Result <span style="color:#a6e22e">save</span>(<span style="color:#a6e22e">@RequestBody</span> DishDTO dishDTO){
-</span></span><span style="display:flex;"><span>        log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;新增菜品：{}&#34;</span>, dishDTO);
-</span></span><span style="display:flex;"><span>        dishService.<span style="color:#a6e22e">saveWithFlavor</span>(dishDTO);
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>();
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>在<code>DishServiceImpl</code>中实现<code>saveWithFlavor</code></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#f92672">package</span> com.sky.service.impl;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@Service</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">DishServiceImpl</span> <span style="color:#66d9ef">implements</span> DishService {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> DishMapper dishMapper;
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> DishFlavorMapper dishFlavorMapper;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * 新增菜品和对应的口味
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     * @param dishDTO
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">     */</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Transactional</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">saveWithFlavor</span>(DishDTO dishDTO) {
-</span></span><span style="display:flex;"><span>        Dish dish <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> Dish();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        BeanUtils.<span style="color:#a6e22e">copyProperties</span>(dishDTO, dish);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 向菜品表插入1条数据</span>
-</span></span><span style="display:flex;"><span>        dishMapper.<span style="color:#a6e22e">insert</span>(dish);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        Long dishId <span style="color:#f92672">=</span> dish.<span style="color:#a6e22e">getId</span>();
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        List<span style="color:#f92672">&lt;</span>DishFlavor<span style="color:#f92672">&gt;</span> flavors <span style="color:#f92672">=</span> dishDTO.<span style="color:#a6e22e">getFlavors</span>();
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (flavors <span style="color:#f92672">!=</span> <span style="color:#66d9ef">null</span> <span style="color:#f92672">&amp;&amp;</span> flavors.<span style="color:#a6e22e">size</span>() <span style="color:#f92672">&gt;</span> 0) {
-</span></span><span style="display:flex;"><span>            flavors.<span style="color:#a6e22e">forEach</span>(dishFlavor <span style="color:#f92672">-&gt;</span>
-</span></span><span style="display:flex;"><span>                    dishFlavor.<span style="color:#a6e22e">setDishId</span>(dishId));
-</span></span><span style="display:flex;"><span>            <span style="color:#75715e">// 向口味表插入n条数据</span>
-</span></span><span style="display:flex;"><span>            dishFlavorMapper.<span style="color:#a6e22e">insertBatch</span>(flavors);
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="在mapper中实现sql">在Mapper中实现SQL<a hidden class="anchor" aria-hidden="true" href="#在mapper中实现sql">#</a></h3>
-<h4 id="dishmapper">DishMapper<a hidden class="anchor" aria-hidden="true" href="#dishmapper">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE mapper PUBLIC &#34;-//mybatis.org//DTD Mapper 3.0//EN&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        &#34;http://mybatis.org/dtd/mybatis-3-mapper.dtd&#34; &gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">namespace=</span><span style="color:#e6db74">&#34;com.sky.mapper.DishMapper&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;insert</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;insert&#34;</span> <span style="color:#a6e22e">useGeneratedKeys=</span><span style="color:#e6db74">&#34;true&#34;</span> <span style="color:#a6e22e">keyProperty=</span><span style="color:#e6db74">&#34;id&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>        insert into dish (name, category_id, price, image, description, create_time, update_time, create_user, update_user)
-</span></span><span style="display:flex;"><span>            values
-</span></span><span style="display:flex;"><span>            (#{name}, #{categoryId}, #{price}, #{image}, #{description}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/insert&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/mapper&gt;</span>
-</span></span></code></pre></div><ul>
-<li>
-<p><code>useGeneratedKeys=&quot;true&quot;</code>: 表示在插入操作后，使用数据库生成的主键值。这个选项通常与主键自增（如 MySQL 的 AUTO_INCREMENT）一起使用。</p>
-</li>
-<li>
-<p><code>keyProperty=&quot;id&quot;</code>: 指定存储生成主键值的对象属性。在插入成功后，数据库生成的主键值会被设置到这个属性上。</p>
-</li>
-</ul>
-<h4 id="dishflavormapper">DishFlavorMapper<a hidden class="anchor" aria-hidden="true" href="#dishflavormapper">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span><span style="color:#75715e">&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">&lt;!DOCTYPE mapper PUBLIC &#34;-//mybatis.org//DTD Mapper 3.0//EN&#34;
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">        &#34;http://mybatis.org/dtd/mybatis-3-mapper.dtd&#34; &gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;mapper</span> <span style="color:#a6e22e">namespace=</span><span style="color:#e6db74">&#34;com.sky.mapper.DishFlavorMapper&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;insert</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;insertBatch&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>        insert into dish_flavor(dish_id, name, value) VALUES
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;foreach</span> <span style="color:#a6e22e">collection=</span><span style="color:#e6db74">&#34;flavors&#34;</span> <span style="color:#a6e22e">item=</span><span style="color:#e6db74">&#34;df&#34;</span> <span style="color:#a6e22e">separator=</span><span style="color:#e6db74">&#34;,&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>            (#{df.dishId}, #{df.name}, #{df.value})
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/foreach&gt;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/insert&gt;</span>
-</span></span><span style="display:flex;"><span><span style="color:#f92672">&lt;/mapper&gt;</span>
-</span></span></code></pre></div><h2 id="菜品分页查询">菜品分页查询<a hidden class="anchor" aria-hidden="true" href="#菜品分页查询">#</a></h2>
-<h3 id="需求分析和设计">需求分析和设计<a hidden class="anchor" aria-hidden="true" href="#需求分析和设计">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241015141155451.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241015141155451.png" alt="image-20241015141155451"  />
-        </a>
-    </div>
-</p>
-<h4 id="dishcontroller">DishController<a hidden class="anchor" aria-hidden="true" href="#dishcontroller">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#75715e">/**
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * 菜品分页查询
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @param dishPageQueryDTO
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> * @return
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e"> */</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@GetMapping</span>(<span style="color:#e6db74">&#34;/page&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ApiOperation</span>(<span style="color:#e6db74">&#34;菜品分页查询&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Result<span style="color:#f92672">&lt;</span>PageResult<span style="color:#f92672">&gt;</span> <span style="color:#a6e22e">page</span>(DishPageQueryDTO dishPageQueryDTO){
-</span></span><span style="display:flex;"><span>    log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;菜品分页查询{}&#34;</span>, dishPageQueryDTO);
-</span></span><span style="display:flex;"><span>    PageResult pageResult <span style="color:#f92672">=</span> dishService.<span style="color:#a6e22e">pageQuery</span>(dishPageQueryDTO);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>(pageResult);
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="实现pagequery">实现pageQuery<a hidden class="anchor" aria-hidden="true" href="#实现pagequery">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@Override</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> PageResult <span style="color:#a6e22e">pageQuery</span>(DishPageQueryDTO dishPageQueryDTO) {
-</span></span><span style="display:flex;"><span>    PageHelper.<span style="color:#a6e22e">startPage</span>(dishPageQueryDTO.<span style="color:#a6e22e">getPage</span>(), dishPageQueryDTO.<span style="color:#a6e22e">getPageSize</span>());
-</span></span><span style="display:flex;"><span>    Page<span style="color:#f92672">&lt;</span>DishVO<span style="color:#f92672">&gt;</span> page <span style="color:#f92672">=</span> dishMapper.<span style="color:#a6e22e">pageQuery</span>(dishPageQueryDTO);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> PageResult(page.<span style="color:#a6e22e">getTotal</span>(), page.<span style="color:#a6e22e">getResult</span>());
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h4 id="mapper">Mapper<a hidden class="anchor" aria-hidden="true" href="#mapper">#</a></h4>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-xml" data-lang="xml"><span style="display:flex;"><span>    <span style="color:#f92672">&lt;select</span> <span style="color:#a6e22e">id=</span><span style="color:#e6db74">&#34;pageQuery&#34;</span> <span style="color:#a6e22e">resultType=</span><span style="color:#e6db74">&#34;com.sky.vo.DishVO&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>        select d.*, c.name as categoryName from dish d left join category c on d.category_id = c.id
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;where&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;if</span> <span style="color:#a6e22e">test=</span><span style="color:#e6db74">&#34;name != null&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>                and d.name like concat(&#39;%&#39;, #{name},&#39;%&#39;)
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;/if&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;if</span> <span style="color:#a6e22e">test=</span><span style="color:#e6db74">&#34;categoryId != null&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>                and d.category_id = #{categoryId}
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;/if&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;if</span> <span style="color:#a6e22e">test=</span><span style="color:#e6db74">&#34;status != null&#34;</span><span style="color:#f92672">&gt;</span>
-</span></span><span style="display:flex;"><span>                and d.status = #{status}
-</span></span><span style="display:flex;"><span>            <span style="color:#f92672">&lt;/if&gt;</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#f92672">&lt;/where&gt;</span>
-</span></span><span style="display:flex;"><span>        order by d.create_time desc
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">&lt;/select&gt;</span>
-</span></span></code></pre></div><h2 id="菜品删除">菜品删除<a hidden class="anchor" aria-hidden="true" href="#菜品删除">#</a></h2>
-<p>业务规则：</p>
-<ul>
-<li>可以一次删除一个菜品，也可以批量删除多个菜品</li>
-<li>启售的菜品不能删除</li>
-<li>被套餐关联的菜品不能删除</li>
-<li>删除菜品后，关联的口味数据也需要删除掉</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-java" data-lang="java"><span style="display:flex;"><span><span style="color:#a6e22e">@DeleteMapping</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@ApiOperation</span>(<span style="color:#e6db74">&#34;菜品批量删除&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">public</span> Result <span style="color:#a6e22e">delete</span>(<span style="color:#a6e22e">@RequestParam</span> List<span style="color:#f92672">&lt;</span>Long<span style="color:#f92672">&gt;</span> ids){
-</span></span><span style="display:flex;"><span>    log.<span style="color:#a6e22e">info</span>(<span style="color:#e6db74">&#34;菜品批量删除:{}&#34;</span>,ids);
-</span></span><span style="display:flex;"><span>    dishService.<span style="color:#a6e22e">deleteBatch</span>(ids);
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> Result.<span style="color:#a6e22e">success</span>();
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div>
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/javaweb%E9%A1%B9%E7%9B%AE-%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96/">JavaWeb项目-苍穹外卖</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/java%E5%90%8E%E7%AB%AF">Java后端</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day5/">
-    <span class="title">« 上一页</span>
-    <span>苍穹外卖后端开发(Day5)</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day2/">
-    <span class="title">下一页 »</span>
-    <span>苍穹外卖后端开发(Day2)</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>苍穹外卖后端开发(Day3) | Kennem's Blog</title><meta name=keywords content="JavaWeb项目-苍穹外卖"><meta name=description content="苍穹外卖后端开发(Day3)"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="苍穹外卖后端开发(Day3)"><meta property="og:description" content="苍穹外卖后端开发(Day3)"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-10-14T22:30:13+08:00"><meta property="article:modified_time" content="2024-10-14T22:20:13+08:00"><meta property="article:tag" content="JavaWeb项目-苍穹外卖"><meta name=twitter:card content="summary"><meta name=twitter:title content="苍穹外卖后端开发(Day3)"><meta name=twitter:description content="苍穹外卖后端开发(Day3)"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"苍穹外卖后端开发(Day3)","item":"https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"苍穹外卖后端开发(Day3)","name":"苍穹外卖后端开发(Day3)","description":"苍穹外卖后端开发(Day3)","keywords":["JavaWeb项目-苍穹外卖"],"articleBody":"苍穹外卖后端开发(Day3) 菜品管理 公共字段自动填充 对于创建时间、创建人id，修改时间，修改人id等字段 重复性代码进行统一编写\n自定义注解AutoFill，用于标识需要进行公共字段自动填充的方法 package com.sky.annotation; /** * 自定义注解，用于标识某个方法需要进行功能字段自动填充处理。 * 这个注解可以应用于方法上，用于指示在特定的数据库操作时 * 需要自动填充某些功能字段。 */ @Target(ElementType.METHOD) // 指定注解可以用于方法 @Retention(RetentionPolicy.RUNTIME) // 指定注解在运行时可用 public @interface AutoFill { /** * 数据库操作类型：用于指示自动填充的操作类型。 * 可选值包括 UPDATE 和 INSERT。 * * @return 操作类型 */ OperationType value(); } 自定义切面类AutoFillAspect， 统一拦截加入了AutoFill注解的方法，通过反射为公共字段赋值。 package com.sky.aspect; /** * 自定义切面， 实现公共字段自动填充 */ @Aspect @Component @Slf4j public class AutoFillAspect { /** * 定义切入点，匹配com.sky.mapper包下的所有方法，并且方法上需有@AutoFill注解 */ @Pointcut(\"execution(* com.sky.mapper.*.*(..)) \u0026\u0026 @annotation(com.sky.annotation.AutoFill)\") public void autoFillPointCut() { } /** * 前置通知，在目标方法执行前进行公共字段赋值 * * @param joinPoint 连接点，表示被拦截的方法调用 */ @Before(\"autoFillPointCut()\") public void autoFill(JoinPoint joinPoint) { log.info(\"开始进行公共字段自动填充...\"); // 获取当前被拦截方法的签名（方法信息） MethodSignature signature = (MethodSignature) joinPoint.getSignature(); // 从方法签名中获取@AutoFill注解 AutoFill autoFill = signature.getMethod().getAnnotation(AutoFill.class); // 获取操作类型（INSERT或UPDATE） OperationType operationType = autoFill.value(); // 获取目标方法的参数（假设第一个参数是实体对象） Object[] args = joinPoint.getArgs(); if (args == null || args.length == 0) { return; // 如果没有参数则直接返回 } // 获取实体对象（目标方法的第一个参数） Object entity = args[0]; // 获取当前时间和当前操作用户ID LocalDateTime now = LocalDateTime.now(); Long currentId = BaseContext.getCurrentId(); // 根据操作类型判断是INSERT还是UPDATE操作 if (operationType == OperationType.INSERT) { try { // 通过反射调用实体对象的set方法，赋值创建和更新时间、创建和更新用户 Method setCreateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_TIME, LocalDateTime.class); Method setCreateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_CREATE_USER, Long.class); Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class); Method setUpdateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_USER, Long.class); // 调用方法进行赋值 setCreateTime.invoke(entity, now); setCreateUser.invoke(entity, currentId); setUpdateTime.invoke(entity, now); setUpdateUser.invoke(entity, currentId); } catch (Exception e) { e.printStackTrace(); // 捕获异常并打印 } } else if (operationType == OperationType.UPDATE) { try { // 通过反射调用实体对象的set方法，赋值更新时间和更新用户 Method setUpdateTime = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_TIME, LocalDateTime.class); Method setUpdateUser = entity.getClass().getDeclaredMethod(AutoFillConstant.SET_UPDATE_USER, Long.class); // 调用方法进行赋值 setUpdateTime.invoke(entity, now); setUpdateUser.invoke(entity, currentId); } catch (Exception e) { e.printStackTrace(); // 捕获异常并打印 } } } } 在Mapper的方法上加入AutoFill注解 @AutoFill(value = OperationType.INSERT) @AutoFill(value = OperationType.UPDATE) 新增菜品 产品原型 业务规则： 菜品名称必须是唯一的 菜品必须属于某个分类下，不能单独存在 新增菜品时可以根据情况选择菜品的口味 每个菜品必须对应一张图片 接口设计： 根据类型查询分配 文件上传 新增菜品 数据库设计（dish菜品表和dish_flavor口味表）： 配置OSS图像存储服务\n可以通过下面的Properties文件配置OSS的属性。\npackage com.sky.properties; @Component @ConfigurationProperties(prefix = \"sky.alioss\") @Data public class AliOssProperties { private String endpoint; private String accessKeyId; private String accessKeySecret; private String bucketName; } 在application-dev中详细配置id, key等。\n通用接口 package com.sky.controller.admin; /** * 通用接口 */ @RestController @RequestMapping(\"/admin/common\") @Api(tags = \"通用接口\") @Slf4j public class CommonController { @Autowired private AliOssUtil aliOssUtil; /** * 文件上传 * @param file * @return */ @PostMapping(\"/upload\") public Result\u003cString\u003e upload(MultipartFile file){ log.info(\"文件上传：{}\",file); try { // 原始文件名 String originalFilename = file.getOriginalFilename(); // 截取原始文件名的后缀 String extension = originalFilename.substring(originalFilename.lastIndexOf('.')); // 构造新文件名称 String objectName = UUID.randomUUID().toString() + extension; // 文件的请求路径 String filePath = aliOssUtil.upload(file.getBytes(), objectName); return Result.success(filePath); } catch (IOException e) { log.error(\"文件上传失败：{}\", e); } return Result.error(MessageConstant.UPLOAD_FAILED); } } 菜品接口 package com.sky.controller.admin; @RestController @RequestMapping(\"/admin/dish\") @Api(tags = \"菜品相关接口\") @Slf4j public class DishController { @Autowired private DishService dishService; @PostMapping @ApiOperation(\"新增菜品\") public Result save(@RequestBody DishDTO dishDTO){ log.info(\"新增菜品：{}\", dishDTO); dishService.saveWithFlavor(dishDTO); return Result.success(); } } 在DishServiceImpl中实现saveWithFlavor\npackage com.sky.service.impl; @Service public class DishServiceImpl implements DishService { @Autowired private DishMapper dishMapper; @Autowired private DishFlavorMapper dishFlavorMapper; /** * 新增菜品和对应的口味 * @param dishDTO */ @Transactional public void saveWithFlavor(DishDTO dishDTO) { Dish dish = new Dish(); BeanUtils.copyProperties(dishDTO, dish); // 向菜品表插入1条数据 dishMapper.insert(dish); Long dishId = dish.getId(); List\u003cDishFlavor\u003e flavors = dishDTO.getFlavors(); if (flavors != null \u0026\u0026 flavors.size() \u003e 0) { flavors.forEach(dishFlavor -\u003e dishFlavor.setDishId(dishId)); // 向口味表插入n条数据 dishFlavorMapper.insertBatch(flavors); } } } 在Mapper中实现SQL DishMapper \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\" \u003e namespace=\"com.sky.mapper.DishMapper\"\u003e id=\"insert\" useGeneratedKeys=\"true\" keyProperty=\"id\"\u003e insert into dish (name, category_id, price, image, description, create_time, update_time, create_user, update_user) values (#{name}, #{categoryId}, #{price}, #{image}, #{description}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser}) useGeneratedKeys=\"true\": 表示在插入操作后，使用数据库生成的主键值。这个选项通常与主键自增（如 MySQL 的 AUTO_INCREMENT）一起使用。\nkeyProperty=\"id\": 指定存储生成主键值的对象属性。在插入成功后，数据库生成的主键值会被设置到这个属性上。\nDishFlavorMapper \"http://mybatis.org/dtd/mybatis-3-mapper.dtd\" \u003e namespace=\"com.sky.mapper.DishFlavorMapper\"\u003e id=\"insertBatch\"\u003e insert into dish_flavor(dish_id, name, value) VALUES collection=\"flavors\" item=\"df\" separator=\",\"\u003e (#{df.dishId}, #{df.name}, #{df.value}) 菜品分页查询 需求分析和设计 DishController /** * 菜品分页查询 * @param dishPageQueryDTO * @return */ @GetMapping(\"/page\") @ApiOperation(\"菜品分页查询\") public Result\u003cPageResult\u003e page(DishPageQueryDTO dishPageQueryDTO){ log.info(\"菜品分页查询{}\", dishPageQueryDTO); PageResult pageResult = dishService.pageQuery(dishPageQueryDTO); return Result.success(pageResult); } 实现pageQuery @Override public PageResult pageQuery(DishPageQueryDTO dishPageQueryDTO) { PageHelper.startPage(dishPageQueryDTO.getPage(), dishPageQueryDTO.getPageSize()); Page\u003cDishVO\u003e page = dishMapper.pageQuery(dishPageQueryDTO); return new PageResult(page.getTotal(), page.getResult()); } Mapper id=\"pageQuery\" resultType=\"com.sky.vo.DishVO\"\u003e select d.*, c.name as categoryName from dish d left join category c on d.category_id = c.id test=\"name != null\"\u003e and d.name like concat('%', #{name},'%') test=\"categoryId != null\"\u003e and d.category_id = #{categoryId} test=\"status != null\"\u003e and d.status = #{status} order by d.create_time desc 菜品删除 业务规则：\n可以一次删除一个菜品，也可以批量删除多个菜品 启售的菜品不能删除 被套餐关联的菜品不能删除 删除菜品后，关联的口味数据也需要删除掉 @DeleteMapping @ApiOperation(\"菜品批量删除\") public Result delete(@RequestParam List\u003cLong\u003e ids){ log.info(\"菜品批量删除:{}\",ids); dishService.deleteBatch(ids); return Result.success(); } ","wordCount":"2026","inLanguage":"zh","datePublished":"2024-10-14T22:30:13+08:00","dateModified":"2024-10-14T22:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day3/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">苍穹外卖后端开发(Day3)</h1><div class=post-description>苍穹外卖后端开发(Day3)</div><div class=post-meta><span title='2024-10-14 22:30:13 +0800 +0800'>2024-10-14</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2026 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#%e8%8b%8d%e7%a9%b9%e5%a4%96%e5%8d%96%e5%90%8e%e7%ab%af%e5%bc%80%e5%8f%91day3 aria-label=苍穹外卖后端开发(Day3)>苍穹外卖后端开发(Day3)</a><ul><li><a href=#%e8%8f%9c%e5%93%81%e7%ae%a1%e7%90%86 aria-label=菜品管理>菜品管理</a><ul><li><a href=#%e5%85%ac%e5%85%b1%e5%ad%97%e6%ae%b5%e8%87%aa%e5%8a%a8%e5%a1%ab%e5%85%85 aria-label=公共字段自动填充>公共字段自动填充</a><ul><li><a href=#%e8%87%aa%e5%ae%9a%e4%b9%89%e6%b3%a8%e8%a7%a3autofill%e7%94%a8%e4%ba%8e%e6%a0%87%e8%af%86%e9%9c%80%e8%a6%81%e8%bf%9b%e8%a1%8c%e5%85%ac%e5%85%b1%e5%ad%97%e6%ae%b5%e8%87%aa%e5%8a%a8%e5%a1%ab%e5%85%85%e7%9a%84%e6%96%b9%e6%b3%95 aria-label=自定义注解AutoFill，用于标识需要进行公共字段自动填充的方法>自定义注解<code>AutoFill</code>，用于标识需要进行公共字段自动填充的方法</a></li><li><a href=#%e8%87%aa%e5%ae%9a%e4%b9%89%e5%88%87%e9%9d%a2%e7%b1%bbautofillaspect-%e7%bb%9f%e4%b8%80%e6%8b%a6%e6%88%aa%e5%8a%a0%e5%85%a5%e4%ba%86autofill%e6%b3%a8%e8%a7%a3%e7%9a%84%e6%96%b9%e6%b3%95%e9%80%9a%e8%bf%87%e5%8f%8d%e5%b0%84%e4%b8%ba%e5%85%ac%e5%85%b1%e5%ad%97%e6%ae%b5%e8%b5%8b%e5%80%bc aria-label="自定义切面类AutoFillAspect， 统一拦截加入了AutoFill注解的方法，通过反射为公共字段赋值。">自定义切面类<code>AutoFillAspect</code>， 统一拦截加入了<code>AutoFill</code>注解的方法，通过反射为公共字段赋值。</a></li><li><a href=#%e5%9c%a8mapper%e7%9a%84%e6%96%b9%e6%b3%95%e4%b8%8a%e5%8a%a0%e5%85%a5autofill%e6%b3%a8%e8%a7%a3 aria-label=在Mapper的方法上加入AutoFill注解>在<code>Mapper</code>的方法上加入<code>AutoFill</code>注解</a></li></ul></li></ul></li><li><a href=#%e6%96%b0%e5%a2%9e%e8%8f%9c%e5%93%81 aria-label=新增菜品>新增菜品</a><ul><li><a href=#%e4%ba%a7%e5%93%81%e5%8e%9f%e5%9e%8b aria-label=产品原型>产品原型</a></li><li><a href=#%e4%b8%9a%e5%8a%a1%e8%a7%84%e5%88%99 aria-label=业务规则：>业务规则：</a></li><li><a href=#%e6%8e%a5%e5%8f%a3%e8%ae%be%e8%ae%a1 aria-label=接口设计：>接口设计：</a></li><li><a href=#%e6%95%b0%e6%8d%ae%e5%ba%93%e8%ae%be%e8%ae%a1dish%e8%8f%9c%e5%93%81%e8%a1%a8%e5%92%8cdish_flavor%e5%8f%a3%e5%91%b3%e8%a1%a8 aria-label=数据库设计（dish菜品表和dish_flavor口味表）：>数据库设计（dish菜品表和dish_flavor口味表）：</a></li><li><a href=#%e9%80%9a%e7%94%a8%e6%8e%a5%e5%8f%a3 aria-label=通用接口>通用接口</a></li><li><a href=#%e8%8f%9c%e5%93%81%e6%8e%a5%e5%8f%a3 aria-label=菜品接口>菜品接口</a></li><li><a href=#%e5%9c%a8mapper%e4%b8%ad%e5%ae%9e%e7%8e%b0sql aria-label=在Mapper中实现SQL>在Mapper中实现SQL</a><ul><li><a href=#dishmapper aria-label=DishMapper>DishMapper</a></li><li><a href=#dishflavormapper aria-label=DishFlavorMapper>DishFlavorMapper</a></li></ul></li></ul></li><li><a href=#%e8%8f%9c%e5%93%81%e5%88%86%e9%a1%b5%e6%9f%a5%e8%af%a2 aria-label=菜品分页查询>菜品分页查询</a><ul><li><a href=#%e9%9c%80%e6%b1%82%e5%88%86%e6%9e%90%e5%92%8c%e8%ae%be%e8%ae%a1 aria-label=需求分析和设计>需求分析和设计</a><ul><li><a href=#dishcontroller aria-label=DishController>DishController</a></li><li><a href=#%e5%ae%9e%e7%8e%b0pagequery aria-label=实现pageQuery>实现pageQuery</a></li><li><a href=#mapper aria-label=Mapper>Mapper</a></li></ul></li></ul></li><li><a href=#%e8%8f%9c%e5%93%81%e5%88%a0%e9%99%a4 aria-label=菜品删除>菜品删除</a></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=苍穹外卖后端开发day3>苍穹外卖后端开发(Day3)<a hidden class=anchor aria-hidden=true href=#苍穹外卖后端开发day3>#</a></h1><h2 id=菜品管理>菜品管理<a hidden class=anchor aria-hidden=true href=#菜品管理>#</a></h2><h3 id=公共字段自动填充>公共字段自动填充<a hidden class=anchor aria-hidden=true href=#公共字段自动填充>#</a></h3><p>对于创建时间、创建人id，修改时间，修改人id等字段 重复性代码进行统一编写</p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014140028159.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014140028159.png alt=image-20241014140028159></a></div></p><h4 id=自定义注解autofill用于标识需要进行公共字段自动填充的方法>自定义注解<code>AutoFill</code>，用于标识需要进行公共字段自动填充的方法<a hidden class=anchor aria-hidden=true href=#自定义注解autofill用于标识需要进行公共字段自动填充的方法>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>package</span> com.sky.annotation;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * 自定义注解，用于标识某个方法需要进行功能字段自动填充处理。
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * 这个注解可以应用于方法上，用于指示在特定的数据库操作时
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * 需要自动填充某些功能字段。
+</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Target</span>(ElementType.<span style=color:#a6e22e>METHOD</span>) <span style=color:#75715e>// 指定注解可以用于方法</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Retention</span>(RetentionPolicy.<span style=color:#a6e22e>RUNTIME</span>) <span style=color:#75715e>// 指定注解在运行时可用</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#a6e22e>@interface</span> AutoFill {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 数据库操作类型：用于指示自动填充的操作类型。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 可选值包括 UPDATE 和 INSERT。
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * @return 操作类型
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     */</span>
+</span></span><span style=display:flex><span>    OperationType <span style=color:#a6e22e>value</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=自定义切面类autofillaspect-统一拦截加入了autofill注解的方法通过反射为公共字段赋值>自定义切面类<code>AutoFillAspect</code>， 统一拦截加入了<code>AutoFill</code>注解的方法，通过反射为公共字段赋值。<a hidden class=anchor aria-hidden=true href=#自定义切面类autofillaspect-统一拦截加入了autofill注解的方法通过反射为公共字段赋值>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>package</span> com.sky.aspect;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * 自定义切面， 实现公共字段自动填充
+</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Aspect</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Component</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Slf4j</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AutoFillAspect</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 定义切入点，匹配com.sky.mapper包下的所有方法，并且方法上需有@AutoFill注解
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     */</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Pointcut</span>(<span style=color:#e6db74>&#34;execution(* com.sky.mapper.*.*(..)) &amp;&amp; @annotation(com.sky.annotation.AutoFill)&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>autoFillPointCut</span>() {
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 前置通知，在目标方法执行前进行公共字段赋值
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     *
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * @param joinPoint 连接点，表示被拦截的方法调用
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     */</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Before</span>(<span style=color:#e6db74>&#34;autoFillPointCut()&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>autoFill</span>(JoinPoint joinPoint) {
+</span></span><span style=display:flex><span>        log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;开始进行公共字段自动填充...&#34;</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取当前被拦截方法的签名（方法信息）</span>
+</span></span><span style=display:flex><span>        MethodSignature signature <span style=color:#f92672>=</span> (MethodSignature) joinPoint.<span style=color:#a6e22e>getSignature</span>();
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 从方法签名中获取@AutoFill注解</span>
+</span></span><span style=display:flex><span>        AutoFill autoFill <span style=color:#f92672>=</span> signature.<span style=color:#a6e22e>getMethod</span>().<span style=color:#a6e22e>getAnnotation</span>(AutoFill.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取操作类型（INSERT或UPDATE）</span>
+</span></span><span style=display:flex><span>        OperationType operationType <span style=color:#f92672>=</span> autoFill.<span style=color:#a6e22e>value</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取目标方法的参数（假设第一个参数是实体对象）</span>
+</span></span><span style=display:flex><span>        Object<span style=color:#f92672>[]</span> args <span style=color:#f92672>=</span> joinPoint.<span style=color:#a6e22e>getArgs</span>();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (args <span style=color:#f92672>==</span> <span style=color:#66d9ef>null</span> <span style=color:#f92672>||</span> args.<span style=color:#a6e22e>length</span> <span style=color:#f92672>==</span> 0) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span>;  <span style=color:#75715e>// 如果没有参数则直接返回</span>
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取实体对象（目标方法的第一个参数）</span>
+</span></span><span style=display:flex><span>        Object entity <span style=color:#f92672>=</span> args<span style=color:#f92672>[</span>0<span style=color:#f92672>]</span>;
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取当前时间和当前操作用户ID</span>
+</span></span><span style=display:flex><span>        LocalDateTime now <span style=color:#f92672>=</span> LocalDateTime.<span style=color:#a6e22e>now</span>();
+</span></span><span style=display:flex><span>        Long currentId <span style=color:#f92672>=</span> BaseContext.<span style=color:#a6e22e>getCurrentId</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 根据操作类型判断是INSERT还是UPDATE操作</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (operationType <span style=color:#f92672>==</span> OperationType.<span style=color:#a6e22e>INSERT</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 通过反射调用实体对象的set方法，赋值创建和更新时间、创建和更新用户</span>
+</span></span><span style=display:flex><span>                Method setCreateTime <span style=color:#f92672>=</span> entity.<span style=color:#a6e22e>getClass</span>().<span style=color:#a6e22e>getDeclaredMethod</span>(AutoFillConstant.<span style=color:#a6e22e>SET_CREATE_TIME</span>, LocalDateTime.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>                Method setCreateUser <span style=color:#f92672>=</span> entity.<span style=color:#a6e22e>getClass</span>().<span style=color:#a6e22e>getDeclaredMethod</span>(AutoFillConstant.<span style=color:#a6e22e>SET_CREATE_USER</span>, Long.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>                Method setUpdateTime <span style=color:#f92672>=</span> entity.<span style=color:#a6e22e>getClass</span>().<span style=color:#a6e22e>getDeclaredMethod</span>(AutoFillConstant.<span style=color:#a6e22e>SET_UPDATE_TIME</span>, LocalDateTime.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>                Method setUpdateUser <span style=color:#f92672>=</span> entity.<span style=color:#a6e22e>getClass</span>().<span style=color:#a6e22e>getDeclaredMethod</span>(AutoFillConstant.<span style=color:#a6e22e>SET_UPDATE_USER</span>, Long.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 调用方法进行赋值</span>
+</span></span><span style=display:flex><span>                setCreateTime.<span style=color:#a6e22e>invoke</span>(entity, now);
+</span></span><span style=display:flex><span>                setCreateUser.<span style=color:#a6e22e>invoke</span>(entity, currentId);
+</span></span><span style=display:flex><span>                setUpdateTime.<span style=color:#a6e22e>invoke</span>(entity, now);
+</span></span><span style=display:flex><span>                setUpdateUser.<span style=color:#a6e22e>invoke</span>(entity, currentId);
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>catch</span> (Exception e) {
+</span></span><span style=display:flex><span>                e.<span style=color:#a6e22e>printStackTrace</span>();  <span style=color:#75715e>// 捕获异常并打印</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>else</span> <span style=color:#66d9ef>if</span> (operationType <span style=color:#f92672>==</span> OperationType.<span style=color:#a6e22e>UPDATE</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 通过反射调用实体对象的set方法，赋值更新时间和更新用户</span>
+</span></span><span style=display:flex><span>                Method setUpdateTime <span style=color:#f92672>=</span> entity.<span style=color:#a6e22e>getClass</span>().<span style=color:#a6e22e>getDeclaredMethod</span>(AutoFillConstant.<span style=color:#a6e22e>SET_UPDATE_TIME</span>, LocalDateTime.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>                Method setUpdateUser <span style=color:#f92672>=</span> entity.<span style=color:#a6e22e>getClass</span>().<span style=color:#a6e22e>getDeclaredMethod</span>(AutoFillConstant.<span style=color:#a6e22e>SET_UPDATE_USER</span>, Long.<span style=color:#a6e22e>class</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 调用方法进行赋值</span>
+</span></span><span style=display:flex><span>                setUpdateTime.<span style=color:#a6e22e>invoke</span>(entity, now);
+</span></span><span style=display:flex><span>                setUpdateUser.<span style=color:#a6e22e>invoke</span>(entity, currentId);
+</span></span><span style=display:flex><span>            } <span style=color:#66d9ef>catch</span> (Exception e) {
+</span></span><span style=display:flex><span>                e.<span style=color:#a6e22e>printStackTrace</span>();  <span style=color:#75715e>// 捕获异常并打印</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=在mapper的方法上加入autofill注解>在<code>Mapper</code>的方法上加入<code>AutoFill</code>注解<a hidden class=anchor aria-hidden=true href=#在mapper的方法上加入autofill注解>#</a></h4><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014144841925.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014144841925.png alt=image-20241014144841925></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@AutoFill</span>(value <span style=color:#f92672>=</span> OperationType.<span style=color:#a6e22e>INSERT</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@AutoFill</span>(value <span style=color:#f92672>=</span> OperationType.<span style=color:#a6e22e>UPDATE</span>)
+</span></span></code></pre></div><h2 id=新增菜品>新增菜品<a hidden class=anchor aria-hidden=true href=#新增菜品>#</a></h2><h3 id=产品原型>产品原型<a hidden class=anchor aria-hidden=true href=#产品原型>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145217798.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145217798.png alt=image-20241014145217798></a></div></p><h3 id=业务规则>业务规则：<a hidden class=anchor aria-hidden=true href=#业务规则>#</a></h3><ul><li>菜品名称必须是唯一的</li><li>菜品必须属于某个分类下，不能单独存在</li><li>新增菜品时可以根据情况选择菜品的口味</li><li>每个菜品必须对应一张图片</li></ul><h3 id=接口设计>接口设计：<a hidden class=anchor aria-hidden=true href=#接口设计>#</a></h3><ul><li>根据类型查询分配</li><li>文件上传</li><li>新增菜品</li></ul><h3 id=数据库设计dish菜品表和dish_flavor口味表>数据库设计（dish菜品表和dish_flavor口味表）：<a hidden class=anchor aria-hidden=true href=#数据库设计dish菜品表和dish_flavor口味表>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145855210.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014145855210.png alt=image-20241014145855210></a></div></p><p>配置OSS图像存储服务</p><p>可以通过下面的Properties文件配置OSS的属性。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>package</span> com.sky.properties;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Component</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@ConfigurationProperties</span>(prefix <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;sky.alioss&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Data</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AliOssProperties</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> String endpoint;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> String accessKeyId;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> String accessKeySecret;
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> String bucketName;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014170935265.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014170935265.png alt=image-20241014170935265></a></div></p><p>在<code>application-dev</code>中详细配置id, key等。</p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014171007674.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241014171007674.png alt=image-20241014171007674></a></div></p><h3 id=通用接口>通用接口<a hidden class=anchor aria-hidden=true href=#通用接口>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>package</span> com.sky.controller.admin;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * 通用接口
+</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@RestController</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@RequestMapping</span>(<span style=color:#e6db74>&#34;/admin/common&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Api</span>(tags <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;通用接口&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Slf4j</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>CommonController</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> AliOssUtil aliOssUtil;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 文件上传
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * @param file
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * @return
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     */</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@PostMapping</span>(<span style=color:#e6db74>&#34;/upload&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Result<span style=color:#f92672>&lt;</span>String<span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>upload</span>(MultipartFile file){
+</span></span><span style=display:flex><span>        log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;文件上传：{}&#34;</span>,file);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>try</span> {
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 原始文件名</span>
+</span></span><span style=display:flex><span>            String originalFilename <span style=color:#f92672>=</span> file.<span style=color:#a6e22e>getOriginalFilename</span>();
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 截取原始文件名的后缀</span>
+</span></span><span style=display:flex><span>            String extension <span style=color:#f92672>=</span> originalFilename.<span style=color:#a6e22e>substring</span>(originalFilename.<span style=color:#a6e22e>lastIndexOf</span>(<span style=color:#e6db74>&#39;.&#39;</span>));
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 构造新文件名称</span>
+</span></span><span style=display:flex><span>            String objectName <span style=color:#f92672>=</span> UUID.<span style=color:#a6e22e>randomUUID</span>().<span style=color:#a6e22e>toString</span>() <span style=color:#f92672>+</span> extension;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 文件的请求路径</span>
+</span></span><span style=display:flex><span>            String filePath <span style=color:#f92672>=</span> aliOssUtil.<span style=color:#a6e22e>upload</span>(file.<span style=color:#a6e22e>getBytes</span>(), objectName);
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> Result.<span style=color:#a6e22e>success</span>(filePath);
+</span></span><span style=display:flex><span>        } <span style=color:#66d9ef>catch</span> (IOException e) {
+</span></span><span style=display:flex><span>            log.<span style=color:#a6e22e>error</span>(<span style=color:#e6db74>&#34;文件上传失败：{}&#34;</span>, e);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Result.<span style=color:#a6e22e>error</span>(MessageConstant.<span style=color:#a6e22e>UPLOAD_FAILED</span>);
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=菜品接口>菜品接口<a hidden class=anchor aria-hidden=true href=#菜品接口>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>package</span> com.sky.controller.admin;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@RestController</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@RequestMapping</span>(<span style=color:#e6db74>&#34;/admin/dish&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Api</span>(tags <span style=color:#f92672>=</span> <span style=color:#e6db74>&#34;菜品相关接口&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Slf4j</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DishController</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> DishService dishService;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@PostMapping</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@ApiOperation</span>(<span style=color:#e6db74>&#34;新增菜品&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> Result <span style=color:#a6e22e>save</span>(<span style=color:#a6e22e>@RequestBody</span> DishDTO dishDTO){
+</span></span><span style=display:flex><span>        log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;新增菜品：{}&#34;</span>, dishDTO);
+</span></span><span style=display:flex><span>        dishService.<span style=color:#a6e22e>saveWithFlavor</span>(dishDTO);
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> Result.<span style=color:#a6e22e>success</span>();
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>在<code>DishServiceImpl</code>中实现<code>saveWithFlavor</code></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#f92672>package</span> com.sky.service.impl;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@Service</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>DishServiceImpl</span> <span style=color:#66d9ef>implements</span> DishService {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> DishMapper dishMapper;
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> DishFlavorMapper dishFlavorMapper;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * 新增菜品和对应的口味
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     * @param dishDTO
+</span></span></span><span style=display:flex><span><span style=color:#75715e>     */</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Transactional</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>public</span> <span style=color:#66d9ef>void</span> <span style=color:#a6e22e>saveWithFlavor</span>(DishDTO dishDTO) {
+</span></span><span style=display:flex><span>        Dish dish <span style=color:#f92672>=</span> <span style=color:#66d9ef>new</span> Dish();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        BeanUtils.<span style=color:#a6e22e>copyProperties</span>(dishDTO, dish);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 向菜品表插入1条数据</span>
+</span></span><span style=display:flex><span>        dishMapper.<span style=color:#a6e22e>insert</span>(dish);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        Long dishId <span style=color:#f92672>=</span> dish.<span style=color:#a6e22e>getId</span>();
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        List<span style=color:#f92672>&lt;</span>DishFlavor<span style=color:#f92672>&gt;</span> flavors <span style=color:#f92672>=</span> dishDTO.<span style=color:#a6e22e>getFlavors</span>();
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (flavors <span style=color:#f92672>!=</span> <span style=color:#66d9ef>null</span> <span style=color:#f92672>&amp;&amp;</span> flavors.<span style=color:#a6e22e>size</span>() <span style=color:#f92672>&gt;</span> 0) {
+</span></span><span style=display:flex><span>            flavors.<span style=color:#a6e22e>forEach</span>(dishFlavor <span style=color:#f92672>-&gt;</span>
+</span></span><span style=display:flex><span>                    dishFlavor.<span style=color:#a6e22e>setDishId</span>(dishId));
+</span></span><span style=display:flex><span>            <span style=color:#75715e>// 向口味表插入n条数据</span>
+</span></span><span style=display:flex><span>            dishFlavorMapper.<span style=color:#a6e22e>insertBatch</span>(flavors);
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=在mapper中实现sql>在Mapper中实现SQL<a hidden class=anchor aria-hidden=true href=#在mapper中实现sql>#</a></h3><h4 id=dishmapper>DishMapper<a hidden class=anchor aria-hidden=true href=#dishmapper>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-xml data-lang=xml><span style=display:flex><span><span style=color:#75715e>&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE mapper PUBLIC &#34;-//mybatis.org//DTD Mapper 3.0//EN&#34;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>        &#34;http://mybatis.org/dtd/mybatis-3-mapper.dtd&#34; &gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;mapper</span> <span style=color:#a6e22e>namespace=</span><span style=color:#e6db74>&#34;com.sky.mapper.DishMapper&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;insert</span> <span style=color:#a6e22e>id=</span><span style=color:#e6db74>&#34;insert&#34;</span> <span style=color:#a6e22e>useGeneratedKeys=</span><span style=color:#e6db74>&#34;true&#34;</span> <span style=color:#a6e22e>keyProperty=</span><span style=color:#e6db74>&#34;id&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>        insert into dish (name, category_id, price, image, description, create_time, update_time, create_user, update_user)
+</span></span><span style=display:flex><span>            values
+</span></span><span style=display:flex><span>            (#{name}, #{categoryId}, #{price}, #{image}, #{description}, #{createTime}, #{updateTime}, #{createUser}, #{updateUser})
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;/insert&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;/mapper&gt;</span>
+</span></span></code></pre></div><ul><li><p><code>useGeneratedKeys="true"</code>: 表示在插入操作后，使用数据库生成的主键值。这个选项通常与主键自增（如 MySQL 的 AUTO_INCREMENT）一起使用。</p></li><li><p><code>keyProperty="id"</code>: 指定存储生成主键值的对象属性。在插入成功后，数据库生成的主键值会被设置到这个属性上。</p></li></ul><h4 id=dishflavormapper>DishFlavorMapper<a hidden class=anchor aria-hidden=true href=#dishflavormapper>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-xml data-lang=xml><span style=display:flex><span><span style=color:#75715e>&lt;?xml version=&#34;1.0&#34; encoding=&#34;UTF-8&#34; ?&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#75715e>&lt;!DOCTYPE mapper PUBLIC &#34;-//mybatis.org//DTD Mapper 3.0//EN&#34;
+</span></span></span><span style=display:flex><span><span style=color:#75715e>        &#34;http://mybatis.org/dtd/mybatis-3-mapper.dtd&#34; &gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;mapper</span> <span style=color:#a6e22e>namespace=</span><span style=color:#e6db74>&#34;com.sky.mapper.DishFlavorMapper&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;insert</span> <span style=color:#a6e22e>id=</span><span style=color:#e6db74>&#34;insertBatch&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>        insert into dish_flavor(dish_id, name, value) VALUES
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;foreach</span> <span style=color:#a6e22e>collection=</span><span style=color:#e6db74>&#34;flavors&#34;</span> <span style=color:#a6e22e>item=</span><span style=color:#e6db74>&#34;df&#34;</span> <span style=color:#a6e22e>separator=</span><span style=color:#e6db74>&#34;,&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>            (#{df.dishId}, #{df.name}, #{df.value})
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;/foreach&gt;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;/insert&gt;</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>&lt;/mapper&gt;</span>
+</span></span></code></pre></div><h2 id=菜品分页查询>菜品分页查询<a hidden class=anchor aria-hidden=true href=#菜品分页查询>#</a></h2><h3 id=需求分析和设计>需求分析和设计<a hidden class=anchor aria-hidden=true href=#需求分析和设计>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241015141155451.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20241015141155451.png alt=image-20241015141155451></a></div></p><h4 id=dishcontroller>DishController<a hidden class=anchor aria-hidden=true href=#dishcontroller>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#75715e>/**
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * 菜品分页查询
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * @param dishPageQueryDTO
+</span></span></span><span style=display:flex><span><span style=color:#75715e> * @return
+</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@GetMapping</span>(<span style=color:#e6db74>&#34;/page&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@ApiOperation</span>(<span style=color:#e6db74>&#34;菜品分页查询&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> Result<span style=color:#f92672>&lt;</span>PageResult<span style=color:#f92672>&gt;</span> <span style=color:#a6e22e>page</span>(DishPageQueryDTO dishPageQueryDTO){
+</span></span><span style=display:flex><span>    log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;菜品分页查询{}&#34;</span>, dishPageQueryDTO);
+</span></span><span style=display:flex><span>    PageResult pageResult <span style=color:#f92672>=</span> dishService.<span style=color:#a6e22e>pageQuery</span>(dishPageQueryDTO);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> Result.<span style=color:#a6e22e>success</span>(pageResult);
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=实现pagequery>实现pageQuery<a hidden class=anchor aria-hidden=true href=#实现pagequery>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@Override</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> PageResult <span style=color:#a6e22e>pageQuery</span>(DishPageQueryDTO dishPageQueryDTO) {
+</span></span><span style=display:flex><span>    PageHelper.<span style=color:#a6e22e>startPage</span>(dishPageQueryDTO.<span style=color:#a6e22e>getPage</span>(), dishPageQueryDTO.<span style=color:#a6e22e>getPageSize</span>());
+</span></span><span style=display:flex><span>    Page<span style=color:#f92672>&lt;</span>DishVO<span style=color:#f92672>&gt;</span> page <span style=color:#f92672>=</span> dishMapper.<span style=color:#a6e22e>pageQuery</span>(dishPageQueryDTO);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>new</span> PageResult(page.<span style=color:#a6e22e>getTotal</span>(), page.<span style=color:#a6e22e>getResult</span>());
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h4 id=mapper>Mapper<a hidden class=anchor aria-hidden=true href=#mapper>#</a></h4><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-xml data-lang=xml><span style=display:flex><span>    <span style=color:#f92672>&lt;select</span> <span style=color:#a6e22e>id=</span><span style=color:#e6db74>&#34;pageQuery&#34;</span> <span style=color:#a6e22e>resultType=</span><span style=color:#e6db74>&#34;com.sky.vo.DishVO&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>        select d.*, c.name as categoryName from dish d left join category c on d.category_id = c.id
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;where&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;if</span> <span style=color:#a6e22e>test=</span><span style=color:#e6db74>&#34;name != null&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>                and d.name like concat(&#39;%&#39;, #{name},&#39;%&#39;)
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;/if&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;if</span> <span style=color:#a6e22e>test=</span><span style=color:#e6db74>&#34;categoryId != null&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>                and d.category_id = #{categoryId}
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;/if&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;if</span> <span style=color:#a6e22e>test=</span><span style=color:#e6db74>&#34;status != null&#34;</span><span style=color:#f92672>&gt;</span>
+</span></span><span style=display:flex><span>                and d.status = #{status}
+</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;/if&gt;</span>
+</span></span><span style=display:flex><span>        <span style=color:#f92672>&lt;/where&gt;</span>
+</span></span><span style=display:flex><span>        order by d.create_time desc
+</span></span><span style=display:flex><span>    <span style=color:#f92672>&lt;/select&gt;</span>
+</span></span></code></pre></div><h2 id=菜品删除>菜品删除<a hidden class=anchor aria-hidden=true href=#菜品删除>#</a></h2><p>业务规则：</p><ul><li>可以一次删除一个菜品，也可以批量删除多个菜品</li><li>启售的菜品不能删除</li><li>被套餐关联的菜品不能删除</li><li>删除菜品后，关联的口味数据也需要删除掉</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-java data-lang=java><span style=display:flex><span><span style=color:#a6e22e>@DeleteMapping</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@ApiOperation</span>(<span style=color:#e6db74>&#34;菜品批量删除&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>public</span> Result <span style=color:#a6e22e>delete</span>(<span style=color:#a6e22e>@RequestParam</span> List<span style=color:#f92672>&lt;</span>Long<span style=color:#f92672>&gt;</span> ids){
+</span></span><span style=display:flex><span>    log.<span style=color:#a6e22e>info</span>(<span style=color:#e6db74>&#34;菜品批量删除:{}&#34;</span>,ids);
+</span></span><span style=display:flex><span>    dishService.<span style=color:#a6e22e>deleteBatch</span>(ids);
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> Result.<span style=color:#a6e22e>success</span>();
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/javaweb%E9%A1%B9%E7%9B%AE-%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96/>JavaWeb项目-苍穹外卖</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/java%E5%90%8E%E7%AB%AF>Java后端</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day5/><span class=title>« 上一页</span>
+<span>苍穹外卖后端开发(Day5)</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/%E8%8B%8D%E7%A9%B9%E5%A4%96%E5%8D%96%E5%90%8E%E7%AB%AF%E5%BC%80%E5%8F%91day2/><span class=title>下一页 »</span>
+<span>苍穹外卖后端开发(Day2)</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

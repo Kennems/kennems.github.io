@@ -1,872 +1,137 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>Pandas | Kennem&#39;s Blog</title>
-<meta name="keywords" content="AI">
-<meta name="description" content="Pandas">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/pandas/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/pandas/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/pandas/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="Pandas">
-  <meta property="og:description" content="Pandas">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-03-29T10:30:13+08:00">
-    <meta property="article:modified_time" content="2025-03-29T10:20:13+08:00">
-    <meta property="article:tag" content="AI">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Pandas">
-  <meta name="twitter:description" content="Pandas">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "Pandas",
-      "item": "https://kennems.github.io/posts/tech/pandas/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Pandas",
-  "name": "Pandas",
-  "description": "Pandas",
-  "keywords": [
-    "AI"
-  ],
-  "articleBody": "Pandas 1. pandas 简介 pandas 是 Python 中一个功能强大的数据分析和数据处理库，它提供了高性能、易用的数据结构（如 Series 和 DataFrame），方便进行数据的导入、清洗、转换、分析和可视化。pandas 广泛应用于金融、统计、科学计算等领域。\n文档查阅：pandas 的官方文档非常详细，是学习和解决问题的好帮手。\n2. 基本数据结构 2.1 Series Series 是一种类似一维数组的对象，同时包含数据和索引。常用于表示单列数据。\nimport pandas as pd # 创建一个 Series data = [10, 20, 30, 40] s = pd.Series(data, index=['a', 'b', 'c', 'd']) print(s) 输出示例：\na 10 b 20 c 30 d 40 dtype: int64 2.2 DataFrame DataFrame 是一种二维的表格型数据结构，每一列可以是不同的数据类型，类似于数据库中的表格。\n# 创建一个 DataFrame data = { 'Name': ['Alice', 'Bob', 'Charlie'], 'Age': [25, 30, 35], 'Score': [88, 92, 95] } df = pd.DataFrame(data) print(df) 输出示例：\nName Age Score 0 Alice 25 88 1 Bob 30 92 2 Charlie 35 95 3. 数据导入与导出 pandas 提供了非常多的数据导入导出方法，常用的包括：\n3.1 读取 CSV 文件 # 读取 CSV 文件 df_csv = pd.read_csv('data.csv') 常用参数说明：\nsep：指定分隔符，默认是逗号（,）。 header：指定文件的表头行号。 encoding：指定文件编码，如 utf-8 或 gbk。 3.2 写入 CSV 文件 # 将 DataFrame 写入 CSV 文件 df.to_csv('output.csv', index=False) 参数说明：\nindex：是否保存行索引，通常设为 False。 3.3 读取 Excel 文件 # 读取 Excel 文件 df_excel = pd.read_excel('data.xlsx', sheet_name='Sheet1') 3.4 写入 Excel 文件 # 写入 Excel 文件 df.to_excel('output.xlsx', index=False) 4. 数据查看和探索 在处理数据前，我们需要了解数据的基本情况。以下是一些常用方法：\n4.1 查看前几行和后几行 print(df.head(5)) # 显示前 5 行，默认 head() 显示前 5 行 print(df.tail(5)) # 显示后 5 行 4.2 数据维度和基本信息 print(df.shape) # 返回 (行数, 列数) print(df.info()) # 显示 DataFrame 的信息（数据类型、缺失值等） print(df.describe()) # 显示数值型数据的统计信息 5. 数据选择与索引 pandas 提供了多种方式来选取数据。\n5.1 通过列名选择 # 选择单个列 age_series = df['Age'] # 选择多个列 subset = df[['Name', 'Score']] 5.2 使用 loc 和 iloc .loc 用于通过标签选择数据（包括行和列）。 # 选择行索引为 0 到 1 的数据，并选取 'Name' 和 'Score' 列 subset_loc = df.loc[0:1, ['Name', 'Score']] .iloc 用于通过位置选择数据。 # 选择第一行到第二行（不包含第三行），所有列 subset_iloc = df.iloc[0:2, :] 5.3 布尔索引 # 筛选年龄大于 28 的数据 filtered_df = df[df['Age'] \u003e 28] 6. 数据处理与清洗 6.1 处理缺失值 缺失值（NaN）处理是数据清洗的重要部分。\n# 查看缺失值情况 print(df.isnull().sum()) # 删除含有缺失值的行 df_drop = df.dropna() # 填充缺失值（例如，用 0 填充） df_fill = df.fillna(0) 6.2 重命名列名 df_renamed = df.rename(columns={'Name': '姓名', 'Age': '年龄'}) 6.3 修改数据类型 # 将 'Age' 列转换为浮点型 df['Age'] = df['Age'].astype(float) 6.4 去重 # 删除重复行 df_unique = df.drop_duplicates() 6.5 排序 # 按年龄升序排序 df_sorted = df.sort_values(by='Age') # 按多列排序，如先按年龄，再按分数降序排序 df_sorted_multi = df.sort_values(by=['Age', 'Score'], ascending=[True, False]) 7. 数据聚合与分组 分组操作常用于数据的聚合和统计分析。\n7.1 groupby # 假设 DataFrame 中有一列 'Category'，分组计算每组的平均分数 grouped = df.groupby('Category')['Score'].mean() print(grouped) groupby 常用方法：\nmean()：计算均值 sum()：求和 count()：计数 agg()：支持多种聚合函数组合 # 使用 agg() 同时计算均值和标准差 grouped_stats = df.groupby('Category').agg({'Score': ['mean', 'std']}) 7.2 pivot_table 数据透视表 数据透视表可以快速对数据进行汇总。\npivot = pd.pivot_table(df, values='Score', index='Category', columns='Gender', aggfunc='mean') print(pivot) 8. 数据合并与连接 处理分散数据时，经常需要将多个 DataFrame 合并。\n8.1 concat 合并 # 纵向拼接（按行合并） df_concat = pd.concat([df1, df2], axis=0) # 横向拼接（按列合并） df_concat_columns = pd.concat([df1, df2], axis=1) 8.2 merge 合并 类似 SQL 的 join 操作，可以根据指定的键合并两个 DataFrame。\n# 内连接：只保留两个 DataFrame 中共有的键 df_merged = pd.merge(df1, df2, on='id', how='inner') # 左连接：以左侧 DataFrame 为主，右侧数据补充 df_left = pd.merge(df1, df2, on='id', how='left') 8.3 join 方法 DataFrame 自带的 join 方法也可以进行索引对齐的合并。\n# 以 df1 的索引为主合并 df2 df_joined = df1.join(df2, how='left') 9. 时间序列处理 pandas 对时间序列数据有很好的支持。\n9.1 日期时间解析 # 将字符串转换为 datetime 类型 df['date'] = pd.to_datetime(df['date']) 9.2 设置索引为日期 # 将日期列设置为索引 df.set_index('date', inplace=True) 9.3 重采样 # 按月计算均值 df_monthly = df.resample('M').mean() 10. 常用 API 总结示例 以下是一个综合示例，展示了如何使用 pandas 完成数据导入、处理、分组和导出操作。\nimport pandas as pd # 1. 导入数据 df = pd.read_csv('sales_data.csv') # 2. 数据清洗：去除缺失值 df.dropna(inplace=True) # 3. 转换日期类型，并设置为索引 df['Date'] = pd.to_datetime(df['Date']) df.set_index('Date', inplace=True) # 4. 根据产品类别分组，计算总销售额和平均单价 grouped = df.groupby('Product').agg({ 'Sales': 'sum', 'Price': 'mean' }).reset_index() # 5. 排序 grouped = grouped.sort_values(by='Sales', ascending=False) # 6. 导出结果 grouped.to_csv('sales_summary.csv', index=False) print(\"数据处理完成，汇总结果已保存。\") 11. 补充技巧 链式调用：为了让代码更简洁，可以使用链式调用。例如：\ndf_clean = ( pd.read_csv('data.csv') .dropna() .rename(columns=lambda x: x.strip().lower()) ) 调试与检查：在处理数据过程中，多使用 head()、tail()、info() 等方法及时检查数据情况，避免后续操作出错。\n12. 总结 pandas 提供了丰富的 API 和灵活的数据处理能力，本文介绍了从数据导入、查看、清洗、处理到数据聚合、合并以及时间序列处理等常用操作。掌握这些常用 API 后，你可以快速进行数据分析和数据科学项目开发。建议在实践中不断探索更多高级功能，例如多层索引、窗口函数、以及与其他库（如 NumPy、Matplotlib）的结合使用，从而进一步提升数据处理的效率和能力。\n希望这份教程对你学习和使用 pandas 能有所帮助！\n",
-  "wordCount" : "1854",
-  "inLanguage": "zh",
-  "datePublished": "2025-03-29T10:30:13+08:00",
-  "dateModified": "2025-03-29T10:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/pandas/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      Pandas
-    </h1>
-    <div class="post-description">
-      Pandas
-    </div>
-    <div class="post-meta">
-
-<span title='2025-03-29 10:30:13 +0800 CST'>2025-03-29</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1854 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#pandas" aria-label="Pandas">Pandas</a></li>
-                <li>
-                    <a href="#1-pandas-%e7%ae%80%e4%bb%8b" aria-label="1. pandas 简介">1. pandas 简介</a></li>
-                <li>
-                    <a href="#2-%e5%9f%ba%e6%9c%ac%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84" aria-label="2. 基本数据结构">2. 基本数据结构</a><ul>
-                        
-                <li>
-                    <a href="#21-series" aria-label="2.1 Series">2.1 Series</a></li>
-                <li>
-                    <a href="#22-dataframe" aria-label="2.2 DataFrame">2.2 DataFrame</a></li></ul>
-                </li>
-                <li>
-                    <a href="#3-%e6%95%b0%e6%8d%ae%e5%af%bc%e5%85%a5%e4%b8%8e%e5%af%bc%e5%87%ba" aria-label="3. 数据导入与导出">3. 数据导入与导出</a><ul>
-                        
-                <li>
-                    <a href="#31-%e8%af%bb%e5%8f%96-csv-%e6%96%87%e4%bb%b6" aria-label="3.1 读取 CSV 文件">3.1 读取 CSV 文件</a></li>
-                <li>
-                    <a href="#32-%e5%86%99%e5%85%a5-csv-%e6%96%87%e4%bb%b6" aria-label="3.2 写入 CSV 文件">3.2 写入 CSV 文件</a></li>
-                <li>
-                    <a href="#33-%e8%af%bb%e5%8f%96-excel-%e6%96%87%e4%bb%b6" aria-label="3.3 读取 Excel 文件">3.3 读取 Excel 文件</a></li>
-                <li>
-                    <a href="#34-%e5%86%99%e5%85%a5-excel-%e6%96%87%e4%bb%b6" aria-label="3.4 写入 Excel 文件">3.4 写入 Excel 文件</a></li></ul>
-                </li>
-                <li>
-                    <a href="#4-%e6%95%b0%e6%8d%ae%e6%9f%a5%e7%9c%8b%e5%92%8c%e6%8e%a2%e7%b4%a2" aria-label="4. 数据查看和探索">4. 数据查看和探索</a><ul>
-                        
-                <li>
-                    <a href="#41-%e6%9f%a5%e7%9c%8b%e5%89%8d%e5%87%a0%e8%a1%8c%e5%92%8c%e5%90%8e%e5%87%a0%e8%a1%8c" aria-label="4.1 查看前几行和后几行">4.1 查看前几行和后几行</a></li>
-                <li>
-                    <a href="#42-%e6%95%b0%e6%8d%ae%e7%bb%b4%e5%ba%a6%e5%92%8c%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af" aria-label="4.2 数据维度和基本信息">4.2 数据维度和基本信息</a></li></ul>
-                </li>
-                <li>
-                    <a href="#5-%e6%95%b0%e6%8d%ae%e9%80%89%e6%8b%a9%e4%b8%8e%e7%b4%a2%e5%bc%95" aria-label="5. 数据选择与索引">5. 数据选择与索引</a><ul>
-                        
-                <li>
-                    <a href="#51-%e9%80%9a%e8%bf%87%e5%88%97%e5%90%8d%e9%80%89%e6%8b%a9" aria-label="5.1 通过列名选择">5.1 通过列名选择</a></li>
-                <li>
-                    <a href="#52-%e4%bd%bf%e7%94%a8-loc-%e5%92%8c-iloc" aria-label="5.2 使用 loc 和 iloc">5.2 使用 loc 和 iloc</a></li>
-                <li>
-                    <a href="#53-%e5%b8%83%e5%b0%94%e7%b4%a2%e5%bc%95" aria-label="5.3 布尔索引">5.3 布尔索引</a></li></ul>
-                </li>
-                <li>
-                    <a href="#6-%e6%95%b0%e6%8d%ae%e5%a4%84%e7%90%86%e4%b8%8e%e6%b8%85%e6%b4%97" aria-label="6. 数据处理与清洗">6. 数据处理与清洗</a><ul>
-                        
-                <li>
-                    <a href="#61-%e5%a4%84%e7%90%86%e7%bc%ba%e5%a4%b1%e5%80%bc" aria-label="6.1 处理缺失值">6.1 处理缺失值</a></li>
-                <li>
-                    <a href="#62-%e9%87%8d%e5%91%bd%e5%90%8d%e5%88%97%e5%90%8d" aria-label="6.2 重命名列名">6.2 重命名列名</a></li>
-                <li>
-                    <a href="#63-%e4%bf%ae%e6%94%b9%e6%95%b0%e6%8d%ae%e7%b1%bb%e5%9e%8b" aria-label="6.3 修改数据类型">6.3 修改数据类型</a></li>
-                <li>
-                    <a href="#64-%e5%8e%bb%e9%87%8d" aria-label="6.4 去重">6.4 去重</a></li>
-                <li>
-                    <a href="#65-%e6%8e%92%e5%ba%8f" aria-label="6.5 排序">6.5 排序</a></li></ul>
-                </li>
-                <li>
-                    <a href="#7-%e6%95%b0%e6%8d%ae%e8%81%9a%e5%90%88%e4%b8%8e%e5%88%86%e7%bb%84" aria-label="7. 数据聚合与分组">7. 数据聚合与分组</a><ul>
-                        
-                <li>
-                    <a href="#71-groupby" aria-label="7.1 groupby">7.1 groupby</a></li>
-                <li>
-                    <a href="#72-pivot_table-%e6%95%b0%e6%8d%ae%e9%80%8f%e8%a7%86%e8%a1%a8" aria-label="7.2 pivot_table 数据透视表">7.2 pivot_table 数据透视表</a></li></ul>
-                </li>
-                <li>
-                    <a href="#8-%e6%95%b0%e6%8d%ae%e5%90%88%e5%b9%b6%e4%b8%8e%e8%bf%9e%e6%8e%a5" aria-label="8. 数据合并与连接">8. 数据合并与连接</a><ul>
-                        
-                <li>
-                    <a href="#81-concat-%e5%90%88%e5%b9%b6" aria-label="8.1 concat 合并">8.1 concat 合并</a></li>
-                <li>
-                    <a href="#82-merge-%e5%90%88%e5%b9%b6" aria-label="8.2 merge 合并">8.2 merge 合并</a></li>
-                <li>
-                    <a href="#83-join-%e6%96%b9%e6%b3%95" aria-label="8.3 join 方法">8.3 join 方法</a></li></ul>
-                </li>
-                <li>
-                    <a href="#9-%e6%97%b6%e9%97%b4%e5%ba%8f%e5%88%97%e5%a4%84%e7%90%86" aria-label="9. 时间序列处理">9. 时间序列处理</a><ul>
-                        
-                <li>
-                    <a href="#91-%e6%97%a5%e6%9c%9f%e6%97%b6%e9%97%b4%e8%a7%a3%e6%9e%90" aria-label="9.1 日期时间解析">9.1 日期时间解析</a></li>
-                <li>
-                    <a href="#92-%e8%ae%be%e7%bd%ae%e7%b4%a2%e5%bc%95%e4%b8%ba%e6%97%a5%e6%9c%9f" aria-label="9.2 设置索引为日期">9.2 设置索引为日期</a></li>
-                <li>
-                    <a href="#93-%e9%87%8d%e9%87%87%e6%a0%b7" aria-label="9.3 重采样">9.3 重采样</a></li></ul>
-                </li>
-                <li>
-                    <a href="#10-%e5%b8%b8%e7%94%a8-api-%e6%80%bb%e7%bb%93%e7%a4%ba%e4%be%8b" aria-label="10. 常用 API 总结示例">10. 常用 API 总结示例</a></li>
-                <li>
-                    <a href="#11-%e8%a1%a5%e5%85%85%e6%8a%80%e5%b7%a7" aria-label="11. 补充技巧">11. 补充技巧</a></li>
-                <li>
-                    <a href="#12-%e6%80%bb%e7%bb%93" aria-label="12. 总结">12. 总结</a>
-                </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="pandas">Pandas<a hidden class="anchor" aria-hidden="true" href="#pandas">#</a></h1>
-<h1 id="1-pandas-简介">1. pandas 简介<a hidden class="anchor" aria-hidden="true" href="#1-pandas-简介">#</a></h1>
-<p>pandas 是 Python 中一个功能强大的数据分析和数据处理库，它提供了高性能、易用的数据结构（如 Series 和 DataFrame），方便进行数据的导入、清洗、转换、分析和可视化。pandas 广泛应用于金融、统计、科学计算等领域。</p>
-<p><strong>文档查阅</strong>：pandas 的<a href="https://pandas.pydata.org/docs/">官方文档</a>非常详细，是学习和解决问题的好帮手。</p>
-<hr>
-<h1 id="2-基本数据结构">2. 基本数据结构<a hidden class="anchor" aria-hidden="true" href="#2-基本数据结构">#</a></h1>
-<h2 id="21-series">2.1 Series<a hidden class="anchor" aria-hidden="true" href="#21-series">#</a></h2>
-<p>Series 是一种类似一维数组的对象，同时包含数据和索引。常用于表示单列数据。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> pandas <span style="color:#66d9ef">as</span> pd
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 创建一个 Series</span>
-</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> [<span style="color:#ae81ff">10</span>, <span style="color:#ae81ff">20</span>, <span style="color:#ae81ff">30</span>, <span style="color:#ae81ff">40</span>]
-</span></span><span style="display:flex;"><span>s <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>Series(data, index<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#39;a&#39;</span>, <span style="color:#e6db74">&#39;b&#39;</span>, <span style="color:#e6db74">&#39;c&#39;</span>, <span style="color:#e6db74">&#39;d&#39;</span>])
-</span></span><span style="display:flex;"><span>print(s)
-</span></span></code></pre></div><p>输出示例：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>a    10
-</span></span><span style="display:flex;"><span>b    20
-</span></span><span style="display:flex;"><span>c    30
-</span></span><span style="display:flex;"><span>d    40
-</span></span><span style="display:flex;"><span>dtype: int64
-</span></span></code></pre></div><h2 id="22-dataframe">2.2 DataFrame<a hidden class="anchor" aria-hidden="true" href="#22-dataframe">#</a></h2>
-<p>DataFrame 是一种二维的表格型数据结构，每一列可以是不同的数据类型，类似于数据库中的表格。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 创建一个 DataFrame</span>
-</span></span><span style="display:flex;"><span>data <span style="color:#f92672">=</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;Name&#39;</span>: [<span style="color:#e6db74">&#39;Alice&#39;</span>, <span style="color:#e6db74">&#39;Bob&#39;</span>, <span style="color:#e6db74">&#39;Charlie&#39;</span>],
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;Age&#39;</span>: [<span style="color:#ae81ff">25</span>, <span style="color:#ae81ff">30</span>, <span style="color:#ae81ff">35</span>],
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;Score&#39;</span>: [<span style="color:#ae81ff">88</span>, <span style="color:#ae81ff">92</span>, <span style="color:#ae81ff">95</span>]
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>df <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>DataFrame(data)
-</span></span><span style="display:flex;"><span>print(df)
-</span></span></code></pre></div><p>输出示例：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>      Name  Age  Score
-</span></span><span style="display:flex;"><span>0    Alice   25     88
-</span></span><span style="display:flex;"><span>1      Bob   30     92
-</span></span><span style="display:flex;"><span>2  Charlie   35     95
-</span></span></code></pre></div><hr>
-<h1 id="3-数据导入与导出">3. 数据导入与导出<a hidden class="anchor" aria-hidden="true" href="#3-数据导入与导出">#</a></h1>
-<p>pandas 提供了非常多的数据导入导出方法，常用的包括：</p>
-<h2 id="31-读取-csv-文件">3.1 读取 CSV 文件<a hidden class="anchor" aria-hidden="true" href="#31-读取-csv-文件">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 读取 CSV 文件</span>
-</span></span><span style="display:flex;"><span>df_csv <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_csv(<span style="color:#e6db74">&#39;data.csv&#39;</span>)
-</span></span></code></pre></div><p>常用参数说明：</p>
-<ul>
-<li><code>sep</code>：指定分隔符，默认是逗号（<code>,</code>）。</li>
-<li><code>header</code>：指定文件的表头行号。</li>
-<li><code>encoding</code>：指定文件编码，如 <code>utf-8</code> 或 <code>gbk</code>。</li>
-</ul>
-<h2 id="32-写入-csv-文件">3.2 写入 CSV 文件<a hidden class="anchor" aria-hidden="true" href="#32-写入-csv-文件">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 将 DataFrame 写入 CSV 文件</span>
-</span></span><span style="display:flex;"><span>df<span style="color:#f92672">.</span>to_csv(<span style="color:#e6db74">&#39;output.csv&#39;</span>, index<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
-</span></span></code></pre></div><p>参数说明：</p>
-<ul>
-<li><code>index</code>：是否保存行索引，通常设为 False。</li>
-</ul>
-<h2 id="33-读取-excel-文件">3.3 读取 Excel 文件<a hidden class="anchor" aria-hidden="true" href="#33-读取-excel-文件">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 读取 Excel 文件</span>
-</span></span><span style="display:flex;"><span>df_excel <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_excel(<span style="color:#e6db74">&#39;data.xlsx&#39;</span>, sheet_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Sheet1&#39;</span>)
-</span></span></code></pre></div><h2 id="34-写入-excel-文件">3.4 写入 Excel 文件<a hidden class="anchor" aria-hidden="true" href="#34-写入-excel-文件">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 写入 Excel 文件</span>
-</span></span><span style="display:flex;"><span>df<span style="color:#f92672">.</span>to_excel(<span style="color:#e6db74">&#39;output.xlsx&#39;</span>, index<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
-</span></span></code></pre></div><hr>
-<h1 id="4-数据查看和探索">4. 数据查看和探索<a hidden class="anchor" aria-hidden="true" href="#4-数据查看和探索">#</a></h1>
-<p>在处理数据前，我们需要了解数据的基本情况。以下是一些常用方法：</p>
-<h2 id="41-查看前几行和后几行">4.1 查看前几行和后几行<a hidden class="anchor" aria-hidden="true" href="#41-查看前几行和后几行">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>print(df<span style="color:#f92672">.</span>head(<span style="color:#ae81ff">5</span>))  <span style="color:#75715e"># 显示前 5 行，默认 head() 显示前 5 行</span>
-</span></span><span style="display:flex;"><span>print(df<span style="color:#f92672">.</span>tail(<span style="color:#ae81ff">5</span>))  <span style="color:#75715e"># 显示后 5 行</span>
-</span></span></code></pre></div><h2 id="42-数据维度和基本信息">4.2 数据维度和基本信息<a hidden class="anchor" aria-hidden="true" href="#42-数据维度和基本信息">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>print(df<span style="color:#f92672">.</span>shape)  <span style="color:#75715e"># 返回 (行数, 列数)</span>
-</span></span><span style="display:flex;"><span>print(df<span style="color:#f92672">.</span>info())  <span style="color:#75715e"># 显示 DataFrame 的信息（数据类型、缺失值等）</span>
-</span></span><span style="display:flex;"><span>print(df<span style="color:#f92672">.</span>describe())  <span style="color:#75715e"># 显示数值型数据的统计信息</span>
-</span></span></code></pre></div><hr>
-<h1 id="5-数据选择与索引">5. 数据选择与索引<a hidden class="anchor" aria-hidden="true" href="#5-数据选择与索引">#</a></h1>
-<p>pandas 提供了多种方式来选取数据。</p>
-<h2 id="51-通过列名选择">5.1 通过列名选择<a hidden class="anchor" aria-hidden="true" href="#51-通过列名选择">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 选择单个列</span>
-</span></span><span style="display:flex;"><span>age_series <span style="color:#f92672">=</span> df[<span style="color:#e6db74">&#39;Age&#39;</span>]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 选择多个列</span>
-</span></span><span style="display:flex;"><span>subset <span style="color:#f92672">=</span> df[[<span style="color:#e6db74">&#39;Name&#39;</span>, <span style="color:#e6db74">&#39;Score&#39;</span>]]
-</span></span></code></pre></div><h2 id="52-使用-loc-和-iloc">5.2 使用 loc 和 iloc<a hidden class="anchor" aria-hidden="true" href="#52-使用-loc-和-iloc">#</a></h2>
-<ul>
-<li><strong>.loc</strong> 用于通过标签选择数据（包括行和列）。</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 选择行索引为 0 到 1 的数据，并选取 &#39;Name&#39; 和 &#39;Score&#39; 列</span>
-</span></span><span style="display:flex;"><span>subset_loc <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>loc[<span style="color:#ae81ff">0</span>:<span style="color:#ae81ff">1</span>, [<span style="color:#e6db74">&#39;Name&#39;</span>, <span style="color:#e6db74">&#39;Score&#39;</span>]]
-</span></span></code></pre></div><ul>
-<li><strong>.iloc</strong> 用于通过位置选择数据。</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 选择第一行到第二行（不包含第三行），所有列</span>
-</span></span><span style="display:flex;"><span>subset_iloc <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>iloc[<span style="color:#ae81ff">0</span>:<span style="color:#ae81ff">2</span>, :]
-</span></span></code></pre></div><h2 id="53-布尔索引">5.3 布尔索引<a hidden class="anchor" aria-hidden="true" href="#53-布尔索引">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 筛选年龄大于 28 的数据</span>
-</span></span><span style="display:flex;"><span>filtered_df <span style="color:#f92672">=</span> df[df[<span style="color:#e6db74">&#39;Age&#39;</span>] <span style="color:#f92672">&gt;</span> <span style="color:#ae81ff">28</span>]
-</span></span></code></pre></div><hr>
-<h1 id="6-数据处理与清洗">6. 数据处理与清洗<a hidden class="anchor" aria-hidden="true" href="#6-数据处理与清洗">#</a></h1>
-<h2 id="61-处理缺失值">6.1 处理缺失值<a hidden class="anchor" aria-hidden="true" href="#61-处理缺失值">#</a></h2>
-<p>缺失值（NaN）处理是数据清洗的重要部分。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 查看缺失值情况</span>
-</span></span><span style="display:flex;"><span>print(df<span style="color:#f92672">.</span>isnull()<span style="color:#f92672">.</span>sum())
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 删除含有缺失值的行</span>
-</span></span><span style="display:flex;"><span>df_drop <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>dropna()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 填充缺失值（例如，用 0 填充）</span>
-</span></span><span style="display:flex;"><span>df_fill <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>fillna(<span style="color:#ae81ff">0</span>)
-</span></span></code></pre></div><h2 id="62-重命名列名">6.2 重命名列名<a hidden class="anchor" aria-hidden="true" href="#62-重命名列名">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>df_renamed <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>rename(columns<span style="color:#f92672">=</span>{<span style="color:#e6db74">&#39;Name&#39;</span>: <span style="color:#e6db74">&#39;姓名&#39;</span>, <span style="color:#e6db74">&#39;Age&#39;</span>: <span style="color:#e6db74">&#39;年龄&#39;</span>})
-</span></span></code></pre></div><h2 id="63-修改数据类型">6.3 修改数据类型<a hidden class="anchor" aria-hidden="true" href="#63-修改数据类型">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 将 &#39;Age&#39; 列转换为浮点型</span>
-</span></span><span style="display:flex;"><span>df[<span style="color:#e6db74">&#39;Age&#39;</span>] <span style="color:#f92672">=</span> df[<span style="color:#e6db74">&#39;Age&#39;</span>]<span style="color:#f92672">.</span>astype(float)
-</span></span></code></pre></div><h2 id="64-去重">6.4 去重<a hidden class="anchor" aria-hidden="true" href="#64-去重">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 删除重复行</span>
-</span></span><span style="display:flex;"><span>df_unique <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>drop_duplicates()
-</span></span></code></pre></div><h2 id="65-排序">6.5 排序<a hidden class="anchor" aria-hidden="true" href="#65-排序">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 按年龄升序排序</span>
-</span></span><span style="display:flex;"><span>df_sorted <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>sort_values(by<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Age&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 按多列排序，如先按年龄，再按分数降序排序</span>
-</span></span><span style="display:flex;"><span>df_sorted_multi <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>sort_values(by<span style="color:#f92672">=</span>[<span style="color:#e6db74">&#39;Age&#39;</span>, <span style="color:#e6db74">&#39;Score&#39;</span>], ascending<span style="color:#f92672">=</span>[<span style="color:#66d9ef">True</span>, <span style="color:#66d9ef">False</span>])
-</span></span></code></pre></div><hr>
-<h1 id="7-数据聚合与分组">7. 数据聚合与分组<a hidden class="anchor" aria-hidden="true" href="#7-数据聚合与分组">#</a></h1>
-<p>分组操作常用于数据的聚合和统计分析。</p>
-<h2 id="71-groupby">7.1 groupby<a hidden class="anchor" aria-hidden="true" href="#71-groupby">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 假设 DataFrame 中有一列 &#39;Category&#39;，分组计算每组的平均分数</span>
-</span></span><span style="display:flex;"><span>grouped <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>groupby(<span style="color:#e6db74">&#39;Category&#39;</span>)[<span style="color:#e6db74">&#39;Score&#39;</span>]<span style="color:#f92672">.</span>mean()
-</span></span><span style="display:flex;"><span>print(grouped)
-</span></span></code></pre></div><p>groupby 常用方法：</p>
-<ul>
-<li><code>mean()</code>：计算均值</li>
-<li><code>sum()</code>：求和</li>
-<li><code>count()</code>：计数</li>
-<li><code>agg()</code>：支持多种聚合函数组合</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 使用 agg() 同时计算均值和标准差</span>
-</span></span><span style="display:flex;"><span>grouped_stats <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>groupby(<span style="color:#e6db74">&#39;Category&#39;</span>)<span style="color:#f92672">.</span>agg({<span style="color:#e6db74">&#39;Score&#39;</span>: [<span style="color:#e6db74">&#39;mean&#39;</span>, <span style="color:#e6db74">&#39;std&#39;</span>]})
-</span></span></code></pre></div><h2 id="72-pivot_table-数据透视表">7.2 pivot_table 数据透视表<a hidden class="anchor" aria-hidden="true" href="#72-pivot_table-数据透视表">#</a></h2>
-<p>数据透视表可以快速对数据进行汇总。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>pivot <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>pivot_table(df, values<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Score&#39;</span>, index<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Category&#39;</span>, columns<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Gender&#39;</span>, aggfunc<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;mean&#39;</span>)
-</span></span><span style="display:flex;"><span>print(pivot)
-</span></span></code></pre></div><hr>
-<h1 id="8-数据合并与连接">8. 数据合并与连接<a hidden class="anchor" aria-hidden="true" href="#8-数据合并与连接">#</a></h1>
-<p>处理分散数据时，经常需要将多个 DataFrame 合并。</p>
-<h2 id="81-concat-合并">8.1 concat 合并<a hidden class="anchor" aria-hidden="true" href="#81-concat-合并">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 纵向拼接（按行合并）</span>
-</span></span><span style="display:flex;"><span>df_concat <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>concat([df1, df2], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 横向拼接（按列合并）</span>
-</span></span><span style="display:flex;"><span>df_concat_columns <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>concat([df1, df2], axis<span style="color:#f92672">=</span><span style="color:#ae81ff">1</span>)
-</span></span></code></pre></div><h2 id="82-merge-合并">8.2 merge 合并<a hidden class="anchor" aria-hidden="true" href="#82-merge-合并">#</a></h2>
-<p>类似 SQL 的 join 操作，可以根据指定的键合并两个 DataFrame。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 内连接：只保留两个 DataFrame 中共有的键</span>
-</span></span><span style="display:flex;"><span>df_merged <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>merge(df1, df2, on<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;id&#39;</span>, how<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;inner&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 左连接：以左侧 DataFrame 为主，右侧数据补充</span>
-</span></span><span style="display:flex;"><span>df_left <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>merge(df1, df2, on<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;id&#39;</span>, how<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;left&#39;</span>)
-</span></span></code></pre></div><h2 id="83-join-方法">8.3 join 方法<a hidden class="anchor" aria-hidden="true" href="#83-join-方法">#</a></h2>
-<p>DataFrame 自带的 join 方法也可以进行索引对齐的合并。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 以 df1 的索引为主合并 df2</span>
-</span></span><span style="display:flex;"><span>df_joined <span style="color:#f92672">=</span> df1<span style="color:#f92672">.</span>join(df2, how<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;left&#39;</span>)
-</span></span></code></pre></div><hr>
-<h1 id="9-时间序列处理">9. 时间序列处理<a hidden class="anchor" aria-hidden="true" href="#9-时间序列处理">#</a></h1>
-<p>pandas 对时间序列数据有很好的支持。</p>
-<h2 id="91-日期时间解析">9.1 日期时间解析<a hidden class="anchor" aria-hidden="true" href="#91-日期时间解析">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 将字符串转换为 datetime 类型</span>
-</span></span><span style="display:flex;"><span>df[<span style="color:#e6db74">&#39;date&#39;</span>] <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>to_datetime(df[<span style="color:#e6db74">&#39;date&#39;</span>])
-</span></span></code></pre></div><h2 id="92-设置索引为日期">9.2 设置索引为日期<a hidden class="anchor" aria-hidden="true" href="#92-设置索引为日期">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 将日期列设置为索引</span>
-</span></span><span style="display:flex;"><span>df<span style="color:#f92672">.</span>set_index(<span style="color:#e6db74">&#39;date&#39;</span>, inplace<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
-</span></span></code></pre></div><h2 id="93-重采样">9.3 重采样<a hidden class="anchor" aria-hidden="true" href="#93-重采样">#</a></h2>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#75715e"># 按月计算均值</span>
-</span></span><span style="display:flex;"><span>df_monthly <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>resample(<span style="color:#e6db74">&#39;M&#39;</span>)<span style="color:#f92672">.</span>mean()
-</span></span></code></pre></div><hr>
-<h1 id="10-常用-api-总结示例">10. 常用 API 总结示例<a hidden class="anchor" aria-hidden="true" href="#10-常用-api-总结示例">#</a></h1>
-<p>以下是一个综合示例，展示了如何使用 pandas 完成数据导入、处理、分组和导出操作。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span><span style="color:#f92672">import</span> pandas <span style="color:#66d9ef">as</span> pd
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 1. 导入数据</span>
-</span></span><span style="display:flex;"><span>df <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>read_csv(<span style="color:#e6db74">&#39;sales_data.csv&#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 2. 数据清洗：去除缺失值</span>
-</span></span><span style="display:flex;"><span>df<span style="color:#f92672">.</span>dropna(inplace<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 3. 转换日期类型，并设置为索引</span>
-</span></span><span style="display:flex;"><span>df[<span style="color:#e6db74">&#39;Date&#39;</span>] <span style="color:#f92672">=</span> pd<span style="color:#f92672">.</span>to_datetime(df[<span style="color:#e6db74">&#39;Date&#39;</span>])
-</span></span><span style="display:flex;"><span>df<span style="color:#f92672">.</span>set_index(<span style="color:#e6db74">&#39;Date&#39;</span>, inplace<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 4. 根据产品类别分组，计算总销售额和平均单价</span>
-</span></span><span style="display:flex;"><span>grouped <span style="color:#f92672">=</span> df<span style="color:#f92672">.</span>groupby(<span style="color:#e6db74">&#39;Product&#39;</span>)<span style="color:#f92672">.</span>agg({
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;Sales&#39;</span>: <span style="color:#e6db74">&#39;sum&#39;</span>,
-</span></span><span style="display:flex;"><span>    <span style="color:#e6db74">&#39;Price&#39;</span>: <span style="color:#e6db74">&#39;mean&#39;</span>
-</span></span><span style="display:flex;"><span>})<span style="color:#f92672">.</span>reset_index()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 5. 排序</span>
-</span></span><span style="display:flex;"><span>grouped <span style="color:#f92672">=</span> grouped<span style="color:#f92672">.</span>sort_values(by<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;Sales&#39;</span>, ascending<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 6. 导出结果</span>
-</span></span><span style="display:flex;"><span>grouped<span style="color:#f92672">.</span>to_csv(<span style="color:#e6db74">&#39;sales_summary.csv&#39;</span>, index<span style="color:#f92672">=</span><span style="color:#66d9ef">False</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>print(<span style="color:#e6db74">&#34;数据处理完成，汇总结果已保存。&#34;</span>)
-</span></span></code></pre></div><hr>
-<h1 id="11-补充技巧">11. 补充技巧<a hidden class="anchor" aria-hidden="true" href="#11-补充技巧">#</a></h1>
-<ul>
-<li>
-<p><strong>链式调用</strong>：为了让代码更简洁，可以使用链式调用。例如：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>df_clean <span style="color:#f92672">=</span> (
-</span></span><span style="display:flex;"><span>    pd<span style="color:#f92672">.</span>read_csv(<span style="color:#e6db74">&#39;data.csv&#39;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">.</span>dropna()
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">.</span>rename(columns<span style="color:#f92672">=</span><span style="color:#66d9ef">lambda</span> x: x<span style="color:#f92672">.</span>strip()<span style="color:#f92672">.</span>lower())
-</span></span><span style="display:flex;"><span>)
-</span></span></code></pre></div></li>
-<li>
-<p><strong>调试与检查</strong>：在处理数据过程中，多使用 <code>head()</code>、<code>tail()</code>、<code>info()</code> 等方法及时检查数据情况，避免后续操作出错。</p>
-</li>
-</ul>
-<hr>
-<h1 id="12-总结">12. 总结<a hidden class="anchor" aria-hidden="true" href="#12-总结">#</a></h1>
-<p>pandas 提供了丰富的 API 和灵活的数据处理能力，本文介绍了从数据导入、查看、清洗、处理到数据聚合、合并以及时间序列处理等常用操作。掌握这些常用 API 后，你可以快速进行数据分析和数据科学项目开发。建议在实践中不断探索更多高级功能，例如多层索引、窗口函数、以及与其他库（如 NumPy、Matplotlib）的结合使用，从而进一步提升数据处理的效率和能力。</p>
-<p>希望这份教程对你学习和使用 pandas 能有所帮助！</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/ai/">AI</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/ai">AI</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/numpy/">
-    <span class="title">« 上一页</span>
-    <span>NumPy</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/">
-    <span class="title">下一页 »</span>
-    <span>Python包管理</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>Pandas | Kennem's Blog</title><meta name=keywords content="AI"><meta name=description content="Pandas"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/pandas/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/pandas/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/pandas/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="Pandas"><meta property="og:description" content="Pandas"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-03-29T10:30:13+08:00"><meta property="article:modified_time" content="2025-03-29T10:20:13+08:00"><meta property="article:tag" content="AI"><meta name=twitter:card content="summary"><meta name=twitter:title content="Pandas"><meta name=twitter:description content="Pandas"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"Pandas","item":"https://kennems.github.io/posts/tech/pandas/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Pandas","name":"Pandas","description":"Pandas","keywords":["AI"],"articleBody":"Pandas 1. pandas 简介 pandas 是 Python 中一个功能强大的数据分析和数据处理库，它提供了高性能、易用的数据结构（如 Series 和 DataFrame），方便进行数据的导入、清洗、转换、分析和可视化。pandas 广泛应用于金融、统计、科学计算等领域。\n文档查阅：pandas 的官方文档非常详细，是学习和解决问题的好帮手。\n2. 基本数据结构 2.1 Series Series 是一种类似一维数组的对象，同时包含数据和索引。常用于表示单列数据。\nimport pandas as pd # 创建一个 Series data = [10, 20, 30, 40] s = pd.Series(data, index=['a', 'b', 'c', 'd']) print(s) 输出示例：\na 10 b 20 c 30 d 40 dtype: int64 2.2 DataFrame DataFrame 是一种二维的表格型数据结构，每一列可以是不同的数据类型，类似于数据库中的表格。\n# 创建一个 DataFrame data = { 'Name': ['Alice', 'Bob', 'Charlie'], 'Age': [25, 30, 35], 'Score': [88, 92, 95] } df = pd.DataFrame(data) print(df) 输出示例：\nName Age Score 0 Alice 25 88 1 Bob 30 92 2 Charlie 35 95 3. 数据导入与导出 pandas 提供了非常多的数据导入导出方法，常用的包括：\n3.1 读取 CSV 文件 # 读取 CSV 文件 df_csv = pd.read_csv('data.csv') 常用参数说明：\nsep：指定分隔符，默认是逗号（,）。 header：指定文件的表头行号。 encoding：指定文件编码，如 utf-8 或 gbk。 3.2 写入 CSV 文件 # 将 DataFrame 写入 CSV 文件 df.to_csv('output.csv', index=False) 参数说明：\nindex：是否保存行索引，通常设为 False。 3.3 读取 Excel 文件 # 读取 Excel 文件 df_excel = pd.read_excel('data.xlsx', sheet_name='Sheet1') 3.4 写入 Excel 文件 # 写入 Excel 文件 df.to_excel('output.xlsx', index=False) 4. 数据查看和探索 在处理数据前，我们需要了解数据的基本情况。以下是一些常用方法：\n4.1 查看前几行和后几行 print(df.head(5)) # 显示前 5 行，默认 head() 显示前 5 行 print(df.tail(5)) # 显示后 5 行 4.2 数据维度和基本信息 print(df.shape) # 返回 (行数, 列数) print(df.info()) # 显示 DataFrame 的信息（数据类型、缺失值等） print(df.describe()) # 显示数值型数据的统计信息 5. 数据选择与索引 pandas 提供了多种方式来选取数据。\n5.1 通过列名选择 # 选择单个列 age_series = df['Age'] # 选择多个列 subset = df[['Name', 'Score']] 5.2 使用 loc 和 iloc .loc 用于通过标签选择数据（包括行和列）。 # 选择行索引为 0 到 1 的数据，并选取 'Name' 和 'Score' 列 subset_loc = df.loc[0:1, ['Name', 'Score']] .iloc 用于通过位置选择数据。 # 选择第一行到第二行（不包含第三行），所有列 subset_iloc = df.iloc[0:2, :] 5.3 布尔索引 # 筛选年龄大于 28 的数据 filtered_df = df[df['Age'] \u003e 28] 6. 数据处理与清洗 6.1 处理缺失值 缺失值（NaN）处理是数据清洗的重要部分。\n# 查看缺失值情况 print(df.isnull().sum()) # 删除含有缺失值的行 df_drop = df.dropna() # 填充缺失值（例如，用 0 填充） df_fill = df.fillna(0) 6.2 重命名列名 df_renamed = df.rename(columns={'Name': '姓名', 'Age': '年龄'}) 6.3 修改数据类型 # 将 'Age' 列转换为浮点型 df['Age'] = df['Age'].astype(float) 6.4 去重 # 删除重复行 df_unique = df.drop_duplicates() 6.5 排序 # 按年龄升序排序 df_sorted = df.sort_values(by='Age') # 按多列排序，如先按年龄，再按分数降序排序 df_sorted_multi = df.sort_values(by=['Age', 'Score'], ascending=[True, False]) 7. 数据聚合与分组 分组操作常用于数据的聚合和统计分析。\n7.1 groupby # 假设 DataFrame 中有一列 'Category'，分组计算每组的平均分数 grouped = df.groupby('Category')['Score'].mean() print(grouped) groupby 常用方法：\nmean()：计算均值 sum()：求和 count()：计数 agg()：支持多种聚合函数组合 # 使用 agg() 同时计算均值和标准差 grouped_stats = df.groupby('Category').agg({'Score': ['mean', 'std']}) 7.2 pivot_table 数据透视表 数据透视表可以快速对数据进行汇总。\npivot = pd.pivot_table(df, values='Score', index='Category', columns='Gender', aggfunc='mean') print(pivot) 8. 数据合并与连接 处理分散数据时，经常需要将多个 DataFrame 合并。\n8.1 concat 合并 # 纵向拼接（按行合并） df_concat = pd.concat([df1, df2], axis=0) # 横向拼接（按列合并） df_concat_columns = pd.concat([df1, df2], axis=1) 8.2 merge 合并 类似 SQL 的 join 操作，可以根据指定的键合并两个 DataFrame。\n# 内连接：只保留两个 DataFrame 中共有的键 df_merged = pd.merge(df1, df2, on='id', how='inner') # 左连接：以左侧 DataFrame 为主，右侧数据补充 df_left = pd.merge(df1, df2, on='id', how='left') 8.3 join 方法 DataFrame 自带的 join 方法也可以进行索引对齐的合并。\n# 以 df1 的索引为主合并 df2 df_joined = df1.join(df2, how='left') 9. 时间序列处理 pandas 对时间序列数据有很好的支持。\n9.1 日期时间解析 # 将字符串转换为 datetime 类型 df['date'] = pd.to_datetime(df['date']) 9.2 设置索引为日期 # 将日期列设置为索引 df.set_index('date', inplace=True) 9.3 重采样 # 按月计算均值 df_monthly = df.resample('M').mean() 10. 常用 API 总结示例 以下是一个综合示例，展示了如何使用 pandas 完成数据导入、处理、分组和导出操作。\nimport pandas as pd # 1. 导入数据 df = pd.read_csv('sales_data.csv') # 2. 数据清洗：去除缺失值 df.dropna(inplace=True) # 3. 转换日期类型，并设置为索引 df['Date'] = pd.to_datetime(df['Date']) df.set_index('Date', inplace=True) # 4. 根据产品类别分组，计算总销售额和平均单价 grouped = df.groupby('Product').agg({ 'Sales': 'sum', 'Price': 'mean' }).reset_index() # 5. 排序 grouped = grouped.sort_values(by='Sales', ascending=False) # 6. 导出结果 grouped.to_csv('sales_summary.csv', index=False) print(\"数据处理完成，汇总结果已保存。\") 11. 补充技巧 链式调用：为了让代码更简洁，可以使用链式调用。例如：\ndf_clean = ( pd.read_csv('data.csv') .dropna() .rename(columns=lambda x: x.strip().lower()) ) 调试与检查：在处理数据过程中，多使用 head()、tail()、info() 等方法及时检查数据情况，避免后续操作出错。\n12. 总结 pandas 提供了丰富的 API 和灵活的数据处理能力，本文介绍了从数据导入、查看、清洗、处理到数据聚合、合并以及时间序列处理等常用操作。掌握这些常用 API 后，你可以快速进行数据分析和数据科学项目开发。建议在实践中不断探索更多高级功能，例如多层索引、窗口函数、以及与其他库（如 NumPy、Matplotlib）的结合使用，从而进一步提升数据处理的效率和能力。\n希望这份教程对你学习和使用 pandas 能有所帮助！\n","wordCount":"1854","inLanguage":"zh","datePublished":"2025-03-29T10:30:13+08:00","dateModified":"2025-03-29T10:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/pandas/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">Pandas</h1><div class=post-description>Pandas</div><div class=post-meta><span title='2025-03-29 10:30:13 +0800 +0800'>2025-03-29</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1854 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#pandas aria-label=Pandas>Pandas</a></li><li><a href=#1-pandas-%e7%ae%80%e4%bb%8b aria-label="1. pandas 简介">1. pandas 简介</a></li><li><a href=#2-%e5%9f%ba%e6%9c%ac%e6%95%b0%e6%8d%ae%e7%bb%93%e6%9e%84 aria-label="2. 基本数据结构">2. 基本数据结构</a><ul><li><a href=#21-series aria-label="2.1 Series">2.1 Series</a></li><li><a href=#22-dataframe aria-label="2.2 DataFrame">2.2 DataFrame</a></li></ul></li><li><a href=#3-%e6%95%b0%e6%8d%ae%e5%af%bc%e5%85%a5%e4%b8%8e%e5%af%bc%e5%87%ba aria-label="3. 数据导入与导出">3. 数据导入与导出</a><ul><li><a href=#31-%e8%af%bb%e5%8f%96-csv-%e6%96%87%e4%bb%b6 aria-label="3.1 读取 CSV 文件">3.1 读取 CSV 文件</a></li><li><a href=#32-%e5%86%99%e5%85%a5-csv-%e6%96%87%e4%bb%b6 aria-label="3.2 写入 CSV 文件">3.2 写入 CSV 文件</a></li><li><a href=#33-%e8%af%bb%e5%8f%96-excel-%e6%96%87%e4%bb%b6 aria-label="3.3 读取 Excel 文件">3.3 读取 Excel 文件</a></li><li><a href=#34-%e5%86%99%e5%85%a5-excel-%e6%96%87%e4%bb%b6 aria-label="3.4 写入 Excel 文件">3.4 写入 Excel 文件</a></li></ul></li><li><a href=#4-%e6%95%b0%e6%8d%ae%e6%9f%a5%e7%9c%8b%e5%92%8c%e6%8e%a2%e7%b4%a2 aria-label="4. 数据查看和探索">4. 数据查看和探索</a><ul><li><a href=#41-%e6%9f%a5%e7%9c%8b%e5%89%8d%e5%87%a0%e8%a1%8c%e5%92%8c%e5%90%8e%e5%87%a0%e8%a1%8c aria-label="4.1 查看前几行和后几行">4.1 查看前几行和后几行</a></li><li><a href=#42-%e6%95%b0%e6%8d%ae%e7%bb%b4%e5%ba%a6%e5%92%8c%e5%9f%ba%e6%9c%ac%e4%bf%a1%e6%81%af aria-label="4.2 数据维度和基本信息">4.2 数据维度和基本信息</a></li></ul></li><li><a href=#5-%e6%95%b0%e6%8d%ae%e9%80%89%e6%8b%a9%e4%b8%8e%e7%b4%a2%e5%bc%95 aria-label="5. 数据选择与索引">5. 数据选择与索引</a><ul><li><a href=#51-%e9%80%9a%e8%bf%87%e5%88%97%e5%90%8d%e9%80%89%e6%8b%a9 aria-label="5.1 通过列名选择">5.1 通过列名选择</a></li><li><a href=#52-%e4%bd%bf%e7%94%a8-loc-%e5%92%8c-iloc aria-label="5.2 使用 loc 和 iloc">5.2 使用 loc 和 iloc</a></li><li><a href=#53-%e5%b8%83%e5%b0%94%e7%b4%a2%e5%bc%95 aria-label="5.3 布尔索引">5.3 布尔索引</a></li></ul></li><li><a href=#6-%e6%95%b0%e6%8d%ae%e5%a4%84%e7%90%86%e4%b8%8e%e6%b8%85%e6%b4%97 aria-label="6. 数据处理与清洗">6. 数据处理与清洗</a><ul><li><a href=#61-%e5%a4%84%e7%90%86%e7%bc%ba%e5%a4%b1%e5%80%bc aria-label="6.1 处理缺失值">6.1 处理缺失值</a></li><li><a href=#62-%e9%87%8d%e5%91%bd%e5%90%8d%e5%88%97%e5%90%8d aria-label="6.2 重命名列名">6.2 重命名列名</a></li><li><a href=#63-%e4%bf%ae%e6%94%b9%e6%95%b0%e6%8d%ae%e7%b1%bb%e5%9e%8b aria-label="6.3 修改数据类型">6.3 修改数据类型</a></li><li><a href=#64-%e5%8e%bb%e9%87%8d aria-label="6.4 去重">6.4 去重</a></li><li><a href=#65-%e6%8e%92%e5%ba%8f aria-label="6.5 排序">6.5 排序</a></li></ul></li><li><a href=#7-%e6%95%b0%e6%8d%ae%e8%81%9a%e5%90%88%e4%b8%8e%e5%88%86%e7%bb%84 aria-label="7. 数据聚合与分组">7. 数据聚合与分组</a><ul><li><a href=#71-groupby aria-label="7.1 groupby">7.1 groupby</a></li><li><a href=#72-pivot_table-%e6%95%b0%e6%8d%ae%e9%80%8f%e8%a7%86%e8%a1%a8 aria-label="7.2 pivot_table 数据透视表">7.2 pivot_table 数据透视表</a></li></ul></li><li><a href=#8-%e6%95%b0%e6%8d%ae%e5%90%88%e5%b9%b6%e4%b8%8e%e8%bf%9e%e6%8e%a5 aria-label="8. 数据合并与连接">8. 数据合并与连接</a><ul><li><a href=#81-concat-%e5%90%88%e5%b9%b6 aria-label="8.1 concat 合并">8.1 concat 合并</a></li><li><a href=#82-merge-%e5%90%88%e5%b9%b6 aria-label="8.2 merge 合并">8.2 merge 合并</a></li><li><a href=#83-join-%e6%96%b9%e6%b3%95 aria-label="8.3 join 方法">8.3 join 方法</a></li></ul></li><li><a href=#9-%e6%97%b6%e9%97%b4%e5%ba%8f%e5%88%97%e5%a4%84%e7%90%86 aria-label="9. 时间序列处理">9. 时间序列处理</a><ul><li><a href=#91-%e6%97%a5%e6%9c%9f%e6%97%b6%e9%97%b4%e8%a7%a3%e6%9e%90 aria-label="9.1 日期时间解析">9.1 日期时间解析</a></li><li><a href=#92-%e8%ae%be%e7%bd%ae%e7%b4%a2%e5%bc%95%e4%b8%ba%e6%97%a5%e6%9c%9f aria-label="9.2 设置索引为日期">9.2 设置索引为日期</a></li><li><a href=#93-%e9%87%8d%e9%87%87%e6%a0%b7 aria-label="9.3 重采样">9.3 重采样</a></li></ul></li><li><a href=#10-%e5%b8%b8%e7%94%a8-api-%e6%80%bb%e7%bb%93%e7%a4%ba%e4%be%8b aria-label="10. 常用 API 总结示例">10. 常用 API 总结示例</a></li><li><a href=#11-%e8%a1%a5%e5%85%85%e6%8a%80%e5%b7%a7 aria-label="11. 补充技巧">11. 补充技巧</a></li><li><a href=#12-%e6%80%bb%e7%bb%93 aria-label="12. 总结">12. 总结</a></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=pandas>Pandas<a hidden class=anchor aria-hidden=true href=#pandas>#</a></h1><h1 id=1-pandas-简介>1. pandas 简介<a hidden class=anchor aria-hidden=true href=#1-pandas-简介>#</a></h1><p>pandas 是 Python 中一个功能强大的数据分析和数据处理库，它提供了高性能、易用的数据结构（如 Series 和 DataFrame），方便进行数据的导入、清洗、转换、分析和可视化。pandas 广泛应用于金融、统计、科学计算等领域。</p><p><strong>文档查阅</strong>：pandas 的<a href=https://pandas.pydata.org/docs/>官方文档</a>非常详细，是学习和解决问题的好帮手。</p><hr><h1 id=2-基本数据结构>2. 基本数据结构<a hidden class=anchor aria-hidden=true href=#2-基本数据结构>#</a></h1><h2 id=21-series>2.1 Series<a hidden class=anchor aria-hidden=true href=#21-series>#</a></h2><p>Series 是一种类似一维数组的对象，同时包含数据和索引。常用于表示单列数据。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>import</span> pandas <span style=color:#66d9ef>as</span> pd
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 创建一个 Series</span>
+</span></span><span style=display:flex><span>data <span style=color:#f92672>=</span> [<span style=color:#ae81ff>10</span>, <span style=color:#ae81ff>20</span>, <span style=color:#ae81ff>30</span>, <span style=color:#ae81ff>40</span>]
+</span></span><span style=display:flex><span>s <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>Series(data, index<span style=color:#f92672>=</span>[<span style=color:#e6db74>&#39;a&#39;</span>, <span style=color:#e6db74>&#39;b&#39;</span>, <span style=color:#e6db74>&#39;c&#39;</span>, <span style=color:#e6db74>&#39;d&#39;</span>])
+</span></span><span style=display:flex><span>print(s)
+</span></span></code></pre></div><p>输出示例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>a    10
+</span></span><span style=display:flex><span>b    20
+</span></span><span style=display:flex><span>c    30
+</span></span><span style=display:flex><span>d    40
+</span></span><span style=display:flex><span>dtype: int64
+</span></span></code></pre></div><h2 id=22-dataframe>2.2 DataFrame<a hidden class=anchor aria-hidden=true href=#22-dataframe>#</a></h2><p>DataFrame 是一种二维的表格型数据结构，每一列可以是不同的数据类型，类似于数据库中的表格。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 创建一个 DataFrame</span>
+</span></span><span style=display:flex><span>data <span style=color:#f92672>=</span> {
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;Name&#39;</span>: [<span style=color:#e6db74>&#39;Alice&#39;</span>, <span style=color:#e6db74>&#39;Bob&#39;</span>, <span style=color:#e6db74>&#39;Charlie&#39;</span>],
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;Age&#39;</span>: [<span style=color:#ae81ff>25</span>, <span style=color:#ae81ff>30</span>, <span style=color:#ae81ff>35</span>],
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;Score&#39;</span>: [<span style=color:#ae81ff>88</span>, <span style=color:#ae81ff>92</span>, <span style=color:#ae81ff>95</span>]
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>df <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>DataFrame(data)
+</span></span><span style=display:flex><span>print(df)
+</span></span></code></pre></div><p>输出示例：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>      Name  Age  Score
+</span></span><span style=display:flex><span>0    Alice   25     88
+</span></span><span style=display:flex><span>1      Bob   30     92
+</span></span><span style=display:flex><span>2  Charlie   35     95
+</span></span></code></pre></div><hr><h1 id=3-数据导入与导出>3. 数据导入与导出<a hidden class=anchor aria-hidden=true href=#3-数据导入与导出>#</a></h1><p>pandas 提供了非常多的数据导入导出方法，常用的包括：</p><h2 id=31-读取-csv-文件>3.1 读取 CSV 文件<a hidden class=anchor aria-hidden=true href=#31-读取-csv-文件>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 读取 CSV 文件</span>
+</span></span><span style=display:flex><span>df_csv <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>read_csv(<span style=color:#e6db74>&#39;data.csv&#39;</span>)
+</span></span></code></pre></div><p>常用参数说明：</p><ul><li><code>sep</code>：指定分隔符，默认是逗号（<code>,</code>）。</li><li><code>header</code>：指定文件的表头行号。</li><li><code>encoding</code>：指定文件编码，如 <code>utf-8</code> 或 <code>gbk</code>。</li></ul><h2 id=32-写入-csv-文件>3.2 写入 CSV 文件<a hidden class=anchor aria-hidden=true href=#32-写入-csv-文件>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 将 DataFrame 写入 CSV 文件</span>
+</span></span><span style=display:flex><span>df<span style=color:#f92672>.</span>to_csv(<span style=color:#e6db74>&#39;output.csv&#39;</span>, index<span style=color:#f92672>=</span><span style=color:#66d9ef>False</span>)
+</span></span></code></pre></div><p>参数说明：</p><ul><li><code>index</code>：是否保存行索引，通常设为 False。</li></ul><h2 id=33-读取-excel-文件>3.3 读取 Excel 文件<a hidden class=anchor aria-hidden=true href=#33-读取-excel-文件>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 读取 Excel 文件</span>
+</span></span><span style=display:flex><span>df_excel <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>read_excel(<span style=color:#e6db74>&#39;data.xlsx&#39;</span>, sheet_name<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;Sheet1&#39;</span>)
+</span></span></code></pre></div><h2 id=34-写入-excel-文件>3.4 写入 Excel 文件<a hidden class=anchor aria-hidden=true href=#34-写入-excel-文件>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 写入 Excel 文件</span>
+</span></span><span style=display:flex><span>df<span style=color:#f92672>.</span>to_excel(<span style=color:#e6db74>&#39;output.xlsx&#39;</span>, index<span style=color:#f92672>=</span><span style=color:#66d9ef>False</span>)
+</span></span></code></pre></div><hr><h1 id=4-数据查看和探索>4. 数据查看和探索<a hidden class=anchor aria-hidden=true href=#4-数据查看和探索>#</a></h1><p>在处理数据前，我们需要了解数据的基本情况。以下是一些常用方法：</p><h2 id=41-查看前几行和后几行>4.1 查看前几行和后几行<a hidden class=anchor aria-hidden=true href=#41-查看前几行和后几行>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span>print(df<span style=color:#f92672>.</span>head(<span style=color:#ae81ff>5</span>))  <span style=color:#75715e># 显示前 5 行，默认 head() 显示前 5 行</span>
+</span></span><span style=display:flex><span>print(df<span style=color:#f92672>.</span>tail(<span style=color:#ae81ff>5</span>))  <span style=color:#75715e># 显示后 5 行</span>
+</span></span></code></pre></div><h2 id=42-数据维度和基本信息>4.2 数据维度和基本信息<a hidden class=anchor aria-hidden=true href=#42-数据维度和基本信息>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span>print(df<span style=color:#f92672>.</span>shape)  <span style=color:#75715e># 返回 (行数, 列数)</span>
+</span></span><span style=display:flex><span>print(df<span style=color:#f92672>.</span>info())  <span style=color:#75715e># 显示 DataFrame 的信息（数据类型、缺失值等）</span>
+</span></span><span style=display:flex><span>print(df<span style=color:#f92672>.</span>describe())  <span style=color:#75715e># 显示数值型数据的统计信息</span>
+</span></span></code></pre></div><hr><h1 id=5-数据选择与索引>5. 数据选择与索引<a hidden class=anchor aria-hidden=true href=#5-数据选择与索引>#</a></h1><p>pandas 提供了多种方式来选取数据。</p><h2 id=51-通过列名选择>5.1 通过列名选择<a hidden class=anchor aria-hidden=true href=#51-通过列名选择>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 选择单个列</span>
+</span></span><span style=display:flex><span>age_series <span style=color:#f92672>=</span> df[<span style=color:#e6db74>&#39;Age&#39;</span>]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 选择多个列</span>
+</span></span><span style=display:flex><span>subset <span style=color:#f92672>=</span> df[[<span style=color:#e6db74>&#39;Name&#39;</span>, <span style=color:#e6db74>&#39;Score&#39;</span>]]
+</span></span></code></pre></div><h2 id=52-使用-loc-和-iloc>5.2 使用 loc 和 iloc<a hidden class=anchor aria-hidden=true href=#52-使用-loc-和-iloc>#</a></h2><ul><li><strong>.loc</strong> 用于通过标签选择数据（包括行和列）。</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 选择行索引为 0 到 1 的数据，并选取 &#39;Name&#39; 和 &#39;Score&#39; 列</span>
+</span></span><span style=display:flex><span>subset_loc <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>loc[<span style=color:#ae81ff>0</span>:<span style=color:#ae81ff>1</span>, [<span style=color:#e6db74>&#39;Name&#39;</span>, <span style=color:#e6db74>&#39;Score&#39;</span>]]
+</span></span></code></pre></div><ul><li><strong>.iloc</strong> 用于通过位置选择数据。</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 选择第一行到第二行（不包含第三行），所有列</span>
+</span></span><span style=display:flex><span>subset_iloc <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>iloc[<span style=color:#ae81ff>0</span>:<span style=color:#ae81ff>2</span>, :]
+</span></span></code></pre></div><h2 id=53-布尔索引>5.3 布尔索引<a hidden class=anchor aria-hidden=true href=#53-布尔索引>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 筛选年龄大于 28 的数据</span>
+</span></span><span style=display:flex><span>filtered_df <span style=color:#f92672>=</span> df[df[<span style=color:#e6db74>&#39;Age&#39;</span>] <span style=color:#f92672>&gt;</span> <span style=color:#ae81ff>28</span>]
+</span></span></code></pre></div><hr><h1 id=6-数据处理与清洗>6. 数据处理与清洗<a hidden class=anchor aria-hidden=true href=#6-数据处理与清洗>#</a></h1><h2 id=61-处理缺失值>6.1 处理缺失值<a hidden class=anchor aria-hidden=true href=#61-处理缺失值>#</a></h2><p>缺失值（NaN）处理是数据清洗的重要部分。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 查看缺失值情况</span>
+</span></span><span style=display:flex><span>print(df<span style=color:#f92672>.</span>isnull()<span style=color:#f92672>.</span>sum())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 删除含有缺失值的行</span>
+</span></span><span style=display:flex><span>df_drop <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>dropna()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 填充缺失值（例如，用 0 填充）</span>
+</span></span><span style=display:flex><span>df_fill <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>fillna(<span style=color:#ae81ff>0</span>)
+</span></span></code></pre></div><h2 id=62-重命名列名>6.2 重命名列名<a hidden class=anchor aria-hidden=true href=#62-重命名列名>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span>df_renamed <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>rename(columns<span style=color:#f92672>=</span>{<span style=color:#e6db74>&#39;Name&#39;</span>: <span style=color:#e6db74>&#39;姓名&#39;</span>, <span style=color:#e6db74>&#39;Age&#39;</span>: <span style=color:#e6db74>&#39;年龄&#39;</span>})
+</span></span></code></pre></div><h2 id=63-修改数据类型>6.3 修改数据类型<a hidden class=anchor aria-hidden=true href=#63-修改数据类型>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 将 &#39;Age&#39; 列转换为浮点型</span>
+</span></span><span style=display:flex><span>df[<span style=color:#e6db74>&#39;Age&#39;</span>] <span style=color:#f92672>=</span> df[<span style=color:#e6db74>&#39;Age&#39;</span>]<span style=color:#f92672>.</span>astype(float)
+</span></span></code></pre></div><h2 id=64-去重>6.4 去重<a hidden class=anchor aria-hidden=true href=#64-去重>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 删除重复行</span>
+</span></span><span style=display:flex><span>df_unique <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>drop_duplicates()
+</span></span></code></pre></div><h2 id=65-排序>6.5 排序<a hidden class=anchor aria-hidden=true href=#65-排序>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 按年龄升序排序</span>
+</span></span><span style=display:flex><span>df_sorted <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>sort_values(by<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;Age&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 按多列排序，如先按年龄，再按分数降序排序</span>
+</span></span><span style=display:flex><span>df_sorted_multi <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>sort_values(by<span style=color:#f92672>=</span>[<span style=color:#e6db74>&#39;Age&#39;</span>, <span style=color:#e6db74>&#39;Score&#39;</span>], ascending<span style=color:#f92672>=</span>[<span style=color:#66d9ef>True</span>, <span style=color:#66d9ef>False</span>])
+</span></span></code></pre></div><hr><h1 id=7-数据聚合与分组>7. 数据聚合与分组<a hidden class=anchor aria-hidden=true href=#7-数据聚合与分组>#</a></h1><p>分组操作常用于数据的聚合和统计分析。</p><h2 id=71-groupby>7.1 groupby<a hidden class=anchor aria-hidden=true href=#71-groupby>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 假设 DataFrame 中有一列 &#39;Category&#39;，分组计算每组的平均分数</span>
+</span></span><span style=display:flex><span>grouped <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>groupby(<span style=color:#e6db74>&#39;Category&#39;</span>)[<span style=color:#e6db74>&#39;Score&#39;</span>]<span style=color:#f92672>.</span>mean()
+</span></span><span style=display:flex><span>print(grouped)
+</span></span></code></pre></div><p>groupby 常用方法：</p><ul><li><code>mean()</code>：计算均值</li><li><code>sum()</code>：求和</li><li><code>count()</code>：计数</li><li><code>agg()</code>：支持多种聚合函数组合</li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 使用 agg() 同时计算均值和标准差</span>
+</span></span><span style=display:flex><span>grouped_stats <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>groupby(<span style=color:#e6db74>&#39;Category&#39;</span>)<span style=color:#f92672>.</span>agg({<span style=color:#e6db74>&#39;Score&#39;</span>: [<span style=color:#e6db74>&#39;mean&#39;</span>, <span style=color:#e6db74>&#39;std&#39;</span>]})
+</span></span></code></pre></div><h2 id=72-pivot_table-数据透视表>7.2 pivot_table 数据透视表<a hidden class=anchor aria-hidden=true href=#72-pivot_table-数据透视表>#</a></h2><p>数据透视表可以快速对数据进行汇总。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span>pivot <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>pivot_table(df, values<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;Score&#39;</span>, index<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;Category&#39;</span>, columns<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;Gender&#39;</span>, aggfunc<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;mean&#39;</span>)
+</span></span><span style=display:flex><span>print(pivot)
+</span></span></code></pre></div><hr><h1 id=8-数据合并与连接>8. 数据合并与连接<a hidden class=anchor aria-hidden=true href=#8-数据合并与连接>#</a></h1><p>处理分散数据时，经常需要将多个 DataFrame 合并。</p><h2 id=81-concat-合并>8.1 concat 合并<a hidden class=anchor aria-hidden=true href=#81-concat-合并>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 纵向拼接（按行合并）</span>
+</span></span><span style=display:flex><span>df_concat <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>concat([df1, df2], axis<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 横向拼接（按列合并）</span>
+</span></span><span style=display:flex><span>df_concat_columns <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>concat([df1, df2], axis<span style=color:#f92672>=</span><span style=color:#ae81ff>1</span>)
+</span></span></code></pre></div><h2 id=82-merge-合并>8.2 merge 合并<a hidden class=anchor aria-hidden=true href=#82-merge-合并>#</a></h2><p>类似 SQL 的 join 操作，可以根据指定的键合并两个 DataFrame。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 内连接：只保留两个 DataFrame 中共有的键</span>
+</span></span><span style=display:flex><span>df_merged <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>merge(df1, df2, on<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;id&#39;</span>, how<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;inner&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 左连接：以左侧 DataFrame 为主，右侧数据补充</span>
+</span></span><span style=display:flex><span>df_left <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>merge(df1, df2, on<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;id&#39;</span>, how<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;left&#39;</span>)
+</span></span></code></pre></div><h2 id=83-join-方法>8.3 join 方法<a hidden class=anchor aria-hidden=true href=#83-join-方法>#</a></h2><p>DataFrame 自带的 join 方法也可以进行索引对齐的合并。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 以 df1 的索引为主合并 df2</span>
+</span></span><span style=display:flex><span>df_joined <span style=color:#f92672>=</span> df1<span style=color:#f92672>.</span>join(df2, how<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;left&#39;</span>)
+</span></span></code></pre></div><hr><h1 id=9-时间序列处理>9. 时间序列处理<a hidden class=anchor aria-hidden=true href=#9-时间序列处理>#</a></h1><p>pandas 对时间序列数据有很好的支持。</p><h2 id=91-日期时间解析>9.1 日期时间解析<a hidden class=anchor aria-hidden=true href=#91-日期时间解析>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 将字符串转换为 datetime 类型</span>
+</span></span><span style=display:flex><span>df[<span style=color:#e6db74>&#39;date&#39;</span>] <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>to_datetime(df[<span style=color:#e6db74>&#39;date&#39;</span>])
+</span></span></code></pre></div><h2 id=92-设置索引为日期>9.2 设置索引为日期<a hidden class=anchor aria-hidden=true href=#92-设置索引为日期>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 将日期列设置为索引</span>
+</span></span><span style=display:flex><span>df<span style=color:#f92672>.</span>set_index(<span style=color:#e6db74>&#39;date&#39;</span>, inplace<span style=color:#f92672>=</span><span style=color:#66d9ef>True</span>)
+</span></span></code></pre></div><h2 id=93-重采样>9.3 重采样<a hidden class=anchor aria-hidden=true href=#93-重采样>#</a></h2><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#75715e># 按月计算均值</span>
+</span></span><span style=display:flex><span>df_monthly <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>resample(<span style=color:#e6db74>&#39;M&#39;</span>)<span style=color:#f92672>.</span>mean()
+</span></span></code></pre></div><hr><h1 id=10-常用-api-总结示例>10. 常用 API 总结示例<a hidden class=anchor aria-hidden=true href=#10-常用-api-总结示例>#</a></h1><p>以下是一个综合示例，展示了如何使用 pandas 完成数据导入、处理、分组和导出操作。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span><span style=color:#f92672>import</span> pandas <span style=color:#66d9ef>as</span> pd
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 1. 导入数据</span>
+</span></span><span style=display:flex><span>df <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>read_csv(<span style=color:#e6db74>&#39;sales_data.csv&#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 2. 数据清洗：去除缺失值</span>
+</span></span><span style=display:flex><span>df<span style=color:#f92672>.</span>dropna(inplace<span style=color:#f92672>=</span><span style=color:#66d9ef>True</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 3. 转换日期类型，并设置为索引</span>
+</span></span><span style=display:flex><span>df[<span style=color:#e6db74>&#39;Date&#39;</span>] <span style=color:#f92672>=</span> pd<span style=color:#f92672>.</span>to_datetime(df[<span style=color:#e6db74>&#39;Date&#39;</span>])
+</span></span><span style=display:flex><span>df<span style=color:#f92672>.</span>set_index(<span style=color:#e6db74>&#39;Date&#39;</span>, inplace<span style=color:#f92672>=</span><span style=color:#66d9ef>True</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 4. 根据产品类别分组，计算总销售额和平均单价</span>
+</span></span><span style=display:flex><span>grouped <span style=color:#f92672>=</span> df<span style=color:#f92672>.</span>groupby(<span style=color:#e6db74>&#39;Product&#39;</span>)<span style=color:#f92672>.</span>agg({
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;Sales&#39;</span>: <span style=color:#e6db74>&#39;sum&#39;</span>,
+</span></span><span style=display:flex><span>    <span style=color:#e6db74>&#39;Price&#39;</span>: <span style=color:#e6db74>&#39;mean&#39;</span>
+</span></span><span style=display:flex><span>})<span style=color:#f92672>.</span>reset_index()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 5. 排序</span>
+</span></span><span style=display:flex><span>grouped <span style=color:#f92672>=</span> grouped<span style=color:#f92672>.</span>sort_values(by<span style=color:#f92672>=</span><span style=color:#e6db74>&#39;Sales&#39;</span>, ascending<span style=color:#f92672>=</span><span style=color:#66d9ef>False</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 6. 导出结果</span>
+</span></span><span style=display:flex><span>grouped<span style=color:#f92672>.</span>to_csv(<span style=color:#e6db74>&#39;sales_summary.csv&#39;</span>, index<span style=color:#f92672>=</span><span style=color:#66d9ef>False</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>print(<span style=color:#e6db74>&#34;数据处理完成，汇总结果已保存。&#34;</span>)
+</span></span></code></pre></div><hr><h1 id=11-补充技巧>11. 补充技巧<a hidden class=anchor aria-hidden=true href=#11-补充技巧>#</a></h1><ul><li><p><strong>链式调用</strong>：为了让代码更简洁，可以使用链式调用。例如：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span>df_clean <span style=color:#f92672>=</span> (
+</span></span><span style=display:flex><span>    pd<span style=color:#f92672>.</span>read_csv(<span style=color:#e6db74>&#39;data.csv&#39;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#f92672>.</span>dropna()
+</span></span><span style=display:flex><span>    <span style=color:#f92672>.</span>rename(columns<span style=color:#f92672>=</span><span style=color:#66d9ef>lambda</span> x: x<span style=color:#f92672>.</span>strip()<span style=color:#f92672>.</span>lower())
+</span></span><span style=display:flex><span>)
+</span></span></code></pre></div></li><li><p><strong>调试与检查</strong>：在处理数据过程中，多使用 <code>head()</code>、<code>tail()</code>、<code>info()</code> 等方法及时检查数据情况，避免后续操作出错。</p></li></ul><hr><h1 id=12-总结>12. 总结<a hidden class=anchor aria-hidden=true href=#12-总结>#</a></h1><p>pandas 提供了丰富的 API 和灵活的数据处理能力，本文介绍了从数据导入、查看、清洗、处理到数据聚合、合并以及时间序列处理等常用操作。掌握这些常用 API 后，你可以快速进行数据分析和数据科学项目开发。建议在实践中不断探索更多高级功能，例如多层索引、窗口函数、以及与其他库（如 NumPy、Matplotlib）的结合使用，从而进一步提升数据处理的效率和能力。</p><p>希望这份教程对你学习和使用 pandas 能有所帮助！</p></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/ai/>AI</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/ai>AI</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/numpy/><span class=title>« 上一页</span>
+<span>NumPy</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/python%E5%8C%85%E7%AE%A1%E7%90%86/><span class=title>下一页 »</span>
+<span>Python包管理</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

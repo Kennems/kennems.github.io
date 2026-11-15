@@ -1,441 +1,16 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>MIT6.S081(10)-Locking | Kennem&#39;s Blog</title>
-<meta name="keywords" content="MIT6.S081">
-<meta name="description" content="MIT6.S081(10)-Locks">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s08110-locks/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="MIT6.S081(10)-Locking">
-  <meta property="og:description" content="MIT6.S081(10)-Locks">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-09-19T19:30:13+08:00">
-    <meta property="article:modified_time" content="2024-09-19T19:20:13+08:00">
-    <meta property="article:tag" content="MIT6.S081">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="MIT6.S081(10)-Locking">
-  <meta name="twitter:description" content="MIT6.S081(10)-Locks">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "MIT6.S081(10)-Locking",
-      "item": "https://kennems.github.io/posts/tech/mit6.s08110-locks/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "MIT6.S081(10)-Locking",
-  "name": "MIT6.S081(10)-Locking",
-  "description": "MIT6.S081(10)-Locks",
-  "keywords": [
-    "MIT6.S081"
-  ],
-  "articleBody": "MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but lose performance (kfree is serialized)\nThe lock abstraction:\nlock l acquire(l) x = x + 1 -- \"critical section\" release(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\nrename(\"d1/x\", \"d2/y\"): lock d1, erase x, unlock d1 lock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\nlock d1 ; lock d2 erase x, add y unlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\ncore A core B rename(d1/x, d2/y) rename(d2/a, d1/b) lock d1 lock d2 lock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\nwhy not: struct lock { int locked; } acquire(l) { while(1){ if(l-\u003elocked == 0){ // A l-\u003elocked = 1; // B return; } } } oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\na5 = 1 s1 = \u0026lk-\u003elocked amoswap.w.aq a5, a5, (s1) does this in hardware:\nlock addr globally (other cores cannot use it) temp = *s5 *addr = a5 a5 = temp unlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swap to run one at a time, not interleaved\nLook at xv6 spinlock implementation\nacquire(l){ while(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0) } if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\nCore A: Core B: locked = 1 x = x + 1 while(locked == 1) locked = 0 ... locked = 1 x = x + 1 locked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\nlocked = 1 locked = 0 x = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) 在 xv6 内核中实现写时复制（Copy-on-Write）的 fork。完成要求后，内核需成功通过 cowtest 和 usertests 测试。\n关键要求：\n修改 uvmcopy() 实现父子进程共享物理页，不分配新页，并清除 PTE_W。 在 usertrap() 处理写时复制的页面错误，分配新页并拷贝旧页数据。 实现物理页引用计数，确保页在最后一次引用解除后才被释放。 修改 copyout() 处理 COW 页面。 1.添加reference数组，记录页面的引用计数。 2.初始化引用计数 3.分配时将页面计数置为1 4.实现计数 +1 -1 5.trap中出现未分配的page时判断是否是cow 6.添加cow标记位 7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数 8.实现is_cow() 和 cow_alloc() // 模仿 walkaddr 根据虚拟地址返回物理地址 int is_cow(pagetable_t pagetable, uint64 va) { pte_t *pte; if (va \u003e= MAXVA) { return 0; } if ((pte = walk(pagetable, va, 0)) == 0) { return 0; } if ((*pte \u0026 PTE_V) == 0) { return 0; } if ((*pte \u0026 PTE_U) == 0) { return 0; } return 1; } // cow_alloc: 处理写时复制（COW, Copy-On-Write）操作 // 输入参数： // - pagetable: 页表指针，用于定位虚拟地址所对应的页表项 // - va: 虚拟地址 (virtual address)，需要被复制的页 // 返回值： // - 成功时返回新分配的物理页地址 // - 失败时返回 0 uint64 cow_alloc(pagetable_t pagetable, uint64 va) { // 将虚拟地址对齐到页边界（向下取整），因为内存页通常按页大小分配 va = PGROUNDDOWN(va); // 获取虚拟地址 va 对应的页表项指针，如果失败返回 0 pte_t *pte = walk(pagetable, va, 0); // 为新的物理页分配内存 char *mem = kalloc(); if (mem == 0) { // 内存分配失败，返回 0 return 0; } // 获取当前页表项中存储的物理地址 uint64 pa = PTE2PA(*pte); // 将原物理页的数据复制到新分配的物理页 mem 中，保证内容一致 memmove(mem, (char *)pa, PGSIZE); // 获取页表项中的标志位信息（权限信息） uint flags = PTE_FLAGS(*pte); // 将新分配的物理页地址和原先的标志位一起设置到页表项 (*pte) = PA2PTE((uint64)mem) | flags; // 为新的页表项添加写权限（PTE_W），因为 COW 后需要进行写操作 (*pte) |= PTE_W; // 清除 COW 标志（PTE_C），表示这个页不再是共享的 COW 页 (*pte) \u0026= ~PTE_C; // 释放原先的物理页，原物理页在没有其他进程使用后可以被回收 kfree((void *)pa); // 返回新分配的物理页地址 return (uint64)mem; } 9.copyout()中判断是否是cow(), 并执行cow_alloc， 分配内存 10.defs.h中进行函数声明\n",
-  "wordCount" : "2151",
-  "inLanguage": "zh",
-  "datePublished": "2024-09-19T19:30:13+08:00",
-  "dateModified": "2024-09-19T19:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/mit6.s08110-locks/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      MIT6.S081(10)-Locking
-    </h1>
-    <div class="post-description">
-      MIT6.S081(10)-Locks
-    </div>
-    <div class="post-meta">
-
-<span title='2024-09-19 19:30:13 +0800 CST'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#mit6s08110-locking" aria-label="MIT6.S081(10)-Locking">MIT6.S081(10)-Locking</a><ul>
-                        
-                <li>
-                    <a href="#why-talk-about-locking" aria-label="Why talk about locking?">Why talk about locking?</a></li>
-                <li>
-                    <a href="#when-to-lock-" aria-label="When to Lock ?">When to Lock ?</a></li>
-                <li>
-                    <a href="#could-locking-be-automatic" aria-label="Could locking be automatic?">Could locking be automatic?</a></li>
-                <li>
-                    <a href="#problem-deadlock" aria-label="Problem: deadlock">Problem: deadlock</a><ul>
-                        
-                <li>
-                    <a href="#solution" aria-label="solution:">solution:</a></li></ul>
-                </li>
-                <li>
-                    <a href="#locks-versus-modularity" aria-label="Locks versus modularity">Locks versus modularity</a></li>
-                <li>
-                    <a href="#locks-and-parallelism" aria-label="Locks and parallelism">Locks and parallelism</a><ul>
-                        
-                <li>
-                    <a href="#lock-granularity-advice" aria-label="Lock granularity advice">Lock granularity advice</a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#lab-copy-on-write-fork-for-xv6" aria-label="Lab: Copy-on-Write Fork for xv6"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a></a><ul>
-                        
-                <li>
-                    <a href="#implement-copy-on-writehard" aria-label="Implement copy-on write(hard)">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)</a><ul>
-                        
-                <li>
-                    <a href="#1%e6%b7%bb%e5%8a%a0reference%e6%95%b0%e7%bb%84%e8%ae%b0%e5%bd%95%e9%a1%b5%e9%9d%a2%e7%9a%84%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0" aria-label="1.添加reference数组，记录页面的引用计数。">1.添加reference数组，记录页面的引用计数。</a></li>
-                <li>
-                    <a href="#2%e5%88%9d%e5%a7%8b%e5%8c%96%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0" aria-label="2.初始化引用计数">2.初始化引用计数</a></li>
-                <li>
-                    <a href="#3%e5%88%86%e9%85%8d%e6%97%b6%e5%b0%86%e9%a1%b5%e9%9d%a2%e8%ae%a1%e6%95%b0%e7%bd%ae%e4%b8%ba1" aria-label="3.分配时将页面计数置为1">3.分配时将页面计数置为1</a></li>
-                <li>
-                    <a href="#4%e5%ae%9e%e7%8e%b0%e8%ae%a1%e6%95%b0-1--1" aria-label="4.实现计数 &#43;1 -1">4.实现计数 <code>+1</code> <code>-1</code></a></li>
-                <li>
-                    <a href="#5trap%e4%b8%ad%e5%87%ba%e7%8e%b0%e6%9c%aa%e5%88%86%e9%85%8d%e7%9a%84page%e6%97%b6%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%98%afcow" aria-label="5.trap中出现未分配的page时判断是否是cow">5.trap中出现未分配的page时判断是否是cow</a></li>
-                <li>
-                    <a href="#6%e6%b7%bb%e5%8a%a0cow%e6%a0%87%e8%ae%b0%e4%bd%8d" aria-label="6.添加cow标记位">6.添加cow标记位</a></li>
-                <li>
-                    <a href="#7kalloc%e6%97%b6%e6%a0%87%e8%ae%b0cow%e6%a0%87%e5%bf%97%e4%bd%8d-%e8%80%8c%e4%b8%8d%e6%98%af%e7%ab%8b%e5%88%bb%e5%88%86%e9%85%8d%e7%a9%ba%e9%97%b4-%e6%b7%bb%e5%8a%a0%e9%a1%b5%e9%9d%a2%e7%9a%84%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0" aria-label="7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数">7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数</a></li>
-                <li>
-                    <a href="#8%e5%ae%9e%e7%8e%b0is_cow-%e5%92%8c-cow_alloc" aria-label="8.实现is_cow() 和 cow_alloc()">8.实现<code>is_cow()</code> 和 <code>cow_alloc()</code></a></li>
-                <li>
-                    <a href="#9copyout%e4%b8%ad%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%98%afcow-%e5%b9%b6%e6%89%a7%e8%a1%8ccow_alloc-%e5%88%86%e9%85%8d%e5%86%85%e5%ad%98" aria-label="9.copyout()中判断是否是cow(), 并执行cow_alloc， 分配内存">9.copyout()中判断是否是<code>cow()</code>, 并执行<code>cow_alloc</code>， 分配内存</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="mit6s08110-locking">MIT6.S081(10)-Locking<a hidden class="anchor" aria-hidden="true" href="#mit6s08110-locking">#</a></h1>
-<h2 id="why-talk-about-locking">Why talk about locking?<a hidden class="anchor" aria-hidden="true" href="#why-talk-about-locking">#</a></h2>
-<p>apps want to use multi-core processors for parallel speed-up
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>MIT6.S081(10)-Locking | Kennem's Blog</title><meta name=keywords content="MIT6.S081"><meta name=description content="MIT6.S081(10)-Locks"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/mit6.s08110-locks/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/mit6.s08110-locks/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/mit6.s08110-locks/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="MIT6.S081(10)-Locking"><meta property="og:description" content="MIT6.S081(10)-Locks"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-09-19T19:30:13+08:00"><meta property="article:modified_time" content="2024-09-19T19:20:13+08:00"><meta property="article:tag" content="MIT6.S081"><meta name=twitter:card content="summary"><meta name=twitter:title content="MIT6.S081(10)-Locking"><meta name=twitter:description content="MIT6.S081(10)-Locks"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"MIT6.S081(10)-Locking","item":"https://kennems.github.io/posts/tech/mit6.s08110-locks/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"MIT6.S081(10)-Locking","name":"MIT6.S081(10)-Locking","description":"MIT6.S081(10)-Locks","keywords":["MIT6.S081"],"articleBody":"MIT6.S081(10)-Locking Why talk about locking? apps want to use multi-core processors for parallel speed-up so kernel must deal with parallel system calls and thus parallel access to kernel data (buffer cache, processes, \u0026c) locks help with correct sharing of data locks can limit parallel speedup\nWhat goes wrong if we don’t have locks Case study: delete acquire/release in kalloc.c Boot kernel works! Run usertests all tests pass! except we lose some pages Why do we lose pages? picture of shared-memory multiprocessor race between two cores calling kfree() BUMMER: we need locks for correctness but lose performance (kfree is serialized)\nThe lock abstraction:\nlock l acquire(l) x = x + 1 -- \"critical section\" release(l) a lock is itself an object if multiple threads call acquire(l) only one will return right away the others will wait for release() – “block” a program typically has lots of data, lots of locks if different threads use different data, then they likely hold different locks, so they can execute in parallel – get more work done. note that lock l is not specifically tied to data x the programmer has a plan for the correspondence\nWhen to Lock ? A conservative rule to decide when you need to lock: any time two threads use a memory location, and at least one is a write don’t touch shared data unless you hold the right lock!\n(too strict: program logic may sometimes rule out sharing; lock-free)\n(too loose: printf(); not always simple lock/data correspondence)\nCould locking be automatic? perhaps the language could associate a lock with every data object compiler adds acquire/release around every use less room for programmer to forget! that idea is often too rigid:\nrename(\"d1/x\", \"d2/y\"): lock d1, erase x, unlock d1 lock d2, add y, unlock d2 ​ problem: the file didn’t exist for a while! ​ rename() should be atomic ​ other system calls should see before, or after, not in between ​ otherwise too hard to write programs ​ we need:\nlock d1 ; lock d2 erase x, add y unlock d2; unlock d1 that is, programmer often needs explicit control over the region of code during which a lock is held in order to hide awkward intermediate states\nWays to think about what locks achieve locks help avoid lost updates locks help you create atomic multi-step operations – hide intermediate states locks help operations maintain invariants on a data structure assume the invariants are true at start of operation operation uses locks to hide temporary violation of invariants operation restores invariants before releasing locks\nProblem: deadlock notice rename() held two locks what if:\ncore A core B rename(d1/x, d2/y) rename(d2/a, d1/b) lock d1 lock d2 lock d2 ... lock d1 ... solution: ​ programmer works out an order for all locks ​ all code must acquire locks in that order ​ i.e. predict locks, sort, acquire – complex!\nLocks versus modularity locks make it hard to hide details inside modules to avoid deadlock, I need to know locks acquired by functions I call and I may need to acquire them before calling, even if I don’t use them i.e. locks are often not the private business of individual modules\nLocks and parallelism locks prevent parallel execution to get parallelism, you often need to split up data and locks in a way that lets each core use different data and different locks “fine grained locks” choosing best split of data/locks is a design challenge whole FS; directory/file; disk block whole kernel; each subsystem; each object you may need to re-design code to make it work well in parallel example: break single free memory list into per-core free lists helps if threads were waiting a lot on lock for single free list such re-writes can require a lot of work!\nLock granularity advice start with big locks, e.g. one lock protecting entire module less deadlock since less opportunity to hold two locks less reasoning about invariants/atomicity required measure to see if there’s a problem big locks are often enough – maybe little time spent in that module re-design for fine-grained locking only if you have to\nLet’s look at locking in xv6.\nA typical use of locks: uart.c typical of many O/S’s device driver arrangements diagram: user processes, kernel, UART, uartputc, remove from uart_tx_buf, uartintr() sources of concurrency: processes, interrupt only one lock in uart.c: uart_tx_lock – fairly coarse-grained uartputc() – what does uart_tx_lock protect? 1. no races in uart_tx_buf operations 2. if queue not empty, UART h/w is executing head of queue 3. no concurrent access to UART write registers uartintr() – interrupt handler acquires lock – might have to wait at interrupt level! removes character from uart_tx_buf hands next queued char to UART h/w (2) touches UART h/w registers (3)\nHow to implement locks?\nwhy not: struct lock { int locked; } acquire(l) { while(1){ if(l-\u003elocked == 0){ // A l-\u003elocked = 1; // B return; } } } oops: race between lines A and B how can we do A and B atomically?\nAtomic swap instruction:\na5 = 1 s1 = \u0026lk-\u003elocked amoswap.w.aq a5, a5, (s1) does this in hardware:\nlock addr globally (other cores cannot use it) temp = *s5 *addr = a5 a5 = temp unlock addr RISC-V h/w provides a notion of locking a memory location different CPUs have had different implementations diagram: cores, bus, RAM, lock thing so we are really pushing the problem down to the hardware h/w implements at granularity of cache-line or entire bus memory lock forces concurrent swap to run one at a time, not interleaved\nLook at xv6 spinlock implementation\nacquire(l){ while(__sync_lock_test_and_set(\u0026lk-\u003elocked, 1) != 0) } if l-\u003elocked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1, and the loop continues to spin if l-\u003elocked was 0, at most one lock_test_and_set will see the 0; it will set it to 1 and return 0; other test_an_set will return 1 this is a “spin lock”, since waiting cores “spin” in acquire loop\nwhat is the push_off() about? why disable interrupts? release(): sets lk-\u003elocked = 0 and re-enables interrupts\nDetail: memory read/write ordering suppose two cores use a lock to guard a counter, x and we have a naive lock implementation\nCore A: Core B: locked = 1 x = x + 1 while(locked == 1) locked = 0 ... locked = 1 x = x + 1 locked = 0 the compiler AND the CPU re-order memory accesses i.e. they do not obey the source program’s order of memory references e.g. the compiler might generate this code for core A:\nlocked = 1 locked = 0 x = x + 1 ​ i.e. move the increment outside the critical section! ​ the legal behaviors are called the “memory model” release()’s call to __sync_synchronize() prevents re-order ​ compiler won’t move a memory reference past a __sync_synchronize() ​ and (may) issue “memory barrier” instruction to tell the CPU acquire()’s call to __sync_synchronize() has a similar effect: if you use locks, you don’t need to understand the memory ordering rules ​ you need them if you want to write exotic “lock-free” code\nWhy spin locks? don’t they waste CPU while waiting? why not give up the CPU and switch to another process, let it run? what if holding thread needs to run; shouldn’t waiting thread yield CPU? spin lock guidelines: hold spin locks for very short times don’t yield CPU while holding a spin lock systems provide “blocking” locks for longer critical sections waiting threads yield the CPU but overheads are typically higher you’ll see some xv6 blocking schemes later\nAdvice: don’t share if you don’t have to start with a few coarse-grained locks instrument your code – which locks are preventing parallelism? use fine-grained locks only as needed for parallel performance use an automated race detector\nLab: Copy-on-Write Fork for xv6 Implement copy-on write(hard) 在 xv6 内核中实现写时复制（Copy-on-Write）的 fork。完成要求后，内核需成功通过 cowtest 和 usertests 测试。\n关键要求：\n修改 uvmcopy() 实现父子进程共享物理页，不分配新页，并清除 PTE_W。 在 usertrap() 处理写时复制的页面错误，分配新页并拷贝旧页数据。 实现物理页引用计数，确保页在最后一次引用解除后才被释放。 修改 copyout() 处理 COW 页面。 1.添加reference数组，记录页面的引用计数。 2.初始化引用计数 3.分配时将页面计数置为1 4.实现计数 +1 -1 5.trap中出现未分配的page时判断是否是cow 6.添加cow标记位 7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数 8.实现is_cow() 和 cow_alloc() // 模仿 walkaddr 根据虚拟地址返回物理地址 int is_cow(pagetable_t pagetable, uint64 va) { pte_t *pte; if (va \u003e= MAXVA) { return 0; } if ((pte = walk(pagetable, va, 0)) == 0) { return 0; } if ((*pte \u0026 PTE_V) == 0) { return 0; } if ((*pte \u0026 PTE_U) == 0) { return 0; } return 1; } // cow_alloc: 处理写时复制（COW, Copy-On-Write）操作 // 输入参数： // - pagetable: 页表指针，用于定位虚拟地址所对应的页表项 // - va: 虚拟地址 (virtual address)，需要被复制的页 // 返回值： // - 成功时返回新分配的物理页地址 // - 失败时返回 0 uint64 cow_alloc(pagetable_t pagetable, uint64 va) { // 将虚拟地址对齐到页边界（向下取整），因为内存页通常按页大小分配 va = PGROUNDDOWN(va); // 获取虚拟地址 va 对应的页表项指针，如果失败返回 0 pte_t *pte = walk(pagetable, va, 0); // 为新的物理页分配内存 char *mem = kalloc(); if (mem == 0) { // 内存分配失败，返回 0 return 0; } // 获取当前页表项中存储的物理地址 uint64 pa = PTE2PA(*pte); // 将原物理页的数据复制到新分配的物理页 mem 中，保证内容一致 memmove(mem, (char *)pa, PGSIZE); // 获取页表项中的标志位信息（权限信息） uint flags = PTE_FLAGS(*pte); // 将新分配的物理页地址和原先的标志位一起设置到页表项 (*pte) = PA2PTE((uint64)mem) | flags; // 为新的页表项添加写权限（PTE_W），因为 COW 后需要进行写操作 (*pte) |= PTE_W; // 清除 COW 标志（PTE_C），表示这个页不再是共享的 COW 页 (*pte) \u0026= ~PTE_C; // 释放原先的物理页，原物理页在没有其他进程使用后可以被回收 kfree((void *)pa); // 返回新分配的物理页地址 return (uint64)mem; } 9.copyout()中判断是否是cow(), 并执行cow_alloc， 分配内存 10.defs.h中进行函数声明\n","wordCount":"2151","inLanguage":"zh","datePublished":"2024-09-19T19:30:13+08:00","dateModified":"2024-09-19T19:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/mit6.s08110-locks/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">MIT6.S081(10)-Locking</h1><div class=post-description>MIT6.S081(10)-Locks</div><div class=post-meta><span title='2024-09-19 19:30:13 +0800 +0800'>2024-09-19</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2151 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#mit6s08110-locking aria-label=MIT6.S081(10)-Locking>MIT6.S081(10)-Locking</a><ul><li><a href=#why-talk-about-locking aria-label="Why talk about locking?">Why talk about locking?</a></li><li><a href=#when-to-lock- aria-label="When to Lock ?">When to Lock ?</a></li><li><a href=#could-locking-be-automatic aria-label="Could locking be automatic?">Could locking be automatic?</a></li><li><a href=#problem-deadlock aria-label="Problem: deadlock">Problem: deadlock</a><ul><li><a href=#solution aria-label=solution:>solution:</a></li></ul></li><li><a href=#locks-versus-modularity aria-label="Locks versus modularity">Locks versus modularity</a></li><li><a href=#locks-and-parallelism aria-label="Locks and parallelism">Locks and parallelism</a><ul><li><a href=#lock-granularity-advice aria-label="Lock granularity advice">Lock granularity advice</a></li></ul></li></ul></li><li><a href=#lab-copy-on-write-fork-for-xv6 aria-label="Lab: Copy-on-Write Fork for xv6"><a href=https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html>Lab: Copy-on-Write Fork for xv6</a></a><ul><li><a href=#implement-copy-on-writehard aria-label="Implement copy-on write(hard)">Implement copy-on write(<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>hard</a>)</a><ul><li><a href=#1%e6%b7%bb%e5%8a%a0reference%e6%95%b0%e7%bb%84%e8%ae%b0%e5%bd%95%e9%a1%b5%e9%9d%a2%e7%9a%84%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0 aria-label=1.添加reference数组，记录页面的引用计数。>1.添加reference数组，记录页面的引用计数。</a></li><li><a href=#2%e5%88%9d%e5%a7%8b%e5%8c%96%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0 aria-label=2.初始化引用计数>2.初始化引用计数</a></li><li><a href=#3%e5%88%86%e9%85%8d%e6%97%b6%e5%b0%86%e9%a1%b5%e9%9d%a2%e8%ae%a1%e6%95%b0%e7%bd%ae%e4%b8%ba1 aria-label=3.分配时将页面计数置为1>3.分配时将页面计数置为1</a></li><li><a href=#4%e5%ae%9e%e7%8e%b0%e8%ae%a1%e6%95%b0-1--1 aria-label="4.实现计数 +1 -1">4.实现计数 <code>+1</code> <code>-1</code></a></li><li><a href=#5trap%e4%b8%ad%e5%87%ba%e7%8e%b0%e6%9c%aa%e5%88%86%e9%85%8d%e7%9a%84page%e6%97%b6%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%98%afcow aria-label=5.trap中出现未分配的page时判断是否是cow>5.trap中出现未分配的page时判断是否是cow</a></li><li><a href=#6%e6%b7%bb%e5%8a%a0cow%e6%a0%87%e8%ae%b0%e4%bd%8d aria-label=6.添加cow标记位>6.添加cow标记位</a></li><li><a href=#7kalloc%e6%97%b6%e6%a0%87%e8%ae%b0cow%e6%a0%87%e5%bf%97%e4%bd%8d-%e8%80%8c%e4%b8%8d%e6%98%af%e7%ab%8b%e5%88%bb%e5%88%86%e9%85%8d%e7%a9%ba%e9%97%b4-%e6%b7%bb%e5%8a%a0%e9%a1%b5%e9%9d%a2%e7%9a%84%e5%bc%95%e7%94%a8%e8%ae%a1%e6%95%b0 aria-label="7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数">7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数</a></li><li><a href=#8%e5%ae%9e%e7%8e%b0is_cow-%e5%92%8c-cow_alloc aria-label="8.实现is_cow() 和 cow_alloc()">8.实现<code>is_cow()</code> 和 <code>cow_alloc()</code></a></li><li><a href=#9copyout%e4%b8%ad%e5%88%a4%e6%96%ad%e6%98%af%e5%90%a6%e6%98%afcow-%e5%b9%b6%e6%89%a7%e8%a1%8ccow_alloc-%e5%88%86%e9%85%8d%e5%86%85%e5%ad%98 aria-label="9.copyout()中判断是否是cow(), 并执行cow_alloc， 分配内存">9.copyout()中判断是否是<code>cow()</code>, 并执行<code>cow_alloc</code>， 分配内存</a></li></ul></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=mit6s08110-locking>MIT6.S081(10)-Locking<a hidden class=anchor aria-hidden=true href=#mit6s08110-locking>#</a></h1><h2 id=why-talk-about-locking>Why talk about locking?<a hidden class=anchor aria-hidden=true href=#why-talk-about-locking>#</a></h2><p>apps want to use multi-core processors for parallel speed-up
 so kernel must deal with parallel system calls
 and thus parallel access to kernel data (<code>buffer</code> <code>cache</code>, <code>processes</code>, &amp;c)
 <strong>locks help with correct sharing of data</strong>
-<strong>locks can limit parallel speedup</strong></p>
-<p>What goes wrong if we don&rsquo;t have locks
+<strong>locks can limit parallel speedup</strong></p><p>What goes wrong if we don&rsquo;t have locks
 Case study: delete acquire/release in <code>kalloc.c</code>
 Boot
 kernel works!
@@ -447,12 +22,10 @@ picture of shared-memory multiprocessor
 race between two cores calling <code>kfree()</code>
 BUMMER:
 we need locks for correctness
-but lose performance (kfree is serialized)</p>
-<p><strong>The lock abstraction:</strong></p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  lock l
-</span></span><span style="display:flex;"><span>  acquire(l)
-</span></span><span style="display:flex;"><span>    x = x + 1 -- &#34;critical section&#34;
-</span></span><span style="display:flex;"><span>  release(l)
+but lose performance (kfree is serialized)</p><p><strong>The lock abstraction:</strong></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  lock l
+</span></span><span style=display:flex><span>  acquire(l)
+</span></span><span style=display:flex><span>    x = x + 1 -- &#34;critical section&#34;
+</span></span><span style=display:flex><span>  release(l)
 </span></span></code></pre></div><p>a lock is itself an object
 if multiple threads call acquire(l)
 only one will return right away
@@ -462,63 +35,40 @@ if different threads use different data,
 then they likely hold different locks,
 so they can execute in parallel &ndash; get more work done.
 note that lock l is not specifically tied to data x
-the programmer has a plan for the correspondence</p>
-<h2 id="when-to-lock-">When to Lock ?<a hidden class="anchor" aria-hidden="true" href="#when-to-lock-">#</a></h2>
-<p>A conservative rule to decide when you need to lock:
+the programmer has a plan for the correspondence</p><h2 id=when-to-lock->When to Lock ?<a hidden class=anchor aria-hidden=true href=#when-to-lock->#</a></h2><p>A conservative rule to decide when you need to lock:
 any time two threads use a memory location, and at least one is a write
-don&rsquo;t touch shared data unless you hold the right lock!</p>
-<ul>
-<li>
-<p>(too strict: program logic may sometimes rule out sharing; lock-free)</p>
-</li>
-<li>
-<p>(too loose: <code>printf()</code>; not always simple lock/data correspondence)</p>
-</li>
-</ul>
-<h2 id="could-locking-be-automatic">Could locking be automatic?<a hidden class="anchor" aria-hidden="true" href="#could-locking-be-automatic">#</a></h2>
-<p>perhaps the language could associate a lock with every data object
+don&rsquo;t touch shared data unless you hold the right lock!</p><ul><li><p>(too strict: program logic may sometimes rule out sharing; lock-free)</p></li><li><p>(too loose: <code>printf()</code>; not always simple lock/data correspondence)</p></li></ul><h2 id=could-locking-be-automatic>Could locking be automatic?<a hidden class=anchor aria-hidden=true href=#could-locking-be-automatic>#</a></h2><p>perhaps the language could associate a lock with every data object
 compiler adds acquire/release around every use
 less room for programmer to forget!
-that idea is often too rigid:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    rename(&#34;d1/x&#34;, &#34;d2/y&#34;):
-</span></span><span style="display:flex;"><span>      lock d1, erase x, unlock d1
-</span></span><span style="display:flex;"><span>      lock d2, add y, unlock d2
-</span></span></code></pre></div><p>​    problem: the file didn&rsquo;t exist for a while!
-​      <code>rename()</code> should be atomic
-​        other system calls should see before, or after, not in between
-​      otherwise too hard to write programs
-​    we need:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>      lock d1 ; lock d2
-</span></span><span style="display:flex;"><span>      erase x, add y
-</span></span><span style="display:flex;"><span>      unlock d2; unlock d1
+that idea is often too rigid:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>    rename(&#34;d1/x&#34;, &#34;d2/y&#34;):
+</span></span><span style=display:flex><span>      lock d1, erase x, unlock d1
+</span></span><span style=display:flex><span>      lock d2, add y, unlock d2
+</span></span></code></pre></div><p>​ problem: the file didn&rsquo;t exist for a while!
+​ <code>rename()</code> should be atomic
+​ other system calls should see before, or after, not in between
+​ otherwise too hard to write programs
+​ we need:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>      lock d1 ; lock d2
+</span></span><span style=display:flex><span>      erase x, add y
+</span></span><span style=display:flex><span>      unlock d2; unlock d1
 </span></span></code></pre></div><p>that is, programmer often needs explicit control over
 the region of code during which a lock is held
-in order to hide awkward intermediate states</p>
-<p>Ways to think about what locks achieve
+in order to hide awkward intermediate states</p><p>Ways to think about what locks achieve
 locks help avoid lost updates
 locks help you create atomic multi-step operations &ndash; hide intermediate states
 locks help operations maintain invariants on a data structure
 assume the invariants are true at start of operation
 operation uses locks to hide temporary violation of invariants
-operation restores invariants before releasing locks</p>
-<h2 id="problem-deadlock">Problem: deadlock<a hidden class="anchor" aria-hidden="true" href="#problem-deadlock">#</a></h2>
-<p>notice <code>rename()</code> held two locks
-what if:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    core A              core B
-</span></span><span style="display:flex;"><span>    rename(d1/x, d2/y)  rename(d2/a, d1/b)
-</span></span><span style="display:flex;"><span>      lock d1             lock d2
-</span></span><span style="display:flex;"><span>      lock d2 ...         lock d1 ...
-</span></span></code></pre></div><h3 id="solution">solution:<a hidden class="anchor" aria-hidden="true" href="#solution">#</a></h3>
-<p>​    programmer works out an order for all locks
-​    all code must acquire locks in that order
-​    i.e. predict locks, sort, acquire &ndash; complex!</p>
-<h2 id="locks-versus-modularity">Locks versus modularity<a hidden class="anchor" aria-hidden="true" href="#locks-versus-modularity">#</a></h2>
-<p>locks make it hard to hide details inside modules
+operation restores invariants before releasing locks</p><h2 id=problem-deadlock>Problem: deadlock<a hidden class=anchor aria-hidden=true href=#problem-deadlock>#</a></h2><p>notice <code>rename()</code> held two locks
+what if:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>    core A              core B
+</span></span><span style=display:flex><span>    rename(d1/x, d2/y)  rename(d2/a, d1/b)
+</span></span><span style=display:flex><span>      lock d1             lock d2
+</span></span><span style=display:flex><span>      lock d2 ...         lock d1 ...
+</span></span></code></pre></div><h3 id=solution>solution:<a hidden class=anchor aria-hidden=true href=#solution>#</a></h3><p>​ programmer works out an order for all locks
+​ all code must acquire locks in that order
+​ i.e. predict locks, sort, acquire &ndash; complex!</p><h2 id=locks-versus-modularity>Locks versus modularity<a hidden class=anchor aria-hidden=true href=#locks-versus-modularity>#</a></h2><p>locks make it hard to hide details inside modules
 to avoid deadlock, I need to know locks acquired by functions I call
 and I may need to acquire them before calling, even if I don&rsquo;t use them
-i.e. locks are often not the private business of individual modules</p>
-<h2 id="locks-and-parallelism">Locks and parallelism<a hidden class="anchor" aria-hidden="true" href="#locks-and-parallelism">#</a></h2>
-<p>locks <em>prevent</em> parallel execution
+i.e. locks are often not the private business of individual modules</p><h2 id=locks-and-parallelism>Locks and parallelism<a hidden class=anchor aria-hidden=true href=#locks-and-parallelism>#</a></h2><p>locks <em>prevent</em> parallel execution
 to get parallelism, you often need to split up data and locks
 in a way that lets each core use different data and different locks
 &ldquo;fine grained locks&rdquo;
@@ -528,16 +78,12 @@ whole kernel; each subsystem; each object
 you may need to re-design code to make it work well in parallel
 example: break single free memory list into per-core free lists
 helps if threads were waiting a lot on lock for single free list
-such re-writes can require a lot of work!</p>
-<h3 id="lock-granularity-advice">Lock granularity advice<a hidden class="anchor" aria-hidden="true" href="#lock-granularity-advice">#</a></h3>
-<p>start with big locks, e.g. one lock protecting entire module
+such re-writes can require a lot of work!</p><h3 id=lock-granularity-advice>Lock granularity advice<a hidden class=anchor aria-hidden=true href=#lock-granularity-advice>#</a></h3><p>start with big locks, e.g. one lock protecting entire module
 less deadlock since less opportunity to hold two locks
 less reasoning about invariants/atomicity required
 measure to see if there&rsquo;s a problem
 big locks are often enough &ndash; maybe little time spent in that module
-re-design for fine-grained locking only if you have to</p>
-<p>Let&rsquo;s look at locking in xv6.</p>
-<p>A typical use of locks: uart.c
+re-design for fine-grained locking only if you have to</p><p>Let&rsquo;s look at locking in xv6.</p><p>A typical use of locks: uart.c
 typical of many O/S&rsquo;s device driver arrangements
 diagram:
 user processes, kernel, UART, uartputc, remove from uart_tx_buf,
@@ -552,75 +98,63 @@ uartintr() &ndash; interrupt handler
 acquires lock &ndash; might have to wait at interrupt level!
 removes character from uart_tx_buf
 hands next queued char to UART h/w (2)
-touches UART h/w registers (3)</p>
-<p>How to implement locks?</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  why not:
-</span></span><span style="display:flex;"><span>    struct lock { int locked; }
-</span></span><span style="display:flex;"><span>    acquire(l) {
-</span></span><span style="display:flex;"><span>      while(1){
-</span></span><span style="display:flex;"><span>        if(l-&gt;locked == 0){ // A
-</span></span><span style="display:flex;"><span>          l-&gt;locked = 1;    // B
-</span></span><span style="display:flex;"><span>          return;
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>      }
-</span></span><span style="display:flex;"><span>    }
+touches UART h/w registers (3)</p><p>How to implement locks?</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  why not:
+</span></span><span style=display:flex><span>    struct lock { int locked; }
+</span></span><span style=display:flex><span>    acquire(l) {
+</span></span><span style=display:flex><span>      while(1){
+</span></span><span style=display:flex><span>        if(l-&gt;locked == 0){ // A
+</span></span><span style=display:flex><span>          l-&gt;locked = 1;    // B
+</span></span><span style=display:flex><span>          return;
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>      }
+</span></span><span style=display:flex><span>    }
 </span></span></code></pre></div><p>oops: race between lines A and B
-how can we do A and B atomically?</p>
-<p>Atomic swap instruction:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  a5 = 1
-</span></span><span style="display:flex;"><span>  s1 = &amp;lk-&gt;locked
-</span></span><span style="display:flex;"><span>  amoswap.w.aq a5, a5, (s1)
-</span></span></code></pre></div><p>does this in hardware:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>    lock addr globally (other cores cannot use it)
-</span></span><span style="display:flex;"><span>    temp = *s5
-</span></span><span style="display:flex;"><span>    *addr = a5
-</span></span><span style="display:flex;"><span>    a5 = temp
-</span></span><span style="display:flex;"><span>    unlock addr
+how can we do A and B atomically?</p><p>Atomic swap instruction:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  a5 = 1
+</span></span><span style=display:flex><span>  s1 = &amp;lk-&gt;locked
+</span></span><span style=display:flex><span>  amoswap.w.aq a5, a5, (s1)
+</span></span></code></pre></div><p>does this in hardware:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>    lock addr globally (other cores cannot use it)
+</span></span><span style=display:flex><span>    temp = *s5
+</span></span><span style=display:flex><span>    *addr = a5
+</span></span><span style=display:flex><span>    a5 = temp
+</span></span><span style=display:flex><span>    unlock addr
 </span></span></code></pre></div><p>RISC-V h/w provides a notion of locking a memory location
 different CPUs have had different implementations
 diagram: cores, bus, RAM, lock thing
 so we are really pushing the problem down to the hardware
 h/w implements at granularity of cache-line or entire bus
-memory lock forces concurrent swap to run one at a time, not interleaved</p>
-<p>Look at xv6 spinlock implementation</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  acquire(l){
-</span></span><span style="display:flex;"><span>    while(__sync_lock_test_and_set(&amp;lk-&gt;locked, 1) != 0)
-</span></span><span style="display:flex;"><span>  }
-</span></span></code></pre></div><p>if l-&gt;locked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1,
+memory lock forces concurrent swap to run one at a time, not interleaved</p><p>Look at xv6 spinlock implementation</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  acquire(l){
+</span></span><span style=display:flex><span>    while(__sync_lock_test_and_set(&amp;lk-&gt;locked, 1) != 0)
+</span></span><span style=display:flex><span>  }
+</span></span></code></pre></div><p>if l->locked was already 1, sync_lock_test_and_set sets to 1 (again), returns 1,
 and the loop continues to spin
-if l-&gt;locked was 0, at most one lock_test_and_set will see the 0; it will set
+if l->locked was 0, at most one lock_test_and_set will see the 0; it will set
 it to 1 and return 0; other test_an_set will return 1
-this is a &ldquo;spin lock&rdquo;, since waiting cores &ldquo;spin&rdquo; in acquire loop</p>
-<p>what is the push_off() about?
+this is a &ldquo;spin lock&rdquo;, since waiting cores &ldquo;spin&rdquo; in acquire loop</p><p>what is the push_off() about?
 why disable interrupts?
 release():
-sets lk-&gt;locked = 0
-and re-enables interrupts</p>
-<p>Detail: memory read/write ordering
+sets lk->locked = 0
+and re-enables interrupts</p><p>Detail: memory read/write ordering
 suppose two cores use a lock to guard a counter, x
-and we have a naive lock implementation</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>  Core A:          Core B:
-</span></span><span style="display:flex;"><span>    locked = 1
-</span></span><span style="display:flex;"><span>    x = x + 1      while(locked == 1)
-</span></span><span style="display:flex;"><span>    locked = 0       ...
-</span></span><span style="display:flex;"><span>                   locked = 1
-</span></span><span style="display:flex;"><span>                   x = x + 1
-</span></span><span style="display:flex;"><span>                   locked = 0
+and we have a naive lock implementation</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>  Core A:          Core B:
+</span></span><span style=display:flex><span>    locked = 1
+</span></span><span style=display:flex><span>    x = x + 1      while(locked == 1)
+</span></span><span style=display:flex><span>    locked = 0       ...
+</span></span><span style=display:flex><span>                   locked = 1
+</span></span><span style=display:flex><span>                   x = x + 1
+</span></span><span style=display:flex><span>                   locked = 0
 </span></span></code></pre></div><p>the compiler AND the CPU re-order memory accesses
 i.e. they do not obey the source program&rsquo;s order of memory references
-e.g. the compiler might generate this code for core A:</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>      locked = 1
-</span></span><span style="display:flex;"><span>      locked = 0
-</span></span><span style="display:flex;"><span>      x = x + 1
-</span></span></code></pre></div><p>​      i.e. move the increment outside the critical section!
-​    the legal behaviors are called the &ldquo;memory model&rdquo;
+e.g. the compiler might generate this code for core A:</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>      locked = 1
+</span></span><span style=display:flex><span>      locked = 0
+</span></span><span style=display:flex><span>      x = x + 1
+</span></span></code></pre></div><p>​ i.e. move the increment outside the critical section!
+​ the legal behaviors are called the &ldquo;memory model&rdquo;
 release()&rsquo;s call to __sync_synchronize() prevents re-order
-​    compiler won&rsquo;t move a memory reference past a __sync_synchronize()
-​    and (may) issue &ldquo;memory barrier&rdquo; instruction to tell the CPU
+​ compiler won&rsquo;t move a memory reference past a __sync_synchronize()
+​ and (may) issue &ldquo;memory barrier&rdquo; instruction to tell the CPU
 acquire()&rsquo;s call to __sync_synchronize() has a similar effect:
 if you use locks, you don&rsquo;t need to understand the memory ordering rules
-​    you need them if you want to write exotic &ldquo;lock-free&rdquo; code</p>
-<p>Why spin locks?
+​ you need them if you want to write exotic &ldquo;lock-free&rdquo; code</p><p>Why spin locks?
 don&rsquo;t they waste CPU while waiting?
 why not give up the CPU and switch to another process, let it run?
 what if holding thread needs to run; shouldn&rsquo;t waiting thread yield CPU?
@@ -630,430 +164,88 @@ don&rsquo;t yield CPU while holding a spin lock
 systems provide &ldquo;blocking&rdquo; locks for longer critical sections
 waiting threads yield the CPU
 but overheads are typically higher
-you&rsquo;ll see some xv6 blocking schemes later</p>
-<p>Advice:
+you&rsquo;ll see some xv6 blocking schemes later</p><p>Advice:
 don&rsquo;t share if you don&rsquo;t have to
 start with a few coarse-grained locks
 instrument your code &ndash; which locks are preventing parallelism?
 use fine-grained locks only as needed for parallel performance
-use an automated race detector</p>
-<h1 id="lab-copy-on-write-fork-for-xv6"><a href="https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html">Lab: Copy-on-Write Fork for xv6</a><a hidden class="anchor" aria-hidden="true" href="#lab-copy-on-write-fork-for-xv6">#</a></h1>
-<h2 id="implement-copy-on-writehard">Implement copy-on write(<a href="https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html">hard</a>)<a hidden class="anchor" aria-hidden="true" href="#implement-copy-on-writehard">#</a></h2>
-<p>在 xv6 内核中实现写时复制（Copy-on-Write）的 <code>fork</code>。完成要求后，内核需成功通过 <code>cowtest</code> 和 <code>usertests</code> 测试。</p>
-<p>关键要求：</p>
-<ol>
-<li>修改 <code>uvmcopy()</code> 实现父子进程共享物理页，不分配新页，并清除 PTE_W。</li>
-<li>在 <code>usertrap()</code> 处理写时复制的页面错误，分配新页并拷贝旧页数据。</li>
-<li>实现物理页引用计数，确保页在最后一次引用解除后才被释放。</li>
-<li>修改 <code>copyout()</code> 处理 COW 页面。</li>
-</ol>
-<h3 id="1添加reference数组记录页面的引用计数">1.添加reference数组，记录页面的引用计数。<a hidden class="anchor" aria-hidden="true" href="#1添加reference数组记录页面的引用计数">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121105036.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121105036.png" alt="image-20240926121105036"  />
-        </a>
-    </div>
-</p>
-<h3 id="2初始化引用计数">2.初始化引用计数<a hidden class="anchor" aria-hidden="true" href="#2初始化引用计数">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121219046.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121219046.png" alt="image-20240926121219046"  />
-        </a>
-    </div>
-</p>
-<h3 id="3分配时将页面计数置为1">3.分配时将页面计数置为1<a hidden class="anchor" aria-hidden="true" href="#3分配时将页面计数置为1">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121301072.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121301072.png" alt="image-20240926121301072"  />
-        </a>
-    </div>
-</p>
-<h3 id="4实现计数-1--1">4.实现计数 <code>+1</code> <code>-1</code><a hidden class="anchor" aria-hidden="true" href="#4实现计数-1--1">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121415398.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121415398.png" alt="image-20240926121415398"  />
-        </a>
-    </div>
-</p>
-<h3 id="5trap中出现未分配的page时判断是否是cow">5.trap中出现未分配的page时判断是否是cow<a hidden class="anchor" aria-hidden="true" href="#5trap中出现未分配的page时判断是否是cow">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121558069.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121558069.png" alt="image-20240926121558069"  />
-        </a>
-    </div>
-</p>
-<h3 id="6添加cow标记位">6.添加cow标记位<a hidden class="anchor" aria-hidden="true" href="#6添加cow标记位">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121645097.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121645097.png" alt="image-20240926121645097"  />
-        </a>
-    </div>
-</p>
-<h3 id="7kalloc时标记cow标志位-而不是立刻分配空间-添加页面的引用计数">7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数<a hidden class="anchor" aria-hidden="true" href="#7kalloc时标记cow标志位-而不是立刻分配空间-添加页面的引用计数">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121743881.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121743881.png" alt="image-20240926121743881"  />
-        </a>
-    </div>
-</p>
-<h3 id="8实现is_cow-和-cow_alloc">8.实现<code>is_cow()</code> 和 <code>cow_alloc()</code><a hidden class="anchor" aria-hidden="true" href="#8实现is_cow-和-cow_alloc">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121857988.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121857988.png" alt="image-20240926121857988"  />
-        </a>
-    </div>
-</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121927248.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121927248.png" alt="image-20240926121927248"  />
-        </a>
-    </div>
-</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-c" data-lang="c"><span style="display:flex;"><span><span style="color:#75715e">// 模仿 walkaddr 根据虚拟地址返回物理地址
-</span></span></span><span style="display:flex;"><span><span style="color:#66d9ef">int</span> <span style="color:#a6e22e">is_cow</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte;
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (va <span style="color:#f92672">&gt;=</span> MAXVA)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(pagetable, va, <span style="color:#ae81ff">0</span>)) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_V) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> ((<span style="color:#f92672">*</span>pte <span style="color:#f92672">&amp;</span> PTE_U) <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>;
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e">// cow_alloc: 处理写时复制（COW, Copy-On-Write）操作
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 输入参数：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - pagetable: 页表指针，用于定位虚拟地址所对应的页表项
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - va: 虚拟地址 (virtual address)，需要被复制的页
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// 返回值：
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - 成功时返回新分配的物理页地址
-</span></span></span><span style="display:flex;"><span><span style="color:#75715e">// - 失败时返回 0
-</span></span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>uint64 <span style="color:#a6e22e">cow_alloc</span>(<span style="color:#66d9ef">pagetable_t</span> pagetable, uint64 va)
-</span></span><span style="display:flex;"><span>{
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将虚拟地址对齐到页边界（向下取整），因为内存页通常按页大小分配
-</span></span></span><span style="display:flex;"><span>  va <span style="color:#f92672">=</span> <span style="color:#a6e22e">PGROUNDDOWN</span>(va);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取虚拟地址 va 对应的页表项指针，如果失败返回 0
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">pte_t</span> <span style="color:#f92672">*</span>pte <span style="color:#f92672">=</span> <span style="color:#a6e22e">walk</span>(pagetable, va, <span style="color:#ae81ff">0</span>);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 为新的物理页分配内存
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>mem <span style="color:#f92672">=</span> <span style="color:#a6e22e">kalloc</span>();
-</span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">if</span> (mem <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>  {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 内存分配失败，返回 0
-</span></span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>;
-</span></span><span style="display:flex;"><span>  }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取当前页表项中存储的物理地址
-</span></span></span><span style="display:flex;"><span>  uint64 pa <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE2PA</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将原物理页的数据复制到新分配的物理页 mem 中，保证内容一致
-</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">memmove</span>(mem, (<span style="color:#66d9ef">char</span> <span style="color:#f92672">*</span>)pa, PGSIZE);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 获取页表项中的标志位信息（权限信息）
-</span></span></span><span style="display:flex;"><span>  uint flags <span style="color:#f92672">=</span> <span style="color:#a6e22e">PTE_FLAGS</span>(<span style="color:#f92672">*</span>pte);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 将新分配的物理页地址和原先的标志位一起设置到页表项
-</span></span></span><span style="display:flex;"><span>  (<span style="color:#f92672">*</span>pte) <span style="color:#f92672">=</span> <span style="color:#a6e22e">PA2PTE</span>((uint64)mem) <span style="color:#f92672">|</span> flags;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 为新的页表项添加写权限（PTE_W），因为 COW 后需要进行写操作
-</span></span></span><span style="display:flex;"><span>  (<span style="color:#f92672">*</span>pte) <span style="color:#f92672">|=</span> PTE_W;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 清除 COW 标志（PTE_C），表示这个页不再是共享的 COW 页
-</span></span></span><span style="display:flex;"><span>  (<span style="color:#f92672">*</span>pte) <span style="color:#f92672">&amp;=</span> <span style="color:#f92672">~</span>PTE_C;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 释放原先的物理页，原物理页在没有其他进程使用后可以被回收
-</span></span></span><span style="display:flex;"><span>  <span style="color:#a6e22e">kfree</span>((<span style="color:#66d9ef">void</span> <span style="color:#f92672">*</span>)pa);
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>  <span style="color:#75715e">// 返回新分配的物理页地址
-</span></span></span><span style="display:flex;"><span>  <span style="color:#66d9ef">return</span> (uint64)mem;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="9copyout中判断是否是cow-并执行cow_alloc-分配内存">9.copyout()中判断是否是<code>cow()</code>, 并执行<code>cow_alloc</code>， 分配内存<a hidden class="anchor" aria-hidden="true" href="#9copyout中判断是否是cow-并执行cow_alloc-分配内存">#</a></h3>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122208524.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122208524.png" alt="image-20240926122208524"  />
-        </a>
-    </div>
-</p>
-<p>10.<code>defs.h</code>中进行函数声明</p>
-<p>
-
-
-
-
-
-
-    <div class="post-img-view">
-        <a data-fancybox="gallery" href="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122504380.png">
-            <img src="https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122504380.png" alt="image-20240926122504380"  />
-        </a>
-    </div>
-</p>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/mit6.s081/">MIT6.S081</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F">操作系统</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/">
-    <span class="title">« 上一页</span>
-    <span>MIT6.S081(11)- Thread switching</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/mit6.s0819-interrupts/">
-    <span class="title">下一页 »</span>
-    <span>MIT6.S081(9)-Interrupts</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+use an automated race detector</p><h1 id=lab-copy-on-write-fork-for-xv6><a href=https://pdos.csail.mit.edu/6.S081/2020/labs/cow.html>Lab: Copy-on-Write Fork for xv6</a><a hidden class=anchor aria-hidden=true href=#lab-copy-on-write-fork-for-xv6>#</a></h1><h2 id=implement-copy-on-writehard>Implement copy-on write(<a href=https://pdos.csail.mit.edu/6.S081/2020/labs/guidance.html>hard</a>)<a hidden class=anchor aria-hidden=true href=#implement-copy-on-writehard>#</a></h2><p>在 xv6 内核中实现写时复制（Copy-on-Write）的 <code>fork</code>。完成要求后，内核需成功通过 <code>cowtest</code> 和 <code>usertests</code> 测试。</p><p>关键要求：</p><ol><li>修改 <code>uvmcopy()</code> 实现父子进程共享物理页，不分配新页，并清除 PTE_W。</li><li>在 <code>usertrap()</code> 处理写时复制的页面错误，分配新页并拷贝旧页数据。</li><li>实现物理页引用计数，确保页在最后一次引用解除后才被释放。</li><li>修改 <code>copyout()</code> 处理 COW 页面。</li></ol><h3 id=1添加reference数组记录页面的引用计数>1.添加reference数组，记录页面的引用计数。<a hidden class=anchor aria-hidden=true href=#1添加reference数组记录页面的引用计数>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121105036.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121105036.png alt=image-20240926121105036></a></div></p><h3 id=2初始化引用计数>2.初始化引用计数<a hidden class=anchor aria-hidden=true href=#2初始化引用计数>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121219046.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121219046.png alt=image-20240926121219046></a></div></p><h3 id=3分配时将页面计数置为1>3.分配时将页面计数置为1<a hidden class=anchor aria-hidden=true href=#3分配时将页面计数置为1>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121301072.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121301072.png alt=image-20240926121301072></a></div></p><h3 id=4实现计数-1--1>4.实现计数 <code>+1</code> <code>-1</code><a hidden class=anchor aria-hidden=true href=#4实现计数-1--1>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121415398.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121415398.png alt=image-20240926121415398></a></div></p><h3 id=5trap中出现未分配的page时判断是否是cow>5.trap中出现未分配的page时判断是否是cow<a hidden class=anchor aria-hidden=true href=#5trap中出现未分配的page时判断是否是cow>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121558069.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121558069.png alt=image-20240926121558069></a></div></p><h3 id=6添加cow标记位>6.添加cow标记位<a hidden class=anchor aria-hidden=true href=#6添加cow标记位>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121645097.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121645097.png alt=image-20240926121645097></a></div></p><h3 id=7kalloc时标记cow标志位-而不是立刻分配空间-添加页面的引用计数>7.kalloc时，标记cow标志位， 而不是立刻分配空间， 添加页面的引用计数<a hidden class=anchor aria-hidden=true href=#7kalloc时标记cow标志位-而不是立刻分配空间-添加页面的引用计数>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121743881.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121743881.png alt=image-20240926121743881></a></div></p><h3 id=8实现is_cow-和-cow_alloc>8.实现<code>is_cow()</code> 和 <code>cow_alloc()</code><a hidden class=anchor aria-hidden=true href=#8实现is_cow-和-cow_alloc>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121857988.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121857988.png alt=image-20240926121857988></a></div></p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121927248.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926121927248.png alt=image-20240926121927248></a></div></p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-c data-lang=c><span style=display:flex><span><span style=color:#75715e>// 模仿 walkaddr 根据虚拟地址返回物理地址
+</span></span></span><span style=display:flex><span><span style=color:#66d9ef>int</span> <span style=color:#a6e22e>is_cow</span>(<span style=color:#66d9ef>pagetable_t</span> pagetable, uint64 va)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte;
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (va <span style=color:#f92672>&gt;=</span> MAXVA)
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(pagetable, va, <span style=color:#ae81ff>0</span>)) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_V) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> ((<span style=color:#f92672>*</span>pte <span style=color:#f92672>&amp;</span> PTE_U) <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>1</span>;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e>// cow_alloc: 处理写时复制（COW, Copy-On-Write）操作
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 输入参数：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// - pagetable: 页表指针，用于定位虚拟地址所对应的页表项
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// - va: 虚拟地址 (virtual address)，需要被复制的页
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// 返回值：
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// - 成功时返回新分配的物理页地址
+</span></span></span><span style=display:flex><span><span style=color:#75715e>// - 失败时返回 0
+</span></span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>uint64 <span style=color:#a6e22e>cow_alloc</span>(<span style=color:#66d9ef>pagetable_t</span> pagetable, uint64 va)
+</span></span><span style=display:flex><span>{
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 将虚拟地址对齐到页边界（向下取整），因为内存页通常按页大小分配
+</span></span></span><span style=display:flex><span>  va <span style=color:#f92672>=</span> <span style=color:#a6e22e>PGROUNDDOWN</span>(va);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 获取虚拟地址 va 对应的页表项指针，如果失败返回 0
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>pte_t</span> <span style=color:#f92672>*</span>pte <span style=color:#f92672>=</span> <span style=color:#a6e22e>walk</span>(pagetable, va, <span style=color:#ae81ff>0</span>);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 为新的物理页分配内存
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>mem <span style=color:#f92672>=</span> <span style=color:#a6e22e>kalloc</span>();
+</span></span><span style=display:flex><span>  <span style=color:#66d9ef>if</span> (mem <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>  {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 内存分配失败，返回 0
+</span></span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>;
+</span></span><span style=display:flex><span>  }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 获取当前页表项中存储的物理地址
+</span></span></span><span style=display:flex><span>  uint64 pa <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE2PA</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 将原物理页的数据复制到新分配的物理页 mem 中，保证内容一致
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>memmove</span>(mem, (<span style=color:#66d9ef>char</span> <span style=color:#f92672>*</span>)pa, PGSIZE);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 获取页表项中的标志位信息（权限信息）
+</span></span></span><span style=display:flex><span>  uint flags <span style=color:#f92672>=</span> <span style=color:#a6e22e>PTE_FLAGS</span>(<span style=color:#f92672>*</span>pte);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 将新分配的物理页地址和原先的标志位一起设置到页表项
+</span></span></span><span style=display:flex><span>  (<span style=color:#f92672>*</span>pte) <span style=color:#f92672>=</span> <span style=color:#a6e22e>PA2PTE</span>((uint64)mem) <span style=color:#f92672>|</span> flags;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 为新的页表项添加写权限（PTE_W），因为 COW 后需要进行写操作
+</span></span></span><span style=display:flex><span>  (<span style=color:#f92672>*</span>pte) <span style=color:#f92672>|=</span> PTE_W;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 清除 COW 标志（PTE_C），表示这个页不再是共享的 COW 页
+</span></span></span><span style=display:flex><span>  (<span style=color:#f92672>*</span>pte) <span style=color:#f92672>&amp;=</span> <span style=color:#f92672>~</span>PTE_C;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 释放原先的物理页，原物理页在没有其他进程使用后可以被回收
+</span></span></span><span style=display:flex><span>  <span style=color:#a6e22e>kfree</span>((<span style=color:#66d9ef>void</span> <span style=color:#f92672>*</span>)pa);
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>  <span style=color:#75715e>// 返回新分配的物理页地址
+</span></span></span><span style=display:flex><span>  <span style=color:#66d9ef>return</span> (uint64)mem;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=9copyout中判断是否是cow-并执行cow_alloc-分配内存>9.copyout()中判断是否是<code>cow()</code>, 并执行<code>cow_alloc</code>， 分配内存<a hidden class=anchor aria-hidden=true href=#9copyout中判断是否是cow-并执行cow_alloc-分配内存>#</a></h3><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122208524.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122208524.png alt=image-20240926122208524></a></div></p><p>10.<code>defs.h</code>中进行函数声明</p><p><div class=post-img-view><a data-fancybox=gallery href=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122504380.png><img src=https://raw.githubusercontent.com/Kennems/blog-image/main/image-20240926122504380.png alt=image-20240926122504380></a></div></p></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/mit6.s081/>MIT6.S081</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/%E6%93%8D%E4%BD%9C%E7%B3%BB%E7%BB%9F>操作系统</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/mit6.s08111--thread-switching/><span class=title>« 上一页</span>
+<span>MIT6.S081(11)- Thread switching</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/mit6.s0819-interrupts/><span class=title>下一页 »</span>
+<span>MIT6.S081(9)-Interrupts</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

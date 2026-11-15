@@ -1,1139 +1,380 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>Android 第三方库 | Kennem&#39;s Blog</title>
-<meta name="keywords" content="Android">
-<meta name="description" content="Android学习笔记">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="Android 第三方库">
-  <meta property="og:description" content="Android学习笔记">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2025-02-15T22:30:13+08:00">
-    <meta property="article:modified_time" content="2024-02-15T22:20:13+08:00">
-    <meta property="article:tag" content="Android">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="Android 第三方库">
-  <meta name="twitter:description" content="Android学习笔记">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "Android 第三方库",
-      "item": "https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "Android 第三方库",
-  "name": "Android 第三方库",
-  "description": "Android学习笔记",
-  "keywords": [
-    "Android"
-  ],
-  "articleBody": "Android 第三方库 ARouter ARouter 是阿里巴巴推出的 Android 路由框架，用于简化页面跳转、组件通信和跨模块开发。\n1. 添加依赖 首先，在项目中引入 ARouter 的相关依赖。\n1.1 在项目级 build.gradle 中添加 ARouter Maven 仓库 buildscript { repositories { mavenCentral() google() maven { url '",
-  "wordCount" : "2361",
-  "inLanguage": "zh",
-  "datePublished": "2025-02-15T22:30:13+08:00",
-  "dateModified": "2024-02-15T22:20:13+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      Android 第三方库
-    </h1>
-    <div class="post-description">
-      Android学习笔记
-    </div>
-    <div class="post-meta">
-
-<span title='2025-02-15 22:30:13 +0800 CST'>2025-02-15</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2361 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#android-%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93" aria-label="Android 第三方库">Android 第三方库</a><ul>
-                        
-                <li>
-                    <a href="#arouter" aria-label="ARouter">ARouter</a><ul>
-                        
-                <li>
-                    <a href="#1-%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96" aria-label="1. 添加依赖"><strong>1. 添加依赖</strong></a></li>
-                <li>
-                    <a href="#11-%e5%9c%a8%e9%a1%b9%e7%9b%ae%e7%ba%a7" aria-label="1.1 在项目级 build.gradle 中添加 ARouter Maven 仓库"><strong>1.1 在项目级 <code>build.gradle</code> 中添加 ARouter Maven 仓库</strong></a></li>
-                <li>
-                    <a href="#2-%e5%88%9d%e5%a7%8b%e5%8c%96-arouter" aria-label="2. 初始化 ARouter"><strong>2. 初始化 ARouter</strong></a></li>
-                <li>
-                    <a href="#21-%e5%88%9b%e5%bb%ba" aria-label="2.1 创建 MyApplication 类"><strong>2.1 创建 <code>MyApplication</code> 类</strong></a></li>
-                <li>
-                    <a href="#22-%e6%b3%a8%e5%86%8c" aria-label="2.2 注册 Application"><strong>2.2 注册 <code>Application</code></strong></a></li>
-                <li>
-                    <a href="#3-%e9%a1%b5%e9%9d%a2%e8%b7%b3%e8%bd%ac%e7%9a%84%e5%9f%ba%e6%9c%ac%e7%94%a8%e6%b3%95" aria-label="3. 页面跳转的基本用法"><strong>3. 页面跳转的基本用法</strong></a></li>
-                <li>
-                    <a href="#31-%e5%a3%b0%e6%98%8e%e8%b7%af%e7%94%b1%e8%b7%af%e5%be%84" aria-label="3.1 声明路由路径"><strong>3.1 声明路由路径</strong></a></li>
-                <li>
-                    <a href="#32-%e8%b7%b3%e8%bd%ac%e5%88%b0%e6%8c%87%e5%ae%9a%e9%a1%b5%e9%9d%a2" aria-label="3.2 跳转到指定页面"><strong>3.2 跳转到指定页面</strong></a></li>
-                <li>
-                    <a href="#4-%e8%b7%a8%e6%a8%a1%e5%9d%97%e8%b7%b3%e8%bd%ac" aria-label="4. 跨模块跳转"><strong>4. 跨模块跳转</strong></a></li>
-                <li>
-                    <a href="#41-%e5%9c%a8%e6%af%8f%e4%b8%aa%e6%a8%a1%e5%9d%97%e4%b8%ad%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96" aria-label="4.1 在每个模块中添加依赖"><strong>4.1 在每个模块中添加依赖</strong></a></li>
-                <li>
-                    <a href="#42-%e4%bd%bf%e7%94%a8%e8%b7%af%e7%94%b1%e8%b7%b3%e8%bd%ac" aria-label="4.2 使用路由跳转"><strong>4.2 使用路由跳转</strong></a></li>
-                <li>
-                    <a href="#5-%e8%b7%af%e7%94%b1%e6%8b%a6%e6%88%aa%e5%99%a8" aria-label="5. 路由拦截器"><strong>5. 路由拦截器</strong></a></li>
-                <li>
-                    <a href="#51-%e5%ae%9a%e4%b9%89%e6%8b%a6%e6%88%aa%e5%99%a8" aria-label="5.1 定义拦截器"><strong>5.1 定义拦截器</strong></a></li>
-                <li>
-                    <a href="#52-%e6%b3%a8%e5%86%8c%e6%8b%a6%e6%88%aa%e5%99%a8" aria-label="5.2 注册拦截器"><strong>5.2 注册拦截器</strong></a></li>
-                <li>
-                    <a href="#6-%e6%9c%8d%e5%8a%a1%e7%ae%a1%e7%90%86" aria-label="6. 服务管理"><strong>6. 服务管理</strong></a></li>
-                <li>
-                    <a href="#61-%e5%ae%9a%e4%b9%89%e6%9c%8d%e5%8a%a1%e6%8e%a5%e5%8f%a3" aria-label="6.1 定义服务接口"><strong>6.1 定义服务接口</strong></a></li>
-                <li>
-                    <a href="#62-%e5%ae%9e%e7%8e%b0%e6%9c%8d%e5%8a%a1" aria-label="6.2 实现服务"><strong>6.2 实现服务</strong></a></li>
-                <li>
-                    <a href="#63-%e8%b0%83%e7%94%a8%e6%9c%8d%e5%8a%a1" aria-label="6.3 调用服务"><strong>6.3 调用服务</strong></a></li>
-                <li>
-                    <a href="#7-%e6%b3%a8%e8%a7%a3%e8%af%b4%e6%98%8e" aria-label="7. 注解说明"><strong>7. 注解说明</strong></a></li>
-                <li>
-                    <a href="#8-%e6%b7%b7%e6%b7%86%e9%85%8d%e7%bd%ae" aria-label="8. 混淆配置"><strong>8. 混淆配置</strong></a></li>
-                <li>
-                    <a href="#9-%e5%b8%b8%e8%a7%81%e9%97%ae%e9%a2%98" aria-label="9. 常见问题"><strong>9. 常见问题</strong></a></li></ul>
-                </li>
-                <li>
-                    <a href="#hilt" aria-label="Hilt">Hilt</a><ul>
-                        
-                <li>
-                    <a href="#1-%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96-1" aria-label="1. 添加依赖"><strong>1. 添加依赖</strong></a></li>
-                <li>
-                    <a href="#2-%e9%85%8d%e7%bd%ae%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e7%b1%bb" aria-label="2. 配置应用程序类"><strong>2. 配置应用程序类</strong></a></li>
-                <li>
-                    <a href="#3-%e4%bd%bf%e7%94%a8-hilt-%e6%8f%90%e4%be%9b%e4%be%9d%e8%b5%96" aria-label="3. 使用 Hilt 提供依赖"><strong>3. 使用 Hilt 提供依赖</strong></a></li>
-                <li>
-                    <a href="#a-%e5%88%9b%e5%bb%ba%e6%a8%a1%e5%9d%97%e6%8f%90%e4%be%9b%e4%be%9d%e8%b5%96" aria-label="a. 创建模块提供依赖"><strong>a. 创建模块提供依赖</strong></a></li>
-                <li>
-                    <a href="#b-%e5%9c%a8-activity-%e6%88%96-fragment-%e4%b8%ad%e6%b3%a8%e5%85%a5%e4%be%9d%e8%b5%96" aria-label="b. 在 Activity 或 Fragment 中注入依赖"><strong>b. 在 Activity 或 Fragment 中注入依赖</strong></a></li>
-                <li>
-                    <a href="#c-%e5%9c%a8-viewmodel-%e4%b8%ad%e4%bd%bf%e7%94%a8-hilt" aria-label="c. 在 ViewModel 中使用 Hilt"><strong>c. 在 ViewModel 中使用 Hilt</strong></a></li>
-                <li>
-                    <a href="#4-%e5%b8%b8%e8%a7%81%e4%bd%9c%e7%94%a8%e5%9f%9f" aria-label="4. 常见作用域"><strong>4. 常见作用域</strong></a></li>
-                <li>
-                    <a href="#5-%e6%b5%8b%e8%af%95%e6%94%af%e6%8c%81" aria-label="5. 测试支持"><strong>5. 测试支持</strong></a></li>
-                <li>
-                    <a href="#6-hilt-%e6%b3%a8%e8%a7%a3%e6%a6%82%e8%a7%88" aria-label="6. Hilt 注解概览"><strong>6. Hilt 注解概览</strong></a></li></ul>
-                </li></ul>
-                </li>
-                <li>
-                    <a href="#room" aria-label="Room">Room</a><ul>
-                        <ul>
-                        
-                <li>
-                    <a href="#room%e4%bd%bf%e7%94%a8" aria-label="Room使用">Room使用</a></li>
-                <li>
-                    <a href="#%e5%af%bc%e5%85%a5%e4%be%9d%e8%b5%96" aria-label="导入依赖">导入依赖</a></li>
-                <li>
-                    <a href="#%e5%ae%9a%e4%b9%89entity" aria-label="定义Entity">定义Entity</a></li>
-                <li>
-                    <a href="#%e5%ae%9a%e4%b9%89dao" aria-label="定义Dao">定义Dao</a></li>
-                <li>
-                    <a href="#%e5%ae%9a%e4%b9%89database" aria-label="定义Database">定义Database</a></li>
-                <li>
-                    <a href="#%e5%8d%87%e7%ba%a7%e5%90%8e%e7%9a%84%e9%80%bb%e8%be%91" aria-label="升级后的逻辑">升级后的逻辑</a></li></ul>
-                    
-                <li>
-                    <a href="#glide" aria-label="Glide">Glide</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="android-第三方库">Android 第三方库<a hidden class="anchor" aria-hidden="true" href="#android-第三方库">#</a></h1>
-<h2 id="arouter">ARouter<a hidden class="anchor" aria-hidden="true" href="#arouter">#</a></h2>
-<p>ARouter 是阿里巴巴推出的 Android 路由框架，用于<strong>简化页面跳转</strong>、<strong>组件通信</strong>和<strong>跨模块开发</strong>。</p>
-<h3 id="1-添加依赖"><strong>1. 添加依赖</strong><a hidden class="anchor" aria-hidden="true" href="#1-添加依赖">#</a></h3>
-<p>首先，在项目中引入 ARouter 的相关依赖。</p>
-<h3 id="11-在项目级"><strong>1.1 在项目级 <code>build.gradle</code> 中添加 ARouter Maven 仓库</strong><a hidden class="anchor" aria-hidden="true" href="#11-在项目级">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>buildscript {
-</span></span><span style="display:flex;"><span>    repositories {
-</span></span><span style="display:flex;"><span>        mavenCentral()
-</span></span><span style="display:flex;"><span>        google()
-</span></span><span style="display:flex;"><span>        maven { url <span style="color:#960050;background-color:#1e0010">&#39;</span>&lt;https:<span style="color:#75715e">//jitpack.io&gt;&#39; }
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>1.2 在模块级 <code>build.gradle</code> 中添加依赖</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>android {
-</span></span><span style="display:flex;"><span>    defaultConfig {
-</span></span><span style="display:flex;"><span>        javaCompileOptions {
-</span></span><span style="display:flex;"><span>            annotationProcessorOptions {
-</span></span><span style="display:flex;"><span>                arguments = [AROUTER_MODULE_NAME: project.getName()]
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>dependencies {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ARouter 核心库
-</span></span></span><span style="display:flex;"><span>    implementation <span style="color:#960050;background-color:#1e0010">&#39;</span>com.alibaba:arouter-api:<span style="color:#ae81ff">1.5.2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// ARouter 注解处理器
-</span></span></span><span style="display:flex;"><span>    kapt <span style="color:#960050;background-color:#1e0010">&#39;</span>com.alibaba:arouter-compiler:<span style="color:#ae81ff">1.5.2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>
-</span></span><span style="display:flex;"><span>    annotationProcessor <span style="color:#960050;background-color:#1e0010">&#39;</span>com.alibaba:arouter-compiler:<span style="color:#ae81ff">1.5.2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>同步项目以确保依赖正确导入。</p>
-<h3 id="2-初始化-arouter"><strong>2. 初始化 ARouter</strong><a hidden class="anchor" aria-hidden="true" href="#2-初始化-arouter">#</a></h3>
-<p>在 <code>Application</code> 类中初始化 ARouter。</p>
-<h3 id="21-创建"><strong>2.1 创建 <code>MyApplication</code> 类</strong><a hidden class="anchor" aria-hidden="true" href="#21-创建">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyApplication</span> : Application() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onCreate()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 调试模式必须在初始化之前开启
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (<span style="color:#a6e22e">BuildConfig</span>.DEBUG) { 
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">ARouter</span>.openLog() <span style="color:#75715e">// 打印日志
-</span></span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">ARouter</span>.openDebug() <span style="color:#75715e">// 开启调试模式（如果在InstantRun模式下运行，必须开启）
-</span></span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 初始化 ARouter
-</span></span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ARouter</span>.<span style="color:#66d9ef">init</span>(<span style="color:#66d9ef">this</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="22-注册"><strong>2.2 注册 <code>Application</code></strong><a hidden class="anchor" aria-hidden="true" href="#22-注册">#</a></h3>
-<p>在 <code>AndroidManifest.xml</code> 中注册自定义的 <code>MyApplication</code>：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>&lt;application
-</span></span><span style="display:flex;"><span>    android:name=<span style="color:#e6db74">&#34;.MyApplication&#34;</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#f92672">..</span>. &gt;
-</span></span><span style="display:flex;"><span>&lt;/application&gt;
-</span></span></code></pre></div><h3 id="3-页面跳转的基本用法"><strong>3. 页面跳转的基本用法</strong><a hidden class="anchor" aria-hidden="true" href="#3-页面跳转的基本用法">#</a></h3>
-<h3 id="31-声明路由路径"><strong>3.1 声明路由路径</strong><a hidden class="anchor" aria-hidden="true" href="#31-声明路由路径">#</a></h3>
-<p>使用 <code>@Route</code> 注解为目标 Activity 声明路由路径。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Route</span>(path = <span style="color:#e6db74">&#34;/example/first&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">FirstActivity</span> : AppCompatActivity() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>(savedInstanceState: Bundle?) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onCreate(savedInstanceState)
-</span></span><span style="display:flex;"><span>        setContentView(<span style="color:#a6e22e">R</span>.layout.activity_first)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 获取传递的参数
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> name = intent.getStringExtra(<span style="color:#e6db74">&#34;name&#34;</span>)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> age = intent.getIntExtra(<span style="color:#e6db74">&#34;age&#34;</span>, <span style="color:#ae81ff">0</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="32-跳转到指定页面"><strong>3.2 跳转到指定页面</strong><a hidden class="anchor" aria-hidden="true" href="#32-跳转到指定页面">#</a></h3>
-<p>使用 ARouter 调用页面跳转。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">ARouter</span>.getInstance()
-</span></span><span style="display:flex;"><span>    .build(<span style="color:#e6db74">&#34;/example/first&#34;</span>)
-</span></span><span style="display:flex;"><span>    .withString(<span style="color:#e6db74">&#34;name&#34;</span>, <span style="color:#e6db74">&#34;Kennem&#34;</span>)
-</span></span><span style="display:flex;"><span>    .withInt(<span style="color:#e6db74">&#34;age&#34;</span>, <span style="color:#ae81ff">25</span>)
-</span></span><span style="display:flex;"><span>    .navigation()
-</span></span></code></pre></div><h3 id="4-跨模块跳转"><strong>4. 跨模块跳转</strong><a hidden class="anchor" aria-hidden="true" href="#4-跨模块跳转">#</a></h3>
-<p>在组件化开发中，ARouter 支持跨模块跳转。各模块只需依赖 ARouter 即可。</p>
-<h3 id="41-在每个模块中添加依赖"><strong>4.1 在每个模块中添加依赖</strong><a hidden class="anchor" aria-hidden="true" href="#41-在每个模块中添加依赖">#</a></h3>
-<p>在各模块的 <code>build.gradle</code> 中添加 ARouter 依赖。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>implementation <span style="color:#960050;background-color:#1e0010">&#39;</span>com.alibaba:arouter-api:<span style="color:#ae81ff">1.5.2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>
-</span></span><span style="display:flex;"><span>kapt <span style="color:#960050;background-color:#1e0010">&#39;</span>com.alibaba:arouter-compiler:<span style="color:#ae81ff">1.5.2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>
-</span></span><span style="display:flex;"><span>annotationProcessor <span style="color:#960050;background-color:#1e0010">&#39;</span>com.alibaba:arouter-compiler:<span style="color:#ae81ff">1.5.2</span><span style="color:#960050;background-color:#1e0010">&#39;</span>
-</span></span></code></pre></div><h3 id="42-使用路由跳转"><strong>4.2 使用路由跳转</strong><a hidden class="anchor" aria-hidden="true" href="#42-使用路由跳转">#</a></h3>
-<p>路由跳转的方式与普通用法相同，不需要关心目标模块的实现细节。</p>
-<h3 id="5-路由拦截器"><strong>5. 路由拦截器</strong><a hidden class="anchor" aria-hidden="true" href="#5-路由拦截器">#</a></h3>
-<p>ARouter 提供了拦截器功能，用于在页面跳转前对请求进行拦截处理（如登录校验）。</p>
-<h3 id="51-定义拦截器"><strong>5.1 定义拦截器</strong><a hidden class="anchor" aria-hidden="true" href="#51-定义拦截器">#</a></h3>
-<p>实现 <code>IInterceptor</code> 接口并添加 <code>@Interceptor</code> 注解。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Interceptor</span>(priority = <span style="color:#ae81ff">1</span>, name = <span style="color:#e6db74">&#34;LoginInterceptor&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">LoginInterceptor</span> : IInterceptor {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">process</span>(postcard: Postcard, callback: InterceptorCallback) {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 检查是否需要登录
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> (postcard.path <span style="color:#f92672">==</span> <span style="color:#e6db74">&#34;/example/protected&#34;</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">val</span> isLoggedIn = checkLoginStatus()
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> (<span style="color:#f92672">!is</span>LoggedIn) {
-</span></span><span style="display:flex;"><span>                <span style="color:#75715e">// 终止跳转并跳转到登录页面
-</span></span></span><span style="display:flex;"><span>                <span style="color:#a6e22e">ARouter</span>.getInstance().build(<span style="color:#e6db74">&#34;/example/login&#34;</span>).navigation()
-</span></span><span style="display:flex;"><span>                callback.onInterrupt(<span style="color:#66d9ef">null</span>)
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span>
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>        callback.onContinue(postcard) <span style="color:#75715e">// 继续路由
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">init</span>(context: Context) {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 初始化操作
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">checkLoginStatus</span>(): Boolean {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 模拟登录检查
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">false</span>
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="52-注册拦截器"><strong>5.2 注册拦截器</strong><a hidden class="anchor" aria-hidden="true" href="#52-注册拦截器">#</a></h3>
-<p>拦截器无需手动注册，ARouter 会自动发现并加载。</p>
-<h3 id="6-服务管理"><strong>6. 服务管理</strong><a hidden class="anchor" aria-hidden="true" href="#6-服务管理">#</a></h3>
-<p>ARouter 提供了服务管理功能，用于跨模块调用服务。</p>
-<h3 id="61-定义服务接口"><strong>6.1 定义服务接口</strong><a hidden class="anchor" aria-hidden="true" href="#61-定义服务接口">#</a></h3>
-<p>创建一个公共接口模块并定义服务接口。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">HelloService</span> : IProvider {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">sayHello</span>(name: String): String
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="62-实现服务"><strong>6.2 实现服务</strong><a hidden class="anchor" aria-hidden="true" href="#62-实现服务">#</a></h3>
-<p>在具体模块中实现服务。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Route</span>(path = <span style="color:#e6db74">&#34;/service/hello&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">HelloServiceImpl</span> : HelloService {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">init</span>(context: Context?) {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 初始化操作
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">sayHello</span>(name: String): String {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#34;Hello, </span><span style="color:#e6db74">$name</span><span style="color:#e6db74">!&#34;</span>
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="63-调用服务"><strong>6.3 调用服务</strong><a hidden class="anchor" aria-hidden="true" href="#63-调用服务">#</a></h3>
-<p>在其他模块中通过 ARouter 获取服务实例并调用方法。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">val</span> helloService = <span style="color:#a6e22e">ARouter</span>.getInstance().navigation(HelloService<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">val</span> result = helloService.sayHello(<span style="color:#e6db74">&#34;Kennem&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">Log</span>.d(<span style="color:#e6db74">&#34;ARouter&#34;</span>, result)
-</span></span></code></pre></div><h3 id="7-注解说明"><strong>7. 注解说明</strong><a hidden class="anchor" aria-hidden="true" href="#7-注解说明">#</a></h3>
-<p>ARouter 提供的核心注解包括：</p>
-<ol>
-<li>
-<p>@Route</p>
-<p>：用于标记路由目标（如 Activity、Fragment 或 Service）。</p>
-<ul>
-<li><code>path</code>：必填，表示路由路径。</li>
-<li><code>group</code>：可选，路由分组。</li>
-</ul>
-</li>
-</ol>
-<ul>
-<li><code>path</code>：必填，表示路由路径。</li>
-<li><code>group</code>：可选，路由分组。</li>
-</ul>
-<ol>
-<li><strong>@Autowired</strong>：用于自动注入字段。</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Route</span>(path = <span style="color:#e6db74">&#34;/example/second&#34;</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">SecondActivity</span> : AppCompatActivity() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">lateinit</span> <span style="color:#66d9ef">var</span> name: String
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Autowired</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> age: Int = <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>(savedInstanceState: Bundle?) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onCreate(savedInstanceState)
-</span></span><span style="display:flex;"><span>        setContentView(<span style="color:#a6e22e">R</span>.layout.activity_second)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">ARouter</span>.getInstance().inject(<span style="color:#66d9ef">this</span>) <span style="color:#75715e">// 自动注入
-</span></span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">Log</span>.d(<span style="color:#e6db74">&#34;ARouter&#34;</span>, <span style="color:#e6db74">&#34;Name: </span><span style="color:#e6db74">$name</span><span style="color:#e6db74">, Age: </span><span style="color:#e6db74">$age</span><span style="color:#e6db74">&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="8-混淆配置"><strong>8. 混淆配置</strong><a hidden class="anchor" aria-hidden="true" href="#8-混淆配置">#</a></h3>
-<p>为了避免代码被混淆，需在 <code>proguard-rules.pro</code> 文件中添加以下规则：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>-keep <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">com</span>.alibaba.android.arouter.** { *; }
-</span></span><span style="display:flex;"><span>-keep <span style="color:#a6e22e">@com</span>.alibaba.android.arouter.facade.<span style="color:#66d9ef">annotation</span>.* <span style="color:#66d9ef">class</span> <span style="color:#960050;background-color:#1e0010">* { *; }</span>
-</span></span><span style="display:flex;"><span>-keepclassmembers <span style="color:#66d9ef">class</span> <span style="color:#960050;background-color:#1e0010">* {</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@com</span>.alibaba.android.arouter.facade.<span style="color:#66d9ef">annotation</span>.Autowired &lt;fields&gt;;
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>-keep <span style="color:#66d9ef">interface</span> <span style="color:#960050;background-color:#1e0010">* </span><span style="color:#a6e22e">extends</span> com.alibaba.android.arouter.facade.template.IProvider
-</span></span></code></pre></div><h3 id="9-常见问题"><strong>9. 常见问题</strong><a hidden class="anchor" aria-hidden="true" href="#9-常见问题">#</a></h3>
-<ol>
-<li>
-<p><strong>未初始化 ARouter</strong></p>
-<p>确保在 Application 中调用了 <code>ARouter.init(this)</code>。</p>
-</li>
-<li>
-<p><strong>路由找不到</strong></p>
-<p>检查 <code>@Route</code> 的路径是否正确，是否在模块中执行了编译。</p>
-</li>
-<li>
-<p><strong>跨模块无法跳转</strong></p>
-<p>确保各模块都正确依赖了 ARouter，并在编译期生成了相应的代码。</p>
-</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>        <span style="color:#a6e22e">ARouter</span>.getInstance()
-</span></span><span style="display:flex;"><span>            .build(path)
-</span></span><span style="display:flex;"><span>            .withTransition(<span style="color:#a6e22e">R</span>.anim.now_playing_activity_in, <span style="color:#a6e22e">R</span>.anim.anim_nothing)
-</span></span><span style="display:flex;"><span>            .withString(<span style="color:#e6db74">&#34;url&#34;</span>, song.getInsightSong()<span style="color:#f92672">?.</span>webUrl)
-</span></span><span style="display:flex;"><span>            .withBoolean(<span style="color:#e6db74">&#34;resume&#34;</span>, <span style="color:#66d9ef">true</span>)
-</span></span><span style="display:flex;"><span>            .withFlags(<span style="color:#a6e22e">Intent</span>.FLAG_ACTIVITY_REORDER_TO_FRONT)
-</span></span><span style="display:flex;"><span>            .navigation(context)
-</span></span></code></pre></div><h2 id="hilt">Hilt<a hidden class="anchor" aria-hidden="true" href="#hilt">#</a></h2>
-<p>Hilt 是 Android 的依赖项注入库，可减少在项目中执行手动依赖项注入的样板代码。执行<a href="https://developer.android.google.cn/training/dependency-injection/manual?hl=zh-cn">手动依赖项注入</a>要求您手动构造每个类及其依赖项，并借助容器重复使用和管理依赖项。</p>
-<h3 id="1-添加依赖-1"><strong>1. 添加依赖</strong><a hidden class="anchor" aria-hidden="true" href="#1-添加依赖-1">#</a></h3>
-<p>在项目的 <code>build.gradle</code> 文件中添加 Hilt 所需的依赖。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>// 在项目级 build.gradle 中添加
-</span></span><span style="display:flex;"><span>classpath &#39;com.google.dagger:hilt-android-gradle-plugin:2.50&#39;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>// 在应用级 build.gradle 中添加
-</span></span><span style="display:flex;"><span>plugins {
-</span></span><span style="display:flex;"><span>    id &#39;com.android.application&#39;
-</span></span><span style="display:flex;"><span>    id &#39;kotlin-kapt&#39;
-</span></span><span style="display:flex;"><span>    id &#39;dagger.hilt.android.plugin&#39;
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>dependencies {
-</span></span><span style="display:flex;"><span>    implementation &#39;com.google.dagger:hilt-android:2.50&#39;
-</span></span><span style="display:flex;"><span>    kapt &#39;com.google.dagger:hilt-android-compiler:2.50&#39;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    // 如果需要使用 ViewModel
-</span></span><span style="display:flex;"><span>    implementation &#39;androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03&#39;
-</span></span><span style="display:flex;"><span>    kapt &#39;androidx.hilt:hilt-compiler:1.0.0&#39;
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>同步项目以确保依赖已正确添加。</p>
-<h3 id="2-配置应用程序类"><strong>2. 配置应用程序类</strong><a hidden class="anchor" aria-hidden="true" href="#2-配置应用程序类">#</a></h3>
-<p>在应用程序类上添加 <code>@HiltAndroidApp</code> 注解，使 Hilt 初始化依赖注入。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@HiltAndroidApp</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyApplication</span> : Application() {
-</span></span><span style="display:flex;"><span>    <span style="color:#75715e">// 可以在这里初始化全局依赖
-</span></span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="3-使用-hilt-提供依赖"><strong>3. 使用 Hilt 提供依赖</strong><a hidden class="anchor" aria-hidden="true" href="#3-使用-hilt-提供依赖">#</a></h3>
-<h3 id="a-创建模块提供依赖"><strong>a. 创建模块提供依赖</strong><a hidden class="anchor" aria-hidden="true" href="#a-创建模块提供依赖">#</a></h3>
-<p>使用 <code>@Module</code> 和 <code>@InstallIn</code> 注解来提供依赖。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Module</span>
-</span></span><span style="display:flex;"><span><span style="color:#a6e22e">@InstallIn</span>(SingletonComponent<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">object</span> <span style="color:#a6e22e">AppModule</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Provides</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Singleton</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">provideRetrofit</span>(): Retrofit {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Retrofit</span>.Builder()
-</span></span><span style="display:flex;"><span>            .baseUrl(<span style="color:#e6db74">&#34;&lt;https://api.example.com/&gt;&#34;</span>)
-</span></span><span style="display:flex;"><span>            .addConverterFactory(<span style="color:#a6e22e">GsonConverterFactory</span>.create())
-</span></span><span style="display:flex;"><span>            .build()
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Provides</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Singleton</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">provideApiService</span>(retrofit: Retrofit): ApiService {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> retrofit.create(ApiService<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="b-在-activity-或-fragment-中注入依赖"><strong>b. 在 Activity 或 Fragment 中注入依赖</strong><a hidden class="anchor" aria-hidden="true" href="#b-在-activity-或-fragment-中注入依赖">#</a></h3>
-<p>使用 <code>@AndroidEntryPoint</code> 注解标记 Activity 或 Fragment，Hilt 会自动注入依赖。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@AndroidEntryPoint</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MainActivity</span> : AppCompatActivity() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Inject</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">lateinit</span> <span style="color:#66d9ef">var</span> apiService: ApiService
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onCreate</span>(savedInstanceState: Bundle?) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onCreate(savedInstanceState)
-</span></span><span style="display:flex;"><span>        setContentView(<span style="color:#a6e22e">R</span>.layout.activity_main)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用注入的依赖
-</span></span></span><span style="display:flex;"><span>        apiService.someMethod()
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="c-在-viewmodel-中使用-hilt"><strong>c. 在 ViewModel 中使用 Hilt</strong><a hidden class="anchor" aria-hidden="true" href="#c-在-viewmodel-中使用-hilt">#</a></h3>
-<p>使用 Hilt 提供依赖给 ViewModel。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@HiltViewModel</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyViewModel</span> <span style="color:#a6e22e">@Inject</span> <span style="color:#66d9ef">constructor</span>(
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> apiService: ApiService
-</span></span><span style="display:flex;"><span>) : ViewModel() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">fetchData</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 使用 apiService
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>在 Activity 或 Fragment 中使用 ViewModel：</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@AndroidEntryPoint</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyFragment</span> : Fragment() {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">val</span> viewModel: MyViewModel <span style="color:#66d9ef">by</span> viewModels()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">onViewCreated</span>(view: View, savedInstanceState: Bundle?) {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">super</span>.onViewCreated(view, savedInstanceState)
-</span></span><span style="display:flex;"><span>        viewModel.fetchData()
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="4-常见作用域"><strong>4. 常见作用域</strong><a hidden class="anchor" aria-hidden="true" href="#4-常见作用域">#</a></h3>
-<p>Hilt 提供多种作用域，常见的有：</p>
-<ul>
-<li><strong>SingletonComponent</strong>：应用程序生命周期内单例。</li>
-<li><strong>ActivityComponent</strong>：Activity 生命周期内单例。</li>
-<li><strong>FragmentComponent</strong>：Fragment 生命周期内单例。</li>
-<li><strong>ViewModelComponent</strong>：ViewModel 生命周期内单例。</li>
-</ul>
-<p>根据实际需求选择合适的作用域。</p>
-<h3 id="5-测试支持"><strong>5. 测试支持</strong><a hidden class="anchor" aria-hidden="true" href="#5-测试支持">#</a></h3>
-<p>Hilt 提供专门的测试支持，通过使用 <code>@HiltAndroidTest</code> 和 <code>@UninstallModules</code> 进行测试。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@HiltAndroidTest</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyTest</span> {
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@get</span>:Rule
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> hiltRule = HiltAndroidRule(<span style="color:#66d9ef">this</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Inject</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">lateinit</span> <span style="color:#66d9ef">var</span> apiService: ApiService
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Before</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">setUp</span>() {
-</span></span><span style="display:flex;"><span>        hiltRule.inject()
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Test</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">testSomething</span>() {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 测试逻辑
-</span></span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="6-hilt-注解概览"><strong>6. Hilt 注解概览</strong><a hidden class="anchor" aria-hidden="true" href="#6-hilt-注解概览">#</a></h3>
-<ul>
-<li><strong>@HiltAndroidApp</strong>：初始化 Hilt。</li>
-<li><strong>@AndroidEntryPoint</strong>：标记注入目标，如 Activity、Fragment。</li>
-<li><strong>@Inject</strong>：用于注入字段或构造函数。</li>
-<li><strong>@Provides</strong>：用于提供依赖实例。</li>
-<li><strong>@Module</strong>：用于创建提供依赖的模块。</li>
-<li><strong>@InstallIn</strong>：指定模块的作用域。</li>
-<li><strong>@Singleton</strong>：标记单例依赖。</li>
-</ul>
-<h1 id="room">Room<a hidden class="anchor" aria-hidden="true" href="#room">#</a></h1>
-<h3 id="room使用">Room使用<a hidden class="anchor" aria-hidden="true" href="#room使用">#</a></h3>
-<h3 id="导入依赖">导入依赖<a hidden class="anchor" aria-hidden="true" href="#导入依赖">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span>plugins {
-</span></span><span style="display:flex;"><span>    id(<span style="color:#e6db74">&#34;kotlin-kapt&#34;</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>dependencies {
-</span></span><span style="display:flex;"><span>    implementation(<span style="color:#e6db74">&#34;androidx.room:room-runtime:2.1.0&#34;</span>)
-</span></span><span style="display:flex;"><span>    kapt(<span style="color:#e6db74">&#34;androidx.room:room-compiler:2.1.0&#34;</span>)
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="定义entity">定义Entity<a hidden class="anchor" aria-hidden="true" href="#定义entity">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Entity</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">data</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">User</span>(<span style="color:#66d9ef">var</span> firstName: String, <span style="color:#66d9ef">var</span> lastName: String, <span style="color:#66d9ef">var</span> age: Int) {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@PrimaryKey</span>(autoGenerate = <span style="color:#66d9ef">true</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">var</span> id: Long = <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="定义dao">定义Dao<a hidden class="anchor" aria-hidden="true" href="#定义dao">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Dao</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">interface</span> <span style="color:#a6e22e">UserDao</span> {
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Insert</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">insertUser</span>(user: User): Long
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Update</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">updateUser</span>(newUser: User)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;select * from User&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">loadAllUsers</span>(): List&lt;User&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;select * from User where age &gt; :age&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">loadUsersOlderThan</span>(age: Int): List&lt;User&gt;
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Delete</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">deleteUser</span>(user: User)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#a6e22e">@Query</span>(<span style="color:#e6db74">&#34;delete from User where lastName = :lastName&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">deleteUserByLastName</span>(lastName: String): Int
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="定义database">定义Database<a hidden class="anchor" aria-hidden="true" href="#定义database">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Database</span>(version = <span style="color:#ae81ff">1</span>, entities = [User<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>])
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppDatabase</span>: RoomDatabase() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">userDao</span>(): UserDao
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">companion</span> <span style="color:#66d9ef">object</span> {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">var</span> instance:AppDatabase? = <span style="color:#66d9ef">null</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Synchronized</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getDatabase</span>(context:Context):AppDatabase{
-</span></span><span style="display:flex;"><span>instance<span style="color:#f92672">?.</span>let {
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">it</span>
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Room</span>.databaseBuilder(
-</span></span><span style="display:flex;"><span>                context.applicationContext,
-</span></span><span style="display:flex;"><span>AppDatabase<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java,
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;app_database&#34;</span>
-</span></span><span style="display:flex;"><span>            )
-</span></span><span style="display:flex;"><span>                .build()
-</span></span><span style="display:flex;"><span>                .apply {
-</span></span><span style="display:flex;"><span>instance= <span style="color:#66d9ef">this</span>
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><p>在需要的地方用userDao调用相应的增删改查方法。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#66d9ef">val</span> userDao = <span style="color:#a6e22e">AppDatabase</span>.getDatabase(<span style="color:#66d9ef">this</span>).userDao()
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">val</span> user1 = User(<span style="color:#e6db74">&#34;Tom&#34;</span>, <span style="color:#e6db74">&#34;Brady&#34;</span>, <span style="color:#ae81ff">40</span>)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">val</span> user2 = User(<span style="color:#e6db74">&#34;Tom&#34;</span>, <span style="color:#e6db74">&#34;Hanks&#34;</span>, <span style="color:#ae81ff">63</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>addDataBtn.setOnClickListener {
-</span></span><span style="display:flex;"><span>    CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.IO).launch {
-</span></span><span style="display:flex;"><span>        user1.id= userDao.insertUser(user1)
-</span></span><span style="display:flex;"><span>        user2.id= userDao.insertUser(user2)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>updateDataBtn.setOnClickListener {
-</span></span><span style="display:flex;"><span>    CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.IO).launch {
-</span></span><span style="display:flex;"><span>        user1.age= <span style="color:#ae81ff">42</span>
-</span></span><span style="display:flex;"><span>        userDao.updateUser(user1)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>deleteDataBtn.setOnClickListener {
-</span></span><span style="display:flex;"><span>    CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.IO).launch {
-</span></span><span style="display:flex;"><span>        userDao.deleteUserByLastName(<span style="color:#e6db74">&#34;Hanks&#34;</span>)
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>queryDataBtn.setOnClickListener {
-</span></span><span style="display:flex;"><span>    CoroutineScope(<span style="color:#a6e22e">Dispatchers</span>.IO).launch {
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> users = userDao.loadAllUsers()
-</span></span><span style="display:flex;"><span>        users.forEach { user <span style="color:#f92672">-&gt;</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#a6e22e">Log</span>.d(<span style="color:#e6db74">&#34;MainActivity&#34;</span>, user.toString())
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h3 id="升级后的逻辑">升级后的逻辑<a hidden class="anchor" aria-hidden="true" href="#升级后的逻辑">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-kotlin" data-lang="kotlin"><span style="display:flex;"><span><span style="color:#a6e22e">@Database</span>(version = <span style="color:#ae81ff">3</span>, entities = [User<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>, Book<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>])
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">AppDatabase</span>: RoomDatabase() {
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">userDao</span>(): UserDao
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">abstract</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">bookDao</span>(): BookDao
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">companion</span> <span style="color:#66d9ef">object</span> {
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 升级数据库修改表结构
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> MIGRATION_2_3 = <span style="color:#66d9ef">object</span> <span style="color:#960050;background-color:#1e0010">: </span><span style="color:#a6e22e">Migration</span>(<span style="color:#ae81ff">2</span>, <span style="color:#ae81ff">3</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">migrate</span>(database: SupportSQLiteDatabase) {
-</span></span><span style="display:flex;"><span>                database.execSQL(<span style="color:#e6db74">&#34;alter table Book add column author text not null default &#39;unknown&#39;&#34;</span>)
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#75715e">// 升级添加数据库表
-</span></span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">val</span> MIGRATION_1_2 = <span style="color:#66d9ef">object</span> <span style="color:#960050;background-color:#1e0010">: </span><span style="color:#a6e22e">Migration</span>(<span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">2</span>) {
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">override</span> <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">migrate</span>(database: SupportSQLiteDatabase) {
-</span></span><span style="display:flex;"><span>                database.execSQL(
-</span></span><span style="display:flex;"><span>                    <span style="color:#e6db74">&#34;create table Book (id integer primary key autoincrement not null, name text not null, pages integer not null)&#34;</span>
-</span></span><span style="display:flex;"><span>                )
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">private</span> <span style="color:#66d9ef">var</span> instance:AppDatabase? = <span style="color:#66d9ef">null</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>        <span style="color:#a6e22e">@Synchronized</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">fun</span> <span style="color:#a6e22e">getDatabase</span>(context:Context):AppDatabase{
-</span></span><span style="display:flex;"><span>instance<span style="color:#f92672">?.</span>let {
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">it</span>
-</span></span><span style="display:flex;"><span>            }
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">Room</span>.databaseBuilder(
-</span></span><span style="display:flex;"><span>                context.applicationContext,
-</span></span><span style="display:flex;"><span>AppDatabase<span style="color:#f92672">::</span><span style="color:#66d9ef">class</span>.java,
-</span></span><span style="display:flex;"><span>                <span style="color:#e6db74">&#34;app_database&#34;</span>
-</span></span><span style="display:flex;"><span>            )
-</span></span><span style="display:flex;"><span>                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
-</span></span><span style="display:flex;"><span>                .build()
-</span></span><span style="display:flex;"><span>                .apply {
-</span></span><span style="display:flex;"><span>instance= <span style="color:#66d9ef">this</span>
-</span></span><span style="display:flex;"><span>                }
-</span></span><span style="display:flex;"><span>        }
-</span></span><span style="display:flex;"><span>    }
-</span></span><span style="display:flex;"><span>}
-</span></span></code></pre></div><h2 id="glide">Glide<a hidden class="anchor" aria-hidden="true" href="#glide">#</a></h2>
-
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/android/">Android</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/android%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0">Android学习笔记</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/android-%E4%BB%A3%E7%A0%81%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/">
-    <span class="title">« 上一页</span>
-    <span>Android 代码架构设计</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/android-%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82%E8%A7%A3%E6%9E%90%E6%95%B0%E6%8D%AE/">
-    <span class="title">下一页 »</span>
-    <span>Android 网络请求解析数据</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>Android 第三方库 | Kennem's Blog</title><meta name=keywords content="Android"><meta name=description content="Android学习笔记"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="Android 第三方库"><meta property="og:description" content="Android学习笔记"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2025-02-15T22:30:13+08:00"><meta property="article:modified_time" content="2024-02-15T22:20:13+08:00"><meta property="article:tag" content="Android"><meta name=twitter:card content="summary"><meta name=twitter:title content="Android 第三方库"><meta name=twitter:description content="Android学习笔记"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"Android 第三方库","item":"https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"Android 第三方库","name":"Android 第三方库","description":"Android学习笔记","keywords":["Android"],"articleBody":"Android 第三方库 ARouter ARouter 是阿里巴巴推出的 Android 路由框架，用于简化页面跳转、组件通信和跨模块开发。\n1. 添加依赖 首先，在项目中引入 ARouter 的相关依赖。\n1.1 在项目级 build.gradle 中添加 ARouter Maven 仓库 buildscript { repositories { mavenCentral() google() maven { url '//jitpack.io\u003e' } } } 1.2 在模块级 build.gradle 中添加依赖\nandroid { defaultConfig { javaCompileOptions { annotationProcessorOptions { arguments = [AROUTER_MODULE_NAME: project.getName()] } } } } dependencies { // ARouter 核心库 implementation 'com.alibaba:arouter-api:1.5.2' // ARouter 注解处理器 kapt 'com.alibaba:arouter-compiler:1.5.2' annotationProcessor 'com.alibaba:arouter-compiler:1.5.2' } 同步项目以确保依赖正确导入。\n2. 初始化 ARouter 在 Application 类中初始化 ARouter。\n2.1 创建 MyApplication 类 class MyApplication : Application() { override fun onCreate() { super.onCreate() // 调试模式必须在初始化之前开启 if (BuildConfig.DEBUG) { ARouter.openLog() // 打印日志 ARouter.openDebug() // 开启调试模式（如果在InstantRun模式下运行，必须开启） } // 初始化 ARouter ARouter.init(this) } } 2.2 注册 Application 在 AndroidManifest.xml 中注册自定义的 MyApplication：\nandroid:name=\".MyApplication\" ... \u003e 3. 页面跳转的基本用法 3.1 声明路由路径 使用 @Route 注解为目标 Activity 声明路由路径。\n@Route(path = \"/example/first\") class FirstActivity : AppCompatActivity() { override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) setContentView(R.layout.activity_first) // 获取传递的参数 val name = intent.getStringExtra(\"name\") val age = intent.getIntExtra(\"age\", 0) } } 3.2 跳转到指定页面 使用 ARouter 调用页面跳转。\nARouter.getInstance() .build(\"/example/first\") .withString(\"name\", \"Kennem\") .withInt(\"age\", 25) .navigation() 4. 跨模块跳转 在组件化开发中，ARouter 支持跨模块跳转。各模块只需依赖 ARouter 即可。\n4.1 在每个模块中添加依赖 在各模块的 build.gradle 中添加 ARouter 依赖。\nimplementation 'com.alibaba:arouter-api:1.5.2' kapt 'com.alibaba:arouter-compiler:1.5.2' annotationProcessor 'com.alibaba:arouter-compiler:1.5.2' 4.2 使用路由跳转 路由跳转的方式与普通用法相同，不需要关心目标模块的实现细节。\n5. 路由拦截器 ARouter 提供了拦截器功能，用于在页面跳转前对请求进行拦截处理（如登录校验）。\n5.1 定义拦截器 实现 IInterceptor 接口并添加 @Interceptor 注解。\n@Interceptor(priority = 1, name = \"LoginInterceptor\") class LoginInterceptor : IInterceptor { override fun process(postcard: Postcard, callback: InterceptorCallback) { // 检查是否需要登录 if (postcard.path == \"/example/protected\") { val isLoggedIn = checkLoginStatus() if (!isLoggedIn) { // 终止跳转并跳转到登录页面 ARouter.getInstance().build(\"/example/login\").navigation() callback.onInterrupt(null) return } } callback.onContinue(postcard) // 继续路由 } override fun init(context: Context) { // 初始化操作 } private fun checkLoginStatus(): Boolean { // 模拟登录检查 return false } } 5.2 注册拦截器 拦截器无需手动注册，ARouter 会自动发现并加载。\n6. 服务管理 ARouter 提供了服务管理功能，用于跨模块调用服务。\n6.1 定义服务接口 创建一个公共接口模块并定义服务接口。\ninterface HelloService : IProvider { fun sayHello(name: String): String } 6.2 实现服务 在具体模块中实现服务。\n@Route(path = \"/service/hello\") class HelloServiceImpl : HelloService { override fun init(context: Context?) { // 初始化操作 } override fun sayHello(name: String): String { return \"Hello, $name!\" } } 6.3 调用服务 在其他模块中通过 ARouter 获取服务实例并调用方法。\nval helloService = ARouter.getInstance().navigation(HelloService::class.java) val result = helloService.sayHello(\"Kennem\") Log.d(\"ARouter\", result) 7. 注解说明 ARouter 提供的核心注解包括：\n@Route\n：用于标记路由目标（如 Activity、Fragment 或 Service）。\npath：必填，表示路由路径。 group：可选，路由分组。 path：必填，表示路由路径。 group：可选，路由分组。 @Autowired：用于自动注入字段。 @Route(path = \"/example/second\") class SecondActivity : AppCompatActivity() { @Autowired lateinit var name: String @Autowired var age: Int = 0 override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) setContentView(R.layout.activity_second) ARouter.getInstance().inject(this) // 自动注入 Log.d(\"ARouter\", \"Name: $name, Age: $age\") } } 8. 混淆配置 为了避免代码被混淆，需在 proguard-rules.pro 文件中添加以下规则：\n-keep class com.alibaba.android.arouter.** { *; } -keep @com.alibaba.android.arouter.facade.annotation.* class * { *; } -keepclassmembers class * { @com.alibaba.android.arouter.facade.annotation.Autowired ; } -keep interface * extends com.alibaba.android.arouter.facade.template.IProvider 9. 常见问题 未初始化 ARouter\n确保在 Application 中调用了 ARouter.init(this)。\n路由找不到\n检查 @Route 的路径是否正确，是否在模块中执行了编译。\n跨模块无法跳转\n确保各模块都正确依赖了 ARouter，并在编译期生成了相应的代码。\nARouter.getInstance() .build(path) .withTransition(R.anim.now_playing_activity_in, R.anim.anim_nothing) .withString(\"url\", song.getInsightSong()?.webUrl) .withBoolean(\"resume\", true) .withFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT) .navigation(context) Hilt Hilt 是 Android 的依赖项注入库，可减少在项目中执行手动依赖项注入的样板代码。执行手动依赖项注入要求您手动构造每个类及其依赖项，并借助容器重复使用和管理依赖项。\n1. 添加依赖 在项目的 build.gradle 文件中添加 Hilt 所需的依赖。\n// 在项目级 build.gradle 中添加 classpath 'com.google.dagger:hilt-android-gradle-plugin:2.50' // 在应用级 build.gradle 中添加 plugins { id 'com.android.application' id 'kotlin-kapt' id 'dagger.hilt.android.plugin' } dependencies { implementation 'com.google.dagger:hilt-android:2.50' kapt 'com.google.dagger:hilt-android-compiler:2.50' // 如果需要使用 ViewModel implementation 'androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03' kapt 'androidx.hilt:hilt-compiler:1.0.0' } 同步项目以确保依赖已正确添加。\n2. 配置应用程序类 在应用程序类上添加 @HiltAndroidApp 注解，使 Hilt 初始化依赖注入。\n@HiltAndroidApp class MyApplication : Application() { // 可以在这里初始化全局依赖 } 3. 使用 Hilt 提供依赖 a. 创建模块提供依赖 使用 @Module 和 @InstallIn 注解来提供依赖。\n@Module @InstallIn(SingletonComponent::class) object AppModule { @Provides @Singleton fun provideRetrofit(): Retrofit { return Retrofit.Builder() .baseUrl(\"\") .addConverterFactory(GsonConverterFactory.create()) .build() } @Provides @Singleton fun provideApiService(retrofit: Retrofit): ApiService { return retrofit.create(ApiService::class.java) } } b. 在 Activity 或 Fragment 中注入依赖 使用 @AndroidEntryPoint 注解标记 Activity 或 Fragment，Hilt 会自动注入依赖。\n@AndroidEntryPoint class MainActivity : AppCompatActivity() { @Inject lateinit var apiService: ApiService override fun onCreate(savedInstanceState: Bundle?) { super.onCreate(savedInstanceState) setContentView(R.layout.activity_main) // 使用注入的依赖 apiService.someMethod() } } c. 在 ViewModel 中使用 Hilt 使用 Hilt 提供依赖给 ViewModel。\n@HiltViewModel class MyViewModel @Inject constructor( private val apiService: ApiService ) : ViewModel() { fun fetchData() { // 使用 apiService } } 在 Activity 或 Fragment 中使用 ViewModel：\n@AndroidEntryPoint class MyFragment : Fragment() { private val viewModel: MyViewModel by viewModels() override fun onViewCreated(view: View, savedInstanceState: Bundle?) { super.onViewCreated(view, savedInstanceState) viewModel.fetchData() } } 4. 常见作用域 Hilt 提供多种作用域，常见的有：\nSingletonComponent：应用程序生命周期内单例。 ActivityComponent：Activity 生命周期内单例。 FragmentComponent：Fragment 生命周期内单例。 ViewModelComponent：ViewModel 生命周期内单例。 根据实际需求选择合适的作用域。\n5. 测试支持 Hilt 提供专门的测试支持，通过使用 @HiltAndroidTest 和 @UninstallModules 进行测试。\n@HiltAndroidTest class MyTest { @get:Rule var hiltRule = HiltAndroidRule(this) @Inject lateinit var apiService: ApiService @Before fun setUp() { hiltRule.inject() } @Test fun testSomething() { // 测试逻辑 } } 6. Hilt 注解概览 @HiltAndroidApp：初始化 Hilt。 @AndroidEntryPoint：标记注入目标，如 Activity、Fragment。 @Inject：用于注入字段或构造函数。 @Provides：用于提供依赖实例。 @Module：用于创建提供依赖的模块。 @InstallIn：指定模块的作用域。 @Singleton：标记单例依赖。 Room Room使用 导入依赖 plugins { id(\"kotlin-kapt\") } dependencies { implementation(\"androidx.room:room-runtime:2.1.0\") kapt(\"androidx.room:room-compiler:2.1.0\") } 定义Entity @Entity data class User(var firstName: String, var lastName: String, var age: Int) { @PrimaryKey(autoGenerate = true) var id: Long = 0 } 定义Dao @Dao interface UserDao { @Insert fun insertUser(user: User): Long @Update fun updateUser(newUser: User) @Query(\"select * from User\") fun loadAllUsers(): List @Query(\"select * from User where age \u003e :age\") fun loadUsersOlderThan(age: Int): List @Delete fun deleteUser(user: User) @Query(\"delete from User where lastName = :lastName\") fun deleteUserByLastName(lastName: String): Int } 定义Database @Database(version = 1, entities = [User::class]) abstract class AppDatabase: RoomDatabase() { abstract fun userDao(): UserDao companion object { private var instance:AppDatabase? = null @Synchronized fun getDatabase(context:Context):AppDatabase{ instance?.let { return it } return Room.databaseBuilder( context.applicationContext, AppDatabase::class.java, \"app_database\" ) .build() .apply { instance= this } } } } 在需要的地方用userDao调用相应的增删改查方法。\nval userDao = AppDatabase.getDatabase(this).userDao() val user1 = User(\"Tom\", \"Brady\", 40) val user2 = User(\"Tom\", \"Hanks\", 63) addDataBtn.setOnClickListener { CoroutineScope(Dispatchers.IO).launch { user1.id= userDao.insertUser(user1) user2.id= userDao.insertUser(user2) } } updateDataBtn.setOnClickListener { CoroutineScope(Dispatchers.IO).launch { user1.age= 42 userDao.updateUser(user1) } } deleteDataBtn.setOnClickListener { CoroutineScope(Dispatchers.IO).launch { userDao.deleteUserByLastName(\"Hanks\") } } queryDataBtn.setOnClickListener { CoroutineScope(Dispatchers.IO).launch { val users = userDao.loadAllUsers() users.forEach { user -\u003e Log.d(\"MainActivity\", user.toString()) } } } 升级后的逻辑 @Database(version = 3, entities = [User::class, Book::class]) abstract class AppDatabase: RoomDatabase() { abstract fun userDao(): UserDao abstract fun bookDao(): BookDao companion object { // 升级数据库修改表结构 val MIGRATION_2_3 = object : Migration(2, 3) { override fun migrate(database: SupportSQLiteDatabase) { database.execSQL(\"alter table Book add column author text not null default 'unknown'\") } } // 升级添加数据库表 val MIGRATION_1_2 = object : Migration(1, 2) { override fun migrate(database: SupportSQLiteDatabase) { database.execSQL( \"create table Book (id integer primary key autoincrement not null, name text not null, pages integer not null)\" ) } } private var instance:AppDatabase? = null @Synchronized fun getDatabase(context:Context):AppDatabase{ instance?.let { return it } return Room.databaseBuilder( context.applicationContext, AppDatabase::class.java, \"app_database\" ) .addMigrations(MIGRATION_1_2, MIGRATION_2_3) .build() .apply { instance= this } } } } Glide ","wordCount":"2361","inLanguage":"zh","datePublished":"2025-02-15T22:30:13+08:00","dateModified":"2024-02-15T22:20:13+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/android-%E7%AC%AC%E4%B8%89%E6%96%B9%E5%BA%93/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">Android 第三方库</h1><div class=post-description>Android学习笔记</div><div class=post-meta><span title='2025-02-15 22:30:13 +0800 +0800'>2025-02-15</span>&nbsp;·&nbsp;<span>5 分钟</span>&nbsp;·&nbsp;<span>2361 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#android-%e7%ac%ac%e4%b8%89%e6%96%b9%e5%ba%93 aria-label="Android 第三方库">Android 第三方库</a><ul><li><a href=#arouter aria-label=ARouter>ARouter</a><ul><li><a href=#1-%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96 aria-label="1. 添加依赖"><strong>1. 添加依赖</strong></a></li><li><a href=#11-%e5%9c%a8%e9%a1%b9%e7%9b%ae%e7%ba%a7-buildgradle-%e4%b8%ad%e6%b7%bb%e5%8a%a0-arouter-maven-%e4%bb%93%e5%ba%93 aria-label="1.1 在项目级 build.gradle 中添加 ARouter Maven 仓库"><strong>1.1 在项目级 <code>build.gradle</code> 中添加 ARouter Maven 仓库</strong></a></li><li><a href=#2-%e5%88%9d%e5%a7%8b%e5%8c%96-arouter aria-label="2. 初始化 ARouter"><strong>2. 初始化 ARouter</strong></a></li><li><a href=#21-%e5%88%9b%e5%bb%ba-myapplication-%e7%b1%bb aria-label="2.1 创建 MyApplication 类"><strong>2.1 创建 <code>MyApplication</code> 类</strong></a></li><li><a href=#22-%e6%b3%a8%e5%86%8c-application aria-label="2.2 注册 Application"><strong>2.2 注册 <code>Application</code></strong></a></li><li><a href=#3-%e9%a1%b5%e9%9d%a2%e8%b7%b3%e8%bd%ac%e7%9a%84%e5%9f%ba%e6%9c%ac%e7%94%a8%e6%b3%95 aria-label="3. 页面跳转的基本用法"><strong>3. 页面跳转的基本用法</strong></a></li><li><a href=#31-%e5%a3%b0%e6%98%8e%e8%b7%af%e7%94%b1%e8%b7%af%e5%be%84 aria-label="3.1 声明路由路径"><strong>3.1 声明路由路径</strong></a></li><li><a href=#32-%e8%b7%b3%e8%bd%ac%e5%88%b0%e6%8c%87%e5%ae%9a%e9%a1%b5%e9%9d%a2 aria-label="3.2 跳转到指定页面"><strong>3.2 跳转到指定页面</strong></a></li><li><a href=#4-%e8%b7%a8%e6%a8%a1%e5%9d%97%e8%b7%b3%e8%bd%ac aria-label="4. 跨模块跳转"><strong>4. 跨模块跳转</strong></a></li><li><a href=#41-%e5%9c%a8%e6%af%8f%e4%b8%aa%e6%a8%a1%e5%9d%97%e4%b8%ad%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96 aria-label="4.1 在每个模块中添加依赖"><strong>4.1 在每个模块中添加依赖</strong></a></li><li><a href=#42-%e4%bd%bf%e7%94%a8%e8%b7%af%e7%94%b1%e8%b7%b3%e8%bd%ac aria-label="4.2 使用路由跳转"><strong>4.2 使用路由跳转</strong></a></li><li><a href=#5-%e8%b7%af%e7%94%b1%e6%8b%a6%e6%88%aa%e5%99%a8 aria-label="5. 路由拦截器"><strong>5. 路由拦截器</strong></a></li><li><a href=#51-%e5%ae%9a%e4%b9%89%e6%8b%a6%e6%88%aa%e5%99%a8 aria-label="5.1 定义拦截器"><strong>5.1 定义拦截器</strong></a></li><li><a href=#52-%e6%b3%a8%e5%86%8c%e6%8b%a6%e6%88%aa%e5%99%a8 aria-label="5.2 注册拦截器"><strong>5.2 注册拦截器</strong></a></li><li><a href=#6-%e6%9c%8d%e5%8a%a1%e7%ae%a1%e7%90%86 aria-label="6. 服务管理"><strong>6. 服务管理</strong></a></li><li><a href=#61-%e5%ae%9a%e4%b9%89%e6%9c%8d%e5%8a%a1%e6%8e%a5%e5%8f%a3 aria-label="6.1 定义服务接口"><strong>6.1 定义服务接口</strong></a></li><li><a href=#62-%e5%ae%9e%e7%8e%b0%e6%9c%8d%e5%8a%a1 aria-label="6.2 实现服务"><strong>6.2 实现服务</strong></a></li><li><a href=#63-%e8%b0%83%e7%94%a8%e6%9c%8d%e5%8a%a1 aria-label="6.3 调用服务"><strong>6.3 调用服务</strong></a></li><li><a href=#7-%e6%b3%a8%e8%a7%a3%e8%af%b4%e6%98%8e aria-label="7. 注解说明"><strong>7. 注解说明</strong></a></li><li><a href=#8-%e6%b7%b7%e6%b7%86%e9%85%8d%e7%bd%ae aria-label="8. 混淆配置"><strong>8. 混淆配置</strong></a></li><li><a href=#9-%e5%b8%b8%e8%a7%81%e9%97%ae%e9%a2%98 aria-label="9. 常见问题"><strong>9. 常见问题</strong></a></li></ul></li><li><a href=#hilt aria-label=Hilt>Hilt</a><ul><li><a href=#1-%e6%b7%bb%e5%8a%a0%e4%be%9d%e8%b5%96-1 aria-label="1. 添加依赖"><strong>1. 添加依赖</strong></a></li><li><a href=#2-%e9%85%8d%e7%bd%ae%e5%ba%94%e7%94%a8%e7%a8%8b%e5%ba%8f%e7%b1%bb aria-label="2. 配置应用程序类"><strong>2. 配置应用程序类</strong></a></li><li><a href=#3-%e4%bd%bf%e7%94%a8-hilt-%e6%8f%90%e4%be%9b%e4%be%9d%e8%b5%96 aria-label="3. 使用 Hilt 提供依赖"><strong>3. 使用 Hilt 提供依赖</strong></a></li><li><a href=#a-%e5%88%9b%e5%bb%ba%e6%a8%a1%e5%9d%97%e6%8f%90%e4%be%9b%e4%be%9d%e8%b5%96 aria-label="a. 创建模块提供依赖"><strong>a. 创建模块提供依赖</strong></a></li><li><a href=#b-%e5%9c%a8-activity-%e6%88%96-fragment-%e4%b8%ad%e6%b3%a8%e5%85%a5%e4%be%9d%e8%b5%96 aria-label="b. 在 Activity 或 Fragment 中注入依赖"><strong>b. 在 Activity 或 Fragment 中注入依赖</strong></a></li><li><a href=#c-%e5%9c%a8-viewmodel-%e4%b8%ad%e4%bd%bf%e7%94%a8-hilt aria-label="c. 在 ViewModel 中使用 Hilt"><strong>c. 在 ViewModel 中使用 Hilt</strong></a></li><li><a href=#4-%e5%b8%b8%e8%a7%81%e4%bd%9c%e7%94%a8%e5%9f%9f aria-label="4. 常见作用域"><strong>4. 常见作用域</strong></a></li><li><a href=#5-%e6%b5%8b%e8%af%95%e6%94%af%e6%8c%81 aria-label="5. 测试支持"><strong>5. 测试支持</strong></a></li><li><a href=#6-hilt-%e6%b3%a8%e8%a7%a3%e6%a6%82%e8%a7%88 aria-label="6. Hilt 注解概览"><strong>6. Hilt 注解概览</strong></a></li></ul></li></ul></li><li><a href=#room aria-label=Room>Room</a><ul><ul><li><a href=#room%e4%bd%bf%e7%94%a8 aria-label=Room使用>Room使用</a></li><li><a href=#%e5%af%bc%e5%85%a5%e4%be%9d%e8%b5%96 aria-label=导入依赖>导入依赖</a></li><li><a href=#%e5%ae%9a%e4%b9%89entity aria-label=定义Entity>定义Entity</a></li><li><a href=#%e5%ae%9a%e4%b9%89dao aria-label=定义Dao>定义Dao</a></li><li><a href=#%e5%ae%9a%e4%b9%89database aria-label=定义Database>定义Database</a></li><li><a href=#%e5%8d%87%e7%ba%a7%e5%90%8e%e7%9a%84%e9%80%bb%e8%be%91 aria-label=升级后的逻辑>升级后的逻辑</a></li></ul><li><a href=#glide aria-label=Glide>Glide</a></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=android-第三方库>Android 第三方库<a hidden class=anchor aria-hidden=true href=#android-第三方库>#</a></h1><h2 id=arouter>ARouter<a hidden class=anchor aria-hidden=true href=#arouter>#</a></h2><p>ARouter 是阿里巴巴推出的 Android 路由框架，用于<strong>简化页面跳转</strong>、<strong>组件通信</strong>和<strong>跨模块开发</strong>。</p><h3 id=1-添加依赖><strong>1. 添加依赖</strong><a hidden class=anchor aria-hidden=true href=#1-添加依赖>#</a></h3><p>首先，在项目中引入 ARouter 的相关依赖。</p><h3 id=11-在项目级-buildgradle-中添加-arouter-maven-仓库><strong>1.1 在项目级 <code>build.gradle</code> 中添加 ARouter Maven 仓库</strong><a hidden class=anchor aria-hidden=true href=#11-在项目级-buildgradle-中添加-arouter-maven-仓库>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>buildscript {
+</span></span><span style=display:flex><span>    repositories {
+</span></span><span style=display:flex><span>        mavenCentral()
+</span></span><span style=display:flex><span>        google()
+</span></span><span style=display:flex><span>        maven { url <span style=color:#960050;background-color:#1e0010>&#39;</span>&lt;https:<span style=color:#75715e>//jitpack.io&gt;&#39; }
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>1.2 在模块级 <code>build.gradle</code> 中添加依赖</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>android {
+</span></span><span style=display:flex><span>    defaultConfig {
+</span></span><span style=display:flex><span>        javaCompileOptions {
+</span></span><span style=display:flex><span>            annotationProcessorOptions {
+</span></span><span style=display:flex><span>                arguments = [AROUTER_MODULE_NAME: project.getName()]
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>dependencies {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// ARouter 核心库
+</span></span></span><span style=display:flex><span>    implementation <span style=color:#960050;background-color:#1e0010>&#39;</span>com.alibaba:arouter-api:<span style=color:#ae81ff>1.5.2</span><span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// ARouter 注解处理器
+</span></span></span><span style=display:flex><span>    kapt <span style=color:#960050;background-color:#1e0010>&#39;</span>com.alibaba:arouter-compiler:<span style=color:#ae81ff>1.5.2</span><span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span><span style=display:flex><span>    annotationProcessor <span style=color:#960050;background-color:#1e0010>&#39;</span>com.alibaba:arouter-compiler:<span style=color:#ae81ff>1.5.2</span><span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>同步项目以确保依赖正确导入。</p><h3 id=2-初始化-arouter><strong>2. 初始化 ARouter</strong><a hidden class=anchor aria-hidden=true href=#2-初始化-arouter>#</a></h3><p>在 <code>Application</code> 类中初始化 ARouter。</p><h3 id=21-创建-myapplication-类><strong>2.1 创建 <code>MyApplication</code> 类</strong><a hidden class=anchor aria-hidden=true href=#21-创建-myapplication-类>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyApplication</span> : Application() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onCreate</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onCreate()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 调试模式必须在初始化之前开启
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>BuildConfig</span>.DEBUG) { 
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>ARouter</span>.openLog() <span style=color:#75715e>// 打印日志
+</span></span></span><span style=display:flex><span>            <span style=color:#a6e22e>ARouter</span>.openDebug() <span style=color:#75715e>// 开启调试模式（如果在InstantRun模式下运行，必须开启）
+</span></span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 初始化 ARouter
+</span></span></span><span style=display:flex><span>        <span style=color:#a6e22e>ARouter</span>.<span style=color:#66d9ef>init</span>(<span style=color:#66d9ef>this</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=22-注册-application><strong>2.2 注册 <code>Application</code></strong><a hidden class=anchor aria-hidden=true href=#22-注册-application>#</a></h3><p>在 <code>AndroidManifest.xml</code> 中注册自定义的 <code>MyApplication</code>：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>&lt;application
+</span></span><span style=display:flex><span>    android:name=<span style=color:#e6db74>&#34;.MyApplication&#34;</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>..</span>. &gt;
+</span></span><span style=display:flex><span>&lt;/application&gt;
+</span></span></code></pre></div><h3 id=3-页面跳转的基本用法><strong>3. 页面跳转的基本用法</strong><a hidden class=anchor aria-hidden=true href=#3-页面跳转的基本用法>#</a></h3><h3 id=31-声明路由路径><strong>3.1 声明路由路径</strong><a hidden class=anchor aria-hidden=true href=#31-声明路由路径>#</a></h3><p>使用 <code>@Route</code> 注解为目标 Activity 声明路由路径。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Route</span>(path = <span style=color:#e6db74>&#34;/example/first&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>FirstActivity</span> : AppCompatActivity() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onCreate</span>(savedInstanceState: Bundle?) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onCreate(savedInstanceState)
+</span></span><span style=display:flex><span>        setContentView(<span style=color:#a6e22e>R</span>.layout.activity_first)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 获取传递的参数
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> name = intent.getStringExtra(<span style=color:#e6db74>&#34;name&#34;</span>)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> age = intent.getIntExtra(<span style=color:#e6db74>&#34;age&#34;</span>, <span style=color:#ae81ff>0</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=32-跳转到指定页面><strong>3.2 跳转到指定页面</strong><a hidden class=anchor aria-hidden=true href=#32-跳转到指定页面>#</a></h3><p>使用 ARouter 调用页面跳转。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>ARouter</span>.getInstance()
+</span></span><span style=display:flex><span>    .build(<span style=color:#e6db74>&#34;/example/first&#34;</span>)
+</span></span><span style=display:flex><span>    .withString(<span style=color:#e6db74>&#34;name&#34;</span>, <span style=color:#e6db74>&#34;Kennem&#34;</span>)
+</span></span><span style=display:flex><span>    .withInt(<span style=color:#e6db74>&#34;age&#34;</span>, <span style=color:#ae81ff>25</span>)
+</span></span><span style=display:flex><span>    .navigation()
+</span></span></code></pre></div><h3 id=4-跨模块跳转><strong>4. 跨模块跳转</strong><a hidden class=anchor aria-hidden=true href=#4-跨模块跳转>#</a></h3><p>在组件化开发中，ARouter 支持跨模块跳转。各模块只需依赖 ARouter 即可。</p><h3 id=41-在每个模块中添加依赖><strong>4.1 在每个模块中添加依赖</strong><a hidden class=anchor aria-hidden=true href=#41-在每个模块中添加依赖>#</a></h3><p>在各模块的 <code>build.gradle</code> 中添加 ARouter 依赖。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>implementation <span style=color:#960050;background-color:#1e0010>&#39;</span>com.alibaba:arouter-api:<span style=color:#ae81ff>1.5.2</span><span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span><span style=display:flex><span>kapt <span style=color:#960050;background-color:#1e0010>&#39;</span>com.alibaba:arouter-compiler:<span style=color:#ae81ff>1.5.2</span><span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span><span style=display:flex><span>annotationProcessor <span style=color:#960050;background-color:#1e0010>&#39;</span>com.alibaba:arouter-compiler:<span style=color:#ae81ff>1.5.2</span><span style=color:#960050;background-color:#1e0010>&#39;</span>
+</span></span></code></pre></div><h3 id=42-使用路由跳转><strong>4.2 使用路由跳转</strong><a hidden class=anchor aria-hidden=true href=#42-使用路由跳转>#</a></h3><p>路由跳转的方式与普通用法相同，不需要关心目标模块的实现细节。</p><h3 id=5-路由拦截器><strong>5. 路由拦截器</strong><a hidden class=anchor aria-hidden=true href=#5-路由拦截器>#</a></h3><p>ARouter 提供了拦截器功能，用于在页面跳转前对请求进行拦截处理（如登录校验）。</p><h3 id=51-定义拦截器><strong>5.1 定义拦截器</strong><a hidden class=anchor aria-hidden=true href=#51-定义拦截器>#</a></h3><p>实现 <code>IInterceptor</code> 接口并添加 <code>@Interceptor</code> 注解。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Interceptor</span>(priority = <span style=color:#ae81ff>1</span>, name = <span style=color:#e6db74>&#34;LoginInterceptor&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>LoginInterceptor</span> : IInterceptor {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>process</span>(postcard: Postcard, callback: InterceptorCallback) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 检查是否需要登录
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> (postcard.path <span style=color:#f92672>==</span> <span style=color:#e6db74>&#34;/example/protected&#34;</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>val</span> isLoggedIn = checkLoginStatus()
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> (<span style=color:#f92672>!is</span>LoggedIn) {
+</span></span><span style=display:flex><span>                <span style=color:#75715e>// 终止跳转并跳转到登录页面
+</span></span></span><span style=display:flex><span>                <span style=color:#a6e22e>ARouter</span>.getInstance().build(<span style=color:#e6db74>&#34;/example/login&#34;</span>).navigation()
+</span></span><span style=display:flex><span>                callback.onInterrupt(<span style=color:#66d9ef>null</span>)
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>        callback.onContinue(postcard) <span style=color:#75715e>// 继续路由
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>init</span>(context: Context) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 初始化操作
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>checkLoginStatus</span>(): Boolean {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 模拟登录检查
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=52-注册拦截器><strong>5.2 注册拦截器</strong><a hidden class=anchor aria-hidden=true href=#52-注册拦截器>#</a></h3><p>拦截器无需手动注册，ARouter 会自动发现并加载。</p><h3 id=6-服务管理><strong>6. 服务管理</strong><a hidden class=anchor aria-hidden=true href=#6-服务管理>#</a></h3><p>ARouter 提供了服务管理功能，用于跨模块调用服务。</p><h3 id=61-定义服务接口><strong>6.1 定义服务接口</strong><a hidden class=anchor aria-hidden=true href=#61-定义服务接口>#</a></h3><p>创建一个公共接口模块并定义服务接口。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>HelloService</span> : IProvider {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>sayHello</span>(name: String): String
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=62-实现服务><strong>6.2 实现服务</strong><a hidden class=anchor aria-hidden=true href=#62-实现服务>#</a></h3><p>在具体模块中实现服务。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Route</span>(path = <span style=color:#e6db74>&#34;/service/hello&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>HelloServiceImpl</span> : HelloService {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>init</span>(context: Context?) {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 初始化操作
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>sayHello</span>(name: String): String {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#e6db74>&#34;Hello, </span><span style=color:#e6db74>$name</span><span style=color:#e6db74>!&#34;</span>
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=63-调用服务><strong>6.3 调用服务</strong><a hidden class=anchor aria-hidden=true href=#63-调用服务>#</a></h3><p>在其他模块中通过 ARouter 获取服务实例并调用方法。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>val</span> helloService = <span style=color:#a6e22e>ARouter</span>.getInstance().navigation(HelloService<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>.java)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>val</span> result = helloService.sayHello(<span style=color:#e6db74>&#34;Kennem&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#a6e22e>Log</span>.d(<span style=color:#e6db74>&#34;ARouter&#34;</span>, result)
+</span></span></code></pre></div><h3 id=7-注解说明><strong>7. 注解说明</strong><a hidden class=anchor aria-hidden=true href=#7-注解说明>#</a></h3><p>ARouter 提供的核心注解包括：</p><ol><li><p>@Route</p><p>：用于标记路由目标（如 Activity、Fragment 或 Service）。</p><ul><li><code>path</code>：必填，表示路由路径。</li><li><code>group</code>：可选，路由分组。</li></ul></li></ol><ul><li><code>path</code>：必填，表示路由路径。</li><li><code>group</code>：可选，路由分组。</li></ul><ol><li><strong>@Autowired</strong>：用于自动注入字段。</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Route</span>(path = <span style=color:#e6db74>&#34;/example/second&#34;</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>SecondActivity</span> : AppCompatActivity() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>lateinit</span> <span style=color:#66d9ef>var</span> name: String
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Autowired</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> age: Int = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onCreate</span>(savedInstanceState: Bundle?) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onCreate(savedInstanceState)
+</span></span><span style=display:flex><span>        setContentView(<span style=color:#a6e22e>R</span>.layout.activity_second)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>ARouter</span>.getInstance().inject(<span style=color:#66d9ef>this</span>) <span style=color:#75715e>// 自动注入
+</span></span></span><span style=display:flex><span>        <span style=color:#a6e22e>Log</span>.d(<span style=color:#e6db74>&#34;ARouter&#34;</span>, <span style=color:#e6db74>&#34;Name: </span><span style=color:#e6db74>$name</span><span style=color:#e6db74>, Age: </span><span style=color:#e6db74>$age</span><span style=color:#e6db74>&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=8-混淆配置><strong>8. 混淆配置</strong><a hidden class=anchor aria-hidden=true href=#8-混淆配置>#</a></h3><p>为了避免代码被混淆，需在 <code>proguard-rules.pro</code> 文件中添加以下规则：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>-keep <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>com</span>.alibaba.android.arouter.** { *; }
+</span></span><span style=display:flex><span>-keep <span style=color:#a6e22e>@com</span>.alibaba.android.arouter.facade.<span style=color:#66d9ef>annotation</span>.* <span style=color:#66d9ef>class</span> <span style=color:#960050;background-color:#1e0010>* { *; }</span>
+</span></span><span style=display:flex><span>-keepclassmembers <span style=color:#66d9ef>class</span> <span style=color:#960050;background-color:#1e0010>* {</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@com</span>.alibaba.android.arouter.facade.<span style=color:#66d9ef>annotation</span>.Autowired &lt;fields&gt;;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>-keep <span style=color:#66d9ef>interface</span> <span style=color:#960050;background-color:#1e0010>* </span><span style=color:#a6e22e>extends</span> com.alibaba.android.arouter.facade.template.IProvider
+</span></span></code></pre></div><h3 id=9-常见问题><strong>9. 常见问题</strong><a hidden class=anchor aria-hidden=true href=#9-常见问题>#</a></h3><ol><li><p><strong>未初始化 ARouter</strong></p><p>确保在 Application 中调用了 <code>ARouter.init(this)</code>。</p></li><li><p><strong>路由找不到</strong></p><p>检查 <code>@Route</code> 的路径是否正确，是否在模块中执行了编译。</p></li><li><p><strong>跨模块无法跳转</strong></p><p>确保各模块都正确依赖了 ARouter，并在编译期生成了相应的代码。</p></li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>        <span style=color:#a6e22e>ARouter</span>.getInstance()
+</span></span><span style=display:flex><span>            .build(path)
+</span></span><span style=display:flex><span>            .withTransition(<span style=color:#a6e22e>R</span>.anim.now_playing_activity_in, <span style=color:#a6e22e>R</span>.anim.anim_nothing)
+</span></span><span style=display:flex><span>            .withString(<span style=color:#e6db74>&#34;url&#34;</span>, song.getInsightSong()<span style=color:#f92672>?.</span>webUrl)
+</span></span><span style=display:flex><span>            .withBoolean(<span style=color:#e6db74>&#34;resume&#34;</span>, <span style=color:#66d9ef>true</span>)
+</span></span><span style=display:flex><span>            .withFlags(<span style=color:#a6e22e>Intent</span>.FLAG_ACTIVITY_REORDER_TO_FRONT)
+</span></span><span style=display:flex><span>            .navigation(context)
+</span></span></code></pre></div><h2 id=hilt>Hilt<a hidden class=anchor aria-hidden=true href=#hilt>#</a></h2><p>Hilt 是 Android 的依赖项注入库，可减少在项目中执行手动依赖项注入的样板代码。执行<a href="https://developer.android.google.cn/training/dependency-injection/manual?hl=zh-cn">手动依赖项注入</a>要求您手动构造每个类及其依赖项，并借助容器重复使用和管理依赖项。</p><h3 id=1-添加依赖-1><strong>1. 添加依赖</strong><a hidden class=anchor aria-hidden=true href=#1-添加依赖-1>#</a></h3><p>在项目的 <code>build.gradle</code> 文件中添加 Hilt 所需的依赖。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>// 在项目级 build.gradle 中添加
+</span></span><span style=display:flex><span>classpath &#39;com.google.dagger:hilt-android-gradle-plugin:2.50&#39;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>// 在应用级 build.gradle 中添加
+</span></span><span style=display:flex><span>plugins {
+</span></span><span style=display:flex><span>    id &#39;com.android.application&#39;
+</span></span><span style=display:flex><span>    id &#39;kotlin-kapt&#39;
+</span></span><span style=display:flex><span>    id &#39;dagger.hilt.android.plugin&#39;
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>dependencies {
+</span></span><span style=display:flex><span>    implementation &#39;com.google.dagger:hilt-android:2.50&#39;
+</span></span><span style=display:flex><span>    kapt &#39;com.google.dagger:hilt-android-compiler:2.50&#39;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    // 如果需要使用 ViewModel
+</span></span><span style=display:flex><span>    implementation &#39;androidx.hilt:hilt-lifecycle-viewmodel:1.0.0-alpha03&#39;
+</span></span><span style=display:flex><span>    kapt &#39;androidx.hilt:hilt-compiler:1.0.0&#39;
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>同步项目以确保依赖已正确添加。</p><h3 id=2-配置应用程序类><strong>2. 配置应用程序类</strong><a hidden class=anchor aria-hidden=true href=#2-配置应用程序类>#</a></h3><p>在应用程序类上添加 <code>@HiltAndroidApp</code> 注解，使 Hilt 初始化依赖注入。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@HiltAndroidApp</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyApplication</span> : Application() {
+</span></span><span style=display:flex><span>    <span style=color:#75715e>// 可以在这里初始化全局依赖
+</span></span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=3-使用-hilt-提供依赖><strong>3. 使用 Hilt 提供依赖</strong><a hidden class=anchor aria-hidden=true href=#3-使用-hilt-提供依赖>#</a></h3><h3 id=a-创建模块提供依赖><strong>a. 创建模块提供依赖</strong><a hidden class=anchor aria-hidden=true href=#a-创建模块提供依赖>#</a></h3><p>使用 <code>@Module</code> 和 <code>@InstallIn</code> 注解来提供依赖。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Module</span>
+</span></span><span style=display:flex><span><span style=color:#a6e22e>@InstallIn</span>(SingletonComponent<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>object</span> <span style=color:#a6e22e>AppModule</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Provides</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Singleton</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>provideRetrofit</span>(): Retrofit {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>Retrofit</span>.Builder()
+</span></span><span style=display:flex><span>            .baseUrl(<span style=color:#e6db74>&#34;&lt;https://api.example.com/&gt;&#34;</span>)
+</span></span><span style=display:flex><span>            .addConverterFactory(<span style=color:#a6e22e>GsonConverterFactory</span>.create())
+</span></span><span style=display:flex><span>            .build()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Provides</span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Singleton</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>provideApiService</span>(retrofit: Retrofit): ApiService {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> retrofit.create(ApiService<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>.java)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=b-在-activity-或-fragment-中注入依赖><strong>b. 在 Activity 或 Fragment 中注入依赖</strong><a hidden class=anchor aria-hidden=true href=#b-在-activity-或-fragment-中注入依赖>#</a></h3><p>使用 <code>@AndroidEntryPoint</code> 注解标记 Activity 或 Fragment，Hilt 会自动注入依赖。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@AndroidEntryPoint</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MainActivity</span> : AppCompatActivity() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Inject</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>lateinit</span> <span style=color:#66d9ef>var</span> apiService: ApiService
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onCreate</span>(savedInstanceState: Bundle?) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onCreate(savedInstanceState)
+</span></span><span style=display:flex><span>        setContentView(<span style=color:#a6e22e>R</span>.layout.activity_main)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用注入的依赖
+</span></span></span><span style=display:flex><span>        apiService.someMethod()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=c-在-viewmodel-中使用-hilt><strong>c. 在 ViewModel 中使用 Hilt</strong><a hidden class=anchor aria-hidden=true href=#c-在-viewmodel-中使用-hilt>#</a></h3><p>使用 Hilt 提供依赖给 ViewModel。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@HiltViewModel</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyViewModel</span> <span style=color:#a6e22e>@Inject</span> <span style=color:#66d9ef>constructor</span>(
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>val</span> apiService: ApiService
+</span></span><span style=display:flex><span>) : ViewModel() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>fetchData</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 使用 apiService
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>在 Activity 或 Fragment 中使用 ViewModel：</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@AndroidEntryPoint</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyFragment</span> : Fragment() {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>val</span> viewModel: MyViewModel <span style=color:#66d9ef>by</span> viewModels()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>onViewCreated</span>(view: View, savedInstanceState: Bundle?) {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>.onViewCreated(view, savedInstanceState)
+</span></span><span style=display:flex><span>        viewModel.fetchData()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=4-常见作用域><strong>4. 常见作用域</strong><a hidden class=anchor aria-hidden=true href=#4-常见作用域>#</a></h3><p>Hilt 提供多种作用域，常见的有：</p><ul><li><strong>SingletonComponent</strong>：应用程序生命周期内单例。</li><li><strong>ActivityComponent</strong>：Activity 生命周期内单例。</li><li><strong>FragmentComponent</strong>：Fragment 生命周期内单例。</li><li><strong>ViewModelComponent</strong>：ViewModel 生命周期内单例。</li></ul><p>根据实际需求选择合适的作用域。</p><h3 id=5-测试支持><strong>5. 测试支持</strong><a hidden class=anchor aria-hidden=true href=#5-测试支持>#</a></h3><p>Hilt 提供专门的测试支持，通过使用 <code>@HiltAndroidTest</code> 和 <code>@UninstallModules</code> 进行测试。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@HiltAndroidTest</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyTest</span> {
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@get</span>:Rule
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> hiltRule = HiltAndroidRule(<span style=color:#66d9ef>this</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Inject</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>lateinit</span> <span style=color:#66d9ef>var</span> apiService: ApiService
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Before</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>setUp</span>() {
+</span></span><span style=display:flex><span>        hiltRule.inject()
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Test</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>testSomething</span>() {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 测试逻辑
+</span></span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=6-hilt-注解概览><strong>6. Hilt 注解概览</strong><a hidden class=anchor aria-hidden=true href=#6-hilt-注解概览>#</a></h3><ul><li><strong>@HiltAndroidApp</strong>：初始化 Hilt。</li><li><strong>@AndroidEntryPoint</strong>：标记注入目标，如 Activity、Fragment。</li><li><strong>@Inject</strong>：用于注入字段或构造函数。</li><li><strong>@Provides</strong>：用于提供依赖实例。</li><li><strong>@Module</strong>：用于创建提供依赖的模块。</li><li><strong>@InstallIn</strong>：指定模块的作用域。</li><li><strong>@Singleton</strong>：标记单例依赖。</li></ul><h1 id=room>Room<a hidden class=anchor aria-hidden=true href=#room>#</a></h1><h3 id=room使用>Room使用<a hidden class=anchor aria-hidden=true href=#room使用>#</a></h3><h3 id=导入依赖>导入依赖<a hidden class=anchor aria-hidden=true href=#导入依赖>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span>plugins {
+</span></span><span style=display:flex><span>    id(<span style=color:#e6db74>&#34;kotlin-kapt&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>dependencies {
+</span></span><span style=display:flex><span>    implementation(<span style=color:#e6db74>&#34;androidx.room:room-runtime:2.1.0&#34;</span>)
+</span></span><span style=display:flex><span>    kapt(<span style=color:#e6db74>&#34;androidx.room:room-compiler:2.1.0&#34;</span>)
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=定义entity>定义Entity<a hidden class=anchor aria-hidden=true href=#定义entity>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Entity</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>data</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>User</span>(<span style=color:#66d9ef>var</span> firstName: String, <span style=color:#66d9ef>var</span> lastName: String, <span style=color:#66d9ef>var</span> age: Int) {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@PrimaryKey</span>(autoGenerate = <span style=color:#66d9ef>true</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>var</span> id: Long = <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=定义dao>定义Dao<a hidden class=anchor aria-hidden=true href=#定义dao>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Dao</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>interface</span> <span style=color:#a6e22e>UserDao</span> {
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Insert</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>insertUser</span>(user: User): Long
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Update</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>updateUser</span>(newUser: User)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Query</span>(<span style=color:#e6db74>&#34;select * from User&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>loadAllUsers</span>(): List&lt;User&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Query</span>(<span style=color:#e6db74>&#34;select * from User where age &gt; :age&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>loadUsersOlderThan</span>(age: Int): List&lt;User&gt;
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Delete</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>deleteUser</span>(user: User)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#a6e22e>@Query</span>(<span style=color:#e6db74>&#34;delete from User where lastName = :lastName&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>deleteUserByLastName</span>(lastName: String): Int
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=定义database>定义Database<a hidden class=anchor aria-hidden=true href=#定义database>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Database</span>(version = <span style=color:#ae81ff>1</span>, entities = [User<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>])
+</span></span><span style=display:flex><span><span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AppDatabase</span>: RoomDatabase() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>userDao</span>(): UserDao
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>companion</span> <span style=color:#66d9ef>object</span> {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> instance:AppDatabase? = <span style=color:#66d9ef>null</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>@Synchronized</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>getDatabase</span>(context:Context):AppDatabase{
+</span></span><span style=display:flex><span>instance<span style=color:#f92672>?.</span>let {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>it</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>Room</span>.databaseBuilder(
+</span></span><span style=display:flex><span>                context.applicationContext,
+</span></span><span style=display:flex><span>AppDatabase<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>.java,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;app_database&#34;</span>
+</span></span><span style=display:flex><span>            )
+</span></span><span style=display:flex><span>                .build()
+</span></span><span style=display:flex><span>                .apply {
+</span></span><span style=display:flex><span>instance= <span style=color:#66d9ef>this</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><p>在需要的地方用userDao调用相应的增删改查方法。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#66d9ef>val</span> userDao = <span style=color:#a6e22e>AppDatabase</span>.getDatabase(<span style=color:#66d9ef>this</span>).userDao()
+</span></span><span style=display:flex><span><span style=color:#66d9ef>val</span> user1 = User(<span style=color:#e6db74>&#34;Tom&#34;</span>, <span style=color:#e6db74>&#34;Brady&#34;</span>, <span style=color:#ae81ff>40</span>)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>val</span> user2 = User(<span style=color:#e6db74>&#34;Tom&#34;</span>, <span style=color:#e6db74>&#34;Hanks&#34;</span>, <span style=color:#ae81ff>63</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>addDataBtn.setOnClickListener {
+</span></span><span style=display:flex><span>    CoroutineScope(<span style=color:#a6e22e>Dispatchers</span>.IO).launch {
+</span></span><span style=display:flex><span>        user1.id= userDao.insertUser(user1)
+</span></span><span style=display:flex><span>        user2.id= userDao.insertUser(user2)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>updateDataBtn.setOnClickListener {
+</span></span><span style=display:flex><span>    CoroutineScope(<span style=color:#a6e22e>Dispatchers</span>.IO).launch {
+</span></span><span style=display:flex><span>        user1.age= <span style=color:#ae81ff>42</span>
+</span></span><span style=display:flex><span>        userDao.updateUser(user1)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>deleteDataBtn.setOnClickListener {
+</span></span><span style=display:flex><span>    CoroutineScope(<span style=color:#a6e22e>Dispatchers</span>.IO).launch {
+</span></span><span style=display:flex><span>        userDao.deleteUserByLastName(<span style=color:#e6db74>&#34;Hanks&#34;</span>)
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>queryDataBtn.setOnClickListener {
+</span></span><span style=display:flex><span>    CoroutineScope(<span style=color:#a6e22e>Dispatchers</span>.IO).launch {
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> users = userDao.loadAllUsers()
+</span></span><span style=display:flex><span>        users.forEach { user <span style=color:#f92672>-&gt;</span>
+</span></span><span style=display:flex><span>            <span style=color:#a6e22e>Log</span>.d(<span style=color:#e6db74>&#34;MainActivity&#34;</span>, user.toString())
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h3 id=升级后的逻辑>升级后的逻辑<a hidden class=anchor aria-hidden=true href=#升级后的逻辑>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-kotlin data-lang=kotlin><span style=display:flex><span><span style=color:#a6e22e>@Database</span>(version = <span style=color:#ae81ff>3</span>, entities = [User<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>, Book<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>])
+</span></span><span style=display:flex><span><span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>AppDatabase</span>: RoomDatabase() {
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>userDao</span>(): UserDao
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>abstract</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>bookDao</span>(): BookDao
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>companion</span> <span style=color:#66d9ef>object</span> {
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 升级数据库修改表结构
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> MIGRATION_2_3 = <span style=color:#66d9ef>object</span> <span style=color:#960050;background-color:#1e0010>: </span><span style=color:#a6e22e>Migration</span>(<span style=color:#ae81ff>2</span>, <span style=color:#ae81ff>3</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>migrate</span>(database: SupportSQLiteDatabase) {
+</span></span><span style=display:flex><span>                database.execSQL(<span style=color:#e6db74>&#34;alter table Book add column author text not null default &#39;unknown&#39;&#34;</span>)
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#75715e>// 升级添加数据库表
+</span></span></span><span style=display:flex><span>        <span style=color:#66d9ef>val</span> MIGRATION_1_2 = <span style=color:#66d9ef>object</span> <span style=color:#960050;background-color:#1e0010>: </span><span style=color:#a6e22e>Migration</span>(<span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>2</span>) {
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>override</span> <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>migrate</span>(database: SupportSQLiteDatabase) {
+</span></span><span style=display:flex><span>                database.execSQL(
+</span></span><span style=display:flex><span>                    <span style=color:#e6db74>&#34;create table Book (id integer primary key autoincrement not null, name text not null, pages integer not null)&#34;</span>
+</span></span><span style=display:flex><span>                )
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>private</span> <span style=color:#66d9ef>var</span> instance:AppDatabase? = <span style=color:#66d9ef>null</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>        <span style=color:#a6e22e>@Synchronized</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>fun</span> <span style=color:#a6e22e>getDatabase</span>(context:Context):AppDatabase{
+</span></span><span style=display:flex><span>instance<span style=color:#f92672>?.</span>let {
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>it</span>
+</span></span><span style=display:flex><span>            }
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>Room</span>.databaseBuilder(
+</span></span><span style=display:flex><span>                context.applicationContext,
+</span></span><span style=display:flex><span>AppDatabase<span style=color:#f92672>::</span><span style=color:#66d9ef>class</span>.java,
+</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#34;app_database&#34;</span>
+</span></span><span style=display:flex><span>            )
+</span></span><span style=display:flex><span>                .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+</span></span><span style=display:flex><span>                .build()
+</span></span><span style=display:flex><span>                .apply {
+</span></span><span style=display:flex><span>instance= <span style=color:#66d9ef>this</span>
+</span></span><span style=display:flex><span>                }
+</span></span><span style=display:flex><span>        }
+</span></span><span style=display:flex><span>    }
+</span></span><span style=display:flex><span>}
+</span></span></code></pre></div><h2 id=glide>Glide<a hidden class=anchor aria-hidden=true href=#glide>#</a></h2></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/android/>Android</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/android%E5%AD%A6%E4%B9%A0%E7%AC%94%E8%AE%B0>Android学习笔记</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/android-%E4%BB%A3%E7%A0%81%E6%9E%B6%E6%9E%84%E8%AE%BE%E8%AE%A1/><span class=title>« 上一页</span>
+<span>Android 代码架构设计</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/android-%E7%BD%91%E7%BB%9C%E8%AF%B7%E6%B1%82%E8%A7%A3%E6%9E%90%E6%95%B0%E6%8D%AE/><span class=title>下一页 »</span>
+<span>Android 网络请求解析数据</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>

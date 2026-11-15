@@ -1,1026 +1,386 @@
-<!DOCTYPE html>
-<html lang="zh" dir="auto" data-theme="auto">
-
-<head><meta charset="utf-8">
-<meta http-equiv="X-UA-Compatible" content="IE=edge">
-<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-<meta name="robots" content="index, follow">
-
-<meta name="msvalidate.01" content="DF5FE493CC759E62BFE073BEA8EFD472" />
-<title>算法笔记（四）——数学（Python实现） | Kennem&#39;s Blog</title>
-<meta name="keywords" content="算法笔记, Python">
-<meta name="description" content="算法笔记（四）——数学（Python实现）">
-<meta name="author" content="ShowGuan">
-<link rel="canonical" href="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/">
-<link crossorigin="anonymous" href="/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css" integrity="sha256-OqF3aiVqW2aUL0&#43;WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as="style">
-<link rel="icon" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="16x16" href="https://kennems.github.io/img/sun.png">
-<link rel="icon" type="image/png" sizes="32x32" href="https://kennems.github.io/img/sun.png">
-<link rel="apple-touch-icon" href="https://kennems.github.io/img/sun.png">
-<link rel="mask-icon" href="https://kennems.github.io/img/sun.png">
-<meta name="theme-color" content="#2e2e33">
-<meta name="msapplication-TileColor" content="#2e2e33">
-<link rel="alternate" hreflang="zh" href="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/">
-<noscript>
-    <style>
-        #theme-toggle,
-        .top-link {
-            display: none;
-        }
-
-    </style>
-    <style>
-        @media (prefers-color-scheme: dark) {
-            :root {
-                --theme: rgb(29, 30, 32);
-                --entry: rgb(46, 46, 51);
-                --primary: rgb(218, 218, 219);
-                --secondary: rgb(155, 156, 157);
-                --tertiary: rgb(65, 66, 68);
-                --content: rgb(196, 196, 197);
-                --code-block-bg: rgb(46, 46, 51);
-                --code-bg: rgb(55, 56, 62);
-                --border: rgb(51, 51, 51);
-                color-scheme: dark;
-            }
-
-            .list {
-                background: var(--theme);
-            }
-
-            .toc {
-                background: var(--entry);
-            }
-        }
-
-    </style>
-</noscript>
-<script>
-    (function() {
-        var stored = localStorage.getItem("pref-theme");
-        var html = document.querySelector("html");
-
-        if (stored === "dark") {
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-        } else if (stored === "light") {
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-        } else {
-            
-            html.dataset.prefTheme = "auto";
-            if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-                html.dataset.theme = "dark";
-            } else {
-                html.dataset.theme = "light";
-            }
-            
-            window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function(e) {
-                if (localStorage.getItem("pref-theme") !== "dark" && localStorage.getItem("pref-theme") !== "light") {
-                    document.querySelector("html").dataset.theme = e.matches ? "dark" : "light";
-                }
-            });
-        }
-    })();
-
-</script>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css" integrity="sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ" crossorigin="anonymous">
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js" integrity="sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY" crossorigin="anonymous"></script>
-
-<script defer src="https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js" integrity="sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR" crossorigin="anonymous"
-    onload="renderMathInElement(document.body);"></script>
-
-<script>
-document.addEventListener("DOMContentLoaded", function() {
-    renderMathInElement(document.body, {
-        delimiters: [
-            {left: "$$", right: "$$", display: true},
-            {left: "$", right: "$", display: false}
-        ]
-    });
-});
-</script>
-
-
-
-<link rel="stylesheet" href="https://fonts.cdnfonts.com/css/code-new-roman">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-<meta property="og:url" content="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/">
-  <meta property="og:site_name" content="Kennem&#39;s Blog">
-  <meta property="og:title" content="算法笔记（四）——数学（Python实现）">
-  <meta property="og:description" content="算法笔记（四）——数学（Python实现）">
-  <meta property="og:locale" content="zh_cn">
-  <meta property="og:type" content="article">
-    <meta property="article:section" content="posts">
-    <meta property="article:published_time" content="2024-04-09T15:37:01+08:00">
-    <meta property="article:modified_time" content="2024-04-09T15:37:01+08:00">
-    <meta property="article:tag" content="算法笔记">
-    <meta property="article:tag" content="Python">
-
-  <meta name="twitter:card" content="summary">
-  <meta name="twitter:title" content="算法笔记（四）——数学（Python实现）">
-  <meta name="twitter:description" content="算法笔记（四）——数学（Python实现）">
-
-
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BreadcrumbList",
-  "itemListElement": [
-    {
-      "@type": "ListItem",
-      "position":  1 ,
-      "name": "📚文章",
-      "item": "https://kennems.github.io/posts/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  2 ,
-      "name": "💻技术",
-      "item": "https://kennems.github.io/posts/tech/"
-    }, 
-    {
-      "@type": "ListItem",
-      "position":  3 ,
-      "name": "算法笔记（四）——数学（Python实现）",
-      "item": "https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/"
-    }
-  ]
-}
-</script>
-<script type="application/ld+json">
-{
-  "@context": "https://schema.org",
-  "@type": "BlogPosting",
-  "headline": "算法笔记（四）——数学（Python实现）",
-  "name": "算法笔记（四）——数学（Python实现）",
-  "description": "算法笔记（四）——数学（Python实现）",
-  "keywords": [
-    "算法笔记", "Python"
-  ],
-  "articleBody": "算法笔记（四）——数学（Python实现） 数学 试除法判定质数 def check(x): # 判定 if x\u003c2: return False for i in range(2, int(x**0.5)+1): if x%i==0: return False return True n = int(input()) for i in range(n): x = int(input()) if check(x): print(\"Yes\") else: print(\"No\") 试除法分解质因数 def get(x): #分解 for i in range(2, int(x**0.5)+1): if x%i==0: cnt=0 while x%i==0: x//=i cnt+=1 print(i, cnt, sep=' ') if x\u003e1: print(x, 1, sep=' ') n = int(input()) for i in range(n): x = int(input()) get(x) print() 线性筛法求素数 N = int(1e6+10) primes = [] st = [False]*N def get(n): for i in range(2, n+1): if not st[i]: primes.append(i) for j in range(len(primes)): if i*primes[j]\u003en: break st[i*primes[j]]=True if i%primes[j]==0: break n = int(input()) get(n) print(len(primes)) 朴素筛法求素数 N = 1000005 # 根据需要修改 primes = [] # 存储所有素数 st = [False] * N # st[x]存储x是否被筛掉 # 筛素数函数 def get_primes(n): global primes global st for i in range(2, n + 1): if not st[i]: primes.append(i) for j in range(i, n + 1, i): st[j] = True # Example usage: # get_primes(100) # print(primes) 试除法求所有约数 def get(x): res = [1] for i in range(2, int(x**0.5)+1): if x%i==0: res.append(i) if i!=x//i: res.append(x//i) if x\u003e1: res.append(x) return sorted(res) n = int(input()) for i in range(n): x = int(input()) res = get(x) print(*res) 约数个数和约数之和 如果 N = p1^c1 * p2^c2 * ... *pk^ck 约数个数： (c1 + 1) * (c2 + 1) * ... * (ck + 1) 约数之和： (p1^0 + p1^1 + ... + p1^c1) * ... * (pk^0 + pk^1 + ... + pk^ck) 约数之和 题目大意：给定两个自然数 A 和 B，定义 S 为 A*B 的所有约数之和。求 S mod 9901 的值。\n实现思路：首先，我们需要编写一个快速幂函数 qpow(a, k) 来计算幂运算的结果。然后，定义一个函数 calc(p, k) 来计算 p^k 的结果并对 mod 取余。在主程序中，我们对 A 进行质因数分解，并计算每个质因数的幂次方与 B 的乘积，并累加到最终结果 res 中。最后，输出 res 的值对 mod 9901 取余的结果。\nimport sys input = lambda:sys.stdin.readline().strip() mod = 9901 def qpow(a, k): res = 1 while k: if k\u00261: res = res*a%mod a = a*a%mod k\u003e\u003e=1 return res def calc(p, k): if k==0: return 1 if k%2==1: return (1+qpow(p, k//2+1)) * calc(p, k//2) % mod return (qpow(p, k)%mod + (1 + qpow(p, (k-1)//2+1)) * calc(p, (k-1)//2)) % mod a, b = map(int, input().split()) res = 1 for i in range(2, a+1): if a\u003ci: break s = 0 while a%i==0: s+=1 a//=i if s: res = res * calc(i, s*b) % mod print(res if a else 0) gcd def gcd(a, b): return gcd(b, a % b) if b else a 求欧拉函数 def get(x): res = x for i in range(2, int(x**0.5)+1): if x%i==0: res = res//i*(i-1) while x%i==0: x//=i if x\u003e1: res = res//x*(x-1) return res n = int(input()) for i in range(n): x = int(input()) print(get(x)) 筛法求欧拉函数 N = int(1e6+10) primes = [] euler = [0]*N st = [False]*N cnt = 0 def get(n): euler[1] = 1 for i in range(2, n+1): if not st[i]: primes.append(i) euler[i] = i-1 for j in range(len(primes)): t = primes[j]*i if t\u003en: break st[t] = True if i%primes[j]==0: euler[t] = euler[i]*primes[j] break euler[t] = euler[i]*(primes[j]-1) n = int(input()) get(n) for i in range(1,n+1): cnt+=euler[i] print(cnt) 快速幂 # 快速幂函数 def qmi(m, k, p): res, t = 1 % p, m while k: if k \u0026 1: res = res * t % p t = t * t % p k \u003e\u003e= 1 return res # Example usage: # result = qmi(2, 10, 1000000007) # print(result) 拓展欧几里得 # 求 x, y，使得 ax + by = gcd(a, b) def exgcd(a, b, x, y): if b == 0: x[0], y[0] = 1, 0 return a d = exgcd(b, a % b, y, x) y[0] -= (a // b) * x[0] return d # Example usage: # x = [0] # y = [0] # gcd = exgcd(30, 20, x, y) # print(\"x:\", x[0], \"y:\", y[0], \"gcd:\", gcd) P1082 [NOIP2012 提高组] 同余方程 题目描述：求解关于x的同余方程$ax ≡ 1 (mod b)$的最小正整数解。\n实现思路：这个问题可以转化为求解$ax + by = gcd(a, b)$的解，其中x就是我们需要的结果。可以利用扩展欧几里得算法来求解这个方程。具体地，通过递归的方式求解出最大公约数，并且求解出使得$ax + by = gcd(a, b)$成立的整数x和y。然后通过对x取模b的操作得到最小正整数解x。最后输出x即可。\n# 求 x, y，使得 ax + by = gcd(a, b) def exgcd(a, b, x, y): if b == 0: x[0], y[0] = 1, 0 return a d = exgcd(b, a % b, y, x) y[0] -= (a // b) * x[0] return d a, b = map(int, input().split()) x, y = [0], [0] exgcd(a, b, x, y) x = x[0] x = (x%b+b)%b print(x) 递推法求组合数 N = int(2e3)+10 mod = int(1e9)+7 c = [[0]*N for _ in range(N)] def get(n): for i in range(n+1): for j in range(i+1): if j==0: c[i][j] = 1 else: c[i][j] = (c[i-1][j]+c[i-1][j-1])%mod MN = int(2e3) get(MN) n = int(input()) for i in range(n): a, b = map(int, input().split()) print(c[a][b]) 通过预处理逆元的方式求组合数 mod = int(1e9)+7 N = int(2e5)+10 fact, infact = [0]*N, [0]*N def qpow(a, k, p): res = 1 while k: if k\u00261: res = (res*a)%p a = (a*a)%p k\u003e\u003e=1 return res def init(): fact[0] = infact[0] = 1 for i in range(1, N): fact[i] = (fact[i-1]*i)%mod infact[i] = (infact[i-1]*qpow(i, mod-2, mod))%mod def C(n, m): if n\u003cm: return 0 return (fact[n]*infact[m]%mod*infact[n-m]%mod) init() n = int(input()) for i in range(n): a, b = map(int, input().split()) print(C(a, b)) Lucas定理 p = 1000000007 # 根据需要调整 # 快速幂模板 def qmi(a, k): res = 1 while k: if k \u0026 1: res = (res * a) % p a = (a * a) % p k \u003e\u003e= 1 return res # 通过定理求组合数C(a, b) def C(a, b): res = 1 for i in range(1, b + 1): res = (res * (a - i + 1)) % p res = (res * qmi(i, p - 2)) % p return res # Lucas定理计算组合数 def lucas(a, b): if a \u003c p and b \u003c p: return C(a, b) return (C(a % p, b % p) * lucas(a // p, b // p)) % p # Example usage: # result = lucas(10, 5) # 计算组合数 C(10, 5) # print(result) 分解质因数法求组合数 分解质因数法计算组合数：\n获取小于等于 a 的所有质数。 初始化质数的幂次列表 s。 对每个质数 p，计算在 a!，b! 和 (a-b)! 中 p 的幂次，通过 get(a, p) - get(b, p) - get(a - b, p) 得到组合数分解中 p 的总幂次。 通过快速幂计算每个质数 p 的幂次乘积，最终得到组合数。 def get_primes(n): primes = [] st = [False]*(n+1) for i in range(2, n+1): if not st[i]: primes.append(i) for p in primes: if i*p\u003en: break st[i*p] = True if i%p==0: break return primes def get(n, p): cnt = 0 while n: cnt += n//p n//=p return cnt def qpow(a, k): res = 1 while k: if k\u00261: res = res * a a = a*a k\u003e\u003e=1 return res def calc(a, b): primes = get_primes(a) n = len(primes) res = 1 for i, p in enumerate(primes): s = get(a, p) - get(b, p) - get(a-b, p) res *= qpow(p, s) return res a, b = map(int, input().split()) print(calc(a, b)) 高斯消元 eps = 1e-8 # 根据需要调整 # a 是增广矩阵，n 是矩阵维度 def gauss(a, n): c, r = 0, 0 for c in range(n): t = r for i in range(r, n): if abs(a[i][c]) \u003e abs(a[t][c]): t = i if abs(a[t][c]) \u003c eps: continue for i in range(c, n + 1): a[r][i], a[t][i] = a[t][i], a[r][i] for i in range(n, c - 1, -1): a[r][i] //= a[r][c] for i in range(r + 1, n): if abs(a[i][c]) \u003e eps: for j in range(n, c - 1, -1): a[i][j] -= a[r][j] * a[i][c] r += 1 if r \u003c n: for i in range(r, n): if abs(a[i][n]) \u003e eps: return 2 # 无解 return 1 # 有无穷多组解 for i in range(n - 1, -1, -1): for j in range(i + 1, n): a[i][n] -= a[i][j] * a[j][n] return 0 # 有唯一解 # Example usage: # a = [[2, 1, -1, 8], [-3, -1, 2, -11], [-2, 1, 2, -3]] # n = 3 # result = gauss(a, n) # print(result) ",
-  "wordCount" : "1837",
-  "inLanguage": "zh",
-  "datePublished": "2024-04-09T15:37:01+08:00",
-  "dateModified": "2024-04-09T15:37:01+08:00",
-  "author":{
-    "@type": "Person",
-    "name": "ShowGuan"
-  },
-  "mainEntityOfPage": {
-    "@type": "WebPage",
-    "@id": "https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/"
-  },
-  "publisher": {
-    "@type": "Organization",
-    "name": "Kennem's Blog",
-    "logo": {
-      "@type": "ImageObject",
-      "url": "https://kennems.github.io/img/sun.png"
-    }
-  }
-}
-</script>
-<script src="https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css" />
-<script src="https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js"></script>
-
-
-</head>
-<body id="top">
-    <header class="header">
-    <nav class="header-nav">
-        <div class="logo">
-            <a href="https://kennems.github.io/" accesskey="h" title="Kennem&#39;s Blog (Alt + H)">
-                <img src="https://kennems.github.io/img/sun.png" alt="" aria-label="logo"
-                    height="35">Kennem&#39;s Blog</a>
-            <div class="logo-switches">
-                <button id="theme-toggle" class="theme-toggle" accesskey="t" title="(Alt + T)" aria-label="Toggle theme">
-                    <svg class="moon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                    <svg class="sun" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="auto" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24"
-                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
-                        stroke-linejoin="round">
-                        <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
-                        <line x1="8" y1="21" x2="16" y2="21"></line>
-                        <line x1="12" y1="17" x2="12" y2="21"></line>
-                    </svg>
-                </button>
-            </div>
-        </div>
-        <ul id="menu" class="menu">
-            <li>
-                <a href="https://kennems.github.io/" title="🏠主页">
-                    <span>🏠主页</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/search" title="🔍搜索 (Alt &#43; /)" accesskey=/>
-                    <span>🔍搜索</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/posts" title="📚文章">
-                    <span>📚文章</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/archives" title="⏱时间轴">
-                    <span>⏱时间轴</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/tags" title="🔖标签">
-                    <span>🔖标签</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/categories" title="🗂️分类">
-                    <span>🗂️分类</span>
-                </a>
-            </li>
-            <li>
-                <a href="https://kennems.github.io/about" title="🙋🏻‍♂️关于">
-                    <span>🙋🏻‍♂️关于</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
-</header>
-<main class="main">
-
-<article class="post-single">
-  <header class="post-header">
-    <nav class="breadcrumbs" role="navigation" aria-label="Breadcrumb">
-            <a href="/">主页</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/">📚文章</a>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-                <polyline points="9 18 15 12 9 6"></polyline>
-            </svg>
-            <a href="/posts/tech/">💻技术</a>
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right">
-        <polyline points="9 18 15 12 9 6"></polyline>
-    </svg>
-</nav>
-    <h1 class="post-title entry-hint-parent">
-      算法笔记（四）——数学（Python实现）
-    </h1>
-    <div class="post-description">
-      算法笔记（四）——数学（Python实现）
-    </div>
-    <div class="post-meta">
-
-<span title='2024-04-09 15:37:01 +0800 CST'>2024-04-09</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1837 字</span>&nbsp;·&nbsp;<span>ShowGuan</span>
-
-</div>
-    
-     <div class="post-password">
-        
-    </div>
-  </header> <aside id="toc-container" class="toc-container wide">
-    <div class="toc">
-        <details  open>
-        <summary accesskey="c" title="(Alt + C)">
-            <span class="details">目录</span>
-        </summary>
-
-        <div class="inner"><ul>
-                <li>
-                    <a href="#%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%e5%9b%9b%e6%95%b0%e5%ad%a6python%e5%ae%9e%e7%8e%b0" aria-label="算法笔记（四）——数学（Python实现）">算法笔记（四）——数学（Python实现）</a><ul>
-                        
-                <li>
-                    <a href="#%e6%95%b0%e5%ad%a6" aria-label="数学">数学</a><ul>
-                        
-                <li>
-                    <a href="#%e8%af%95%e9%99%a4%e6%b3%95%e5%88%a4%e5%ae%9a%e8%b4%a8%e6%95%b0" aria-label="试除法判定质数">试除法判定质数</a></li>
-                <li>
-                    <a href="#%e8%af%95%e9%99%a4%e6%b3%95%e5%88%86%e8%a7%a3%e8%b4%a8%e5%9b%a0%e6%95%b0" aria-label="试除法分解质因数">试除法分解质因数</a></li>
-                <li>
-                    <a href="#%e7%ba%bf%e6%80%a7%e7%ad%9b%e6%b3%95%e6%b1%82%e7%b4%a0%e6%95%b0" aria-label="线性筛法求素数">线性筛法求素数</a><ul>
-                        <ul>
-                        
-                <li>
-                    <a href="#%e6%9c%b4%e7%b4%a0%e7%ad%9b%e6%b3%95%e6%b1%82%e7%b4%a0%e6%95%b0" aria-label="朴素筛法求素数">朴素筛法求素数</a></li></ul>
-                    </ul>
-                </li>
-                <li>
-                    <a href="#%e8%af%95%e9%99%a4%e6%b3%95%e6%b1%82%e6%89%80%e6%9c%89%e7%ba%a6%e6%95%b0" aria-label="试除法求所有约数">试除法求所有约数</a></li>
-                <li>
-                    <a href="#%e7%ba%a6%e6%95%b0%e4%b8%aa%e6%95%b0%e5%92%8c%e7%ba%a6%e6%95%b0%e4%b9%8b%e5%92%8c" aria-label="约数个数和约数之和">约数个数和约数之和</a><ul>
-                        
-                <li>
-                    <a href="#%e7%ba%a6%e6%95%b0%e4%b9%8b%e5%92%8c" aria-label="约数之和"><a href="https://www.acwing.com/problem/content/description/99/">约数之和</a></a></li></ul>
-                </li>
-                <li>
-                    <a href="#gcd" aria-label="gcd">gcd</a></li>
-                <li>
-                    <a href="#%e6%b1%82%e6%ac%a7%e6%8b%89%e5%87%bd%e6%95%b0" aria-label="求欧拉函数">求欧拉函数</a></li>
-                <li>
-                    <a href="#%e7%ad%9b%e6%b3%95%e6%b1%82%e6%ac%a7%e6%8b%89%e5%87%bd%e6%95%b0" aria-label="筛法求欧拉函数">筛法求欧拉函数</a></li>
-                <li>
-                    <a href="#%e5%bf%ab%e9%80%9f%e5%b9%82" aria-label="快速幂">快速幂</a></li>
-                <li>
-                    <a href="#%e6%8b%93%e5%b1%95%e6%ac%a7%e5%87%a0%e9%87%8c%e5%be%97" aria-label="拓展欧几里得">拓展欧几里得</a><ul>
-                        
-                <li>
-                    <a href="#p1082-" aria-label="P1082 [NOIP2012 提高组] 同余方程"><a href="https://www.luogu.com.cn/problem/P1082">P1082 [NOIP2012 提高组] 同余方程</a></a></li></ul>
-                </li>
-                <li>
-                    <a href="#%e9%80%92%e6%8e%a8%e6%b3%95%e6%b1%82%e7%bb%84%e5%90%88%e6%95%b0" aria-label="递推法求组合数">递推法求组合数</a></li>
-                <li>
-                    <a href="#%e9%80%9a%e8%bf%87%e9%a2%84%e5%a4%84%e7%90%86%e9%80%86%e5%85%83%e7%9a%84%e6%96%b9%e5%bc%8f%e6%b1%82%e7%bb%84%e5%90%88%e6%95%b0" aria-label="通过预处理逆元的方式求组合数">通过预处理逆元的方式求组合数</a></li>
-                <li>
-                    <a href="#lucas%e5%ae%9a%e7%90%86" aria-label="Lucas定理">Lucas定理</a></li>
-                <li>
-                    <a href="#%e5%88%86%e8%a7%a3%e8%b4%a8%e5%9b%a0%e6%95%b0%e6%b3%95%e6%b1%82%e7%bb%84%e5%90%88%e6%95%b0" aria-label="分解质因数法求组合数">分解质因数法求组合数</a></li>
-                <li>
-                    <a href="#%e9%ab%98%e6%96%af%e6%b6%88%e5%85%83" aria-label="高斯消元">高斯消元</a>
-                </li>
-            </ul>
-            </li>
-            </ul>
-            </li>
-            </ul>
-        </div>
-        </details>
-    </div>
-</aside>
-<script>
-    let activeElement;
-    let elements;
-    window.addEventListener('DOMContentLoaded', function (event) {
-        checkTocPosition();
-
-        elements = document.querySelectorAll('h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]');
-        
-        activeElement = elements[0];
-        const id = encodeURI(activeElement.getAttribute('id')).toLowerCase();
-        document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-    }, false);
-
-    window.addEventListener('resize', function(event) {
-        checkTocPosition();
-    }, false);
-
-    window.addEventListener('scroll', () => {
-        
-        activeElement = Array.from(elements).find((element) => {
-            if ((getOffsetTop(element) - window.pageYOffset) > 0 &&
-                (getOffsetTop(element) - window.pageYOffset) < window.innerHeight/2) {
-                return element;
-            }
-        }) || activeElement
-
-        elements.forEach(element => {
-            const id = encodeURI(element.getAttribute('id')).toLowerCase();
-            if (element === activeElement){
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.add('active');
-            } else {
-                document.querySelector(`.inner ul li a[href="#${id}"]`).classList.remove('active');
-            }
-        })
-    }, false);
-
-    const main = parseInt(getComputedStyle(document.body).getPropertyValue('--article-width'), 10);
-    const toc = parseInt(getComputedStyle(document.body).getPropertyValue('--toc-width'), 10);
-    const gap = parseInt(getComputedStyle(document.body).getPropertyValue('--gap'), 10);
-
-    function checkTocPosition() {
-        const width = document.body.scrollWidth;
-
-        if (width - main - (toc * 2) - (gap * 4) > 0) {
-            document.getElementById("toc-container").classList.add("wide");
-        } else {
-            document.getElementById("toc-container").classList.remove("wide");
-        }
-    }
-
-    function getOffsetTop(element) {
-        if (!element.getClientRects().length) {
-            return 0;
-        }
-        let rect = element.getBoundingClientRect();
-        let win = element.ownerDocument.defaultView;
-        return rect.top + win.pageYOffset;
-    }
-</script>
-
-  <div class="post-content md-content"><h1 id="算法笔记四数学python实现">算法笔记（四）——数学（Python实现）<a hidden class="anchor" aria-hidden="true" href="#算法笔记四数学python实现">#</a></h1>
-<h2 id="数学">数学<a hidden class="anchor" aria-hidden="true" href="#数学">#</a></h2>
-<h3 id="试除法判定质数">试除法判定质数<a hidden class="anchor" aria-hidden="true" href="#试除法判定质数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">check</span>(x): <span style="color:#75715e"># 判定</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">&lt;</span><span style="color:#ae81ff">2</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, int(x<span style="color:#f92672">**</span><span style="color:#ae81ff">0.5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">False</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> check(x):
-</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;Yes&#34;</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>        print(<span style="color:#e6db74">&#34;No&#34;</span>)
-</span></span></code></pre></div><h3 id="试除法分解质因数">试除法分解质因数<a hidden class="anchor" aria-hidden="true" href="#试除法分解质因数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(x): <span style="color:#75715e">#分解</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, int(x<span style="color:#f92672">**</span><span style="color:#ae81ff">0.5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>            cnt<span style="color:#f92672">=</span><span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> x<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">//=</span>i
-</span></span><span style="display:flex;"><span>                cnt<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            print(i, cnt, sep<span style="color:#f92672">=</span><span style="color:#e6db74">&#39; &#39;</span>)
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>        print(x, <span style="color:#ae81ff">1</span>, sep<span style="color:#f92672">=</span><span style="color:#e6db74">&#39; &#39;</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span>    get(x)
-</span></span><span style="display:flex;"><span>    print()
-</span></span></code></pre></div><h3 id="线性筛法求素数">线性筛法求素数<a hidden class="anchor" aria-hidden="true" href="#线性筛法求素数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-python" data-lang="python"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e6</span><span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>)
-</span></span><span style="display:flex;"><span>primes <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(n):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[i]:
-</span></span><span style="display:flex;"><span>            primes<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(len(primes)):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">*</span>primes[j]<span style="color:#f92672">&gt;</span>n:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>            st[i<span style="color:#f92672">*</span>primes[j]]<span style="color:#f92672">=</span><span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">%</span>primes[j]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span>get(n)
-</span></span><span style="display:flex;"><span>print(len(primes))
-</span></span></code></pre></div><h5 id="朴素筛法求素数">朴素筛法求素数<a hidden class="anchor" aria-hidden="true" href="#朴素筛法求素数">#</a></h5>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000005</span>  <span style="color:#75715e"># 根据需要修改</span>
-</span></span><span style="display:flex;"><span>primes <span style="color:#f92672">=</span> []  <span style="color:#75715e"># 存储所有素数</span>
-</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>] <span style="color:#f92672">*</span> N  <span style="color:#75715e"># st[x]存储x是否被筛掉</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 筛素数函数</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_primes</span>(n):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> primes
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">global</span> st
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[i]:
-</span></span><span style="display:flex;"><span>            primes<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, i):
-</span></span><span style="display:flex;"><span>                st[j] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># get_primes(100)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(primes)</span>
-</span></span></code></pre></div><h3 id="试除法求所有约数">试除法求所有约数<a hidden class="anchor" aria-hidden="true" href="#试除法求所有约数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(x):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> [<span style="color:#ae81ff">1</span>]
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, int(x<span style="color:#f92672">**</span><span style="color:#ae81ff">0.5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>            res<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">!=</span>x<span style="color:#f92672">//</span>i:
-</span></span><span style="display:flex;"><span>                res<span style="color:#f92672">.</span>append(x<span style="color:#f92672">//</span>i)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>        res<span style="color:#f92672">.</span>append(x)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> sorted(res)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> get(x)
-</span></span><span style="display:flex;"><span>    print(<span style="color:#f92672">*</span>res)
-</span></span></code></pre></div><h3 id="约数个数和约数之和">约数个数和约数之和<a hidden class="anchor" aria-hidden="true" href="#约数个数和约数之和">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-fallback" data-lang="fallback"><span style="display:flex;"><span>如果 N = p1^c1 * p2^c2 * ... *pk^ck
-</span></span><span style="display:flex;"><span>约数个数： (c1 + 1) * (c2 + 1) * ... * (ck + 1)
-</span></span><span style="display:flex;"><span>约数之和： (p1^0 + p1^1 + ... + p1^c1) * ... * (pk^0 + pk^1 + ... + pk^ck)
-</span></span></code></pre></div><h4 id="约数之和"><a href="https://www.acwing.com/problem/content/description/99/">约数之和</a><a hidden class="anchor" aria-hidden="true" href="#约数之和">#</a></h4>
-<p><strong>题目大意</strong>：给定两个自然数 A 和 B，定义 S 为 A*B 的所有约数之和。求 S mod 9901 的值。</p>
-<p><strong>实现思路</strong>：首先，我们需要编写一个快速幂函数 qpow(a, k) 来计算幂运算的结果。然后，定义一个函数 calc(p, k) 来计算 p^k 的结果并对 mod 取余。在主程序中，我们对 A 进行质因数分解，并计算每个质因数的幂次方与 B 的乘积，并累加到最终结果 res 中。最后，输出 res 的值对 mod 9901 取余的结果。</p>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#f92672">import</span> sys
-</span></span><span style="display:flex;"><span>input <span style="color:#f92672">=</span> <span style="color:#66d9ef">lambda</span>:sys<span style="color:#f92672">.</span>stdin<span style="color:#f92672">.</span>readline()<span style="color:#f92672">.</span>strip()
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>mod <span style="color:#f92672">=</span> <span style="color:#ae81ff">9901</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">qpow</span>(a, k):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> k:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> k<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> res<span style="color:#f92672">*</span>a<span style="color:#f92672">%</span>mod
-</span></span><span style="display:flex;"><span>        a <span style="color:#f92672">=</span> a<span style="color:#f92672">*</span>a<span style="color:#f92672">%</span>mod
-</span></span><span style="display:flex;"><span>        k<span style="color:#f92672">&gt;&gt;=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">calc</span>(p, k):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> k<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>: <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> k<span style="color:#f92672">%</span><span style="color:#ae81ff">2</span><span style="color:#f92672">==</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> (<span style="color:#ae81ff">1</span><span style="color:#f92672">+</span>qpow(p, k<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)) <span style="color:#f92672">*</span> calc(p, k<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>) <span style="color:#f92672">%</span> mod
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (qpow(p, k)<span style="color:#f92672">%</span>mod <span style="color:#f92672">+</span> (<span style="color:#ae81ff">1</span> <span style="color:#f92672">+</span> qpow(p, (k<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span><span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)) <span style="color:#f92672">*</span> calc(p, (k<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)<span style="color:#f92672">//</span><span style="color:#ae81ff">2</span>)) <span style="color:#f92672">%</span> mod
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>a, b <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
-</span></span><span style="display:flex;"><span>res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, a<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> a<span style="color:#f92672">&lt;</span>i:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>    s <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> a<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>        s<span style="color:#f92672">+=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        a<span style="color:#f92672">//=</span>i
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> s:
-</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> res <span style="color:#f92672">*</span> calc(i, s<span style="color:#f92672">*</span>b) <span style="color:#f92672">%</span> mod
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>print(res <span style="color:#66d9ef">if</span> a <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>)
-</span></span></code></pre></div><h3 id="gcd">gcd<a hidden class="anchor" aria-hidden="true" href="#gcd">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">gcd</span>(a, b):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> gcd(b, a <span style="color:#f92672">%</span> b) <span style="color:#66d9ef">if</span> b <span style="color:#66d9ef">else</span> a
-</span></span></code></pre></div><h3 id="求欧拉函数">求欧拉函数<a hidden class="anchor" aria-hidden="true" href="#求欧拉函数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(x):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> x
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, int(x<span style="color:#f92672">**</span><span style="color:#ae81ff">0.5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> x<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> res<span style="color:#f92672">//</span>i<span style="color:#f92672">*</span>(i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">while</span> x<span style="color:#f92672">%</span>i<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>                x<span style="color:#f92672">//=</span>i
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> x<span style="color:#f92672">&gt;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> res<span style="color:#f92672">//</span>x<span style="color:#f92672">*</span>(x<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>    x <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span>    print(get(x))
-</span></span></code></pre></div><h3 id="筛法求欧拉函数">筛法求欧拉函数<a hidden class="anchor" aria-hidden="true" href="#筛法求欧拉函数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e6</span><span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>)
-</span></span><span style="display:flex;"><span>primes <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>euler <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N
-</span></span><span style="display:flex;"><span>st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>N
-</span></span><span style="display:flex;"><span>cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(n):
-</span></span><span style="display:flex;"><span>    euler[<span style="color:#ae81ff">1</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[i]:
-</span></span><span style="display:flex;"><span>            primes<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>            euler[i] <span style="color:#f92672">=</span> i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(len(primes)):
-</span></span><span style="display:flex;"><span>            t <span style="color:#f92672">=</span> primes[j]<span style="color:#f92672">*</span>i
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> t<span style="color:#f92672">&gt;</span>n:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>            st[t] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">%</span>primes[j]<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>                euler[t] <span style="color:#f92672">=</span> euler[i]<span style="color:#f92672">*</span>primes[j]
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>            euler[t] <span style="color:#f92672">=</span> euler[i]<span style="color:#f92672">*</span>(primes[j]<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span>get(n)
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>,n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>    cnt<span style="color:#f92672">+=</span>euler[i]
-</span></span><span style="display:flex;"><span>print(cnt)
-</span></span></code></pre></div><h3 id="快速幂">快速幂<a hidden class="anchor" aria-hidden="true" href="#快速幂">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 快速幂函数</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">qmi</span>(m, k, p):
-</span></span><span style="display:flex;"><span>    res, t <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span> <span style="color:#f92672">%</span> p, m
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> k:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> k <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> res <span style="color:#f92672">*</span> t <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> t <span style="color:#f92672">*</span> t <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>        k <span style="color:#f92672">&gt;&gt;=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># result = qmi(2, 10, 1000000007)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(result)</span>
-</span></span></code></pre></div><h3 id="拓展欧几里得">拓展欧几里得<a hidden class="anchor" aria-hidden="true" href="#拓展欧几里得">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 求 x, y，使得 ax + by = gcd(a, b)</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exgcd</span>(a, b, x, y):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> b <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>        x[<span style="color:#ae81ff">0</span>], y[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> a
-</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> exgcd(b, a <span style="color:#f92672">%</span> b, y, x)
-</span></span><span style="display:flex;"><span>    y[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">-=</span> (a <span style="color:#f92672">//</span> b) <span style="color:#f92672">*</span> x[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> d
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># x = [0]</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># y = [0]</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># gcd = exgcd(30, 20, x, y)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(&#34;x:&#34;, x[0], &#34;y:&#34;, y[0], &#34;gcd:&#34;, gcd)</span>
-</span></span></code></pre></div><h4 id="p1082-"><a href="https://www.luogu.com.cn/problem/P1082">P1082 [NOIP2012 提高组] 同余方程</a><a hidden class="anchor" aria-hidden="true" href="#p1082-">#</a></h4>
-<ul>
-<li>
-<p>题目描述：求解关于x的同余方程$ax ≡ 1 (mod b)$的最小正整数解。</p>
-</li>
-<li>
-<p>实现思路：这个问题可以转化为求解$ax + by = gcd(a, b)$的解，其中x就是我们需要的结果。可以利用扩展欧几里得算法来求解这个方程。具体地，通过递归的方式求解出最大公约数，并且求解出使得$ax + by = gcd(a, b)$成立的整数x和y。然后通过对x取模b的操作得到最小正整数解x。最后输出x即可。</p>
-</li>
-</ul>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#75715e"># 求 x, y，使得 ax + by = gcd(a, b)</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">exgcd</span>(a, b, x, y):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> b <span style="color:#f92672">==</span> <span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>        x[<span style="color:#ae81ff">0</span>], y[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>, <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> a
-</span></span><span style="display:flex;"><span>    d <span style="color:#f92672">=</span> exgcd(b, a <span style="color:#f92672">%</span> b, y, x)
-</span></span><span style="display:flex;"><span>    y[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">-=</span> (a <span style="color:#f92672">//</span> b) <span style="color:#f92672">*</span> x[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> d
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>a, b <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>x, y <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>], [<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>exgcd(a, b, x, y)
-</span></span><span style="display:flex;"><span>x <span style="color:#f92672">=</span> x[<span style="color:#ae81ff">0</span>]
-</span></span><span style="display:flex;"><span>x <span style="color:#f92672">=</span> (x<span style="color:#f92672">%</span>b<span style="color:#f92672">+</span>b)<span style="color:#f92672">%</span>b
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>print(x)
-</span></span></code></pre></div><h3 id="递推法求组合数">递推法求组合数<a hidden class="anchor" aria-hidden="true" href="#递推法求组合数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">2e3</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span>mod <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e9</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">7</span>
-</span></span><span style="display:flex;"><span>c <span style="color:#f92672">=</span> [[<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N <span style="color:#66d9ef">for</span> _ <span style="color:#f92672">in</span> range(N)]
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(n):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> j<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>                c[i][j] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">else</span>:
-</span></span><span style="display:flex;"><span>                c[i][j] <span style="color:#f92672">=</span> (c[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j]<span style="color:#f92672">+</span>c[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>][j<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>])<span style="color:#f92672">%</span>mod
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>MN <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">2e3</span>)
-</span></span><span style="display:flex;"><span>get(MN)
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>    a, b <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
-</span></span><span style="display:flex;"><span>    print(c[a][b])
-</span></span></code></pre></div><h3 id="通过预处理逆元的方式求组合数">通过预处理逆元的方式求组合数<a hidden class="anchor" aria-hidden="true" href="#通过预处理逆元的方式求组合数">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>mod <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">1e9</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">7</span>
-</span></span><span style="display:flex;"><span>N <span style="color:#f92672">=</span> int(<span style="color:#ae81ff">2e5</span>)<span style="color:#f92672">+</span><span style="color:#ae81ff">10</span>
-</span></span><span style="display:flex;"><span>fact, infact <span style="color:#f92672">=</span> [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N, [<span style="color:#ae81ff">0</span>]<span style="color:#f92672">*</span>N
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">qpow</span>(a, k, p):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> k:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> k<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> (res<span style="color:#f92672">*</span>a)<span style="color:#f92672">%</span>p
-</span></span><span style="display:flex;"><span>        a <span style="color:#f92672">=</span> (a<span style="color:#f92672">*</span>a)<span style="color:#f92672">%</span>p
-</span></span><span style="display:flex;"><span>        k<span style="color:#f92672">&gt;&gt;=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">init</span>():
-</span></span><span style="display:flex;"><span>    fact[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> infact[<span style="color:#ae81ff">0</span>] <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, N):
-</span></span><span style="display:flex;"><span>        fact[i] <span style="color:#f92672">=</span> (fact[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>i)<span style="color:#f92672">%</span>mod
-</span></span><span style="display:flex;"><span>        infact[i] <span style="color:#f92672">=</span> (infact[i<span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>]<span style="color:#f92672">*</span>qpow(i, mod<span style="color:#f92672">-</span><span style="color:#ae81ff">2</span>, mod))<span style="color:#f92672">%</span>mod
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">C</span>(n, m):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> n<span style="color:#f92672">&lt;</span>m:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (fact[n]<span style="color:#f92672">*</span>infact[m]<span style="color:#f92672">%</span>mod<span style="color:#f92672">*</span>infact[n<span style="color:#f92672">-</span>m]<span style="color:#f92672">%</span>mod)
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>init()
-</span></span><span style="display:flex;"><span>n <span style="color:#f92672">=</span> int(input())
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>    a, b <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
-</span></span><span style="display:flex;"><span>    print(C(a, b))
-</span></span></code></pre></div><h3 id="lucas定理">Lucas定理<a hidden class="anchor" aria-hidden="true" href="#lucas定理">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>p <span style="color:#f92672">=</span> <span style="color:#ae81ff">1000000007</span>  <span style="color:#75715e"># 根据需要调整</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 快速幂模板</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">qmi</span>(a, k):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> k:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> k <span style="color:#f92672">&amp;</span> <span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> (res <span style="color:#f92672">*</span> a) <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>        a <span style="color:#f92672">=</span> (a <span style="color:#f92672">*</span> a) <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>        k <span style="color:#f92672">&gt;&gt;=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># 通过定理求组合数C(a, b)</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">C</span>(a, b):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">1</span>, b <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> (res <span style="color:#f92672">*</span> (a <span style="color:#f92672">-</span> i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)) <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">=</span> (res <span style="color:#f92672">*</span> qmi(i, p <span style="color:#f92672">-</span> <span style="color:#ae81ff">2</span>)) <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Lucas定理计算组合数</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">lucas</span>(a, b):
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> a <span style="color:#f92672">&lt;</span> p <span style="color:#f92672">and</span> b <span style="color:#f92672">&lt;</span> p:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> C(a, b)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> (C(a <span style="color:#f92672">%</span> p, b <span style="color:#f92672">%</span> p) <span style="color:#f92672">*</span> lucas(a <span style="color:#f92672">//</span> p, b <span style="color:#f92672">//</span> p)) <span style="color:#f92672">%</span> p
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># result = lucas(10, 5)  # 计算组合数 C(10, 5)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(result)</span>
-</span></span></code></pre></div><h3 id="分解质因数法求组合数">分解质因数法求组合数<a hidden class="anchor" aria-hidden="true" href="#分解质因数法求组合数">#</a></h3>
-<p>分解质因数法计算组合数：</p>
-<ol>
-<li>获取小于等于 <code>a</code> 的所有质数。</li>
-<li>初始化质数的幂次列表 <code>s</code>。</li>
-<li>对每个质数 <code>p</code>，计算在 <code>a!</code>，<code>b!</code> 和 <code>(a-b)!</code> 中 <code>p</code> 的幂次，通过 <code>get(a, p) - get(b, p) - get(a - b, p)</code> 得到组合数分解中 <code>p</code> 的总幂次。</li>
-<li>通过快速幂计算每个质数 <code>p</code> 的幂次乘积，最终得到组合数。</li>
-</ol>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_primes</span>(n):
-</span></span><span style="display:flex;"><span>    primes <span style="color:#f92672">=</span> []
-</span></span><span style="display:flex;"><span>    st <span style="color:#f92672">=</span> [<span style="color:#66d9ef">False</span>]<span style="color:#f92672">*</span>(n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(<span style="color:#ae81ff">2</span>, n<span style="color:#f92672">+</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> st[i]:
-</span></span><span style="display:flex;"><span>            primes<span style="color:#f92672">.</span>append(i)
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> p <span style="color:#f92672">in</span> primes:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">*</span>p<span style="color:#f92672">&gt;</span>n:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>            st[i<span style="color:#f92672">*</span>p] <span style="color:#f92672">=</span> <span style="color:#66d9ef">True</span>
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> i<span style="color:#f92672">%</span>p<span style="color:#f92672">==</span><span style="color:#ae81ff">0</span>:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">break</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> primes
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get</span>(n, p):
-</span></span><span style="display:flex;"><span>    cnt <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> n:
-</span></span><span style="display:flex;"><span>        cnt <span style="color:#f92672">+=</span> n<span style="color:#f92672">//</span>p
-</span></span><span style="display:flex;"><span>        n<span style="color:#f92672">//=</span>p
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> cnt
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">qpow</span>(a, k):
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">while</span> k:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> k<span style="color:#f92672">&amp;</span><span style="color:#ae81ff">1</span>:
-</span></span><span style="display:flex;"><span>            res <span style="color:#f92672">=</span> res <span style="color:#f92672">*</span> a
-</span></span><span style="display:flex;"><span>        a <span style="color:#f92672">=</span> a<span style="color:#f92672">*</span>a
-</span></span><span style="display:flex;"><span>        k<span style="color:#f92672">&gt;&gt;=</span><span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span>    
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">calc</span>(a, b):
-</span></span><span style="display:flex;"><span>    primes <span style="color:#f92672">=</span> get_primes(a)
-</span></span><span style="display:flex;"><span>    n <span style="color:#f92672">=</span> len(primes)
-</span></span><span style="display:flex;"><span>    res <span style="color:#f92672">=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i, p <span style="color:#f92672">in</span> enumerate(primes):
-</span></span><span style="display:flex;"><span>        s <span style="color:#f92672">=</span> get(a, p) <span style="color:#f92672">-</span> get(b, p) <span style="color:#f92672">-</span> get(a<span style="color:#f92672">-</span>b, p)
-</span></span><span style="display:flex;"><span>        res <span style="color:#f92672">*=</span> qpow(p, s)
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> res
-</span></span><span style="display:flex;"><span>        
-</span></span><span style="display:flex;"><span>a, b <span style="color:#f92672">=</span> map(int, input()<span style="color:#f92672">.</span>split())
-</span></span><span style="display:flex;"><span>print(calc(a, b))
-</span></span></code></pre></div><h3 id="高斯消元">高斯消元<a hidden class="anchor" aria-hidden="true" href="#高斯消元">#</a></h3>
-<div class="highlight"><pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none;"><code class="language-py" data-lang="py"><span style="display:flex;"><span>eps <span style="color:#f92672">=</span> <span style="color:#ae81ff">1e-8</span>  <span style="color:#75715e"># 根据需要调整</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># a 是增广矩阵，n 是矩阵维度</span>
-</span></span><span style="display:flex;"><span><span style="color:#66d9ef">def</span> <span style="color:#a6e22e">gauss</span>(a, n):
-</span></span><span style="display:flex;"><span>    c, r <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>, <span style="color:#ae81ff">0</span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> c <span style="color:#f92672">in</span> range(n):
-</span></span><span style="display:flex;"><span>        t <span style="color:#f92672">=</span> r
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(r, n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> abs(a[i][c]) <span style="color:#f92672">&gt;</span> abs(a[t][c]):
-</span></span><span style="display:flex;"><span>                t <span style="color:#f92672">=</span> i
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">if</span> abs(a[t][c]) <span style="color:#f92672">&lt;</span> eps:
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">continue</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(c, n <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            a[r][i], a[t][i] <span style="color:#f92672">=</span> a[t][i], a[r][i]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n, c <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>            a[r][i] <span style="color:#f92672">//=</span> a[r][c]
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(r <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> abs(a[i][c]) <span style="color:#f92672">&gt;</span> eps:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(n, c <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>                    a[i][j] <span style="color:#f92672">-=</span> a[r][j] <span style="color:#f92672">*</span> a[i][c]
-</span></span><span style="display:flex;"><span>        r <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">if</span> r <span style="color:#f92672">&lt;</span> n:
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(r, n):
-</span></span><span style="display:flex;"><span>            <span style="color:#66d9ef">if</span> abs(a[i][n]) <span style="color:#f92672">&gt;</span> eps:
-</span></span><span style="display:flex;"><span>                <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">2</span>  <span style="color:#75715e"># 无解</span>
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">1</span>  <span style="color:#75715e"># 有无穷多组解</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(n <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>, <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
-</span></span><span style="display:flex;"><span>        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(i <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, n):
-</span></span><span style="display:flex;"><span>            a[i][n] <span style="color:#f92672">-=</span> a[i][j] <span style="color:#f92672">*</span> a[j][n]
-</span></span><span style="display:flex;"><span>    <span style="color:#66d9ef">return</span> <span style="color:#ae81ff">0</span>  <span style="color:#75715e"># 有唯一解</span>
-</span></span><span style="display:flex;"><span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># Example usage:</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># a = [[2, 1, -1, 8], [-3, -1, 2, -11], [-2, 1, 2, -3]]</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># n = 3</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># result = gauss(a, n)</span>
-</span></span><span style="display:flex;"><span><span style="color:#75715e"># print(result)</span>
-</span></span></code></pre></div>
-
-  </div>
-
-  <footer class="post-footer">
-    <ul class="post-tags">
-      <li><a href="https://kennems.github.io/tags/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/">算法笔记</a></li>
-      <li><a href="https://kennems.github.io/tags/python/">Python</a></li>
-    </ul>
-        
-    
-    <ul id="categories">
-      
-        <li><a href="https://kennems.github.io/categories/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0">算法笔记</a> </li>
-      
-    </ul>
-    
-    
-<nav class="paginav">
-  <a class="prev" href="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/">
-    <span class="title">« 上一页</span>
-    <span>算法笔记（三）——图论（Python实现）</span>
-  </a>
-  <a class="next" href="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%BA%94dppython%E5%AE%9E%E7%8E%B0/">
-    <span class="title">下一页 »</span>
-    <span>算法笔记（五）——DP（Python实现）</span>
-  </a>
-</nav>
-
-  </footer>
-</article>
-    </main>
-    
-<footer class="footer">
-        <span>&copy; 2026 <a href="https://kennems.github.io/">Kennem&#39;s Blog</a></span> · 
-
-    
-
-    <span>
-        Powered by
-        <a href="https://gohugo.io/?utm_source=papermod" rel="noopener" target="_blank">Hugo</a> &
-        <a href="https://github.com/adityatelange/hugo-PaperMod/" rel="noopener" target="_blank">PaperMod</a>
-    </span>
-</footer>
-<a href="#top" id="top-link" class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey="g">
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-        stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up">
-        <polyline points="17 11 12 6 7 11"></polyline>
-        <polyline points="17 18 12 13 7 18"></polyline>
-    </svg>
-</a>
-
-<script>
-    let menu = document.getElementById('menu');
-    if (menu) {
-        
-        const scrollPosition = localStorage.getItem("menu-scroll-position");
-        if (scrollPosition) {
-            menu.scrollLeft = parseInt(scrollPosition, 10);
-        }
-
-        menu.onscroll = function () {
-            localStorage.setItem("menu-scroll-position", menu.scrollLeft);
-        }
-    }
-
-    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
-        anchor.addEventListener("click", function (e) {
-            e.preventDefault();
-            var id = this.getAttribute("href").substr(1);
-            if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView({
-                    behavior: "smooth"
-                });
-            } else {
-                document.querySelector(`[id='${decodeURIComponent(id)}']`).scrollIntoView();
-            }
-            if (id === "top") {
-                history.replaceState(null, null, " ");
-            } else {
-                history.pushState(null, null, `#${id}`);
-            }
-        });
-    });
-
-</script>
-<script>
-    var toplink = document.getElementById("top-link");
-    window.onscroll = function () {
-        const scrollThreshold = window.innerHeight;
-        if (document.body.scrollTop > scrollThreshold || document.documentElement.scrollTop > scrollThreshold) {
-            toplink.classList.remove("hidden");
-        } else {
-            toplink.classList.add("hidden");
-        }
-    };
-
-</script>
-<script>
-    document.getElementById("theme-toggle").addEventListener("click", () => {
-        const html = document.querySelector("html");
-        const pref = localStorage.getItem("pref-theme") || "auto";
-
-        if (pref === "light") {
-            
-            html.dataset.theme = "dark";
-            html.dataset.prefTheme = "dark";
-            localStorage.setItem("pref-theme", "dark");
-        } else if (pref === "dark") {
-            
-            const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-            html.dataset.theme = prefersDark ? "dark" : "light";
-            html.dataset.prefTheme = "auto";
-            localStorage.setItem("pref-theme", "auto");
-        } else {
-            
-            html.dataset.theme = "light";
-            html.dataset.prefTheme = "light";
-            localStorage.setItem("pref-theme", "light");
-        }
-    })
-
-</script>
-<script>
-    document.querySelectorAll('pre > code').forEach((codeblock) => {
-        const container = codeblock.parentNode.parentNode;
-
-        const copybutton = document.createElement('button');
-        copybutton.classList.add('copy-code');
-        copybutton.innerHTML = '复制';
-
-        function copyingDone() {
-            copybutton.innerHTML = '已复制！';
-            setTimeout(() => {
-                copybutton.innerHTML = '复制';
-            }, 2000);
-        }
-
-        copybutton.addEventListener('click', (cb) => {
-            if ('clipboard' in navigator) {
-                navigator.clipboard.writeText(codeblock.textContent);
-                copyingDone();
-                return;
-            }
-
-            const range = document.createRange();
-            range.selectNodeContents(codeblock);
-            const selection = window.getSelection();
-            selection.removeAllRanges();
-            selection.addRange(range);
-            try {
-                document.execCommand('copy');
-                copyingDone();
-            } catch (e) { };
-            selection.removeRange(range);
-        });
-
-        if (container.classList.contains("highlight")) {
-            container.appendChild(copybutton);
-        } else if (container.parentNode.firstChild == container) {
-            
-        } else if (codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName == "TABLE") {
-            
-            codeblock.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(copybutton);
-        } else {
-            
-            codeblock.parentNode.appendChild(copybutton);
-        }
-    });
-</script>
-
-<footer class="footer">
-    
-    <script async src="//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js"></script>
-
-    <span id="busuanzi_container">
-    👤 Visitors: <span id="busuanzi_value_site_uv"></span>
-    👀 Views: <span id="busuanzi_value_site_pv"></span>
-  </span>
-</footer>
-
-
-
-
-</body>
-
-</html>
+<!doctype html><html lang=zh dir=auto data-theme=auto><head><meta charset=utf-8><meta http-equiv=X-UA-Compatible content="IE=edge"><meta name=viewport content="width=device-width,initial-scale=1,shrink-to-fit=no"><meta name=robots content="index, follow"><meta name=msvalidate.01 content="DF5FE493CC759E62BFE073BEA8EFD472"><title>算法笔记（四）——数学（Python实现） | Kennem's Blog</title><meta name=keywords content="算法笔记,Python"><meta name=description content="算法笔记（四）——数学（Python实现）"><meta name=author content="ShowGuan"><link rel=canonical href=https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/><link crossorigin=anonymous href=/assets/css/stylesheet.3aa1776a256a5b66942f4f96791b58a2e55a0736dfdb996ea60ba6a5b38bb69d.css integrity="sha256-OqF3aiVqW2aUL0+WeRtYouVaBzbf25lupgumpbOLtp0=" rel="preload stylesheet" as=style><link rel=icon href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=16x16 href=https://kennems.github.io/img/sun.png><link rel=icon type=image/png sizes=32x32 href=https://kennems.github.io/img/sun.png><link rel=apple-touch-icon href=https://kennems.github.io/img/sun.png><link rel=mask-icon href=https://kennems.github.io/img/sun.png><meta name=theme-color content="#2e2e33"><meta name=msapplication-TileColor content="#2e2e33"><link rel=alternate hreflang=zh href=https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/><noscript><style>#theme-toggle,.top-link{display:none}</style><style>@media(prefers-color-scheme:dark){:root{--theme:rgb(29, 30, 32);--entry:rgb(46, 46, 51);--primary:rgb(218, 218, 219);--secondary:rgb(155, 156, 157);--tertiary:rgb(65, 66, 68);--content:rgb(196, 196, 197);--code-block-bg:rgb(46, 46, 51);--code-bg:rgb(55, 56, 62);--border:rgb(51, 51, 51);color-scheme:dark}.list{background:var(--theme)}.toc{background:var(--entry)}}</style></noscript><script>(function(){var t=localStorage.getItem("pref-theme"),e=document.querySelector("html");t==="dark"?(e.dataset.theme="dark",e.dataset.prefTheme="dark"):t==="light"?(e.dataset.theme="light",e.dataset.prefTheme="light"):(e.dataset.prefTheme="auto",window.matchMedia("(prefers-color-scheme: dark)").matches?e.dataset.theme="dark":e.dataset.theme="light",window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change",function(e){localStorage.getItem("pref-theme")!=="dark"&&localStorage.getItem("pref-theme")!=="light"&&(document.querySelector("html").dataset.theme=e.matches?"dark":"light")}))})()</script><link rel=stylesheet href=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.css integrity=sha384-MlJdn/WNKDGXveldHDdyRP1R4CTHr3FeuDNfhsLPYrq2t0UBkUdK2jyTnXPEK1NQ crossorigin=anonymous><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/katex.min.js integrity=sha384-VQ8d8WVFw0yHhCk5E8I86oOhv48xLpnDZx5T9GogA/Y84DcCKWXDmSDfn13bzFZY crossorigin=anonymous></script><script defer src=https://cdn.jsdelivr.net/npm/katex@0.15.2/dist/contrib/auto-render.min.js integrity=sha384-+XBljXPPiv+OzfbB3cVmLHf4hdUFHlWNZN5spNQ7rmHTXpd7WvJum6fIACpNNfIR crossorigin=anonymous onload=renderMathInElement(document.body)></script><script>document.addEventListener("DOMContentLoaded",function(){renderMathInElement(document.body,{delimiters:[{left:"$$",right:"$$",display:!0},{left:"$",right:"$",display:!1}]})})</script><link rel=stylesheet href=https://fonts.cdnfonts.com/css/code-new-roman><link rel=preconnect href=https://fonts.googleapis.com><link rel=preconnect href=https://fonts.gstatic.com crossorigin><meta property="og:url" content="https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/"><meta property="og:site_name" content="Kennem's Blog"><meta property="og:title" content="算法笔记（四）——数学（Python实现）"><meta property="og:description" content="算法笔记（四）——数学（Python实现）"><meta property="og:locale" content="zh_cn"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2024-04-09T15:37:01+08:00"><meta property="article:modified_time" content="2024-04-09T15:37:01+08:00"><meta property="article:tag" content="算法笔记"><meta property="article:tag" content="Python"><meta name=twitter:card content="summary"><meta name=twitter:title content="算法笔记（四）——数学（Python实现）"><meta name=twitter:description content="算法笔记（四）——数学（Python实现）"><script type=application/ld+json>{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"📚文章","item":"https://kennems.github.io/posts/"},{"@type":"ListItem","position":2,"name":"💻技术","item":"https://kennems.github.io/posts/tech/"},{"@type":"ListItem","position":3,"name":"算法笔记（四）——数学（Python实现）","item":"https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/"}]}</script><script type=application/ld+json>{"@context":"https://schema.org","@type":"BlogPosting","headline":"算法笔记（四）——数学（Python实现）","name":"算法笔记（四）——数学（Python实现）","description":"算法笔记（四）——数学（Python实现）","keywords":["算法笔记","Python"],"articleBody":"算法笔记（四）——数学（Python实现） 数学 试除法判定质数 def check(x): # 判定 if x\u003c2: return False for i in range(2, int(x**0.5)+1): if x%i==0: return False return True n = int(input()) for i in range(n): x = int(input()) if check(x): print(\"Yes\") else: print(\"No\") 试除法分解质因数 def get(x): #分解 for i in range(2, int(x**0.5)+1): if x%i==0: cnt=0 while x%i==0: x//=i cnt+=1 print(i, cnt, sep=' ') if x\u003e1: print(x, 1, sep=' ') n = int(input()) for i in range(n): x = int(input()) get(x) print() 线性筛法求素数 N = int(1e6+10) primes = [] st = [False]*N def get(n): for i in range(2, n+1): if not st[i]: primes.append(i) for j in range(len(primes)): if i*primes[j]\u003en: break st[i*primes[j]]=True if i%primes[j]==0: break n = int(input()) get(n) print(len(primes)) 朴素筛法求素数 N = 1000005 # 根据需要修改 primes = [] # 存储所有素数 st = [False] * N # st[x]存储x是否被筛掉 # 筛素数函数 def get_primes(n): global primes global st for i in range(2, n + 1): if not st[i]: primes.append(i) for j in range(i, n + 1, i): st[j] = True # Example usage: # get_primes(100) # print(primes) 试除法求所有约数 def get(x): res = [1] for i in range(2, int(x**0.5)+1): if x%i==0: res.append(i) if i!=x//i: res.append(x//i) if x\u003e1: res.append(x) return sorted(res) n = int(input()) for i in range(n): x = int(input()) res = get(x) print(*res) 约数个数和约数之和 如果 N = p1^c1 * p2^c2 * ... *pk^ck 约数个数： (c1 + 1) * (c2 + 1) * ... * (ck + 1) 约数之和： (p1^0 + p1^1 + ... + p1^c1) * ... * (pk^0 + pk^1 + ... + pk^ck) 约数之和 题目大意：给定两个自然数 A 和 B，定义 S 为 A*B 的所有约数之和。求 S mod 9901 的值。\n实现思路：首先，我们需要编写一个快速幂函数 qpow(a, k) 来计算幂运算的结果。然后，定义一个函数 calc(p, k) 来计算 p^k 的结果并对 mod 取余。在主程序中，我们对 A 进行质因数分解，并计算每个质因数的幂次方与 B 的乘积，并累加到最终结果 res 中。最后，输出 res 的值对 mod 9901 取余的结果。\nimport sys input = lambda:sys.stdin.readline().strip() mod = 9901 def qpow(a, k): res = 1 while k: if k\u00261: res = res*a%mod a = a*a%mod k\u003e\u003e=1 return res def calc(p, k): if k==0: return 1 if k%2==1: return (1+qpow(p, k//2+1)) * calc(p, k//2) % mod return (qpow(p, k)%mod + (1 + qpow(p, (k-1)//2+1)) * calc(p, (k-1)//2)) % mod a, b = map(int, input().split()) res = 1 for i in range(2, a+1): if a\u003ci: break s = 0 while a%i==0: s+=1 a//=i if s: res = res * calc(i, s*b) % mod print(res if a else 0) gcd def gcd(a, b): return gcd(b, a % b) if b else a 求欧拉函数 def get(x): res = x for i in range(2, int(x**0.5)+1): if x%i==0: res = res//i*(i-1) while x%i==0: x//=i if x\u003e1: res = res//x*(x-1) return res n = int(input()) for i in range(n): x = int(input()) print(get(x)) 筛法求欧拉函数 N = int(1e6+10) primes = [] euler = [0]*N st = [False]*N cnt = 0 def get(n): euler[1] = 1 for i in range(2, n+1): if not st[i]: primes.append(i) euler[i] = i-1 for j in range(len(primes)): t = primes[j]*i if t\u003en: break st[t] = True if i%primes[j]==0: euler[t] = euler[i]*primes[j] break euler[t] = euler[i]*(primes[j]-1) n = int(input()) get(n) for i in range(1,n+1): cnt+=euler[i] print(cnt) 快速幂 # 快速幂函数 def qmi(m, k, p): res, t = 1 % p, m while k: if k \u0026 1: res = res * t % p t = t * t % p k \u003e\u003e= 1 return res # Example usage: # result = qmi(2, 10, 1000000007) # print(result) 拓展欧几里得 # 求 x, y，使得 ax + by = gcd(a, b) def exgcd(a, b, x, y): if b == 0: x[0], y[0] = 1, 0 return a d = exgcd(b, a % b, y, x) y[0] -= (a // b) * x[0] return d # Example usage: # x = [0] # y = [0] # gcd = exgcd(30, 20, x, y) # print(\"x:\", x[0], \"y:\", y[0], \"gcd:\", gcd) P1082 [NOIP2012 提高组] 同余方程 题目描述：求解关于x的同余方程$ax ≡ 1 (mod b)$的最小正整数解。\n实现思路：这个问题可以转化为求解$ax + by = gcd(a, b)$的解，其中x就是我们需要的结果。可以利用扩展欧几里得算法来求解这个方程。具体地，通过递归的方式求解出最大公约数，并且求解出使得$ax + by = gcd(a, b)$成立的整数x和y。然后通过对x取模b的操作得到最小正整数解x。最后输出x即可。\n# 求 x, y，使得 ax + by = gcd(a, b) def exgcd(a, b, x, y): if b == 0: x[0], y[0] = 1, 0 return a d = exgcd(b, a % b, y, x) y[0] -= (a // b) * x[0] return d a, b = map(int, input().split()) x, y = [0], [0] exgcd(a, b, x, y) x = x[0] x = (x%b+b)%b print(x) 递推法求组合数 N = int(2e3)+10 mod = int(1e9)+7 c = [[0]*N for _ in range(N)] def get(n): for i in range(n+1): for j in range(i+1): if j==0: c[i][j] = 1 else: c[i][j] = (c[i-1][j]+c[i-1][j-1])%mod MN = int(2e3) get(MN) n = int(input()) for i in range(n): a, b = map(int, input().split()) print(c[a][b]) 通过预处理逆元的方式求组合数 mod = int(1e9)+7 N = int(2e5)+10 fact, infact = [0]*N, [0]*N def qpow(a, k, p): res = 1 while k: if k\u00261: res = (res*a)%p a = (a*a)%p k\u003e\u003e=1 return res def init(): fact[0] = infact[0] = 1 for i in range(1, N): fact[i] = (fact[i-1]*i)%mod infact[i] = (infact[i-1]*qpow(i, mod-2, mod))%mod def C(n, m): if n\u003cm: return 0 return (fact[n]*infact[m]%mod*infact[n-m]%mod) init() n = int(input()) for i in range(n): a, b = map(int, input().split()) print(C(a, b)) Lucas定理 p = 1000000007 # 根据需要调整 # 快速幂模板 def qmi(a, k): res = 1 while k: if k \u0026 1: res = (res * a) % p a = (a * a) % p k \u003e\u003e= 1 return res # 通过定理求组合数C(a, b) def C(a, b): res = 1 for i in range(1, b + 1): res = (res * (a - i + 1)) % p res = (res * qmi(i, p - 2)) % p return res # Lucas定理计算组合数 def lucas(a, b): if a \u003c p and b \u003c p: return C(a, b) return (C(a % p, b % p) * lucas(a // p, b // p)) % p # Example usage: # result = lucas(10, 5) # 计算组合数 C(10, 5) # print(result) 分解质因数法求组合数 分解质因数法计算组合数：\n获取小于等于 a 的所有质数。 初始化质数的幂次列表 s。 对每个质数 p，计算在 a!，b! 和 (a-b)! 中 p 的幂次，通过 get(a, p) - get(b, p) - get(a - b, p) 得到组合数分解中 p 的总幂次。 通过快速幂计算每个质数 p 的幂次乘积，最终得到组合数。 def get_primes(n): primes = [] st = [False]*(n+1) for i in range(2, n+1): if not st[i]: primes.append(i) for p in primes: if i*p\u003en: break st[i*p] = True if i%p==0: break return primes def get(n, p): cnt = 0 while n: cnt += n//p n//=p return cnt def qpow(a, k): res = 1 while k: if k\u00261: res = res * a a = a*a k\u003e\u003e=1 return res def calc(a, b): primes = get_primes(a) n = len(primes) res = 1 for i, p in enumerate(primes): s = get(a, p) - get(b, p) - get(a-b, p) res *= qpow(p, s) return res a, b = map(int, input().split()) print(calc(a, b)) 高斯消元 eps = 1e-8 # 根据需要调整 # a 是增广矩阵，n 是矩阵维度 def gauss(a, n): c, r = 0, 0 for c in range(n): t = r for i in range(r, n): if abs(a[i][c]) \u003e abs(a[t][c]): t = i if abs(a[t][c]) \u003c eps: continue for i in range(c, n + 1): a[r][i], a[t][i] = a[t][i], a[r][i] for i in range(n, c - 1, -1): a[r][i] //= a[r][c] for i in range(r + 1, n): if abs(a[i][c]) \u003e eps: for j in range(n, c - 1, -1): a[i][j] -= a[r][j] * a[i][c] r += 1 if r \u003c n: for i in range(r, n): if abs(a[i][n]) \u003e eps: return 2 # 无解 return 1 # 有无穷多组解 for i in range(n - 1, -1, -1): for j in range(i + 1, n): a[i][n] -= a[i][j] * a[j][n] return 0 # 有唯一解 # Example usage: # a = [[2, 1, -1, 8], [-3, -1, 2, -11], [-2, 1, 2, -3]] # n = 3 # result = gauss(a, n) # print(result) ","wordCount":"1837","inLanguage":"zh","datePublished":"2024-04-09T15:37:01+08:00","dateModified":"2024-04-09T15:37:01+08:00","author":{"@type":"Person","name":"ShowGuan"},"mainEntityOfPage":{"@type":"WebPage","@id":"https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E5%9B%9B%E6%95%B0%E5%AD%A6python%E5%AE%9E%E7%8E%B0/"},"publisher":{"@type":"Organization","name":"Kennem's Blog","logo":{"@type":"ImageObject","url":"https://kennems.github.io/img/sun.png"}}}</script><script src=https://cdn.jsdelivr.net/npm/jquery@3.5.1/dist/jquery.min.js></script><link rel=stylesheet href=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.css><script src=https://cdn.jsdelivr.net/gh/fancyapps/fancybox@3.5.7/dist/jquery.fancybox.min.js></script></head><body id=top><header class=header><nav class=header-nav><div class=logo><a href=https://kennems.github.io/ accesskey=h title="Kennem's Blog (Alt + H)"><img src=https://kennems.github.io/img/sun.png alt aria-label=logo height=35>Kennem's Blog</a><div class=logo-switches><button id=theme-toggle class=theme-toggle accesskey=t title="(Alt + T)" aria-label="Toggle theme">
+<svg class="moon" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"/></svg>
+<svg class="sun" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+<svg class="auto" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></button></div></div><ul id=menu class=menu><li><a href=https://kennems.github.io/ title=🏠主页><span>🏠主页</span></a></li><li><a href=https://kennems.github.io/search title="🔍搜索 (Alt + /)" accesskey=/><span>🔍搜索</span></a></li><li><a href=https://kennems.github.io/posts title=📚文章><span>📚文章</span></a></li><li><a href=https://kennems.github.io/archives title=⏱时间轴><span>⏱时间轴</span></a></li><li><a href=https://kennems.github.io/tags title=🔖标签><span>🔖标签</span></a></li><li><a href=https://kennems.github.io/categories title=🗂️分类><span>🗂️分类</span></a></li><li><a href=https://kennems.github.io/about title=🙋🏻‍♂️关于><span>🙋🏻‍♂️关于</span></a></li></ul></nav></header><main class=main><article class=post-single><header class=post-header><nav class=breadcrumbs role=navigation aria-label=Breadcrumb><a href=/>主页</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/>📚文章</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg>
+<a href=/posts/tech/>💻技术</a>
+<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevron-right"><polyline points="9 18 15 12 9 6"/></svg></nav><h1 class="post-title entry-hint-parent">算法笔记（四）——数学（Python实现）</h1><div class=post-description>算法笔记（四）——数学（Python实现）</div><div class=post-meta><span title='2024-04-09 15:37:01 +0800 +0800'>2024-04-09</span>&nbsp;·&nbsp;<span>4 分钟</span>&nbsp;·&nbsp;<span>1837 字</span>&nbsp;·&nbsp;<span>ShowGuan</span></div><div class=post-password></div></header><aside id=toc-container class="toc-container wide"><div class=toc><details open><summary accesskey=c title="(Alt + C)"><span class=details>目录</span></summary><div class=inner><ul><li><a href=#%e7%ae%97%e6%b3%95%e7%ac%94%e8%ae%b0%e5%9b%9b%e6%95%b0%e5%ad%a6python%e5%ae%9e%e7%8e%b0 aria-label=算法笔记（四）——数学（Python实现）>算法笔记（四）——数学（Python实现）</a><ul><li><a href=#%e6%95%b0%e5%ad%a6 aria-label=数学>数学</a><ul><li><a href=#%e8%af%95%e9%99%a4%e6%b3%95%e5%88%a4%e5%ae%9a%e8%b4%a8%e6%95%b0 aria-label=试除法判定质数>试除法判定质数</a></li><li><a href=#%e8%af%95%e9%99%a4%e6%b3%95%e5%88%86%e8%a7%a3%e8%b4%a8%e5%9b%a0%e6%95%b0 aria-label=试除法分解质因数>试除法分解质因数</a></li><li><a href=#%e7%ba%bf%e6%80%a7%e7%ad%9b%e6%b3%95%e6%b1%82%e7%b4%a0%e6%95%b0 aria-label=线性筛法求素数>线性筛法求素数</a><ul><ul><li><a href=#%e6%9c%b4%e7%b4%a0%e7%ad%9b%e6%b3%95%e6%b1%82%e7%b4%a0%e6%95%b0 aria-label=朴素筛法求素数>朴素筛法求素数</a></li></ul></ul></li><li><a href=#%e8%af%95%e9%99%a4%e6%b3%95%e6%b1%82%e6%89%80%e6%9c%89%e7%ba%a6%e6%95%b0 aria-label=试除法求所有约数>试除法求所有约数</a></li><li><a href=#%e7%ba%a6%e6%95%b0%e4%b8%aa%e6%95%b0%e5%92%8c%e7%ba%a6%e6%95%b0%e4%b9%8b%e5%92%8c aria-label=约数个数和约数之和>约数个数和约数之和</a><ul><li><a href=#%e7%ba%a6%e6%95%b0%e4%b9%8b%e5%92%8c aria-label=约数之和><a href=https://www.acwing.com/problem/content/description/99/>约数之和</a></a></li></ul></li><li><a href=#gcd aria-label=gcd>gcd</a></li><li><a href=#%e6%b1%82%e6%ac%a7%e6%8b%89%e5%87%bd%e6%95%b0 aria-label=求欧拉函数>求欧拉函数</a></li><li><a href=#%e7%ad%9b%e6%b3%95%e6%b1%82%e6%ac%a7%e6%8b%89%e5%87%bd%e6%95%b0 aria-label=筛法求欧拉函数>筛法求欧拉函数</a></li><li><a href=#%e5%bf%ab%e9%80%9f%e5%b9%82 aria-label=快速幂>快速幂</a></li><li><a href=#%e6%8b%93%e5%b1%95%e6%ac%a7%e5%87%a0%e9%87%8c%e5%be%97 aria-label=拓展欧几里得>拓展欧几里得</a><ul><li><a href=#p1082-noip2012-%e6%8f%90%e9%ab%98%e7%bb%84-%e5%90%8c%e4%bd%99%e6%96%b9%e7%a8%8b aria-label="P1082 [NOIP2012 提高组] 同余方程"><a href=https://www.luogu.com.cn/problem/P1082>P1082 [NOIP2012 提高组] 同余方程</a></a></li></ul></li><li><a href=#%e9%80%92%e6%8e%a8%e6%b3%95%e6%b1%82%e7%bb%84%e5%90%88%e6%95%b0 aria-label=递推法求组合数>递推法求组合数</a></li><li><a href=#%e9%80%9a%e8%bf%87%e9%a2%84%e5%a4%84%e7%90%86%e9%80%86%e5%85%83%e7%9a%84%e6%96%b9%e5%bc%8f%e6%b1%82%e7%bb%84%e5%90%88%e6%95%b0 aria-label=通过预处理逆元的方式求组合数>通过预处理逆元的方式求组合数</a></li><li><a href=#lucas%e5%ae%9a%e7%90%86 aria-label=Lucas定理>Lucas定理</a></li><li><a href=#%e5%88%86%e8%a7%a3%e8%b4%a8%e5%9b%a0%e6%95%b0%e6%b3%95%e6%b1%82%e7%bb%84%e5%90%88%e6%95%b0 aria-label=分解质因数法求组合数>分解质因数法求组合数</a></li><li><a href=#%e9%ab%98%e6%96%af%e6%b6%88%e5%85%83 aria-label=高斯消元>高斯消元</a></li></ul></li></ul></li></ul></div></details></div></aside><script>let activeElement,elements;window.addEventListener("DOMContentLoaded",function(){checkTocPosition(),elements=document.querySelectorAll("h1[id],h2[id],h3[id],h4[id],h5[id],h6[id]"),activeElement=elements[0];const t=encodeURI(activeElement.getAttribute("id")).toLowerCase();document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active")},!1),window.addEventListener("resize",function(){checkTocPosition()},!1),window.addEventListener("scroll",()=>{activeElement=Array.from(elements).find(e=>{if(getOffsetTop(e)-window.pageYOffset>0&&getOffsetTop(e)-window.pageYOffset<window.innerHeight/2)return e})||activeElement,elements.forEach(e=>{const t=encodeURI(e.getAttribute("id")).toLowerCase();e===activeElement?document.querySelector(`.inner ul li a[href="#${t}"]`).classList.add("active"):document.querySelector(`.inner ul li a[href="#${t}"]`).classList.remove("active")})},!1);const main=parseInt(getComputedStyle(document.body).getPropertyValue("--article-width"),10),toc=parseInt(getComputedStyle(document.body).getPropertyValue("--toc-width"),10),gap=parseInt(getComputedStyle(document.body).getPropertyValue("--gap"),10);function checkTocPosition(){const e=document.body.scrollWidth;e-main-toc*2-gap*4>0?document.getElementById("toc-container").classList.add("wide"):document.getElementById("toc-container").classList.remove("wide")}function getOffsetTop(e){if(!e.getClientRects().length)return 0;let t=e.getBoundingClientRect(),n=e.ownerDocument.defaultView;return t.top+n.pageYOffset}</script><div class="post-content md-content"><h1 id=算法笔记四数学python实现>算法笔记（四）——数学（Python实现）<a hidden class=anchor aria-hidden=true href=#算法笔记四数学python实现>#</a></h1><h2 id=数学>数学<a hidden class=anchor aria-hidden=true href=#数学>#</a></h2><h3 id=试除法判定质数>试除法判定质数<a hidden class=anchor aria-hidden=true href=#试除法判定质数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>check</span>(x): <span style=color:#75715e># 判定</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> x<span style=color:#f92672>&lt;</span><span style=color:#ae81ff>2</span>:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>False</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, int(x<span style=color:#f92672>**</span><span style=color:#ae81ff>0.5</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> x<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>False</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>    x <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> check(x):
+</span></span><span style=display:flex><span>        print(<span style=color:#e6db74>&#34;Yes&#34;</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>else</span>:
+</span></span><span style=display:flex><span>        print(<span style=color:#e6db74>&#34;No&#34;</span>)
+</span></span></code></pre></div><h3 id=试除法分解质因数>试除法分解质因数<a hidden class=anchor aria-hidden=true href=#试除法分解质因数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(x): <span style=color:#75715e>#分解</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, int(x<span style=color:#f92672>**</span><span style=color:#ae81ff>0.5</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> x<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>            cnt<span style=color:#f92672>=</span><span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>while</span> x<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>                x<span style=color:#f92672>//=</span>i
+</span></span><span style=display:flex><span>                cnt<span style=color:#f92672>+=</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>            print(i, cnt, sep<span style=color:#f92672>=</span><span style=color:#e6db74>&#39; &#39;</span>)
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> x<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>        print(x, <span style=color:#ae81ff>1</span>, sep<span style=color:#f92672>=</span><span style=color:#e6db74>&#39; &#39;</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>    x <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span>    get(x)
+</span></span><span style=display:flex><span>    print()
+</span></span></code></pre></div><h3 id=线性筛法求素数>线性筛法求素数<a hidden class=anchor aria-hidden=true href=#线性筛法求素数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-python data-lang=python><span style=display:flex><span>N <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>1e6</span><span style=color:#f92672>+</span><span style=color:#ae81ff>10</span>)
+</span></span><span style=display:flex><span>primes <span style=color:#f92672>=</span> []
+</span></span><span style=display:flex><span>st <span style=color:#f92672>=</span> [<span style=color:#66d9ef>False</span>]<span style=color:#f92672>*</span>N
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(n):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, n<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> st[i]:
+</span></span><span style=display:flex><span>            primes<span style=color:#f92672>.</span>append(i)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> j <span style=color:#f92672>in</span> range(len(primes)):
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> i<span style=color:#f92672>*</span>primes[j]<span style=color:#f92672>&gt;</span>n:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>            st[i<span style=color:#f92672>*</span>primes[j]]<span style=color:#f92672>=</span><span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> i<span style=color:#f92672>%</span>primes[j]<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span>get(n)
+</span></span><span style=display:flex><span>print(len(primes))
+</span></span></code></pre></div><h5 id=朴素筛法求素数>朴素筛法求素数<a hidden class=anchor aria-hidden=true href=#朴素筛法求素数>#</a></h5><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span>N <span style=color:#f92672>=</span> <span style=color:#ae81ff>1000005</span>  <span style=color:#75715e># 根据需要修改</span>
+</span></span><span style=display:flex><span>primes <span style=color:#f92672>=</span> []  <span style=color:#75715e># 存储所有素数</span>
+</span></span><span style=display:flex><span>st <span style=color:#f92672>=</span> [<span style=color:#66d9ef>False</span>] <span style=color:#f92672>*</span> N  <span style=color:#75715e># st[x]存储x是否被筛掉</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 筛素数函数</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get_primes</span>(n):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>global</span> primes
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>global</span> st
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, n <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> st[i]:
+</span></span><span style=display:flex><span>            primes<span style=color:#f92672>.</span>append(i)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>for</span> j <span style=color:#f92672>in</span> range(i, n <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>, i):
+</span></span><span style=display:flex><span>                st[j] <span style=color:#f92672>=</span> <span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Example usage:</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># get_primes(100)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># print(primes)</span>
+</span></span></code></pre></div><h3 id=试除法求所有约数>试除法求所有约数<a hidden class=anchor aria-hidden=true href=#试除法求所有约数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(x):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> [<span style=color:#ae81ff>1</span>]
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, int(x<span style=color:#f92672>**</span><span style=color:#ae81ff>0.5</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> x<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>            res<span style=color:#f92672>.</span>append(i)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> i<span style=color:#f92672>!=</span>x<span style=color:#f92672>//</span>i:
+</span></span><span style=display:flex><span>                res<span style=color:#f92672>.</span>append(x<span style=color:#f92672>//</span>i)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> x<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>        res<span style=color:#f92672>.</span>append(x)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> sorted(res)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>    x <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> get(x)
+</span></span><span style=display:flex><span>    print(<span style=color:#f92672>*</span>res)
+</span></span></code></pre></div><h3 id=约数个数和约数之和>约数个数和约数之和<a hidden class=anchor aria-hidden=true href=#约数个数和约数之和>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-fallback data-lang=fallback><span style=display:flex><span>如果 N = p1^c1 * p2^c2 * ... *pk^ck
+</span></span><span style=display:flex><span>约数个数： (c1 + 1) * (c2 + 1) * ... * (ck + 1)
+</span></span><span style=display:flex><span>约数之和： (p1^0 + p1^1 + ... + p1^c1) * ... * (pk^0 + pk^1 + ... + pk^ck)
+</span></span></code></pre></div><h4 id=约数之和><a href=https://www.acwing.com/problem/content/description/99/>约数之和</a><a hidden class=anchor aria-hidden=true href=#约数之和>#</a></h4><p><strong>题目大意</strong>：给定两个自然数 A 和 B，定义 S 为 A*B 的所有约数之和。求 S mod 9901 的值。</p><p><strong>实现思路</strong>：首先，我们需要编写一个快速幂函数 qpow(a, k) 来计算幂运算的结果。然后，定义一个函数 calc(p, k) 来计算 p^k 的结果并对 mod 取余。在主程序中，我们对 A 进行质因数分解，并计算每个质因数的幂次方与 B 的乘积，并累加到最终结果 res 中。最后，输出 res 的值对 mod 9901 取余的结果。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#f92672>import</span> sys
+</span></span><span style=display:flex><span>input <span style=color:#f92672>=</span> <span style=color:#66d9ef>lambda</span>:sys<span style=color:#f92672>.</span>stdin<span style=color:#f92672>.</span>readline()<span style=color:#f92672>.</span>strip()
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>mod <span style=color:#f92672>=</span> <span style=color:#ae81ff>9901</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>qpow</span>(a, k):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> k:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> k<span style=color:#f92672>&amp;</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>            res <span style=color:#f92672>=</span> res<span style=color:#f92672>*</span>a<span style=color:#f92672>%</span>mod
+</span></span><span style=display:flex><span>        a <span style=color:#f92672>=</span> a<span style=color:#f92672>*</span>a<span style=color:#f92672>%</span>mod
+</span></span><span style=display:flex><span>        k<span style=color:#f92672>&gt;&gt;=</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>calc</span>(p, k):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> k<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>: <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> k<span style=color:#f92672>%</span><span style=color:#ae81ff>2</span><span style=color:#f92672>==</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> (<span style=color:#ae81ff>1</span><span style=color:#f92672>+</span>qpow(p, k<span style=color:#f92672>//</span><span style=color:#ae81ff>2</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>)) <span style=color:#f92672>*</span> calc(p, k<span style=color:#f92672>//</span><span style=color:#ae81ff>2</span>) <span style=color:#f92672>%</span> mod
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> (qpow(p, k)<span style=color:#f92672>%</span>mod <span style=color:#f92672>+</span> (<span style=color:#ae81ff>1</span> <span style=color:#f92672>+</span> qpow(p, (k<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)<span style=color:#f92672>//</span><span style=color:#ae81ff>2</span><span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>)) <span style=color:#f92672>*</span> calc(p, (k<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)<span style=color:#f92672>//</span><span style=color:#ae81ff>2</span>)) <span style=color:#f92672>%</span> mod
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>a, b <span style=color:#f92672>=</span> map(int, input()<span style=color:#f92672>.</span>split())
+</span></span><span style=display:flex><span>res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, a<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> a<span style=color:#f92672>&lt;</span>i:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>    s <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> a<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>        s<span style=color:#f92672>+=</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>        a<span style=color:#f92672>//=</span>i
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> s:
+</span></span><span style=display:flex><span>        res <span style=color:#f92672>=</span> res <span style=color:#f92672>*</span> calc(i, s<span style=color:#f92672>*</span>b) <span style=color:#f92672>%</span> mod
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>print(res <span style=color:#66d9ef>if</span> a <span style=color:#66d9ef>else</span> <span style=color:#ae81ff>0</span>)
+</span></span></code></pre></div><h3 id=gcd>gcd<a hidden class=anchor aria-hidden=true href=#gcd>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>gcd</span>(a, b):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> gcd(b, a <span style=color:#f92672>%</span> b) <span style=color:#66d9ef>if</span> b <span style=color:#66d9ef>else</span> a
+</span></span></code></pre></div><h3 id=求欧拉函数>求欧拉函数<a hidden class=anchor aria-hidden=true href=#求欧拉函数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(x):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> x
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, int(x<span style=color:#f92672>**</span><span style=color:#ae81ff>0.5</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> x<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>            res <span style=color:#f92672>=</span> res<span style=color:#f92672>//</span>i<span style=color:#f92672>*</span>(i<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>while</span> x<span style=color:#f92672>%</span>i<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>                x<span style=color:#f92672>//=</span>i
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> x<span style=color:#f92672>&gt;</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>        res <span style=color:#f92672>=</span> res<span style=color:#f92672>//</span>x<span style=color:#f92672>*</span>(x<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>    x <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span>    print(get(x))
+</span></span></code></pre></div><h3 id=筛法求欧拉函数>筛法求欧拉函数<a hidden class=anchor aria-hidden=true href=#筛法求欧拉函数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span>N <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>1e6</span><span style=color:#f92672>+</span><span style=color:#ae81ff>10</span>)
+</span></span><span style=display:flex><span>primes <span style=color:#f92672>=</span> []
+</span></span><span style=display:flex><span>euler <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span>]<span style=color:#f92672>*</span>N
+</span></span><span style=display:flex><span>st <span style=color:#f92672>=</span> [<span style=color:#66d9ef>False</span>]<span style=color:#f92672>*</span>N
+</span></span><span style=display:flex><span>cnt <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(n):
+</span></span><span style=display:flex><span>    euler[<span style=color:#ae81ff>1</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, n<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> st[i]:
+</span></span><span style=display:flex><span>            primes<span style=color:#f92672>.</span>append(i)
+</span></span><span style=display:flex><span>            euler[i] <span style=color:#f92672>=</span> i<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> j <span style=color:#f92672>in</span> range(len(primes)):
+</span></span><span style=display:flex><span>            t <span style=color:#f92672>=</span> primes[j]<span style=color:#f92672>*</span>i
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> t<span style=color:#f92672>&gt;</span>n:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>            st[t] <span style=color:#f92672>=</span> <span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> i<span style=color:#f92672>%</span>primes[j]<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>                euler[t] <span style=color:#f92672>=</span> euler[i]<span style=color:#f92672>*</span>primes[j]
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>            euler[t] <span style=color:#f92672>=</span> euler[i]<span style=color:#f92672>*</span>(primes[j]<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span>get(n)
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>1</span>,n<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>    cnt<span style=color:#f92672>+=</span>euler[i]
+</span></span><span style=display:flex><span>print(cnt)
+</span></span></code></pre></div><h3 id=快速幂>快速幂<a hidden class=anchor aria-hidden=true href=#快速幂>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#75715e># 快速幂函数</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>qmi</span>(m, k, p):
+</span></span><span style=display:flex><span>    res, t <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span> <span style=color:#f92672>%</span> p, m
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> k:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> k <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>            res <span style=color:#f92672>=</span> res <span style=color:#f92672>*</span> t <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>        t <span style=color:#f92672>=</span> t <span style=color:#f92672>*</span> t <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>        k <span style=color:#f92672>&gt;&gt;=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Example usage:</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># result = qmi(2, 10, 1000000007)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># print(result)</span>
+</span></span></code></pre></div><h3 id=拓展欧几里得>拓展欧几里得<a hidden class=anchor aria-hidden=true href=#拓展欧几里得>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#75715e># 求 x, y，使得 ax + by = gcd(a, b)</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>exgcd</span>(a, b, x, y):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> b <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>        x[<span style=color:#ae81ff>0</span>], y[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> a
+</span></span><span style=display:flex><span>    d <span style=color:#f92672>=</span> exgcd(b, a <span style=color:#f92672>%</span> b, y, x)
+</span></span><span style=display:flex><span>    y[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>-=</span> (a <span style=color:#f92672>//</span> b) <span style=color:#f92672>*</span> x[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> d
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Example usage:</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># x = [0]</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># y = [0]</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># gcd = exgcd(30, 20, x, y)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># print(&#34;x:&#34;, x[0], &#34;y:&#34;, y[0], &#34;gcd:&#34;, gcd)</span>
+</span></span></code></pre></div><h4 id=p1082-noip2012-提高组-同余方程><a href=https://www.luogu.com.cn/problem/P1082>P1082 [NOIP2012 提高组] 同余方程</a><a hidden class=anchor aria-hidden=true href=#p1082-noip2012-提高组-同余方程>#</a></h4><ul><li><p>题目描述：求解关于x的同余方程$ax ≡ 1 (mod b)$的最小正整数解。</p></li><li><p>实现思路：这个问题可以转化为求解$ax + by = gcd(a, b)$的解，其中x就是我们需要的结果。可以利用扩展欧几里得算法来求解这个方程。具体地，通过递归的方式求解出最大公约数，并且求解出使得$ax + by = gcd(a, b)$成立的整数x和y。然后通过对x取模b的操作得到最小正整数解x。最后输出x即可。</p></li></ul><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#75715e># 求 x, y，使得 ax + by = gcd(a, b)</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>exgcd</span>(a, b, x, y):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> b <span style=color:#f92672>==</span> <span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>        x[<span style=color:#ae81ff>0</span>], y[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>, <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> a
+</span></span><span style=display:flex><span>    d <span style=color:#f92672>=</span> exgcd(b, a <span style=color:#f92672>%</span> b, y, x)
+</span></span><span style=display:flex><span>    y[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>-=</span> (a <span style=color:#f92672>//</span> b) <span style=color:#f92672>*</span> x[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> d
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>a, b <span style=color:#f92672>=</span> map(int, input()<span style=color:#f92672>.</span>split())
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>x, y <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span>], [<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>exgcd(a, b, x, y)
+</span></span><span style=display:flex><span>x <span style=color:#f92672>=</span> x[<span style=color:#ae81ff>0</span>]
+</span></span><span style=display:flex><span>x <span style=color:#f92672>=</span> (x<span style=color:#f92672>%</span>b<span style=color:#f92672>+</span>b)<span style=color:#f92672>%</span>b
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>print(x)
+</span></span></code></pre></div><h3 id=递推法求组合数>递推法求组合数<a hidden class=anchor aria-hidden=true href=#递推法求组合数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span>N <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>2e3</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span>mod <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>1e9</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span>c <span style=color:#f92672>=</span> [[<span style=color:#ae81ff>0</span>]<span style=color:#f92672>*</span>N <span style=color:#66d9ef>for</span> _ <span style=color:#f92672>in</span> range(N)]
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(n):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> j <span style=color:#f92672>in</span> range(i<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> j<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>                c[i][j] <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>else</span>:
+</span></span><span style=display:flex><span>                c[i][j] <span style=color:#f92672>=</span> (c[i<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>][j]<span style=color:#f92672>+</span>c[i<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>][j<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>])<span style=color:#f92672>%</span>mod
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>MN <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>2e3</span>)
+</span></span><span style=display:flex><span>get(MN)
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>    a, b <span style=color:#f92672>=</span> map(int, input()<span style=color:#f92672>.</span>split())
+</span></span><span style=display:flex><span>    print(c[a][b])
+</span></span></code></pre></div><h3 id=通过预处理逆元的方式求组合数>通过预处理逆元的方式求组合数<a hidden class=anchor aria-hidden=true href=#通过预处理逆元的方式求组合数>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span>mod <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>1e9</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>7</span>
+</span></span><span style=display:flex><span>N <span style=color:#f92672>=</span> int(<span style=color:#ae81ff>2e5</span>)<span style=color:#f92672>+</span><span style=color:#ae81ff>10</span>
+</span></span><span style=display:flex><span>fact, infact <span style=color:#f92672>=</span> [<span style=color:#ae81ff>0</span>]<span style=color:#f92672>*</span>N, [<span style=color:#ae81ff>0</span>]<span style=color:#f92672>*</span>N
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>qpow</span>(a, k, p):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> k:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> k<span style=color:#f92672>&amp;</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>            res <span style=color:#f92672>=</span> (res<span style=color:#f92672>*</span>a)<span style=color:#f92672>%</span>p
+</span></span><span style=display:flex><span>        a <span style=color:#f92672>=</span> (a<span style=color:#f92672>*</span>a)<span style=color:#f92672>%</span>p
+</span></span><span style=display:flex><span>        k<span style=color:#f92672>&gt;&gt;=</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>init</span>():
+</span></span><span style=display:flex><span>    fact[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> infact[<span style=color:#ae81ff>0</span>] <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>1</span>, N):
+</span></span><span style=display:flex><span>        fact[i] <span style=color:#f92672>=</span> (fact[i<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>*</span>i)<span style=color:#f92672>%</span>mod
+</span></span><span style=display:flex><span>        infact[i] <span style=color:#f92672>=</span> (infact[i<span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]<span style=color:#f92672>*</span>qpow(i, mod<span style=color:#f92672>-</span><span style=color:#ae81ff>2</span>, mod))<span style=color:#f92672>%</span>mod
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>C</span>(n, m):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> n<span style=color:#f92672>&lt;</span>m:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> (fact[n]<span style=color:#f92672>*</span>infact[m]<span style=color:#f92672>%</span>mod<span style=color:#f92672>*</span>infact[n<span style=color:#f92672>-</span>m]<span style=color:#f92672>%</span>mod)
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>init()
+</span></span><span style=display:flex><span>n <span style=color:#f92672>=</span> int(input())
+</span></span><span style=display:flex><span><span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>    a, b <span style=color:#f92672>=</span> map(int, input()<span style=color:#f92672>.</span>split())
+</span></span><span style=display:flex><span>    print(C(a, b))
+</span></span></code></pre></div><h3 id=lucas定理>Lucas定理<a hidden class=anchor aria-hidden=true href=#lucas定理>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span>p <span style=color:#f92672>=</span> <span style=color:#ae81ff>1000000007</span>  <span style=color:#75715e># 根据需要调整</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 快速幂模板</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>qmi</span>(a, k):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> k:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> k <span style=color:#f92672>&amp;</span> <span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>            res <span style=color:#f92672>=</span> (res <span style=color:#f92672>*</span> a) <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>        a <span style=color:#f92672>=</span> (a <span style=color:#f92672>*</span> a) <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>        k <span style=color:#f92672>&gt;&gt;=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># 通过定理求组合数C(a, b)</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>C</span>(a, b):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>1</span>, b <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        res <span style=color:#f92672>=</span> (res <span style=color:#f92672>*</span> (a <span style=color:#f92672>-</span> i <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>)) <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>        res <span style=color:#f92672>=</span> (res <span style=color:#f92672>*</span> qmi(i, p <span style=color:#f92672>-</span> <span style=color:#ae81ff>2</span>)) <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Lucas定理计算组合数</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>lucas</span>(a, b):
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> a <span style=color:#f92672>&lt;</span> p <span style=color:#f92672>and</span> b <span style=color:#f92672>&lt;</span> p:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> C(a, b)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> (C(a <span style=color:#f92672>%</span> p, b <span style=color:#f92672>%</span> p) <span style=color:#f92672>*</span> lucas(a <span style=color:#f92672>//</span> p, b <span style=color:#f92672>//</span> p)) <span style=color:#f92672>%</span> p
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Example usage:</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># result = lucas(10, 5)  # 计算组合数 C(10, 5)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># print(result)</span>
+</span></span></code></pre></div><h3 id=分解质因数法求组合数>分解质因数法求组合数<a hidden class=anchor aria-hidden=true href=#分解质因数法求组合数>#</a></h3><p>分解质因数法计算组合数：</p><ol><li>获取小于等于 <code>a</code> 的所有质数。</li><li>初始化质数的幂次列表 <code>s</code>。</li><li>对每个质数 <code>p</code>，计算在 <code>a!</code>，<code>b!</code> 和 <code>(a-b)!</code> 中 <code>p</code> 的幂次，通过 <code>get(a, p) - get(b, p) - get(a - b, p)</code> 得到组合数分解中 <code>p</code> 的总幂次。</li><li>通过快速幂计算每个质数 <code>p</code> 的幂次乘积，最终得到组合数。</li></ol><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get_primes</span>(n):
+</span></span><span style=display:flex><span>    primes <span style=color:#f92672>=</span> []
+</span></span><span style=display:flex><span>    st <span style=color:#f92672>=</span> [<span style=color:#66d9ef>False</span>]<span style=color:#f92672>*</span>(n<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(<span style=color:#ae81ff>2</span>, n<span style=color:#f92672>+</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> <span style=color:#f92672>not</span> st[i]:
+</span></span><span style=display:flex><span>            primes<span style=color:#f92672>.</span>append(i)
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> p <span style=color:#f92672>in</span> primes:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> i<span style=color:#f92672>*</span>p<span style=color:#f92672>&gt;</span>n:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>            st[i<span style=color:#f92672>*</span>p] <span style=color:#f92672>=</span> <span style=color:#66d9ef>True</span>
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> i<span style=color:#f92672>%</span>p<span style=color:#f92672>==</span><span style=color:#ae81ff>0</span>:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>break</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> primes
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>get</span>(n, p):
+</span></span><span style=display:flex><span>    cnt <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> n:
+</span></span><span style=display:flex><span>        cnt <span style=color:#f92672>+=</span> n<span style=color:#f92672>//</span>p
+</span></span><span style=display:flex><span>        n<span style=color:#f92672>//=</span>p
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> cnt
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>qpow</span>(a, k):
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>while</span> k:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> k<span style=color:#f92672>&amp;</span><span style=color:#ae81ff>1</span>:
+</span></span><span style=display:flex><span>            res <span style=color:#f92672>=</span> res <span style=color:#f92672>*</span> a
+</span></span><span style=display:flex><span>        a <span style=color:#f92672>=</span> a<span style=color:#f92672>*</span>a
+</span></span><span style=display:flex><span>        k<span style=color:#f92672>&gt;&gt;=</span><span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span>    
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>calc</span>(a, b):
+</span></span><span style=display:flex><span>    primes <span style=color:#f92672>=</span> get_primes(a)
+</span></span><span style=display:flex><span>    n <span style=color:#f92672>=</span> len(primes)
+</span></span><span style=display:flex><span>    res <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i, p <span style=color:#f92672>in</span> enumerate(primes):
+</span></span><span style=display:flex><span>        s <span style=color:#f92672>=</span> get(a, p) <span style=color:#f92672>-</span> get(b, p) <span style=color:#f92672>-</span> get(a<span style=color:#f92672>-</span>b, p)
+</span></span><span style=display:flex><span>        res <span style=color:#f92672>*=</span> qpow(p, s)
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> res
+</span></span><span style=display:flex><span>        
+</span></span><span style=display:flex><span>a, b <span style=color:#f92672>=</span> map(int, input()<span style=color:#f92672>.</span>split())
+</span></span><span style=display:flex><span>print(calc(a, b))
+</span></span></code></pre></div><h3 id=高斯消元>高斯消元<a hidden class=anchor aria-hidden=true href=#高斯消元>#</a></h3><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;-webkit-text-size-adjust:none><code class=language-py data-lang=py><span style=display:flex><span>eps <span style=color:#f92672>=</span> <span style=color:#ae81ff>1e-8</span>  <span style=color:#75715e># 根据需要调整</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># a 是增广矩阵，n 是矩阵维度</span>
+</span></span><span style=display:flex><span><span style=color:#66d9ef>def</span> <span style=color:#a6e22e>gauss</span>(a, n):
+</span></span><span style=display:flex><span>    c, r <span style=color:#f92672>=</span> <span style=color:#ae81ff>0</span>, <span style=color:#ae81ff>0</span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> c <span style=color:#f92672>in</span> range(n):
+</span></span><span style=display:flex><span>        t <span style=color:#f92672>=</span> r
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(r, n):
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> abs(a[i][c]) <span style=color:#f92672>&gt;</span> abs(a[t][c]):
+</span></span><span style=display:flex><span>                t <span style=color:#f92672>=</span> i
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>if</span> abs(a[t][c]) <span style=color:#f92672>&lt;</span> eps:
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>continue</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(c, n <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>            a[r][i], a[t][i] <span style=color:#f92672>=</span> a[t][i], a[r][i]
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n, c <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>            a[r][i] <span style=color:#f92672>//=</span> a[r][c]
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(r <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>, n):
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> abs(a[i][c]) <span style=color:#f92672>&gt;</span> eps:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>for</span> j <span style=color:#f92672>in</span> range(n, c <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>                    a[i][j] <span style=color:#f92672>-=</span> a[r][j] <span style=color:#f92672>*</span> a[i][c]
+</span></span><span style=display:flex><span>        r <span style=color:#f92672>+=</span> <span style=color:#ae81ff>1</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>if</span> r <span style=color:#f92672>&lt;</span> n:
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(r, n):
+</span></span><span style=display:flex><span>            <span style=color:#66d9ef>if</span> abs(a[i][n]) <span style=color:#f92672>&gt;</span> eps:
+</span></span><span style=display:flex><span>                <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>2</span>  <span style=color:#75715e># 无解</span>
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>1</span>  <span style=color:#75715e># 有无穷多组解</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>for</span> i <span style=color:#f92672>in</span> range(n <span style=color:#f92672>-</span> <span style=color:#ae81ff>1</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>, <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>):
+</span></span><span style=display:flex><span>        <span style=color:#66d9ef>for</span> j <span style=color:#f92672>in</span> range(i <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>, n):
+</span></span><span style=display:flex><span>            a[i][n] <span style=color:#f92672>-=</span> a[i][j] <span style=color:#f92672>*</span> a[j][n]
+</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#ae81ff>0</span>  <span style=color:#75715e># 有唯一解</span>
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span><span style=color:#75715e># Example usage:</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># a = [[2, 1, -1, 8], [-3, -1, 2, -11], [-2, 1, 2, -3]]</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># n = 3</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># result = gauss(a, n)</span>
+</span></span><span style=display:flex><span><span style=color:#75715e># print(result)</span>
+</span></span></code></pre></div></div><footer class=post-footer><ul class=post-tags><li><a href=https://kennems.github.io/tags/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0/>算法笔记</a></li><li><a href=https://kennems.github.io/tags/python/>Python</a></li></ul><ul id=categories><li><a href=https://kennems.github.io/categories/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0>算法笔记</a></li></ul><nav class=paginav><a class=prev href=https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%B8%89%E5%9B%BE%E8%AE%BApython%E5%AE%9E%E7%8E%B0/><span class=title>« 上一页</span>
+<span>算法笔记（三）——图论（Python实现）</span>
+</a><a class=next href=https://kennems.github.io/posts/tech/%E7%AE%97%E6%B3%95%E7%AC%94%E8%AE%B0%E4%BA%94dppython%E5%AE%9E%E7%8E%B0/><span class=title>下一页 »</span>
+<span>算法笔记（五）——DP（Python实现）</span></a></nav></footer></article></main><footer class=footer><span>&copy; 2026 <a href=https://kennems.github.io/>Kennem's Blog</a></span> ·
+<span>Powered by
+<a href="https://gohugo.io/?utm_source=papermod" rel=noopener target=_blank>Hugo</a> &
+<a href=https://github.com/adityatelange/hugo-PaperMod/ rel=noopener target=_blank>PaperMod</a></span></footer><a href=#top id=top-link class="top-link hidden" aria-label="go to top" title="Go to Top (Alt + G)" accesskey=g><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="feather feather-chevrons-up"><polyline points="17 11 12 6 7 11"/><polyline points="17 18 12 13 7 18"/></svg>
+</a><script>let menu=document.getElementById("menu");if(menu){const e=localStorage.getItem("menu-scroll-position");e&&(menu.scrollLeft=parseInt(e,10)),menu.onscroll=function(){localStorage.setItem("menu-scroll-position",menu.scrollLeft)}}document.querySelectorAll('a[href^="#"]').forEach(e=>{e.addEventListener("click",function(e){e.preventDefault();var t=this.getAttribute("href").substr(1);window.matchMedia("(prefers-reduced-motion: reduce)").matches?document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView():document.querySelector(`[id='${decodeURIComponent(t)}']`).scrollIntoView({behavior:"smooth"}),t==="top"?history.replaceState(null,null," "):history.pushState(null,null,`#${t}`)})})</script><script>var toplink=document.getElementById("top-link");window.onscroll=function(){const e=window.innerHeight;document.body.scrollTop>e||document.documentElement.scrollTop>e?toplink.classList.remove("hidden"):toplink.classList.add("hidden")}</script><script>document.getElementById("theme-toggle").addEventListener("click",()=>{const e=document.querySelector("html"),t=localStorage.getItem("pref-theme")||"auto";if(t==="light")e.dataset.theme="dark",e.dataset.prefTheme="dark",localStorage.setItem("pref-theme","dark");else if(t==="dark"){const t=window.matchMedia("(prefers-color-scheme: dark)").matches;e.dataset.theme=t?"dark":"light",e.dataset.prefTheme="auto",localStorage.setItem("pref-theme","auto")}else e.dataset.theme="light",e.dataset.prefTheme="light",localStorage.setItem("pref-theme","light")})</script><script>document.querySelectorAll("pre > code").forEach(e=>{const n=e.parentNode.parentNode,t=document.createElement("button");t.classList.add("copy-code"),t.innerHTML="复制";function s(){t.innerHTML="已复制！",setTimeout(()=>{t.innerHTML="复制"},2e3)}t.addEventListener("click",t=>{if("clipboard"in navigator){navigator.clipboard.writeText(e.textContent),s();return}const n=document.createRange();n.selectNodeContents(e);const o=window.getSelection();o.removeAllRanges(),o.addRange(n);try{document.execCommand("copy"),s()}catch{}o.removeRange(n)}),n.classList.contains("highlight")?n.appendChild(t):n.parentNode.firstChild==n||(e.parentNode.parentNode.parentNode.parentNode.parentNode.nodeName=="TABLE"?e.parentNode.parentNode.parentNode.parentNode.parentNode.appendChild(t):e.parentNode.appendChild(t))})</script><footer class=footer><script async src=//busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js></script><span id=busuanzi_container>👤 Visitors: <span id=busuanzi_value_site_uv></span>
+👀 Views: <span id=busuanzi_value_site_pv></span></span></footer></body></html>
